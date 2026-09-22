@@ -5243,6 +5243,22 @@ class Camera:
         return self._isRecording
     
     @property
+    def isStopping(self):
+        """`True` if a scheduled stop is pending (`bool`).
+
+        This is the window between a call to `stop(when=...)` and the moment
+        that stop takes effect. The recording is still running and frames are
+        still going into it, but it has been told when to end.
+
+        An immediate `stop()` never shows up here, since it takes effect as it
+        is called. This goes back to `False` once the recording has been closed
+        off, at which point `isRecording` is `False` too.
+
+        """
+        return self._recordingRequested and \
+            self._tRecordingStopRequested is not None
+
+    @property
     def isStarted(self):
         """`True` if the stream has started (`bool`). This status is given after
         `open()` has been called on this object.
@@ -5705,10 +5721,16 @@ class Camera:
             cases this will result in a delay of up to 1 second before the
             recording starts.
         when : float or None
-            Absolute time in seconds to start recording. If `None`, recording
-            will start immediately. If a time is specified, the recording will
-            start at the specified time. This is useful for synchronizing the
-            recording with other devices or events.
+            How long from now to wait before starting the recording, in
+            seconds. This is an offset from the moment `record()` is called,
+            not an absolute time on any clock. If `None`, recording starts
+            immediately. This is useful for synchronizing the recording with
+            other devices or events.
+
+            Frames which arrive before the requested start time are not part
+            of the recording. They are left out of `frameCount` and out of the
+            saved file, and the recording clock (`recordingTime`) runs from the
+            deferred start rather than from the call.
 
         """
         if self.isNotStarted:
@@ -5823,12 +5845,26 @@ class Camera:
     def stop(self, when=None):
         """Stop recording frames and audio (if available).
 
+        A scheduled stop applies to both tracks, so the video ends as close to
+        the same moment as the audio as the camera's frame rate allows. The
+        recording runs on until the first frame captured at or after the stop
+        time, which is left out of it, so the footage ends within one frame
+        interval of the requested time.
+
+        Keep calling `update()` (or drawing a stimulus which polls the camera)
+        until the stop time has passed. The recording closes itself off on the
+        frame which crosses the stop time, and `update()` closes it off on the
+        clock if the camera stops delivering frames first, so a camera nobody
+        is polling will not stop when asked. Calling `save()` before then ends
+        the recording early and warns.
+
         Parameters
         ----------
         when : float or None
-            Absolute time in seconds to stop recording. If `None`, recording
-            will stop immediately. If a time is specified, the recording will
-            stop at the specified time. This is useful for synchronizing the
+            How long from now to wait before stopping, in seconds. This is an
+            offset from the moment `stop()` is called, not an absolute time on
+            any clock. If `None` (or zero, or in the past), recording stops
+            immediately. This is useful for synchronizing the end of the
             recording with other devices or events.
 
         """
@@ -5838,24 +5874,64 @@ class Camera:
         # stop the camera stream
         self._absVideoRecStopTime = self._getTime() if when is None else when + self._getTime()
 
-        # Close the gate first so that frames still in flight on the polling
-        # thread are not written to a file which is about to be closed. Setting
-        # the stop time also tells microphone backends which stream into our
-        # buffer to stop adding to it.
+        # Setting the stop time tells microphone backends which stream into our
+        # buffer to stop adding to it, and gates the frames `_onNewFrames()`
+        # takes in, so both tracks end at the same moment.
         self._tRecordingStopRequested = self._absVideoRecStopTime
-        self._recordingRequested = False
-        self._videoRecordingStarted = False
-        self._isRecording = False
 
         # stop audio recording if we have a microphone
         if self.hasMic:
             # the microphone calls its scheduled stop time `stopTime`
             self.mic.stop(stopTime=self._absVideoRecStopTime)
 
-        self._audioReady = self._videoReady = False  # reset camera ready flags
+        # A stop scheduled for the future leaves the recording running until a
+        # frame captured at or after that time comes through `_onNewFrames()`,
+        # so that the video track ends alongside the audio track rather than
+        # when this was called. An immediate stop is torn down here and now.
+        if self._absVideoRecStopTime <= self._getTime():
+            self._finaliseRecordingStop()
 
-        self._closeMovieFileWriter()
-            
+    def _finaliseRecordingStop(self):
+        """Close a recording off once its stop time has arrived.
+
+        This ends the recording and closes the movie file writer, leaving the
+        footage ready for `save()`. It is safe to call more than once, and on
+        a camera which is not recording, so whichever of `_onNewFrames()`,
+        `update()`, `stop()` or `close()` gets there first can finish the
+        recording off.
+
+        This runs on the polling thread as well as the main one, hence the
+        lock. Recording is closed off before the writer goes away, so frames
+        still in flight are dropped rather than written to a file which is
+        about to be closed.
+
+        """
+        with self._movieWriterLock:
+            self._recordingRequested = False
+            self._videoRecordingStarted = False
+            self._isRecording = False
+            self._audioReady = self._videoReady = False
+
+            self._closeMovieFileWriter()
+
+    def _checkScheduledStop(self):
+        """Finish a scheduled stop whose time has passed without a frame.
+
+        A stop scheduled by `stop(when=...)` is normally completed by the
+        frame which crosses it, so that the recording ends on real captured
+        footage. A camera which stops delivering frames before then would
+        otherwise leave the recording open indefinitely, so this closes it off
+        on the clock instead.
+
+        """
+        stopTime = self._tRecordingStopRequested
+
+        if stopTime is None or not self._recordingRequested:
+            return  # nothing scheduled, or already finished
+
+        if self._getTime() >= stopTime:
+            self._finaliseRecordingStop()
+
     def close(self):
         """Close the camera.
 
@@ -6430,12 +6506,26 @@ class Camera:
         if not self._recordingRequested and not liveView:
             return  # not recording, nothing to do with these
 
+        # A stop scheduled by `stop(when=...)` ends the recording on the first
+        # frame captured at or after that time, so that the video track runs up
+        # to the same moment as the audio track rather than stopping when
+        # `stop()` was called. `None` means no stop has been asked for.
+        stopTime = self._tRecordingStopRequested
+        reachedScheduledStop = False
+
         for colorData, frameIndex, pts, absTime in frames:
             # Whether this frame belongs to a recording, as opposed to one only
             # passing through for the live view. Frames captured before the
-            # recording was asked to start are not part of it.
+            # recording was asked to start, or at or after a scheduled stop,
+            # are not part of it.
             inRecording = (self._recordingRequested and
                            absTime >= self._tRecordingStartRequested)
+
+            if inRecording and stopTime is not None and absTime >= stopTime:
+                # the recording ends just before this frame, which goes on to
+                # the live view (if any) but not into the recording
+                inRecording = False
+                reachedScheduledStop = True
 
             if not inRecording and not liveView:
                 continue
@@ -6482,7 +6572,13 @@ class Camera:
                 # `frameCount` counts the current recording, so frames shown
                 # only in the live view are left out of it
                 self._frameCount += 1  # increment the frame count
-        
+
+        # The footage now runs up to the scheduled stop, so close the recording
+        # off. This happens after the loop so that any remaining frames in this
+        # batch still reach the live view.
+        if reachedScheduledStop:
+            self._finaliseRecordingStop()
+
     def update(self):
         """Acquire the newest data from the camera and audio streams.
 
@@ -6513,10 +6609,14 @@ class Camera:
             return
 
         # force the device interface to poll to ensure most recent frame
-        self._capture._poll() 
+        self._capture._poll()
+        # Frames retrieved by that poll have been handled by now, so a stop
+        # scheduled for a time which has since passed can be closed off. Does
+        # nothing unless a stop is pending and its moment has come.
+        self._checkScheduledStop()
         # transfer most recent frames to the GPU if we have a window
-        self._pixelTransfer()  
-                
+        self._pixelTransfer()
+
     def poll(self):
         """Poll the camera for new frames.
         
