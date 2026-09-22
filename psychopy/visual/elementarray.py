@@ -170,7 +170,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != globalVars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType in ('pyglet', 'glfw'):
             win.winHandle.switch_to()
             globalVars.currWindow = win
 
