@@ -31,6 +31,7 @@ import copy
 import sys
 import os
 import ctypes
+import collections
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -953,6 +954,179 @@ class ContainerMixin:
         return polygonsOverlap(self, polygon)
 
 
+#: Upper bound on the memory held by `_imageFileCache`, in bytes. Decoded
+#: images are kept only until this is exceeded, at which point the ones least
+#: recently asked for are dropped.
+IMAGE_CACHE_MAX_BYTES = 256 * (1024 ** 2)
+
+#: Decoded image files, keyed by the file and the options that determine the
+#: array produced from it. Maps to `(intensity, wasLum, dataType, origSize,
+#: notSqr)` as `_prepareImageArray()` returns them. Decoding a file is by far
+#: the most expensive part of setting an image, and experiments overwhelmingly
+#: re-show a modest set of images, so it is worth holding on to the results.
+_imageFileCache = collections.OrderedDict()
+_imageFileCacheBytes = 0
+
+
+def _imageFileCacheGet(key):
+    """Look up a decoded image, marking it as recently used.
+
+    Parameters
+    ----------
+    key : tuple
+        Key built by :func:`_createTexture`, identifying both the file and the
+        options it was decoded with.
+
+    Returns
+    -------
+    tuple or None
+        The cached entry, or `None` if there isn't one.
+
+    """
+    entry = _imageFileCache.get(key)
+    if entry is not None:
+        _imageFileCache.move_to_end(key)
+
+    return entry
+
+
+def _imageFileCachePut(key, entry):
+    """Store a decoded image, evicting old entries to stay within budget.
+
+    The cached array is made read-only, since it is handed out to every
+    stimulus that asks for the same file and must not be modified in place by
+    any of them.
+
+    Parameters
+    ----------
+    key : tuple
+        Key built by :func:`_createTexture`.
+    entry : tuple
+        `(intensity, wasLum, dataType, origSize, notSqr)` to store.
+
+    """
+    global _imageFileCacheBytes
+
+    intensity = entry[0]
+    nbytes = intensity.nbytes
+    if nbytes > IMAGE_CACHE_MAX_BYTES:
+        return  # single image bigger than the whole budget, don't bother
+
+    try:
+        intensity.flags.writeable = False
+    except ValueError:
+        pass  # a view of something we don't own, leave it as it is
+
+    # Discount an entry already under this key, so that replacing one doesn't
+    # count its bytes twice.
+    previous = _imageFileCache.pop(key, None)
+    if previous is not None:
+        _imageFileCacheBytes -= previous[0].nbytes
+
+    _imageFileCache[key] = entry
+    _imageFileCacheBytes += nbytes
+
+    while _imageFileCacheBytes > IMAGE_CACHE_MAX_BYTES:
+        _, evicted = _imageFileCache.popitem(last=False)
+        _imageFileCacheBytes -= evicted[0].nbytes
+
+
+def clearImageCache():
+    """Drop every decoded image held in memory.
+
+    Images loaded from files are cached so that showing one again doesn't mean
+    decoding it again. Call this to release that memory, for instance after a
+    block which used a large set of images that won't be shown again. Nothing
+    breaks if it is called at any other time; the images are simply decoded
+    again the next time they are needed.
+
+    """
+    global _imageFileCacheBytes
+
+    _imageFileCache.clear()
+    _imageFileCacheBytes = 0
+
+
+def _prepareImageArray(im, tex, pixFormat, dataType, forcePOW2):
+    """Turn a loaded image into the array a texture is created from.
+
+    This is the part of texture creation that depends only on the image and the
+    format being asked for, split out so that its result can be cached against
+    the file it came from (see :func:`_imageFileCachePut`).
+
+    Parameters
+    ----------
+    im : `PIL.Image.Image`
+        The loaded image, already flipped to OpenGL's bottom-up row order.
+    tex : Any
+        What the caller passed as the texture, used only in log messages.
+    pixFormat : :class:`~pyglet.gl.GLenum` or int
+        Pixel format being targeted, `GL_ALPHA` or `GL_RGB`.
+    dataType : :class:`~pyglet.gl.GLenum` or int
+        Data type requested. A luminance image overrides this with `GL_FLOAT`,
+        hence it being returned as well.
+    forcePOW2 : bool
+        Resize the image to a square power of two.
+
+    Returns
+    -------
+    tuple
+        `(intensity, wasLum, dataType, origSize, notSqr)`, where `intensity` is
+        the array to build the texture from, `origSize` is the image's size
+        before any resizing, and `notSqr` records that a non-power-of-two image
+        was left as it is.
+
+    """
+    notSqr = False
+    origSize = im.size
+
+    # is it 1D?
+    if im.size[0] == 1 or im.size[1] == 1:
+        logging.error("Only 2D textures are supported at the moment")
+    else:
+        maxDim = max(im.size)
+        powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
+        if im.size[0] != powerOf2 or im.size[1] != powerOf2:
+            if not forcePOW2:
+                notSqr = True
+            elif globalVars.nImageResizes < reportNImageResizes:
+                msg = ("Image '%s' was not a square power-of-two ' "
+                       "'image. Linearly interpolating to be %ix%i")
+                logging.warning(msg % (tex, powerOf2, powerOf2))
+                globalVars.nImageResizes += 1
+                im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
+            elif globalVars.nImageResizes == reportNImageResizes:
+                logging.warning("Multiple images have needed resizing"
+                                " - I'll stop bothering you!")
+                im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
+
+    # is it Luminance or RGB?
+    if pixFormat == GL.GL_ALPHA and im.mode != 'L':
+        # we have RGB and need Lum
+        wasLum = True
+        im = im.convert("L")  # force to intensity (need if was rgb)
+    elif im.mode == 'L':  # we have lum and no need to change
+        wasLum = True
+        dataType = GL.GL_FLOAT
+    elif pixFormat == GL.GL_RGB:
+        # we want RGB and might need to convert from CMYK or Lm
+        # texture = im.tostring("raw", "RGB", 0, -1)
+        im = im.convert("RGBA")
+        wasLum = False
+    else:
+        raise ValueError('cannot determine if image is luminance or RGB')
+
+    if dataType == GL.GL_FLOAT:
+        # convert from ubyte to float
+        # much faster to avoid division 2/255
+        intensity = numpy.array(im).astype(
+            numpy.float32) * 0.0078431372549019607 - 1.0
+    else:
+        intensity = numpy.array(im)
+
+    return intensity, wasLum, dataType, origSize, notSqr
+
+
 class TextureMixin:
     """Mixin class for visual stim that have textures.
 
@@ -1054,6 +1228,10 @@ class TextureMixin:
             intensity = createLumPattern(tex, res, None, allMaskParams)
             wasLum = True
         else:
+            # Decoding an image file is by far the most expensive part of
+            # setting an image, so the result is cached and reused when the
+            # same file is asked for again with the same options.
+            cacheKey = cached = None
             if isinstance(tex, (str, Path)):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex, checkResources=True)
@@ -1062,16 +1240,30 @@ class TextureMixin:
                     logging.error(msg % (tex, os.path.abspath(tex)))
                     logging.flush()
                     raise IOError(msg % (tex, os.path.abspath(tex)))
+
+                # The modification time is part of the key so that editing an
+                # image on disk takes effect without restarting.
                 try:
-                    im = Image.open(filename)
-                    im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                except IOError as err:
-                    msg = (
-                        "Found file '{}' ('{}'), but failed to load as an image. Reason: {}"
-                    ).format(filename, os.path.abspath(tex), err)
-                    logging.error(msg)
-                    logging.flush()
-                    raise IOError(msg)
+                    mtime = os.path.getmtime(filename)
+                except OSError:
+                    mtime = None  # can't tell if it changed, so don't cache
+
+                if mtime is not None:
+                    cacheKey = (os.path.abspath(filename), mtime, pixFormat,
+                                dataType, bool(forcePOW2))
+                    cached = _imageFileCacheGet(cacheKey)
+
+                if cached is None:
+                    try:
+                        im = Image.open(filename)
+                        im = im.transpose(Image.FLIP_TOP_BOTTOM)
+                    except IOError as err:
+                        msg = (
+                            "Found file '{}' ('{}'), but failed to load as an image. Reason: {}"
+                        ).format(filename, os.path.abspath(tex), err)
+                        logging.error(msg)
+                        logging.flush()
+                        raise IOError(msg)
             elif hasattr(tex, 'getRecentVideoFrame'):  # camera or movie textures
                 # get an image to configure the initial texture store
                 if hasattr(tex, 'frameSize'):
@@ -1102,53 +1294,21 @@ class TextureMixin:
                     logging.error(msg)
                     logging.flush()
                     raise AttributeError(msg)
-            # at this point we have a valid im
-            stim._origSize = im.size
+
+            # at this point we either have a valid im, or a cached array made
+            # from one earlier
+            if cached is not None:
+                intensity, wasLum, dataType, origSize, notSqr = cached
+            else:
+                intensity, wasLum, dataType, origSize, notSqr = \
+                    _prepareImageArray(im, tex, pixFormat, dataType, forcePOW2)
+                if cacheKey is not None:
+                    _imageFileCachePut(
+                        cacheKey,
+                        (intensity, wasLum, dataType, origSize, notSqr))
+
+            stim._origSize = origSize
             wasImage = True
-            # is it 1D?
-            if im.size[0] == 1 or im.size[1] == 1:
-                logging.error("Only 2D textures are supported at the moment")
-            else:
-                maxDim = max(im.size)
-                powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
-                if im.size[0] != powerOf2 or im.size[1] != powerOf2:
-                    if not forcePOW2:
-                        notSqr = True
-                    elif globalVars.nImageResizes < reportNImageResizes:
-                        msg = ("Image '%s' was not a square power-of-two ' "
-                               "'image. Linearly interpolating to be %ix%i")
-                        logging.warning(msg % (tex, powerOf2, powerOf2))
-                        globalVars.nImageResizes += 1
-                        im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
-                    elif globalVars.nImageResizes == reportNImageResizes:
-                        logging.warning("Multiple images have needed resizing"
-                                        " - I'll stop bothering you!")
-                        im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
-
-            # is it Luminance or RGB?
-            if pixFormat == GL.GL_ALPHA and im.mode != 'L':
-                # we have RGB and need Lum
-                wasLum = True
-                im = im.convert("L")  # force to intensity (need if was rgb)
-            elif im.mode == 'L':  # we have lum and no need to change
-                wasLum = True
-                dataType = GL.GL_FLOAT
-            elif pixFormat == GL.GL_RGB:
-                # we want RGB and might need to convert from CMYK or Lm
-                # texture = im.tostring("raw", "RGB", 0, -1)
-                im = im.convert("RGBA")
-                wasLum = False
-            else:
-                raise ValueError('cannot determine if image is luminance or RGB')
-
-            if dataType == GL.GL_FLOAT:
-                # convert from ubyte to float
-                # much faster to avoid division 2/255
-                intensity = numpy.array(im).astype(
-                    numpy.float32) * 0.0078431372549019607 - 1.0
-            else:
-                intensity = numpy.array(im)
-
         if pixFormat == GL.GL_RGB and wasLum and dataType == GL.GL_FLOAT:
             # grating stim on good machine
             # keep as float32 -1:1
@@ -1208,29 +1368,43 @@ class TextureMixin:
                 internalFormat = GL.GL_RGBA32F
         texture = data.ctypes  # serialise
 
-        # Create the pixel buffer object which will serve as the texture memory
-        # store. First we compute the number of bytes used to store the texture.
-        # We need to determine the data type in use by the texture to do this.
-        if stim is not None and hasattr(stim, '_pixbuffID'):
-            if dataType == GL.GL_UNSIGNED_BYTE:
-                storageType = GL.GLubyte
-            elif dataType == GL.GL_FLOAT:
-                storageType = GL.GLfloat
-            else:
-                # raise waring or error? just default to `GLfloat` for now
-                storageType = GL.GLfloat
+        # Arrange for the texture to be mirrored in a pixel buffer object,
+        # which gives the stimulus a handle on the texture's storage that can
+        # be mapped into the application's address space later on (see
+        # `ImageStim.imageData`).
+        #
+        # The buffer is neither allocated nor filled here. Doing so would send
+        # every image to the graphics card twice, once into the buffer and once
+        # into the texture, which is a cost every experiment would pay for a
+        # facility few use. It is set up the first time something asks to map
+        # it instead, reading the pixels back out of the texture itself, so a
+        # mapping still shows what is presently being displayed.
+        #
+        # Only the stimulus' colour texture gets one. Masks come through here
+        # with the same `stim` but their own texture name, and would otherwise
+        # overwrite the contents of the buffer belonging to the image.
+        texName = getattr(id, 'value', id)
+        colorTexName = getattr(stim, '_texID', None)
+        colorTexName = getattr(colorTexName, 'value', colorTexName)
+        if (stim is not None and hasattr(stim, '_pixbuffID') and
+                colorTexName is not None and texName == colorTexName):
+            # Drop any mapping held over the buffer before it is reused,
+            # discarding whatever was written to it since the texture it
+            # belonged to is going away.
+            unmapImageData = getattr(stim, '_unmapImageData', None)
+            if unmapImageData is not None:
+                unmapImageData(upload=False)
 
-            # compute buffer size
-            bufferSize = data.size * ctypes.sizeof(storageType)
-
-            # create the pixel buffer to access texture memory as an array
-            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, stim._pixbuffID)
-            GL.glBufferData(
-                GL.GL_PIXEL_UNPACK_BUFFER,
-                bufferSize,
-                None,
-                GL.GL_STREAM_DRAW)  # one-way app -> GL
-            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+            # Record how the buffer's bytes are laid out, needed to present it
+            # as an array and to transfer it back to the texture afterwards.
+            stim._texBufferShape = data.shape
+            stim._texBufferDType = data.dtype
+            stim._texBufferPixFormat = pixFormat
+            stim._texBufferDataType = dataType
+            # Size the buffer needs to be, and the flag saying it has not
+            # been allocated or filled for this texture yet.
+            stim._texBufferNBytes = data.nbytes
+            stim._texBufferNeedsFill = True
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1266,7 +1440,11 @@ class TextureMixin:
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
+        # No mipmaps are generated. The minification filter is only ever set to
+        # `GL_LINEAR` or `GL_NEAREST` above, never one of the `..._MIPMAP_...`
+        # variants, so a mip chain would be built and stored on every image
+        # change without ever being sampled. Anything that starts using a
+        # mipmapped filter needs to generate them here again.
 
         # GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
         #              GL.GL_MODULATE)  # ?? do we need this - think not!
@@ -1287,8 +1465,13 @@ class TextureMixin:
         if hasattr(self, '_maskID'):
             GL.glDeleteTextures(1, self._maskID)
 
-        if hasattr(self, '_pixBuffID'):
-            GL.glDeleteBuffers(1, self._pixBuffID)
+        if hasattr(self, '_pixbuffID'):
+            # release any mapping on the buffer, it's invalid after deletion
+            unmapImageData = getattr(self, '_unmapImageData', None)
+            if unmapImageData is not None:
+                unmapImageData(upload=False)
+
+            GL.glDeleteBuffers(1, self._pixbuffID)
 
     @attributeSetter
     def mask(self, value):

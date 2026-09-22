@@ -80,6 +80,29 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self._pixbuffID = GL.GLuint()
         GL.glGenBuffers(1, ctypes.byref(self._pixbuffID))
+
+        # Layout of the pixel buffer mirroring the colour texture, filled in by
+        # `_createTexture()` and left as `None` while there is no texture whose
+        # storage we own (e.g. before the first image is set, or when the image
+        # is another object's texture).
+        self._texBufferShape = None
+        self._texBufferDType = None
+        self._texBufferPixFormat = None
+        self._texBufferDataType = None
+
+        # Size of the pixel buffer backing the colour texture, and whether it
+        # still needs allocating and filling from that texture. Deferred until
+        # something actually asks to map it (see `mapImageData`).
+        self._texBufferNBytes = 0
+        self._texBufferNeedsFill = False
+
+        # uniform locations per shader program, filled in on first use
+        self._uniformCache = {}
+        self._matrixScratch = None
+
+        # mapping of that buffer handed out by `imageData`, if any
+        self._imageDataPtr = None
+        self._imageDataArray = None
         self.__dict__['maskParams'] = maskParams
         self.__dict__['mask'] = mask
         # Not pretty (redefined later) but it works!
@@ -247,6 +270,12 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             win = self.win
         self._selectWindow(win)
 
+        # Push any edits made through `imageData` to the texture. Done here so
+        # that writing to the array is all the user needs to do to change what
+        # gets drawn.
+        if self._imageDataArray is not None:
+            self._unmapImageData()
+
         # If our image is a movie stim object, pull pixel data from the most
         # recent frame and write it to the memory
         if hasattr(self.image, 'colorTexture'):
@@ -258,8 +287,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             self._drawLegacyGL(win)
             return
 
-        win.setOrthographicView()
-        win.setScale('pix')
+        # `clearDepth=False` since depth testing is off for 2D drawing, so
+        # clearing the depth buffer once per stimulus achieves nothing.
+        win.setOrthographicView(clearDepth=False)
 
         # GL.glColor4f(*self._foreColor.render('rgba1'))
 
@@ -273,7 +303,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             # for an rgb image there is no recoloring
             _prog = self.win._progImageStim
 
-        gt.useProgram(_prog)
+        GL.glUseProgram(_prog)
 
         # bind textures
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -282,20 +312,28 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
-        # set the shader uniforms
-        gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
-        gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
-        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformMatrix(
-            _prog, 
-            b'uProjectionMatrix', 
-            win._projectionMatrix,
-            transpose=True)
-        gt.setUniformMatrix(
-            _prog, 
-            b'uModelViewMatrix', 
-            win._viewMatrix,
-            transpose=True)
+        # Set the shader uniforms. The locations are looked up once per program
+        # and kept, since resolving them by name means a driver query per
+        # uniform per stimulus per frame.
+        uniforms = self._uniformLocations(_prog)
+
+        loc = uniforms[b'uTexture']
+        if loc != -1:
+            GL.glUniform1i(loc, 0)  # is texture unit 0
+        loc = uniforms[b'uMask']
+        if loc != -1:
+            GL.glUniform1i(loc, 1)  # mask is texture unit 1
+        loc = uniforms[b'uColor']
+        if loc != -1:
+            GL.glUniform4f(loc, *self._foreColor.render('rgba1'))
+        loc = uniforms[b'uProjectionMatrix']
+        if loc != -1:
+            GL.glUniformMatrix4fv(
+                loc, 1, GL.GL_TRUE, self._asMatrixPtr(win._projectionMatrix))
+        loc = uniforms[b'uModelViewMatrix']
+        if loc != -1:
+            GL.glUniformMatrix4fv(
+                loc, 1, GL.GL_TRUE, self._asMatrixPtr(win._viewMatrix))
 
         # draw the image
         gt.drawClientArrays({
@@ -304,7 +342,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             'gl_MultiTexCoord1': self._maskCoords}, 
             'GL_QUADS')
         
-        gt.useProgram(None)
+        GL.glUseProgram(0)
 
         # unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -312,6 +350,64 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+    #: Names of the uniforms `draw()` sets, looked up once per shader program.
+    _UNIFORM_NAMES = (b'uTexture', b'uMask', b'uColor', b'uProjectionMatrix',
+                      b'uModelViewMatrix')
+
+    def _uniformLocations(self, program):
+        """Locations of the uniforms used when drawing, for a given program.
+
+        Resolving a uniform by name is a query to the driver, and `draw()` sets
+        five of them, so the locations are worked out the first time a program
+        is used and kept from then on. They are a property of the linked
+        program and don't change while it lives.
+
+        Parameters
+        ----------
+        program : int
+            Handle of the shader program about to be used.
+
+        Returns
+        -------
+        dict
+            Maps each name in `_UNIFORM_NAMES` to its location, which is `-1`
+            for a uniform the program doesn't define or doesn't use.
+
+        """
+        handle = getattr(program, 'value', program)
+        locations = self._uniformCache.get(handle)
+        if locations is None:
+            locations = {
+                name: GL.glGetUniformLocation(program, name)
+                for name in self._UNIFORM_NAMES}
+            self._uniformCache[handle] = locations
+
+        return locations
+
+    def _asMatrixPtr(self, matrix):
+        """Present a 4x4 matrix as something `glUniformMatrix4fv` can read.
+
+        Parameters
+        ----------
+        matrix : numpy.ndarray
+            The matrix to pass, converted to contiguous `float32` if it isn't
+            already.
+
+        Returns
+        -------
+        ctypes pointer
+            Pointer to the matrix data. Only valid while `matrix` (or the
+            conversion of it held in `_matrixScratch`) is alive, which is why
+            the conversion is kept on the stimulus rather than discarded.
+
+        """
+        if matrix.dtype != numpy.float32 or not matrix.flags['C_CONTIGUOUS']:
+            self._matrixScratch = numpy.ascontiguousarray(
+                matrix, dtype=numpy.float32)
+            matrix = self._matrixScratch
+
+        return matrix.ctypes.data_as(ctypes.POINTER(GL.GLfloat))
 
     @attributeSetter
     def image(self, value):
@@ -326,6 +422,14 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         ImageStim must be set explicitly.
         """
         self.__dict__['image'] = self._imName = value
+
+        # The texture we own is about to be replaced, so drop anything mapped
+        # over its pixel buffer and forget the old layout. `_createTexture()`
+        # fills these in again if it ends up allocating storage for us.
+        self._unmapImageData(upload=False)
+        self._texBufferShape = None
+        self._texBufferNBytes = 0
+        self._texBufferNeedsFill = False
 
         # handle a matplotlib object as image
         if hasattr(value, 'canvas'):  # matplotlib figure
@@ -395,6 +499,239 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'image', value, log)
+
+    def mapImageData(self):
+        """Map the pixel buffer holding the texture data into memory.
+
+        This is what the `imageData` property defers to; call it directly if
+        you prefer the mapping to be an explicit step, or want to pair it with
+        `unmapImageData()` yourself.
+
+        The buffer is mapped for both reading and writing, and presented as an
+        array which is a view onto that memory rather than a copy. Calling this
+        again while the buffer is already mapped hands back the same array, it
+        doesn't map it a second time.
+
+        Returns
+        -------
+        numpy.ndarray or None
+            Texture data of shape `[H, W, C]`, in whatever data type and number
+            of channels the texture was created with. `None` if the stimulus
+            has no texture of its own to map, i.e. before an image has been
+            set, or when the image is another object's texture (such as a movie
+            or camera frame).
+
+        Raises
+        ------
+        RuntimeError
+            If the driver refused to map the buffer.
+
+        See Also
+        --------
+        imageData : Property giving the same array.
+        unmapImageData : Release the mapping and update the texture.
+
+        """
+        if self._imageDataArray is not None:  # already mapped, hand it back
+            return self._imageDataArray
+
+        if self._texBufferShape is None:  # no storage of ours to map
+            return None
+
+        self._selectWindow(self.win)
+
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffID)
+
+        # First time this texture's buffer is mapped, so it still needs sizing
+        # and filling. `_createTexture()` leaves this until now rather than
+        # uploading every image twice on the off-chance it gets mapped.
+        #
+        # The pixels come back out of the texture rather than from a copy kept
+        # on our side, which costs nothing until someone maps the buffer and
+        # reflects any change made to the texture since it was created.
+        if self._texBufferNeedsFill:
+            GL.glBufferData(
+                GL.GL_PIXEL_UNPACK_BUFFER,
+                self._texBufferNBytes,
+                None,
+                GL.GL_DYNAMIC_DRAW)
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+            # Read the texture into the buffer. It is bound as the pack target
+            # for this, which is where `glGetTexImage` writes to, then put back
+            # on the unpack target for mapping and for uploading later.
+            GL.glBindBuffer(GL.GL_PIXEL_PACK_BUFFER, self._pixbuffID)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+            # Rows are tightly packed, unlike the default alignment of 4 which
+            # would skew the image for most widths.
+            GL.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1)
+            GL.glGetTexImage(
+                GL.GL_TEXTURE_2D, 0,
+                self._texBufferPixFormat,
+                self._texBufferDataType,
+                0)  # write into the bound pixel buffer
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glBindBuffer(GL.GL_PIXEL_PACK_BUFFER, 0)
+
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffID)
+            self._texBufferNeedsFill = False
+
+        # Map the buffer into client memory. `GL_READ_WRITE` since the caller
+        # may want to read the present pixel values as well as replace them.
+        bufferPtr = GL.glMapBuffer(
+            GL.GL_PIXEL_UNPACK_BUFFER, GL.GL_READ_WRITE)
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+        if not bufferPtr:
+            # The driver refused the mapping, which can happen if the context
+            # has been lost. Building an array over the null pointer it hands
+            # back in that case would take the whole process down on first use.
+            raise RuntimeError(
+                "Failed to map the pixel buffer holding the texture data for "
+                "`{}`.".format(self.name))
+
+        # Present those bytes as an array without copying them.
+        ptrType = ctypes.POINTER(
+            numpy.ctypeslib.as_ctypes_type(self._texBufferDType))
+        self._imageDataPtr = bufferPtr
+        self._imageDataArray = numpy.ctypeslib.as_array(
+            ctypes.cast(bufferPtr, ptrType), shape=self._texBufferShape)
+
+        return self._imageDataArray
+
+    @property
+    def imageData(self):
+        """Texture memory as an array (`numpy.ndarray` or `None`).
+
+        Accessing this maps the pixel buffer backing the stimulus' texture into
+        the application's address space and presents it as an array of shape
+        `[H, W, C]`. The array is a view onto that memory rather than a copy, so
+        writing to it writes to the texture's storage directly, without
+        allocating or copying a frame's worth of pixels::
+
+            stim = visual.ImageStim(win, 'face.png')
+            stim.imageData[:, :, 0] = 0  # drop the red channel
+            stim.draw()
+
+        The data type and the number of channels are whatever the texture was
+        created with, which depends on the image the stimulus was given. Check
+        `.dtype` and `.shape` rather than assuming them. Row 0 is the bottom of
+        the image, as in OpenGL, not the top.
+
+        Edits are transferred to the texture on the next call to `draw()`, or
+        immediately if `unmapImageData()` is called. **The array is only valid
+        until then** -- it points at memory the driver hands back once the
+        mapping is released, so keep the edits and the draw together and fetch
+        the array again afterwards rather than holding on to it.
+
+        Is `None` when the stimulus has no texture of its own to map, i.e.
+        before an image has been set, or when the image is another object's
+        texture (such as a movie or camera frame).
+
+        See Also
+        --------
+        mapImageData : The method this defers to, same value.
+        unmapImageData : Release the mapping and update the texture.
+
+        """
+        return self.mapImageData()
+
+    @imageData.setter
+    def imageData(self, value):
+        imageData = self.imageData
+        if imageData is None:
+            raise AttributeError(
+                "Cannot set `imageData` for `{}`, it has no texture of its own "
+                "to write to. Set `image` first.".format(self.name))
+
+        imageData[:] = value  # numpy checks the shape and type for us
+        self.unmapImageData()
+
+    def unmapImageData(self):
+        """Release the mapping held by `imageData` and update the texture.
+
+        Any edits made through the `imageData` array are transferred to the
+        texture, and the array becomes invalid. You don't usually need to call
+        this, since `draw()` does it for you; use it when you want the texture
+        updated at a particular point instead.
+
+        Returns
+        -------
+        bool
+            `True` if a mapping was released and the texture updated. `False`
+            if there was nothing mapped, or if the buffer's contents were lost
+            while it was mapped (which the driver may do if the display mode
+            changes) and so could not be used.
+
+        See Also
+        --------
+        mapImageData : Map the buffer and get the array back.
+
+        """
+        return self._unmapImageData()
+
+    def _unmapImageData(self, upload=True):
+        """Release the mapping held by `imageData`.
+
+        Parameters
+        ----------
+        upload : bool
+            Transfer the buffer's contents to the texture afterwards. Pass
+            `False` when the texture the buffer belongs to is being replaced or
+            deleted, making the transfer pointless.
+
+        Returns
+        -------
+        bool
+            `True` if a mapping was released and, where requested, the texture
+            updated.
+
+        """
+        # `getattr` since this is reachable from `__del__` by way of
+        # `clearTextures()`, potentially on a part-initialised stimulus.
+        if getattr(self, '_imageDataArray', None) is None:  # nothing mapped
+            return False
+
+        # Drop our references first, so that a failure below still leaves the
+        # stimulus thinking the (now unusable) mapping is gone. Marking the
+        # array read-only as we go is a small courtesy to anyone still holding
+        # it, since writing to it after this point writes to memory the driver
+        # has taken back.
+        self._imageDataArray.flags.writeable = False
+        self._imageDataArray = None
+        self._imageDataPtr = None
+
+        self._selectWindow(self.win)
+
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffID)
+        # A false return means the driver discarded the buffer's contents while
+        # it was mapped, in which case there is nothing worth uploading.
+        dataIntact = bool(GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER))
+
+        if not dataIntact:
+            logging.warning(
+                "Contents of the pixel buffer holding the texture data for "
+                "`{}` were lost while it was mapped, the edits made to "
+                "`imageData` have been discarded.".format(self.name))
+
+        if upload and dataIntact and self._texBufferShape is not None:
+            height, width = self._texBufferShape[:2]
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+            # Rows are tightly packed, unlike the default alignment of 4 which
+            # would skew the image for most widths.
+            GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+            GL.glTexSubImage2D(
+                GL.GL_TEXTURE_2D, 0, 0, 0,
+                width, height,
+                self._texBufferPixFormat,
+                self._texBufferDataType,
+                0)  # read from the bound pixel buffer
+            # no mipmaps, see the note in `TextureMixin._createTexture()`
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+        return dataIntact
 
     @property
     def aspectRatio(self):

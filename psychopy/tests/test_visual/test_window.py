@@ -1,4 +1,5 @@
 import importlib
+import weakref
 from copy import copy
 from pathlib import Path
 
@@ -7,6 +8,75 @@ from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.tools.stimulustools import serialize
 from psychopy import colors
+
+from psychopy.visual.window import OpenWinList
+
+
+class _DummyWin:
+    """Stand-in for a Window, so these tests need no GL context."""
+
+
+class TestOpenWinList:
+    def test_append(self):
+        winList = OpenWinList()
+        win = _DummyWin()
+        winList.append(win)
+        # the window is stored as a weak reference, not by value
+        assert isinstance(winList[0], weakref.ref)
+        assert winList[0]() is win
+
+    def test_append_keeps_order(self):
+        """Consumers treat `openWindows[0]` as the primary window."""
+        winList = OpenWinList()
+        wins = [_DummyWin() for _ in range(3)]
+        for win in wins:
+            winList.append(win)
+        assert [ref() for ref in winList] == wins
+
+    def test_append_does_not_keep_win_alive(self):
+        """The whole point of the weak references: appending must not pin
+        the window in memory.
+
+        """
+        winList = OpenWinList()
+        win = _DummyWin()
+        finalized = []
+        weakref.finalize(win, finalized.append, True)
+        winList.append(win)
+        del win  # list holds the only remaining reference
+        assert finalized == [True]
+        assert winList[0]() is None
+
+    def test_remove(self):
+        winList = OpenWinList()
+        first, second = _DummyWin(), _DummyWin()
+        winList.append(first)
+        winList.append(second)
+        winList.remove(first)
+        # only `first` should be gone
+        assert [ref() for ref in winList] == [second]
+
+    def test_remove_after_dead_ref(self):
+        """A dead reference earlier in the list must not mask the removal."""
+        winList = OpenWinList()
+        dead, target = _DummyWin(), _DummyWin()
+        winList.append(dead)
+        winList.append(target)
+        del dead  # first entry is now a dead weakref
+        winList.remove(target)
+        # the dead ref is purged and the target is deregistered
+        assert list(winList) == []
+
+    def test_remove_purges_dead_refs(self):
+        winList = OpenWinList()
+        deadFirst, deadSecond, keep = _DummyWin(), _DummyWin(), _DummyWin()
+        for win in (deadFirst, deadSecond, keep):
+            winList.append(win)
+        del deadFirst, deadSecond
+        # removing a window which was never added still purges dead refs
+        winList.remove(_DummyWin())
+        assert [ref() for ref in winList] == [keep]
+
 
 class TestWindow:
     def test_serialization(self):

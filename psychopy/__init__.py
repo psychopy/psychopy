@@ -26,6 +26,22 @@ __build_platform__ = 'n/a'
 __all__ = ["gui", "misc", "visual", "core",
            "event", "data", "sound", "microphone"]
 
+# Disable pyglet's GL error checking, which installs an `errcheck` hook that
+# calls `glGetError()` after every single GL call. This must happen before
+# anything imports `pyglet.gl`, since `pyglet.gl.lib` reads the option once at
+# import time and decorates the entry points there and then -- setting it later
+# (as the visual modules do) has no effect. Importing `pyglet` itself is cheap
+# and does not pull in `pyglet.gl`.
+#
+# `PYGLET_DEBUG_GL` in the environment is left alone, so anyone debugging GL
+# calls can still turn the checking back on.
+if 'PYGLET_DEBUG_GL' not in os.environ:
+    try:
+        import pyglet
+        pyglet.options['debug_gl'] = False
+    except ImportError:
+        pass  # pyglet isn't required to merely import psychopy
+
 # for developers the following allows access to the current git sha from
 # their repository
 if __git_sha__ == 'n/a':

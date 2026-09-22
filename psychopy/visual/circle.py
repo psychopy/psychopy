@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Creates a Circle with a given radius
-as a special case of a :class:`~psychopy.visual.Polygon`
+"""Creates a Circle as a special case of a :class:`~psychopy.visual.Polygon`
 """
 
 # Part of the PsychoPy library
@@ -47,13 +46,8 @@ class Circle(Polygon):
         initialization by setting the `pos` property. The default value is
         `(0.0, 0.0)` which results in no translation.
     size : float or array_like
-        Initial scale factor for adjusting the size of the circle. A single
-        value (`float`) will apply uniform scaling, while an array (`sx`,
-        `sy`) will result in anisotropic scaling in the horizontal (`sx`)
-        and vertical (`sy`) direction. Providing negative values to `size`
-        will cause the shape being mirrored. Scaling can be changed by
-        setting the `size` property after initialization. The default value
-        is `1.0` which results in no scaling.
+        Size of the box within which the Circle fits, interpreted in terms of 
+        `units`.
     ori : float
         Initial orientation of the circle in degrees about its origin.
         Positive values will rotate the shape clockwise, while negative
@@ -91,18 +85,11 @@ class Circle(Polygon):
     colorSpace : str
         Sets the colorspace, changing how values passed to `lineColor` and
         `fillColor` are interpreted.
-
-    Attributes
-    ----------
-    radius : float or int
-        Radius of the shape. Avoid using `size` for adjusting figure dimensions
-        if radius != 0.5 which will result in undefined behavior.
-
     """
 
     def __init__(self,
                  win,
-                 radius=.5,
+                 radius=None,
                  edges="circle",
                  units='',
                  lineWidth=1.5,
