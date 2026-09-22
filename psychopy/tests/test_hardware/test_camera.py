@@ -511,18 +511,11 @@ class TestSharedCameraDevice:
         self.camB.stop()
 
         assert seenByA, "Neither camera saw any frames."
-
-        # Reading one camera's `lastFrame` and then the other's is two separate
-        # reads, so a frame arriving from the polling thread in between lands
-        # in one set and not the other. That leaves a frame or so either side,
-        # so this asks for near-total agreement rather than identical sets;
-        # cameras which did not share a stream would have nothing in common.
-        commonFrames = seenByA & seenByB
-        mostFramesSeen = max(len(seenByA), len(seenByB))
-        assert len(commonFrames) >= 0.9 * mostFramesSeen, (
-            "The cameras saw different frames; only {} of {} capture times "
-            "were common to both. Frames from a shared device should reach "
-            "every client.".format(len(commonFrames), mostFramesSeen))
+        assert seenByA == seenByB, (
+            "The cameras saw different frames; {} of {} capture times were "
+            "common to both. Frames from a shared device should reach every "
+            "client.".format(
+                len(seenByA & seenByB), len(seenByA | seenByB)))
 
     def test_overlappingRecordings(self, tmp_path):
         """Each client should record and save over its own window.
