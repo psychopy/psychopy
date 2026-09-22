@@ -581,7 +581,7 @@ def _dispatchWindowEvents():
         pass
     for winWeakRef in core.openWindows:
         win = winWeakRef()
-        if (win.winType == "pyglet" and
+        if (win.winType in ("pyglet", "glfw") and
                 hasattr(win.winHandle, "dispatch_events")):
             win.winHandle.dispatch_events()  # pump events
 
