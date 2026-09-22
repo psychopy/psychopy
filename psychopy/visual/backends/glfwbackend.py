@@ -66,6 +66,32 @@ if _isWayland():
         "`PYGLFW_LIBRARY_VARIANT=x11` to use X11 instead.")
 
 
+_shadowWindow = None  # hidden window all GLFW windows share OpenGL objects with
+
+
+def _getShadowWindow():
+    """Get the hidden window which all GLFW windows share a context with,
+    creating it if needed.
+
+    Like Pyglet's shadow window, this keeps OpenGL objects which are cached for
+    the whole session (e.g., font atlas textures) valid after all windows have
+    been closed, since otherwise they are destroyed along with the last context
+    using them.
+
+    """
+    global _shadowWindow
+    if _shadowWindow is None:
+        glfw.default_window_hints()
+        glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
+        _shadowWindow = glfw.create_window(1, 1, "PsychoPy", None, None)
+        if not _shadowWindow:
+            _shadowWindow = None
+            raise RuntimeError(
+                "Failed to create a hidden GLFW window for context sharing.")
+
+    return _shadowWindow
+
+
 # Standard cursors available to GLFW, names are mapped to the constants used to
 # create them. Cursors which GLFW does not provide are mapped to `None`. Some
 # cursor constants are only available in GLFW 3.4+, so they are looked up when
@@ -370,15 +396,17 @@ class GLFWBackend(BaseBackend):
         self._rampSize = None
         self._mouseVisible = True
 
-        # window to share a context with
+        # All windows share a context with the hidden shadow window, which
+        # also shares objects between windows. A window can still be given to
+        # share with directly, which is in the same share group anyway.
+        shareContext = _getShadowWindow()
         shareWin = backendConf.get('share', None)
-        shareContext = None
         if shareWin is not None and shareWin is not win:
             if shareWin.winType == self.winTypeName and shareWin.winHandle:
                 shareContext = shareWin.winHandle.handle
             else:
                 logging.warning(
-                    'Cannot share a context with a non-GLFW window. Disabling.')
+                    'Cannot share a context with a non-GLFW window.')
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))
