@@ -3379,7 +3379,17 @@ class PyAVCameraDevice(CameraDevice):
         """
         import av
 
+        # How many errors in a row to put up with before giving up on the
+        # stream. A camera can hand over the odd corrupt packet, such as a
+        # truncated MJPEG frame when the USB bus is busy, which isn't a reason
+        # to stop reading; one which never recovers is.
+        maxConsecutiveErrors = 30
+        nConsecutiveErrors = 0
+
         while not self._stopReaderEvent.is_set():
+            # The iterator is a generator, so any error raised out of it
+            # finishes it. Start a new one from the next packet after each
+            # error rather than reading on from one which has ended.
             try:
                 frame = next(self._frameIterator)
             except StopIteration:
@@ -3390,12 +3400,22 @@ class PyAVCameraDevice(CameraDevice):
             except (av.error.ExitError, av.error.TimeoutError):
                 # the read timed out, loop back around to check whether we have
                 # been asked to stop
+                self._frameIterator = self._container.decode(video=0)
                 continue
             except av.FFmpegError as err:
-                logging.error(
-                    "Error reading from camera '{}': {}".format(
+                nConsecutiveErrors += 1
+                if nConsecutiveErrors >= maxConsecutiveErrors:
+                    logging.error(
+                        "Error reading from camera '{}': {}".format(
+                            self._device, err))
+                    break
+                logging.warning(
+                    "Skipping bad packet from camera '{}': {}".format(
                         self._device, err))
-                break
+                self._frameIterator = self._container.decode(video=0)
+                continue
+
+            nConsecutiveErrors = 0
 
             if self._pausedEvent.is_set():
                 del frame  # discard, but keep reading so the camera drains
