@@ -5591,6 +5591,20 @@ class Camera:
                 bufferSecs=bufferSecs,
             )
 
+        # None of the branches above found or created a device, so say which
+        # camera couldn't be resolved rather than failing on `.info` below.
+        if self._capture is None:
+            knownDevices = [
+                profile['deviceName']
+                for profile in cameraDeviceClass.getAvailableDevices()]
+            raise CameraNotFoundError(
+                "Could not find a camera matching `device={}`. Cameras "
+                "available through `{}` are: {}".format(
+                    repr(device),
+                    cameraLib,
+                    ', '.join(repr(name) for name in knownDevices)
+                    if knownDevices else '(none found)'))
+
         # get info from device
         self._cameraInfo = self._capture.info
 
@@ -7136,6 +7150,95 @@ DeviceManager.registerClassAlias("camera", "psychopy.hardware.camera.Camera")
 # Functions
 #
 
+# AVFoundation values used by the MacOS camera enumeration below. Spelled out
+# here so the constants can be referenced without importing `AVFoundation` on
+# platforms which don't have it.
+AVF_MEDIA_TYPE_VIDEO = u'vide'
+AVF_AUTHORIZATION_RESTRICTED = 1
+AVF_AUTHORIZATION_DENIED = 2
+
+# Names of the `AVCaptureDeviceType` constants to discover cameras under, with
+# the MacOS version each was introduced in. Which of these AVFoundation defines
+# depends on the MacOS version, and `pyobjc` resolves them against the framework
+# at the moment they're accessed, so they're looked up by name and any which
+# aren't there are skipped. Note that on MacOS 14+ `AVCaptureDeviceTypeExternal`
+# and `AVCaptureDeviceTypeExternalUnknown` are two names for the same value, so
+# the list is deduplicated before use.
+AVF_CAMERA_DEVICE_TYPES = (
+    'AVCaptureDeviceTypeBuiltInWideAngleCamera',  # built-in cameras, 10.15+
+    'AVCaptureDeviceTypeExternal',                # USB cameras, 14.0+
+    'AVCaptureDeviceTypeExternalUnknown',         # USB cameras, 10.15 - 14.0
+    'AVCaptureDeviceTypeContinuityCamera',        # iPhone as a webcam, 14.0+
+    'AVCaptureDeviceTypeDeskViewCamera',          # Desk View camera, 13.0+
+)
+
+
+def _getAVCaptureDevicesMacOS():
+    """Get the video capture devices AVFoundation knows about on MacOS.
+
+    Don't call this function directly unless testing, use
+    `_getCameraInfoMacOS()` instead.
+
+    Cameras are discovered with `AVCaptureDeviceDiscoverySession` where it's
+    available (MacOS 10.15 onwards). `AVCaptureDevice.devices()` was deprecated
+    in favour of it in 10.15, and while that call does still report USB and
+    built-in cameras, it doesn't report Continuity Cameras (an iPhone used as a
+    webcam) or the Desk View camera, which are only reachable by asking the
+    discovery session for those device types.
+
+    The deprecated call is still used afterwards, to cover MacOS 10.14 and
+    earlier where there is no discovery session, and to top up the results on
+    newer systems, since the discovery session only returns the device types it
+    was asked for. Devices found both ways are deduplicated by their unique ID.
+
+    Returns
+    -------
+    list
+        List of `AVCaptureDevice` objects for the video capture devices found.
+
+    """
+    import AVFoundation as avf  # only works on MacOS
+
+    foundDevices = []
+    seenDeviceIDs = set()  # a camera can be discovered under more than one type
+
+    # The device types to search for, minus any this version of MacOS (or of
+    # `pyobjc`) doesn't define, and minus the duplicates that leaves behind.
+    deviceTypes = []
+    for typeName in AVF_CAMERA_DEVICE_TYPES:
+        deviceType = getattr(avf, typeName, None)
+        if deviceType is not None and deviceType not in deviceTypes:
+            deviceTypes.append(deviceType)
+
+    # `AVCaptureDeviceDiscoverySession` is MacOS 10.15+, and `pyobjc` raises
+    # `AttributeError` for a class the running system doesn't have, so fall
+    # through to the deprecated enumeration below on older systems.
+    discoverySessionClass = getattr(
+        avf, 'AVCaptureDeviceDiscoverySession', None)
+
+    if discoverySessionClass is not None and deviceTypes:
+        discoverySession = discoverySessionClass.\
+            discoverySessionWithDeviceTypes_mediaType_position_(
+                deviceTypes,
+                AVF_MEDIA_TYPE_VIDEO,
+                avf.AVCaptureDevicePositionUnspecified)
+
+        for device in discoverySession.devices():
+            seenDeviceIDs.add(device.uniqueID())
+            foundDevices.append(device)
+
+    # Fall back on the deprecated enumeration for anything the discovery session
+    # missed, and for MacOS 10.14 and earlier where there was no discovery
+    # session at all. `devices()` returns audio devices too, which the caller
+    # filters out by media type.
+    for device in avf.AVCaptureDevice.devices():
+        if device.uniqueID() in seenDeviceIDs:
+            continue
+        foundDevices.append(device)
+
+    return foundDevices
+
+
 def _getCameraInfoMacOS(cameraLib=CAMERA_LIB_FFPYPLAYER):
     """Get a list of capabilities associated with a camera attached to the 
     system.
@@ -7167,15 +7270,29 @@ def _getCameraInfoMacOS(cameraLib=CAMERA_LIB_FFPYPLAYER):
     import AVFoundation as avf  # only works on MacOS
     import CoreMedia as cm
 
+    # Warn early if the app has been refused camera access, since the discovery
+    # session then comes back empty and the cause is otherwise invisible. Camera
+    # access is only gated from MacOS 10.14 onwards, and the call to check it
+    # only exists from then too, so skip this on anything older.
+    if hasattr(avf.AVCaptureDevice, 'authorizationStatusForMediaType_'):
+        authStatus = avf.AVCaptureDevice.authorizationStatusForMediaType_(
+            AVF_MEDIA_TYPE_VIDEO)
+        if authStatus in (AVF_AUTHORIZATION_DENIED, AVF_AUTHORIZATION_RESTRICTED):
+            logging.warning(
+                "This application has not been granted access to the camera, "
+                "so no cameras can be found. Grant access under System Settings "
+                "> Privacy & Security > Camera.")
+
     # get a list of capture devices
-    allDevices = avf.AVCaptureDevice.devices()
+    allDevices = _getAVCaptureDevicesMacOS()
 
     # get video devices
     videoDevices = {}
     devIdx = 0
     for device in allDevices:
         devFormats = device.formats()
-        if devFormats[0].mediaType() != 'vide':  # not a video device
+        # not a video device, or one which reports no formats at all
+        if not devFormats or devFormats[0].mediaType() != AVF_MEDIA_TYPE_VIDEO:
             continue
 
         # camera details
