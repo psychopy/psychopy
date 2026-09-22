@@ -2768,7 +2768,10 @@ class Window():
             turn up later as a `nan` average.
 
         """
-        bufferWidth, bufferHeight = self.size
+        # Cropped against the framebuffer rather than `size`, which is the
+        # viewport: a window rendering into part of its buffer still has the
+        # whole buffer there to be read.
+        bufferWidth, bufferHeight = self.frameBufferSize
 
         # crop against each edge, keeping the corner where it is if the region
         # starts inside the window
@@ -2809,10 +2812,11 @@ class Window():
         ----------
         rect : tuple[int], optional
             The region of the window to capture in pixel coordinates (left,
-            bottom, width, height), with the origin at the bottom left. If
-            `None`, the whole window is captured. A region running off the edge
-            of the window is cropped to the part which is on it, so the array
-            which comes back may be smaller than the region asked for.
+            bottom, width, height), with the origin at the bottom left of the
+            window. If `None`, the whole window is captured. A region running
+            off the edge of the window is cropped to the part which is on it,
+            so the array which comes back may be smaller than the region asked
+            for.
         buffer : str, optional
             Buffer to capture.
         includeAlpha : bool, optional
@@ -2829,6 +2833,11 @@ class Window():
             `includeAlpha` is `False`, the array will have shape (height, width,
             3). If `makeLum` is `True`, the array will have shape (height,
             width).
+
+            Rows run down from the top of the window, the order an image is
+            usually in, matching `_getFrame()`. Note that this is the opposite
+            of the order `rect` is given in, which starts at the bottom because
+            that is where OpenGL's own origin is.
 
         Raises
         ------
@@ -2849,16 +2858,7 @@ class Window():
             average = pix.mean()
 
         """
-        # do the reading of the pixels
-        if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
-        elif buffer == 'back':
-            GL.glReadBuffer(GL.GL_BACK)
-        elif buffer == 'front':
-            if self.useFBO:
-                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-            GL.glReadBuffer(GL.GL_FRONT)
-        else:
+        if buffer not in ('front', 'back'):
             raise ValueError("Requested read from buffer '{}' but should be "
                              "'front' or 'back'".format(buffer))
 
@@ -2866,86 +2866,107 @@ class Window():
             # box corners in pix
             left, bottom, w, h = (int(val) for val in rect)
         else:
+            # The whole framebuffer rather than `size`, which is the viewport:
+            # asking for the whole window should not give back only the part of
+            # it a narrowed viewport draws into.
             left = bottom = 0
-            w, h = self.size
+            w, h = (int(dim) for dim in self.frameBufferSize)
 
         left, bottom, w, h = self._clampRectToBuffer(left, bottom, w, h)
 
-        # Read straight into the array which is handed back. `glReadPixels`
-        # fills every pixel of the region, so the buffer does not need to be
-        # cleared first, and clearing one the size of a window is far from
-        # free.
-        toReturn = numpy.empty((h, w, 4), dtype=numpy.uint8)
-        GL.glReadPixels(
-            left, bottom, w, h,
-            GL.GL_RGBA,
-            GL.GL_UNSIGNED_BYTE,
-            toReturn.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
+        # What is bound now, so that reading the window leaves the GL state as
+        # it found it. Which buffer a framebuffer reads from is part of that
+        # framebuffer's own state, so the framebuffer is put back first and the
+        # read buffer after it.
+        prevFBO = GL.GLint()
+        GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
+        prevReadBuffer = GL.GLint()
+        GL.glGetIntegerv(GL.GL_READ_BUFFER, ctypes.byref(prevReadBuffer))
 
-        # rebind front buffer if needed
-        if buffer == 'front' and self.useFBO:
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
+        try:
+            # do the reading of the pixels
+            if buffer == 'back' and self.useFBO:
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            elif buffer == 'back':
+                GL.glReadBuffer(GL.GL_BACK)
+            else:  # front
+                if self.useFBO:
+                    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+                GL.glReadBuffer(GL.GL_FRONT)
+
+            # Read straight into the array which is handed back. `glReadPixels`
+            # fills every pixel of the region, so the buffer does not need to
+            # be cleared first, and clearing one the size of a window is far
+            # from free.
+            toReturn = numpy.empty((h, w, 4), dtype=numpy.uint8)
+            GL.glReadPixels(
+                left, bottom, w, h,
+                GL.GL_RGBA,
+                GL.GL_UNSIGNED_BYTE,
+                toReturn.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
+        finally:
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
+            GL.glReadBuffer(prevReadBuffer.value)
 
         # Convert to luminance if requested, before any alpha channel is
         # sliced off: luminance ignores alpha anyway, and the conversion is
         # fastest given the whole buffer as it was read.
+        #
+        # `[::-1]` turns the rows the right way up. OpenGL counts them from the
+        # bottom of the window, so what `glReadPixels` wrote is upside down as
+        # an image. Flipping the luminance rather than the colour data leaves a
+        # quarter as much to move.
         if makeLum:
-            return _rgbToLuminance(toReturn)
+            return _rgbToLuminance(toReturn)[::-1]
 
         # if we want the color data without an alpha channel, we need to
         # convert the data to a numpy array and remove the alpha channel
         if not includeAlpha:
             toReturn = toReturn[:, :, :3]  # remove alpha channel
 
-        return toReturn
+        return toReturn[::-1]
 
     def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.
-        """
-        # GL.glLoadIdentity()
-        # do the reading of the pixels
-        if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
-        elif buffer == 'back':
-            GL.glReadBuffer(GL.GL_BACK)
-        elif buffer == 'front':
-            if self.useFBO:
-                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-            GL.glReadBuffer(GL.GL_FRONT)
-        else:
-            raise ValueError("Requested read from buffer '{}' but should be "
-                             "'front' or 'back'".format(buffer))
 
+        Parameters
+        ----------
+        rect : array_like, optional
+            Sub-region of the window to capture as `(left, top, right, bottom)`
+            in normalised units, each running from `-1` to `1`. If `None`, the
+            whole window is captured. Note that this is not the same as the
+            `rect` `_getPixels()` takes, which is in pixels.
+        buffer : str, optional
+            Buffer to capture, either `'front'` or `'back'`.
+
+        Returns
+        -------
+        Image
+            Buffer pixel contents as a PIL/Pillow image object, in RGB.
+
+        """
         if rect:
-            x, y = self.size  # of window, not image
-            imType = 'RGBA'  # not tested with anything else
+            # The region in pixels, which is what `_getPixels()` reads. The
+            # window's own height is measured from the bottom, so the rect's
+            # bottom edge gives the corner to start from and its top edge the
+            # far side.
+            x, y = (int(dim) for dim in self.frameBufferSize)
 
             # box corners in pix
             left = int((rect[0] / 2. + 0.5) * x)
             bottom = int((rect[3] / 2. + 0.5) * y)
             w = int((rect[2] / 2. + 0.5) * x) - left
             h = int((rect[1] / 2. + 0.5) * y) - bottom
+            pixRect = (left, bottom, w, h)
         else:
-            left = bottom = 0
-            w, h = self.size
+            pixRect = None
 
-        # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
-        bufferDat = (GL.GLubyte * (4 * w * h))()
-        GL.glReadPixels(left, bottom, w, h,
-                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-        try:
-            im = Image.fromstring(mode='RGBA', size=(w, h),
-                                  data=bufferDat)
-        except Exception:
-            im = Image.frombytes(mode='RGBA', size=(w, h),
-                                 data=bufferDat)
+        # `_getPixels()` hands rows back the way up an image wants them, so
+        # nothing here needs to flip them.
+        colorData = self._getPixels(
+            rect=pixRect, buffer=buffer, includeAlpha=False)
 
-        im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        im = im.convert('RGB')
-
-        if self.useFBO and buffer == 'front':
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
-        return im
+        return Image.fromarray(colorData)
 
     @property
     def screenshot(self):
@@ -3269,7 +3290,7 @@ class Window():
             imP2 = Image.new('RGBA', (xPowerOf2, yPowerOf2))
             # paste centered
             imP2.paste(region, (int(xPowerOf2 / 2. - region.size[0] / 2.),
-                                int(yPowerOf2 / 2.) - region.size[1] / 2))
+                                int(yPowerOf2 / 2. - region.size[1] / 2.)))
             region = imP2
         return region
 
