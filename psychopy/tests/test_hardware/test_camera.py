@@ -6,11 +6,13 @@ webcam plugged in to exercise the capture path for real.
 
 """
 import os
+import shutil
+from pathlib import Path
 
 import numpy as np
 import pytest
 
-from psychopy import core, visual
+from psychopy import core, session, visual
 from psychopy.hardware.camera import Camera, getCameras
 from psychopy.tests.utils import RUNNING_IN_VM
 
@@ -599,3 +601,105 @@ class TestSharedCameraDevice:
                 "Client {} saved {} frames, expected roughly {} for its {}s "
                 "recording.".format(
                     label, savedFrames, expectedFrames, recordedSecs))
+
+
+# Folder holding the Builder experiments run by the tests below
+BUILDER_DIR = Path(__file__).parent / "builder"
+
+
+class TestBuilderCamLiveView:
+    """Compile and run a Builder experiment with a live camera view.
+
+    `builderCamLiveViewTest.psyexp` has a single Routine which draws a Camera
+    Component into an Image Component for 10s, recording from the camera
+    between 1s and 9s. Running it through a `Session` takes the same path as
+    running it from Builder: the experiment is compiled to a script, which is
+    imported and has its `run()` called.
+
+    """
+    # when the Camera Component starts and how long it runs for, in seconds, as
+    # set in the experiment
+    CAM_START = 1.0
+    CAM_DURATION = 8.0
+
+    def setup_method(self):
+        # the experiment asks for a full screen window, so give the `Session`
+        # a small one of its own to run in instead
+        self.win = visual.Window(
+            [128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+
+    def teardown_method(self):
+        self.win.close()
+
+    def test_compileAndRun(self, tmp_path):
+        """The experiment should compile, run, and save a camera recording."""
+        cv2 = pytest.importorskip(
+            "cv2", reason="need OpenCV to read the recording back")
+
+        # Work from a copy, so the compiled script and the data and recordings
+        # the experiment writes all land in the temp folder rather than in the
+        # source tree.
+        expFile = tmp_path / "builderCamLiveViewTest.psyexp"
+        shutil.copy(str(BUILDER_DIR / expFile.name), str(expFile))
+
+        sess = session.Session(root=tmp_path, win=self.win)
+        sess.addExperiment(expFile.name, key="camLiveView")
+
+        scriptFile = expFile.with_suffix(".py")
+        assert scriptFile.is_file(), (
+            "Adding `{}` to a Session didn't compile it to `{}`.".format(
+                expFile.name, scriptFile.name))
+
+        # the Session takes expInfo straight from the experiment, so this runs
+        # without showing the info dialog
+        sess.runExperiment("camLiveView")
+
+        # the Camera Component should have started and stopped when the
+        # experiment says it should
+        thisExp = sess.runs[-1]
+        trialData = thisExp.entries[0]
+        assert trialData['cam.started'] == pytest.approx(
+            self.CAM_START, abs=0.1), (
+            "Camera started at {}s, expected {}s.".format(
+                trialData['cam.started'], self.CAM_START))
+        camRanFor = trialData['cam.stopped'] - trialData['cam.started']
+        assert camRanFor == pytest.approx(self.CAM_DURATION, abs=0.1), (
+            "Camera ran for {}s, expected {}s.".format(
+                camRanFor, self.CAM_DURATION))
+
+        # the recording should have been saved to the file the data points to,
+        # in the folder the experiment keeps recordings from `cam` in
+        clipFile = Path(trialData['cam.clip'])
+        camRecFolder = Path(thisExp.dataFileName + '_cam_recorded')
+        assert clipFile.parent == camRecFolder, (
+            "Recording saved to `{}`, expected it in `{}`.".format(
+                clipFile, camRecFolder))
+        assert clipFile.is_file() and clipFile.stat().st_size > 0, (
+            "No recording saved to `{}`.".format(clipFile))
+
+        # and it should be a video we can read back, running for about as long
+        # as the Camera Component did
+        recording = cv2.VideoCapture(str(clipFile))
+        try:
+            assert recording.isOpened(), (
+                "Recording `{}` could not be opened as a video.".format(
+                    clipFile))
+            savedFrames = int(recording.get(cv2.CAP_PROP_FRAME_COUNT))
+            savedFPS = recording.get(cv2.CAP_PROP_FPS)
+            readOK, _ = recording.read()
+        finally:
+            recording.release()
+
+        assert readOK, (
+            "Could not read the first frame back from `{}`.".format(clipFile))
+
+        # Loose for the same reason as in `test_recordAndSave`: how many frames
+        # arrive over the recording varies with the load on the machine.
+        assert savedFPS > 0, (
+            "Recording `{}` reports a frame rate of {}.".format(
+                clipFile, savedFPS))
+        savedSecs = savedFrames / savedFPS
+        assert 0.25 * self.CAM_DURATION <= savedSecs <= 2 * self.CAM_DURATION, (
+            "Recording holds {}s of video ({} frames at {} fps), expected "
+            "roughly {}s.".format(
+                savedSecs, savedFrames, savedFPS, self.CAM_DURATION))
