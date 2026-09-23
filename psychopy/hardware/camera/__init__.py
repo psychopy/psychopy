@@ -5666,18 +5666,21 @@ class Camera:
         # `close()` releases the capture device, so look it up again if this is
         # a reopen. Doing so here rather than holding on to the closed device
         # means a device shared through `DeviceManager` is picked up in
-        # whatever state it is now in. This comes before the movie file writer
-        # is opened, as the writer needs the frame size the device reports.
+        # whatever state it is now in.
         if self._capture is None:
             self._resolveCaptureDevice()
+
+        # The device may be one which an earlier client closed, so open it
+        # before the movie file writer, which needs the frame size the device
+        # only reports while open. Frames don't reach this client until it is
+        # bound below, so none are missed by opening the writer after.
+        if not self._capture.isOpen:
+            self._capture.open()
 
         # CV mode never writes frames to disk, so opening a writer for it would
         # only create a temporary file and an encoder nothing ever reaches.
         if self._usageMode == CAMERA_MODE_VIDEO:
             self._openMovieFileWriter()
-
-        if not self._capture.isOpen:
-            self._capture.open()
 
         # register this client with the camera device
         self._capture.bind(self)        
