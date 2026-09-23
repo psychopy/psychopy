@@ -338,9 +338,10 @@ class GLFWBackend(BaseBackend):
     also be installed. This backend can be used in place of the Pyglet backend
     by passing `winType='glfw'` to :class:`~psychopy.visual.Window`.
 
-    Specifying a window with the 'share' option enables context sharing. This
-    allows data (textures, array buffers, etc.) to be shared across windows.
-    This is done automatically by `Window` when more than one window is opened.
+    Every window shares a context with a hidden 'shadow' window, like Pyglet.
+    This allows data (textures, array buffers, etc.) to be shared across
+    windows, and keeps data cached for the session valid after all windows are
+    closed.
 
     If using multiple displays, waiting for multiple retraces may cause a
     reduction in overall frame rate. To prevent this, create the window for your
@@ -358,7 +359,6 @@ class GLFWBackend(BaseBackend):
         where keys are option names and values are settings. For this backend
         the following options are available:
 
-        * `share` (`psychopy.visual.Window`) Window to share a context with.
         * `bpc` (`array_like` of `int`) Bits per color (R, G, B).
         * `depthBits` (`int`) Framebuffer (back buffer) depth bits.
         * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
@@ -396,17 +396,10 @@ class GLFWBackend(BaseBackend):
         self._rampSize = None
         self._mouseVisible = True
 
-        # All windows share a context with the hidden shadow window, which
-        # also shares objects between windows. A window can still be given to
-        # share with directly, which is in the same share group anyway.
+        # All windows share a context with the hidden shadow window, so objects
+        # are shared between windows and outlive them. The `share` option
+        # passed by `Window` isn't needed.
         shareContext = _getShadowWindow()
-        shareWin = backendConf.get('share', None)
-        if shareWin is not None and shareWin is not win:
-            if shareWin.winType == self.winTypeName and shareWin.winHandle:
-                shareContext = shareWin.winHandle.handle
-            else:
-                logging.warning(
-                    'Cannot share a context with a non-GLFW window.')
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))
@@ -928,15 +921,30 @@ class GLFWBackend(BaseBackend):
         if self._origGammaRamp is not None:
             self._setGammaRamp(self._origGammaRamp)
 
-        if globalVars.currWindow is self:
+        # check whether this window's context is current before destroying it
+        handle = self.winHandle.handle
+        wasCurrent = ctypes.cast(
+            glfw.get_current_context(), ctypes.c_void_p).value == \
+            ctypes.cast(handle, ctypes.c_void_p).value
+
+        if wasCurrent or globalVars.currWindow is self:
             globalVars.currWindow = None
 
         try:
-            glfw.destroy_window(self.winHandle.handle)
+            glfw.destroy_window(handle)
         except Exception:
             pass
 
         self.winHandle.handle = None
+
+        if wasCurrent:
+            # GLFW leaves no context current after destroying the window, so
+            # OpenGL objects created before the next draw (e.g., by stimuli)
+            # would fail. Make another open window current, or the shadow
+            # window if there are none. All windows share objects, so any
+            # context can be used.
+            if not self._makeOpenWindowCurrent():
+                glfw.make_context_current(_getShadowWindow())
 
     @_requiresOpenWindow
     def setFullScr(self, value):
