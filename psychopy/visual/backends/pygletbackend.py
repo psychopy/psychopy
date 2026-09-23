@@ -399,6 +399,9 @@ class PygletBackend(BaseBackend):
 
                 self._nsWindowMacOS = winNSObj
                 self._displayLinkTimedOut = False
+                # when callbacks were first missed while the window was
+                # visible, if they currently are (see `swapBuffers()`)
+                self._displayLinkStallStart = None
                 # whether the most recent flip was confirmed by a DisplayLink
                 # callback (see `swapBuffers()`)
                 self._displayLinkSynced = False
@@ -419,7 +422,25 @@ class PygletBackend(BaseBackend):
                 logging.error(
                     "Unable to create DisplayLink for screen. This may result in "
                     "less accurate timing of window flips.")
-            
+
+            # Opt out of App Nap while the window is open, which can otherwise
+            # throttle timers and run loop wake-ups (e.g. DisplayLink
+            # callbacks) if the app is in the background. Latency critical
+            # also asks for the highest timer precision, so wake-ups aren't
+            # coalesced. System sleep is left alone as that's handled by
+            # `sendStayAwake()` on each flip.
+            try:
+                self._appNapActivityMacOS = \
+                    AppKit.NSProcessInfo.processInfo(
+                    ).beginActivityWithOptions_reason_(
+                        AppKit.NSActivityUserInitiatedAllowingIdleSystemSleep |
+                        AppKit.NSActivityLatencyCritical,
+                        "PsychoPy window open; timing critical")
+            except Exception:
+                logging.warning(
+                    "Unable to opt out of App Nap. Timing may be less "
+                    "accurate if PsychoPy is running in the background.")
+
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
             self._frameBufferSize = win.clientSize
@@ -567,88 +588,86 @@ class PygletBackend(BaseBackend):
             pyglet.media.dispatch_events()  # for sounds to be processed
     
         if flipThisFrame:
-            refreshHandler = getattr(self, 'refreshEventHandlerMacOS', None)
-            # Timestamp (in the same clock the DisplayLink reports its
-            # callbacks in) of the moment we submit this buffer, so we can
-            # tell a genuinely new callback apart from one that was already
-            # due before we got here (see `RefreshEventHandlerMacOS`).
-            if refreshHandler is not None:
-                flipTimestamp = CACurrentMediaTime()
+            if getattr(self, 'refreshEventHandlerMacOS', None) is not None:
+                self._flipWithDisplayLinkMacOS()
+            else:
+                self.winHandle.flip()
 
-            self.winHandle.flip()
-            # For macOS display link sync, this slews the timings of buffer
-            # flips to match the refresh cycle of the display to ensure content
-            # is presented at the correct time. This takes a few frames to
-            # 'settle' so there may be some initial jitter.
-            if refreshHandler is not None:
-                synced = False
-                runLoop = AppKit.NSRunLoop.currentRunLoop()
-                # DisplayLink callbacks may pause while the window isn't
-                # visible (e.g. minimized), so don't risk stalling on the long
-                # timeout below in that case. The paced wait further down
-                # still picks up callbacks if they are arriving (they do
-                # while the window is merely covered by another).
-                isVisible = bool(
-                    self._nsWindowMacOS.occlusionState() &
-                    AppKit.NSWindowOcclusionStateVisible)
-                if isVisible and not self._displayLinkTimedOut:
-                    # Hold until the DisplayLink reports a callback that
-                    # occurred after this flip. We block the run loop (rather
-                    # than busy-polling `dispatch_events()`) so this doesn't
-                    # spin a CPU core while waiting, and cap the total wait
-                    # so a flip can't hang indefinitely if callbacks stop.
-                    deadline = CACurrentMediaTime() + 0.5  # well over a frame
-                    while refreshHandler.lastRefreshTimestamp < flipTimestamp:
-                        if CACurrentMediaTime() > deadline:
-                            logging.warning(
-                                "Timed out waiting for a DisplayLink refresh "
-                                "callback. Pacing flips to the expected "
-                                "refresh rate until callbacks resume.")
-                            self._displayLinkTimedOut = True
-                            break
-                        # block until a run loop source fires (e.g. the
-                        # DisplayLink callback) or a short timeout elapses
-                        runLoop.runMode_beforeDate_(
-                            AppKit.NSDefaultRunLoopMode,
-                            AppKit.NSDate.dateWithTimeIntervalSinceNow_(0.02))
-                    else:
-                        synced = True
-                if not synced:
-                    # Without DisplayLink callbacks `flip()` doesn't reliably
-                    # block on vsync, so frames would run faster than the
-                    # display refreshes. Keep the frame rate constant by
-                    # waiting until the next refresh predicted from the last
-                    # callback received, pumping the run loop meanwhile so a
-                    # callback arriving in the meantime is picked up and
-                    # re-enables synchronization. Callbacks are delivered
-                    # shortly after the refresh they report, so allow a little
-                    # slack past the predicted refresh to catch one.
-                    lastRefresh = refreshHandler.lastRefreshTimestamp
-                    period = refreshHandler.lastTargetTimestamp - lastRefresh
-                    if period <= 0:
-                        period = self._displayLinkPeriod
-                    nextRefresh = lastRefresh + period * math.ceil(
-                        (flipTimestamp - lastRefresh) / period)
-                    deadline = nextRefresh + 0.25 * period
-                    while refreshHandler.lastRefreshTimestamp < flipTimestamp:
-                        remaining = deadline - CACurrentMediaTime()
-                        if remaining <= 0:
-                            break
-                        ran = runLoop.runMode_beforeDate_(
-                            AppKit.NSDefaultRunLoopMode,
-                            AppKit.NSDate.dateWithTimeIntervalSinceNow_(
-                                remaining))
-                        if not ran:  # no run loop sources, so just sleep
-                            time.sleep(remaining)
-                    synced = refreshHandler.lastRefreshTimestamp >= flipTimestamp
-                    if synced and self._displayLinkTimedOut:
-                        logging.info(
-                            "DisplayLink refresh callbacks resumed; "
-                            "re-enabling DisplayLink synchronization.")
-                        self._displayLinkTimedOut = False
-                self._displayLinkSynced = synced
-                # process any input events that queued up while waiting
-                self.winHandle.dispatch_events()
+    def _flipWithDisplayLinkMacOS(self):
+        """Flip the window, then hold until the display refreshes as reported
+        by this window's macOS DisplayLink (see `RefreshEventHandlerMacOS`).
+
+        This slews the timings of buffer flips to match the refresh cycle of
+        the display to ensure content is presented at the correct time. This
+        takes a few frames to 'settle' so there may be some initial jitter.
+        """
+        refreshHandler = self.refreshEventHandlerMacOS
+        # Timestamp (in the same clock the DisplayLink reports its callbacks
+        # in) of the moment we submit this buffer, so we can tell a genuinely
+        # new callback apart from one that was already due before we got here
+        # (see `RefreshEventHandlerMacOS`).
+        flipTimestamp = CACurrentMediaTime()
+
+        self.winHandle.flip()
+
+        # Hold until the DisplayLink reports a callback for the first refresh
+        # after this flip. Rather than waiting on callbacks open-endedly, only
+        # wait until that refresh is expected (predicted from the last
+        # callback received) plus a little slack, since callbacks are
+        # delivered shortly after the refresh they report. If callbacks stop
+        # arriving (e.g. while the window is minimized) the flip is still held
+        # until the predicted refresh, keeping the frame rate constant without
+        # ever stalling, since `flip()` alone doesn't reliably block on vsync.
+        # We block the run loop (rather than busy-polling `dispatch_events()`)
+        # so this doesn't spin a CPU core.
+        runLoop = AppKit.NSRunLoop.currentRunLoop()
+        lastRefresh = refreshHandler.lastRefreshTimestamp
+        period = refreshHandler.lastTargetTimestamp - lastRefresh
+        if period <= 0:
+            period = self._displayLinkPeriod
+        nextRefresh = lastRefresh + period * math.ceil(
+            (flipTimestamp - lastRefresh) / period)
+        deadline = nextRefresh + 0.25 * period
+        while refreshHandler.lastRefreshTimestamp < flipTimestamp:
+            remaining = deadline - CACurrentMediaTime()
+            # pump at least once even if the deadline has passed (e.g.
+            # `flip()` itself blocked past the refresh), so a callback that's
+            # already due still gets delivered
+            ran = runLoop.runMode_beforeDate_(
+                AppKit.NSDefaultRunLoopMode,
+                AppKit.NSDate.dateWithTimeIntervalSinceNow_(
+                    max(remaining, 0.0)))
+            if remaining <= 0:
+                break
+            if not ran:  # no run loop sources, so just sleep
+                time.sleep(remaining)
+        synced = refreshHandler.lastRefreshTimestamp >= flipTimestamp
+        self._displayLinkSynced = synced
+
+        # Report if callbacks stop arriving while the window is visible
+        # (they're expected to pause while it's minimized).
+        isVisible = bool(
+            self._nsWindowMacOS.occlusionState() &
+            AppKit.NSWindowOcclusionStateVisible)
+        if synced or not isVisible:
+            self._displayLinkStallStart = None
+            if synced and self._displayLinkTimedOut:
+                logging.info(
+                    "DisplayLink refresh callbacks resumed; "
+                    "re-enabling DisplayLink synchronization.")
+                self._displayLinkTimedOut = False
+        elif self._displayLinkStallStart is None:
+            self._displayLinkStallStart = flipTimestamp
+        elif (not self._displayLinkTimedOut and
+                flipTimestamp - self._displayLinkStallStart > 0.5):
+            logging.warning(
+                "No DisplayLink refresh callbacks received for over 0.5 s. "
+                "Pacing flips to the expected refresh rate until callbacks "
+                "resume.")
+            self._displayLinkTimedOut = True
+
+        # process any input events that queued up while waiting
+        self.winHandle.dispatch_events()
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
@@ -808,6 +827,12 @@ class PygletBackend(BaseBackend):
         # restore the gamma ramp that was active when window was opened
         if self._origGammaRamp is not None:
             self.gammaRamp = self._origGammaRamp
+
+        # end the App Nap opt-out started when the window was opened
+        appNapActivity = getattr(self, '_appNapActivityMacOS', None)
+        if appNapActivity is not None:
+            AppKit.NSProcessInfo.processInfo().endActivity_(appNapActivity)
+            self._appNapActivityMacOS = None
 
         try:
             self.winHandle.close()
