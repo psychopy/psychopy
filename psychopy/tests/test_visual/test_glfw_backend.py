@@ -9,6 +9,8 @@ import pytest
 def test_open_glfw_window():
     from psychopy.visual.window import Window
     win = Window(winType='glfw', autoLog=False)
-    assert win.winType == 'glfw'
-    win.flip()
-    win.close()
+    try:
+        assert win.winType == 'glfw'
+        win.flip()
+    finally:
+        win.close()
