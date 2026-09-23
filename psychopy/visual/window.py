@@ -1186,8 +1186,13 @@ class Window():
         self.callOnFlip(self._assignFlipTime, obj, attrib, format)
 
     def getFutureFlipTime(self, targetTime=0, clock=None):
-        """The expected time of the next screen refresh. This is currently
-        calculated as win._lastFrameTime + refreshInterval
+        """The expected time of the next screen refresh. This is normally
+        calculated as win._lastFrameTime + refreshInterval, but backends
+        that can report the display system's own predicted presentation
+        time (e.g. macOS's DisplayLink; see
+        `BaseBackend.getFutureFlipTimestamp`) are used instead when
+        available, since that can account for compositor buffering our own
+        extrapolation from the last flip can't see.
 
         Parameters
         -----------
@@ -1204,9 +1209,21 @@ class Window():
         if not self.monitorFramePeriod:
             raise AttributeError("Cannot calculate nextFlipTime due to unknown "
                                  "monitorFramePeriod")
-        lastFlip = self._frameTimes[-1]  # unlike win.lastFrameTime this is always on
-        timeNext = lastFlip + self.monitorFramePeriod
         now = baseClock.getTime()
+
+        # Prefer the display system's own prediction of the next
+        # presentation time, if the backend can provide one (e.g. macOS,
+        # where the WindowServer's compositor may add its own multi-frame
+        # buffering on top of the one frame period we'd otherwise assume).
+        # Our own `lastFlip + monitorFramePeriod` extrapolation has no way
+        # to see that extra buffering; the backend's answer does, because it
+        # comes from whatever is actually managing that buffer queue.
+        futureFlipTimestamp = self.backend.getFutureFlipTimestamp()
+        if futureFlipTimestamp is not None:
+            timeNext = futureFlipTimestamp - baseClock.getLastResetTime()
+        else:
+            lastFlip = self._frameTimes[-1]  # unlike win.lastFrameTime this is always on
+            timeNext = lastFlip + self.monitorFramePeriod
         if (now + targetTime) > timeNext:  # target is more than 1 frame in future
             extraFrames = math.ceil((now + targetTime - timeNext)/self.monitorFramePeriod)
             thisT = timeNext + extraFrames*self.monitorFramePeriod
