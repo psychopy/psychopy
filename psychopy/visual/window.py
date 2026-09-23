@@ -119,6 +119,88 @@ IOHUB_ACTIVE = False
 retinaContext = None  # only needed for retina-ready displays
 IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix to copy
 
+# File extensions `Window.saveMovieFrames()` encodes with a `MovieWriter` from
+# `psychopy.tools.movietools`. Anything else is written by Pillow, either as an
+# animated GIF or as one image file per captured frame.
+MOVIE_FILE_EXTENSIONS = ('.mp4', '.mov', '.mpg', '.mpeg', '.avi', '.mkv')
+
+# OpenCV, looked up once by `_getOpenCV()` and kept here. `False` means it has
+# been looked for and is not installed, which is remembered so that a failed
+# import is not retried on every frame.
+_cv2 = None
+
+
+def _getOpenCV():
+    """Get the OpenCV module, if it is installed.
+
+    OpenCV converts whole images far faster than Numpy can, so it is used where
+    it is available. It is a core dependency, but PsychoPy runs without it, so
+    callers take the Numpy path when this gives back `None`.
+
+    Returns
+    -------
+    module or None
+        The `cv2` module, or `None` if it is not installed.
+
+    """
+    global _cv2
+
+    if _cv2 is None:
+        try:
+            import cv2
+            _cv2 = cv2
+        except ImportError:
+            # remembered so that the import, which searches the whole path
+            # before it fails, is not retried by a per-frame caller
+            _cv2 = False
+
+    return _cv2 or None
+
+
+def _rgbToLuminance(colorData):
+    """Convert an array of 8-bit RGB(A) pixels to 8-bit luminance.
+
+    Uses the ITU-R BT.601 luma coefficients, which weight the channels by how
+    much each contributes to perceived brightness.
+
+    Parameters
+    ----------
+    colorData : numpy.ndarray
+        Pixels as an 8-bit array of shape `(height, width, 3)` or
+        `(height, width, 4)`, with channels in RGB(A) order. Any alpha channel
+        is ignored, since it says nothing about how bright a pixel looks.
+
+    Returns
+    -------
+    numpy.ndarray
+        Luminance as an 8-bit array of shape `(height, width)`.
+
+    """
+    cv2 = _getOpenCV()
+
+    if cv2 is not None:
+        # OpenCV needs the rows laid out end to end, which a sliced-down view
+        # of a larger image is not
+        colorData = numpy.ascontiguousarray(colorData)
+
+        return cv2.cvtColor(
+            colorData,
+            cv2.COLOR_RGBA2GRAY if colorData.shape[2] == 4
+            else cv2.COLOR_RGB2GRAY)
+
+    # Fallback, weighting the channels in integers rather than floats: the
+    # obvious `numpy.dot()` against float coefficients promotes the whole image
+    # to float64 and costs an order of magnitude more time and memory than the
+    # read which produced it. The weights are the BT.601 coefficients scaled by
+    # 256 (and so summing to it), and 128 is added before the shift to round to
+    # nearest rather than truncate. The largest total is 255 * 256 + 128, which
+    # a 16-bit accumulator holds.
+    rgb = colorData[:, :, :3].astype(numpy.uint16)
+    lum = rgb[:, :, 0] * 77 + rgb[:, :, 1] * 150 + rgb[:, :, 2] * 29
+
+    return ((lum + 128) >> 8).astype(numpy.uint8)
+
+
 class OpenWinList(list):
     """Class to keep keep track of windows that have been opened.
 
@@ -607,6 +689,9 @@ class Window():
         self.frameClock = core.Clock()  # from psycho/core
         self.frames = 0  # frames since last fps calc
         self.movieFrames = []  # list of captured frames (Image objects)
+        # last region `_getPixels()` warned about having to crop, so that a
+        # caller reading the same region every frame is not warned every frame
+        self._lastPixelRectWarning = None
 
         self.recordFrameIntervals = False
         # Be able to omit the long timegap that follows each time turn it off
@@ -2651,8 +2736,75 @@ class Window():
         self.movieFrames.append(im)
         return im
 
+    def _clampRectToBuffer(self, left, bottom, w, h):
+        """Crop a region to the part of it which is actually on the window.
+
+        `glReadPixels` leaves pixels outside the buffer untouched rather than
+        refusing to read them, so a region running off the edge of the window
+        comes back padded with whatever the destination array held. Cropping
+        first means the caller is given the pixels which exist and nothing
+        else, which matters for callers averaging the region: padding averaged
+        in as black would report a bright patch as dimmer than it is.
+
+        Parameters
+        ----------
+        left, bottom : int
+            Bottom left corner of the region in pixels, with the origin at the
+            bottom left of the window.
+        w, h : int
+            Size of the region in pixels.
+
+        Returns
+        -------
+        tuple
+            The region as `(left, bottom, w, h)`, cropped to the window.
+
+        Raises
+        ------
+        ValueError
+            If nothing is left of the region, either because it was empty to
+            begin with or because it lies off the window entirely. There are no
+            pixels to give back in that case, and an empty array would only
+            turn up later as a `nan` average.
+
+        """
+        # Cropped against the framebuffer rather than `size`, which is the
+        # viewport: a window rendering into part of its buffer still has the
+        # whole buffer there to be read.
+        bufferWidth, bufferHeight = self.frameBufferSize
+
+        # crop against each edge, keeping the corner where it is if the region
+        # starts inside the window
+        cropLeft = max(left, 0)
+        cropBottom = max(bottom, 0)
+        cropWidth = min(left + w, int(bufferWidth)) - cropLeft
+        cropHeight = min(bottom + h, int(bufferHeight)) - cropBottom
+
+        if cropWidth <= 0 or cropHeight <= 0:
+            raise ValueError(
+                "Cannot read pixels from the region (left={}, bottom={}, w={}, "
+                "h={}) of a {}x{} window, since none of it is on the "
+                "window.".format(
+                    left, bottom, w, h, int(bufferWidth), int(bufferHeight)))
+
+        if (cropLeft, cropBottom, cropWidth, cropHeight) != (left, bottom, w, h):
+            # A caller reading the same region every frame would log this on
+            # each one, so an identical warning is only logged once.
+            warningKey = (left, bottom, w, h, int(bufferWidth),
+                          int(bufferHeight))
+            if warningKey != self._lastPixelRectWarning:
+                self._lastPixelRectWarning = warningKey
+                logging.warning(
+                    "The region (left={}, bottom={}, w={}, h={}) runs off a "
+                    "{}x{} window, so only the {}x{} of it which is on the "
+                    "window has been read.".format(
+                        left, bottom, w, h, int(bufferWidth),
+                        int(bufferHeight), cropWidth, cropHeight))
+
+        return cropLeft, cropBottom, cropWidth, cropHeight
+
     def _getPixels(self, rect=None, buffer='front', includeAlpha=True,
-                   makeLum=False):
+                   makeLum=False, flipVert=False):
         """Return an array of pixel values from the current window buffer or
         sub-region.
 
@@ -2660,14 +2812,24 @@ class Window():
         ----------
         rect : tuple[int], optional
             The region of the window to capture in pixel coordinates (left,
-            bottom, width, height). If `None`, the whole window is captured.
+            bottom, width, height), with the origin at the bottom left of the
+            window. If `None`, the whole window is captured. A region running
+            off the edge of the window is cropped to the part which is on it,
+            so the array which comes back may be smaller than the region asked
+            for.
         buffer : str, optional
             Buffer to capture.
         includeAlpha : bool, optional
             Include the alpha channel in the returned array. Default is `True`.
+            Ignored when `makeLum` is `True`, since luminance has no alpha.
         makeLum : bool, optional
             Convert the RGB values to luminance values. Values are rounded to
             the nearest integer. Default is `False`.
+        flipVert : bool, optional
+            Turn the rows the right way up for an image, so that the first one
+            is the top of the window rather than the bottom. Default is
+            `False`, which hands the rows back in the order OpenGL reads them.
+            See the note under *Returns*.
 
         Returns
         -------
@@ -2676,6 +2838,19 @@ class Window():
             `includeAlpha` is `False`, the array will have shape (height, width,
             3). If `makeLum` is `True`, the array will have shape (height,
             width).
+
+            Rows run up from the bottom of the window, which is where OpenGL's
+            origin is and the same end `rect` is measured from. As an image
+            that is upside down, so pass `flipVert=True` to get the rows the
+            way round an image wants them, which is what `_getFrame()` does.
+            Either way the flip is a view, so it costs nothing to ask for.
+
+        Raises
+        ------
+        ValueError
+            If `buffer` is not `'front'` or `'back'`, or if `rect` selects no
+            pixels, which happens when it is empty or lies off the window
+            entirely.
 
         Examples
         --------
@@ -2688,141 +2863,373 @@ class Window():
             pix = win._getPixels(makeLum=True)
             average = pix.mean()
 
+        Get the window as an image, rows running down from the top::
+
+            pix = win._getPixels(includeAlpha=False, flipVert=True)
+
         """
-        # do the reading of the pixels
-        if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
-        elif buffer == 'back':
-            GL.glReadBuffer(GL.GL_BACK)
-        elif buffer == 'front':
-            if self.useFBO:
-                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-            GL.glReadBuffer(GL.GL_FRONT)
-        else:
+        if buffer not in ('front', 'back'):
             raise ValueError("Requested read from buffer '{}' but should be "
                              "'front' or 'back'".format(buffer))
 
         if rect:
             # box corners in pix
-            left, bottom, w, h = rect
+            left, bottom, w, h = (int(val) for val in rect)
         else:
+            # The whole framebuffer rather than `size`, which is the viewport:
+            # asking for the whole window should not give back only the part of
+            # it a narrowed viewport draws into.
             left = bottom = 0
-            w, h = self.size
+            w, h = (int(dim) for dim in self.frameBufferSize)
 
-        # get pixel data
-        bufferDat = (GL.GLubyte * (4 * w * h))()
-        GL.glReadPixels(
-            left, bottom, w, h,
-            GL.GL_RGBA,
-            GL.GL_UNSIGNED_BYTE,
-            bufferDat)
+        left, bottom, w, h = self._clampRectToBuffer(left, bottom, w, h)
 
-        # convert to array
-        toReturn = numpy.frombuffer(bufferDat, dtype=numpy.uint8)
-        toReturn = toReturn.reshape((h, w, 4))
+        # What is bound now, so that reading the window leaves the GL state as
+        # it found it. Which buffer a framebuffer reads from is part of that
+        # framebuffer's own state, so the framebuffer is put back first and the
+        # read buffer after it.
+        prevFBO = GL.GLint()
+        GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
+        prevReadBuffer = GL.GLint()
+        GL.glGetIntegerv(GL.GL_READ_BUFFER, ctypes.byref(prevReadBuffer))
 
-        # rebind front buffer if needed
-        if buffer == 'front' and self.useFBO:
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
+        try:
+            # do the reading of the pixels
+            if buffer == 'back' and self.useFBO:
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            elif buffer == 'back':
+                GL.glReadBuffer(GL.GL_BACK)
+            else:  # front
+                if self.useFBO:
+                    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+                GL.glReadBuffer(GL.GL_FRONT)
 
-        # if we want the color data without an alpha channel, we need to
-        # convert the data to a numpy array and remove the alpha channel
-        if not includeAlpha:
+            # Read straight into the array which is handed back. `glReadPixels`
+            # fills every pixel of the region, so the buffer does not need to
+            # be cleared first, and clearing one the size of a window is far
+            # from free.
+            toReturn = numpy.empty((h, w, 4), dtype=numpy.uint8)
+            GL.glReadPixels(
+                left, bottom, w, h,
+                GL.GL_RGBA,
+                GL.GL_UNSIGNED_BYTE,
+                toReturn.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
+        finally:
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
+            GL.glReadBuffer(prevReadBuffer.value)
+
+        # Convert to luminance if requested, before any alpha channel is
+        # sliced off: luminance ignores alpha anyway, and the conversion is
+        # fastest given the whole buffer as it was read. Flipping afterwards
+        # also leaves a quarter as many bytes to turn around.
+        if makeLum:
+            toReturn = _rgbToLuminance(toReturn)
+        elif not includeAlpha:
+            # if we want the color data without an alpha channel, we need to
+            # convert the data to a numpy array and remove the alpha channel
             toReturn = toReturn[:, :, :3]  # remove alpha channel
 
-        # convert to luminance if requested
-        if makeLum:
-            coeffs = [0.2989, 0.5870, 0.1140]
-            toReturn = numpy.rint(numpy.dot(toReturn[:, :, :3], coeffs)).astype(
-                numpy.uint8)
+        if flipVert:
+            # OpenGL counts rows from the bottom of the window, so what
+            # `glReadPixels` wrote is upside down as an image. `[::-1]` is a
+            # view, so nothing is copied to turn it up the right way.
+            toReturn = toReturn[::-1]
 
         return toReturn
 
     def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.
-        """
-        # GL.glLoadIdentity()
-        # do the reading of the pixels
-        if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
-        elif buffer == 'back':
-            GL.glReadBuffer(GL.GL_BACK)
-        elif buffer == 'front':
-            if self.useFBO:
-                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-            GL.glReadBuffer(GL.GL_FRONT)
-        else:
-            raise ValueError("Requested read from buffer '{}' but should be "
-                             "'front' or 'back'".format(buffer))
 
+        Parameters
+        ----------
+        rect : array_like, optional
+            Sub-region of the window to capture as `(left, top, right, bottom)`
+            in normalised units, each running from `-1` to `1`. If `None`, the
+            whole window is captured. Note that this is not the same as the
+            `rect` `_getPixels()` takes, which is in pixels.
+        buffer : str, optional
+            Buffer to capture, either `'front'` or `'back'`.
+
+        Returns
+        -------
+        Image
+            Buffer pixel contents as a PIL/Pillow image object, in RGB.
+
+        """
         if rect:
-            x, y = self.size  # of window, not image
-            imType = 'RGBA'  # not tested with anything else
+            # The region in pixels, which is what `_getPixels()` reads. The
+            # window's own height is measured from the bottom, so the rect's
+            # bottom edge gives the corner to start from and its top edge the
+            # far side.
+            x, y = (int(dim) for dim in self.frameBufferSize)
 
             # box corners in pix
             left = int((rect[0] / 2. + 0.5) * x)
             bottom = int((rect[3] / 2. + 0.5) * y)
             w = int((rect[2] / 2. + 0.5) * x) - left
             h = int((rect[1] / 2. + 0.5) * y) - bottom
+            pixRect = (left, bottom, w, h)
         else:
-            left = bottom = 0
-            w, h = self.size
+            pixRect = None
 
-        # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
-        bufferDat = (GL.GLubyte * (4 * w * h))()
-        GL.glReadPixels(left, bottom, w, h,
-                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-        try:
-            im = Image.fromstring(mode='RGBA', size=(w, h),
-                                  data=bufferDat)
-        except Exception:
-            im = Image.frombytes(mode='RGBA', size=(w, h),
-                                 data=bufferDat)
+        # `flipVert` because OpenGL reads rows from the bottom of the window
+        # up, which is upside down for an image
+        colorData = self._getPixels(
+            rect=pixRect, buffer=buffer, includeAlpha=False, flipVert=True)
 
-        im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        im = im.convert('RGB')
-
-        if self.useFBO and buffer == 'front':
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
-        return im
+        return Image.fromarray(colorData)
 
     @property
     def screenshot(self):
         return self._getFrame()
 
-    def saveMovieFrames(self, fileName, codec='libx264',
-                        fps=30, clearFrames=True):
+    def _openMovieWriter(self, fileName, frameSize, fps, codec=None,
+                         encoderLib=None, encoderOpts=None):
+        """Open a movie file writer to encode captured frames with.
+
+        Which encoder library is available is a property of the installation
+        rather than of the experiment, so when the caller has not asked for a
+        particular one the preferred library is tried first and the others are
+        used as fallbacks. A library which is asked for by name is not fallen
+        back from, since silently encoding with something else would leave the
+        caller's `encoderOpts` meaning something different.
+
+        Parameters
+        ----------
+        fileName : str
+            Name of the movie file to write, including path and extension.
+        frameSize : tuple
+            Size `(w, h)` in pixels of the frames the file will hold.
+        fps : int or float
+            Frame rate in frames per second the movie is written at.
+        codec : str or None
+            Codec to encode the video stream with, or `None` to leave the
+            choice to the writer.
+        encoderLib : str or None
+            Encoder library to use, or `None` to use whichever is installed.
+        encoderOpts : dict or None
+            Options to pass to the encoder.
+
+        Returns
+        -------
+        psychopy.tools.movietools.MovieWriter
+            An open writer, ready to be handed frames.
+
+        Raises
+        ------
+        ImportError
+            If none of the candidate encoder libraries could be imported.
+
+        """
+        from psychopy.tools import movietools
+
+        if encoderLib is not None:
+            candidateLibs = [encoderLib]
+        else:
+            # preferred library first, then the rest as fallbacks in case it
+            # is not installed
+            candidateLibs = [movietools.PREFERRED_MOVIE_WRITER_LIB]
+            candidateLibs += [
+                lib for lib in (movietools.MOVIE_WRITER_LIB_FFPYPLAYER,
+                                movietools.MOVIE_WRITER_LIB_PYAV,
+                                movietools.MOVIE_WRITER_LIB_OPENCV)
+                if lib not in candidateLibs]
+
+        lastError = None
+        for libName in candidateLibs:
+            writerCls = movietools.getMovieWriterClass(libName)
+
+            # OpenCV names codecs by FourCC code rather than by encoder name,
+            # so it takes one through `encoderOpts` and warns about anything
+            # passed as `codec`. Nothing to warn about when the codec is only
+            # there as the default for the other writers.
+            writerCodec = (
+                None if writerCls is movietools.OpenCVMovieWriter else codec)
+
+            movieWriter = writerCls(
+                fileName,
+                frameSize=frameSize,
+                frameRate=fps,
+                encoderOpts=encoderOpts,
+                codec=writerCodec)
+
+            try:
+                movieWriter.open()
+            except ImportError as err:
+                # the library this writer encodes with is not installed, so
+                # try the next one
+                lastError = err
+                logging.warning(
+                    "Cannot write '{}' with the '{}' encoder library, it is "
+                    "not installed.".format(fileName, libName))
+                continue
+
+            return movieWriter
+
+        if len(candidateLibs) == 1:
+            raise ImportError(
+                "Cannot write '{}', the encoder library it was asked for, "
+                "'{}', is not installed.".format(fileName, candidateLibs[0])
+            ) from lastError
+
+        raise ImportError(
+            "Cannot write '{}', none of the encoder libraries PsychoPy writes "
+            "movies with ({}) are installed.".format(
+                fileName, ", ".join(repr(lib) for lib in candidateLibs))
+        ) from lastError
+
+    def _writeMovieFile(self, fileName, codec='libx264', fps=30,
+                        encoderLib=None, encoderOpts=None):
+        """Encode the captured frames into a movie file.
+
+        Frames are handed to a `MovieWriter` from
+        :mod:`psychopy.tools.movietools`, which is the same machinery
+        :class:`~psychopy.hardware.camera.Camera` records with, so which
+        encoder library does the work is a matter of asking for it.
+
+        Captured frames are timestamped by their position in the stack rather
+        than by when they were captured, since `getMovieFrame()` records only
+        the frame itself. The movie therefore plays back at `fps` no matter how
+        long the window actually took to draw the frames.
+
+        Parameters
+        ----------
+        fileName : str
+            Name of the movie file to write, including path and extension. The
+            extension decides the container the movie is written to.
+        codec : str or None
+            Codec to encode the video stream with, named the way the encoder
+            library names it, `'libx264'` or `'mpeg4'` for instance. If `None`,
+            the writer's own default is used. Ignored by the OpenCV writer,
+            which names codecs by FourCC code through
+            ``encoderOpts['fourcc']`` instead.
+        fps : int or float
+            Frame rate in frames per second the movie is written at.
+        encoderLib : str or None
+            Encoder library to use, one of `'ffpyplayer'`, `'pyav'` or
+            `'opencv'`. If `None`, `movietools.PREFERRED_MOVIE_WRITER_LIB` is
+            used.
+        encoderOpts : dict or None
+            Options to pass to the encoder. Which options are understood
+            depends on the encoder library; see the `MovieWriter` subclass for
+            that library.
+
+        """
+        # The container's frame size is fixed when the file is opened, so the
+        # first frame sets it and any frame which does not match it is skipped
+        # below rather than handed to the encoder, which cannot take it.
+        captureWidth, captureHeight = self.movieFrames[0].size
+
+        # Movie frames are encoded as chroma-subsampled YUV, which cannot
+        # express a frame with an odd number of rows or columns, and a window
+        # is free to be any size at all. An odd edge is trimmed off rather than
+        # left for the encoder to reject the whole recording over.
+        frameWidth = captureWidth - (captureWidth % 2)
+        frameHeight = captureHeight - (captureHeight % 2)
+
+        cropped = (frameWidth, frameHeight) != (captureWidth, captureHeight)
+        if cropped:
+            logging.warning(
+                "Window frames are {}x{}, which cannot be encoded as video, so "
+                "'{}' is being written {}x{}.".format(
+                    captureWidth, captureHeight, fileName, frameWidth,
+                    frameHeight))
+
+        movieWriter = self._openMovieWriter(
+            fileName, frameSize=(frameWidth, frameHeight), fps=fps,
+            codec=codec, encoderLib=encoderLib, encoderOpts=encoderOpts)
+
+        try:
+            for frameN, thisFrame in enumerate(self.movieFrames):
+                if thisFrame.size != (captureWidth, captureHeight):
+                    logging.warning(
+                        "Frame {} of the movie being written to '{}' is {} "
+                        "but the file holds {}x{} frames, so it has been left "
+                        "out. Was the window resized while frames were being "
+                        "captured?".format(
+                            frameN, fileName, thisFrame.size, captureWidth,
+                            captureHeight))
+                    continue
+
+                # `_getFrame()` hands frames over as RGB images, which is what
+                # the writers want, so they only need unwrapping into arrays
+                frameData = numpy.asarray(thisFrame, dtype=numpy.uint8)
+
+                if cropped:
+                    # copied rather than left as a view, since the encoders
+                    # read the frame's buffer straight through
+                    frameData = numpy.ascontiguousarray(
+                        frameData[:frameHeight, :frameWidth])
+
+                movieWriter.write((frameData, frameN / fps))
+        finally:
+            movieWriter.close()
+
+    def _writeAnimatedGIF(self, fileName, fps=30):
+        """Write the captured frames out as an animated GIF.
+
+        Pillow does this itself, quantizing the frames down to GIF's 256 colour
+        palette as it goes. That quantization is what makes the result look
+        worse than the movie formats; see `saveMovieFrames()` for what to do
+        about it.
+
+        Parameters
+        ----------
+        fileName : str
+            Name of the GIF file to write, including path.
+        fps : int or float
+            Frame rate in frames per second the GIF is played back at.
+
+        """
+        firstFrame = self.movieFrames[0]
+        firstFrame.save(
+            fileName,
+            save_all=True,
+            append_images=self.movieFrames[1:],
+            duration=1000.0 / fps,  # Pillow wants milliseconds per frame
+            loop=0,  # loop forever
+            optimize=True)
+
+    def saveMovieFrames(self, fileName, codec='libx264', fps=30,
+                        clearFrames=True, encoderLib=None, encoderOpts=None):
         """Writes any captured frames to disk.
 
         Will write any format that is understood by PIL (tif, jpg, png, ...)
 
         Parameters
         ----------
-        filename : str
+        fileName : str
             Name of file, including path. The extension at the end of the file
-            determines the type of file(s) created. If an image type (e.g. .png)
-            is given, then multiple static frames are created. If it is .gif
-            then an animated GIF image is created (although you will get higher
-            quality GIF by saving PNG files and then combining them in dedicated
-            image manipulation software, such as GIMP). On Windows and Linux
-            `.mpeg` files can be created if `pymedia` is installed. On macOS
-            `.mov` files can be created if the pyobjc-frameworks-QTKit is
-            installed. Unfortunately the libs used for movie generation can be
-            flaky and poor quality. As for animated GIFs, better results can be
-            achieved by saving as individual .png frames and then combining them
-            into a movie using software like ffmpeg.
-        codec : str, optional
-            The codec to be used **by moviepy** for mp4/mpg/mov files. If
-            `None` then the default will depend on file extension. Can be
-            one of ``libx264``, ``mpeg4`` for mp4/mov files. Can be
-            ``rawvideo``, ``png`` for avi files (not recommended). Can be
-            ``libvorbis`` for ogv files. Default is ``libx264``.
+            determines the type of file(s) created. If an image type (e.g.
+            .png) is given, then multiple static frames are created. If it is
+            .gif then an animated GIF image is created (although you will get
+            higher quality GIF by saving PNG files and then combining them in
+            dedicated image manipulation software, such as GIMP). Movie
+            formats (.mp4, .mov, .mpg, .mpeg, .avi and .mkv) are encoded with a
+            `MovieWriter` from :mod:`psychopy.tools.movietools`.
+        codec : str or None, optional
+            Codec to encode movie files with, named the way the encoder library
+            names it. Can be one of ``libx264``, ``mpeg4`` for mp4/mov files.
+            If `None`, the encoder library's own default is used. Ignored when
+            `encoderLib` is ``'opencv'``, which names codecs by FourCC code
+            through ``encoderOpts['fourcc']`` instead. Default is ``libx264``.
         fps : int, optional
-            The frame rate to be used throughout the movie. **Only for
-            quicktime (.mov) movies.**. Default is `30`.
+            The frame rate to be used throughout the movie. Captured frames
+            carry no timestamps of their own, so the movie plays back at this
+            rate however long the window took to draw them. Default is `30`.
         clearFrames : bool, optional
             Set this to `False` if you want the frames to be kept for
             additional calls to ``saveMovieFrames``. Default is `True`.
+        encoderLib : str or None, optional
+            Encoder library to write movie files with, one of ``'ffpyplayer'``,
+            ``'pyav'`` or ``'opencv'``. If `None`, the preferred library named
+            by ``movietools.PREFERRED_MOVIE_WRITER_LIB`` is used. Default is
+            `None`.
+        encoderOpts : dict or None, optional
+            Options to pass to the encoder, such as
+            ``{'crf': '23', 'preset': 'veryfast'}``. Which options are
+            understood depends on the encoder library; see the `MovieWriter`
+            subclass for that library. Default is `None`.
 
         Examples
         --------
@@ -2830,11 +3237,15 @@ class Window():
 
             myWin.saveMovieFrames('frame.tif')
 
-        As of PsychoPy 1.84.1 the following are written with moviepy::
+        Movies and animated GIFs are written from the same captured frames::
 
-            myWin.saveMovieFrames('stimuli.mp4') # codec = 'libx264' or 'mpeg4'
+            myWin.saveMovieFrames('stimuli.mp4')  # codec='libx264' or 'mpeg4'
             myWin.saveMovieFrames('stimuli.mov')
             myWin.saveMovieFrames('stimuli.gif')
+
+        Handing options to the encoder, here to ask x264 for a smaller file::
+
+            myWin.saveMovieFrames('stimuli.mp4', encoderOpts={'crf': '28'})
 
         """
         fileRoot, fileExt = os.path.splitext(fileName)
@@ -2847,18 +3258,12 @@ class Window():
             logging.info('Writing %i frames to %s' % (len(self.movieFrames),
                                                       fileName))
 
-        if fileExt in ['.gif', '.mpg', '.mpeg', '.mp4', '.mov']:
-            # lazy loading of moviepy.editor (rarely needed)
-            from moviepy import ImageSequenceClip
-            # save variety of movies with moviepy
-            numpyFrames = []
-            for frame in self.movieFrames:
-                numpyFrames.append(numpy.array(frame))
-            clip = ImageSequenceClip(numpyFrames, fps=fps)
-            if fileExt == '.gif':
-                clip.write_gif(fileName, fps=fps, fuzz=0, opt='nq')
-            else:
-                clip.write_videofile(fileName, codec=codec)
+        if fileExt in MOVIE_FILE_EXTENSIONS:
+            self._writeMovieFile(
+                fileName, codec=codec, fps=fps, encoderLib=encoderLib,
+                encoderOpts=encoderOpts)
+        elif fileExt == '.gif':
+            self._writeAnimatedGIF(fileName, fps=fps)
         elif len(self.movieFrames) == 1:
             # save an image using pillow
             self.movieFrames[0].save(fileName)
@@ -2896,7 +3301,7 @@ class Window():
             imP2 = Image.new('RGBA', (xPowerOf2, yPowerOf2))
             # paste centered
             imP2.paste(region, (int(xPowerOf2 / 2. - region.size[0] / 2.),
-                                int(yPowerOf2 / 2.) - region.size[1] / 2))
+                                int(yPowerOf2 / 2. - region.size[1] / 2.)))
             region = imP2
         return region
 
