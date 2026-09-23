@@ -14,8 +14,32 @@ from pathlib import Path
 from psychopy import logging
 
 
+def _stripTrailingSpaces(fileName):
+    """Remove trailing spaces from each component of a file path.
+
+    Windows silently strips trailing spaces from folder names when they are
+    created, so a requested path like ``'data/sub002 /file.psydat'`` would
+    end up in a folder called ``'sub002'`` on disk and later writes to the
+    original path would fail (see issue #7755).
+    """
+    if not fileName:
+        return fileName
+    fileObj = Path(fileName)
+    # strip every part except the root/drive anchor of an absolute path
+    parts = [
+        part if i == 0 and fileObj.is_absolute() else part.rstrip(' ')
+        for i, part in enumerate(fileObj.parts)
+    ]
+    return str(Path(*parts))
+
+
 def handleFileCollision(fileName, fileCollisionMethod):
     """Handle filename collisions by overwriting, renaming, or failing hard.
+
+    Trailing spaces are removed from each path component before the
+    collision is handled, as Windows silently strips them when creating
+    folders and would otherwise save data under a different path than the
+    one requested (fixes issue #7755).
 
     :Parameters:
 
@@ -26,6 +50,13 @@ def handleFileCollision(fileName, fileCollisionMethod):
             a new file ('trials1.psydat', 'trials2.pysdat' etc) and
             'error' will raise an IOError.
     """
+    strippedFileName = _stripTrailingSpaces(fileName)
+    if strippedFileName != fileName:
+        logging.warning("Trailing spaces were removed from the data file "
+                        "path '%s', it will be saved as '%s'."
+                        % (fileName, strippedFileName))
+        fileName = strippedFileName
+
     if fileCollisionMethod == 'overwrite':
         logging.warning('Data file, %s, will be overwritten' % fileName)
     elif fileCollisionMethod == 'fail':

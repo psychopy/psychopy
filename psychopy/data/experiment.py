@@ -120,7 +120,7 @@ class ExperimentHandler(_ComparisonMixin):
                             'of a crash')
         else:
             # fail now if we fail at all!
-            checkValidFilePath(dataFileName, makeValid=True)
+            checkValidFilePath(self.dataFileName, makeValid=True)
         atexit.register(self.close)
 
     def __del__(self):
