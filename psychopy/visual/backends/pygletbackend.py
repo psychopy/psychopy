@@ -668,6 +668,10 @@ class PygletBackend(BaseBackend):
         except Exception:
             pass
 
+        # Pyglet leaves its shadow window's context current after closing a
+        # window, so switch back to an open window
+        self._makeOpenWindowCurrent()
+
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode.
 
