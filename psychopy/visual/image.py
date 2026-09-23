@@ -281,7 +281,12 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         if hasattr(self.image, 'colorTexture'):
             if hasattr(self.image, 'update'):
                 self.image.update()
-            self._texID = self.image.colorTexture
+            # A source with no texture yet (e.g. a camera which hasn't been
+            # opened) has nothing to show, and binding `None` would raise.
+            texID = self.image.colorTexture
+            if texID is None:
+                return
+            self._texID = texID
 
         if win.USE_LEGACY_GL:
             self._drawLegacyGL(win)
