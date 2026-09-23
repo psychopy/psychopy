@@ -379,6 +379,9 @@ class PygletBackend(BaseBackend):
                 displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
                     refreshEventHandlerMacOS,
                     "displayRefreshed:")
+                # keep a reference so `close()` can invalidate it, otherwise
+                # the run loop retains it (and its target) indefinitely
+                self._displayLinkMacOS = displayLinkObj
 
                 # Configure the preferred frame rate range hint for the display
                 # link. Pin minimum == preferred == maximum so displays with
@@ -419,6 +422,7 @@ class PygletBackend(BaseBackend):
                     "DisplayLink for window synchronization requires macOS 14 "
                     "or later; falling back to standard vsync timing.")
             except Exception:
+                self._releaseDisplayLinkMacOS()
                 logging.error(
                     "Unable to create DisplayLink for screen. This may result in "
                     "less accurate timing of window flips.")
@@ -834,10 +838,28 @@ class PygletBackend(BaseBackend):
             AppKit.NSProcessInfo.processInfo().endActivity_(appNapActivity)
             self._appNapActivityMacOS = None
 
+        # stop the DisplayLink before its window goes away
+        self._releaseDisplayLinkMacOS()
+
         try:
             self.winHandle.close()
         except Exception:
             pass
+
+    def _releaseDisplayLinkMacOS(self):
+        """Invalidate this window's macOS DisplayLink (if any) and drop the
+        references held for it. Invalidating removes the link from the run
+        loop, which otherwise retains it (and its callback handler)
+        indefinitely.
+        """
+        displayLink = getattr(self, '_displayLinkMacOS', None)
+        if displayLink is not None:
+            displayLink.invalidate()
+            self._displayLinkMacOS = None
+
+        # flips fall back to standard vsync timing without a handler
+        self.refreshEventHandlerMacOS = None
+        self._nsWindowMacOS = None
 
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode.
