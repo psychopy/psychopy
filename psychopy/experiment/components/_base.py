@@ -710,7 +710,7 @@ class BaseComponent:
         # Return True if stop test was written
         return buff.indentLevel - startIndent
 
-    def writeStopTestCodeJS(self, buff, extra=""):
+    def writeStopTestCodeJS(self, buff, extra="", updateStatus=True):
         """Test whether we need to stop
                            
         Parameters
@@ -721,6 +721,10 @@ class BaseComponent:
             Additional conditions to check, including any boolean operators (and, or, etc.). Use 
             `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
             string.
+        updateStatus : bool
+            If `True`, mark the component as finished after writing its stop timing data. Components
+            which need to perform work while still started can defer this and update their status
+            after that work is complete.
         """
         # create copy of params dict so we can change stuff without harm
         params = self.params.copy()
@@ -796,11 +800,12 @@ class BaseComponent:
         )
         buff.writeIndentedLines(code % params)
         # set status
-        code = (
-            "// update status\n"
-            "%(name)s.status = PsychoJS.Status.FINISHED;\n"
-        )
-        buff.writeIndentedLines(code % params)
+        if updateStatus:
+            code = (
+                "// update status\n"
+                "%(name)s.status = PsychoJS.Status.FINISHED;\n"
+            )
+            buff.writeIndentedLines(code % params)
 
         # Return True if stop test was written
         return buff.indentLevel - startIndent
