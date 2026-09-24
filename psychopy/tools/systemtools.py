@@ -28,7 +28,9 @@ __all__ = [
     'getSerialPorts',
     'systemProfilerMacOS',
     'getInstalledDevices',
-    'isPsychopyInFocus'
+    'isPsychopyInFocus',
+    'describePsychtoolboxImportError',
+    'importPsychtoolbox'
 ]
 
 # Keep imports to a minimum here! We don't want to import the whole stack to
@@ -85,6 +87,92 @@ def isVM_CI():
         return 'travis'
     elif ("{}".format(os.environ.get('CONDA')).lower() == 'true'):
         return 'conda'
+
+# ------------------------------------------------------------------------------
+# Psychtoolbox
+#
+
+# First release of `psychtoolbox` with a wheel for Apple Silicon. Earlier ones
+# are built from source there, and their source only bundles Intel builds of the
+# PortAudio and libusb libraries they link, so the build leaves those out and
+# the extension modules fail to load.
+_PTB_FIRST_APPLE_SILICON_WHEEL = '3.0.22.2'
+
+
+def describePsychtoolboxImportError(err):
+    """Describe why `psychtoolbox` failed to import, and what to do about it.
+
+    Parameters
+    ----------
+    err : ImportError
+        Error raised importing `psychtoolbox` or one of its modules.
+
+    Returns
+    -------
+    str
+        Why the import failed. For an install known to be broken this says how
+        to fix it, otherwise it is the message of `err`.
+
+    """
+    msg = str(err)
+
+    # a build missing the libraries it links fails once an extension module is
+    # loaded, with the dynamic linker unable to find their symbols
+    if sys.platform != 'darwin' or platform.machine() != 'arm64' or \
+            'symbol not found' not in msg.lower():
+        return msg
+
+    from importlib.metadata import version, PackageNotFoundError
+    from packaging.version import Version
+
+    try:
+        installedVersion = version('psychtoolbox')
+    except PackageNotFoundError:
+        return msg
+
+    if Version(installedVersion) >= Version(_PTB_FIRST_APPLE_SILICON_WHEEL):
+        return msg
+
+    return (
+        "psychtoolbox {installed} could not be loaded ({msg}). On Apple "
+        "Silicon Macs, releases before {first} are built from source, which "
+        "leaves out the PortAudio and libusb libraries they need. Install "
+        "psychtoolbox {first} or later, which comes ready built for Apple "
+        "Silicon: pip install --upgrade \"psychtoolbox>={first}\"".format(
+            installed=installedVersion, msg=msg,
+            first=_PTB_FIRST_APPLE_SILICON_WHEEL))
+
+
+def importPsychtoolbox(moduleName='psychtoolbox'):
+    """Import `psychtoolbox`, or one of its modules, explaining any failure.
+
+    Parameters
+    ----------
+    moduleName : str
+        Module to import, for instance `'psychtoolbox.audio'`.
+
+    Returns
+    -------
+    module
+        The imported module.
+
+    Raises
+    ------
+    ImportError
+        If the module can't be imported, described by
+        `describePsychtoolboxImportError()`.
+
+    """
+    import importlib
+
+    try:
+        return importlib.import_module(moduleName)
+    except ImportError as err:
+        description = describePsychtoolboxImportError(err)
+        if description == str(err):
+            raise  # nothing to add, so keep the original error as it is
+
+        raise ImportError(description) from err
 
 # ------------------------------------------------------------------------------
 # Audio playback and capture devices
@@ -157,7 +245,7 @@ def getAudioDevices():
 
     """
     # use the PTB backend for audio
-    import psychtoolbox.audio as audio
+    audio = importPsychtoolbox('psychtoolbox.audio')
 
     try:
         enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
@@ -767,7 +855,7 @@ def getKeyboards():
 
     """
     # use PTB to query keyboards, might want to also use IOHub at some point
-    from psychtoolbox import hid
+    hid = importPsychtoolbox('psychtoolbox.hid')
 
     # use PTB to query for keyboards
     indices, names, keyboards = hid.get_keyboard_indices()
