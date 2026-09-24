@@ -333,6 +333,15 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             logging.warning("keyboard.Keyboard already using '%s' backend. Can not switch to '%s'" % (self._backend,
                                                                                                       backend))
 
+        # the 'ptb' backend needs psychtoolbox, so if it isn't available clear the
+        # choice and let the fallbacks below pick a backend which is. Leaving it set
+        # would mean the buffers `_backend == 'ptb'` code paths use are never created,
+        # so key presses would be silently discarded.
+        if KeyboardDevice._backend == 'ptb' and not havePTB:
+            logging.warning("keyboard.Keyboard requested the 'ptb' backend, but psychtoolbox is "
+                            "not available. Falling back to another backend.")
+            KeyboardDevice._backend = ''
+
         if clock:
             self.clock = clock
         else:
