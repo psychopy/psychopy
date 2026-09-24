@@ -25,8 +25,12 @@ from ..hardware import DeviceManager
 try:
     from psychtoolbox import audio
     import psychtoolbox as ptb
-except Exception:
-    raise DependencyError("psychtoolbox audio failed to import")
+except ImportError as err:
+    raise DependencyError(
+        "psychtoolbox audio failed to import: {}".format(
+            systemtools.describePsychtoolboxImportError(err))) from err
+except Exception as err:
+    raise DependencyError("psychtoolbox audio failed to import") from err
 try:
     import soundfile as sf
 except Exception:
