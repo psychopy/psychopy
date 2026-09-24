@@ -158,7 +158,7 @@ class SoundComponent(BaseDeviceComponent):
                 if self.params['stopVal'].val in ['', None, -1, 'None']:
                     # also specify secs if we have a finite duration
                     code += ", secs=%(stopVal)s"
-                code += f", logging={updateType != 'set every frame'})"
+                code += f", log={updateType != 'set every frame'})"
                 buff.writeIndentedLines(code % self.params)
             # in JS, the resource needs to be fetched
             if target == "PsychoJS":
