@@ -144,3 +144,43 @@ def test_full_sound_reconstructed_through_eos(monkeypatch):
 
     assert np.allclose(out[offset:offset + n], sound.sndArr[:, 0])  # every sample emitted
     assert sound not in stream.sounds                               # removed at EOS
+
+
+class _FakeWindow:
+    """Stands in for a Window: ``getFutureFlipTime(clock='now')`` returns the
+    delay until the next flip, as `Window.getFutureFlipTime` does."""
+
+    def __init__(self, flipIn):
+        self.flipIn = flipIn
+
+    def getFutureFlipTime(self, targetTime=0, clock=None):
+        return self.flipIn if clock == 'now' else 100.0 + self.flipIn
+
+
+@pytest.mark.parametrize("offset", [0, 7, 41, BLOCK - 1])
+def test_play_when_window_lands_on_flip_sample(monkeypatch, offset):
+    """``play(when=win)`` schedules the onset at the next flip time; the onset
+    must land on that exact sample, whatever its phase within the block."""
+    now = 5.0
+    flipIn = 0.0123
+    monkeypatch.setattr(bsd.time, "monotonic", lambda: now)
+
+    sound = _make_sound(request_dac_time=-1)
+    sound._isPlaying = False
+    sound.play(when=_FakeWindow(flipIn), log=False)
+    assert sound._tSoundRequestPlay == pytest.approx(now + flipIn)
+
+    # the flip falls `offset` samples into the first block we render
+    dac0 = now + flipIn - offset / SR
+    stream = _make_stream(sound)
+    out = []
+    for i in range(NBLOCKS):
+        tp = types.SimpleNamespace(currentTime=dac0 + i * BLOCK / SR,
+                                   inputBufferAdcTime=0.0,
+                                   outputBufferDacTime=dac0 + i * BLOCK / SR)
+        toSpk = np.zeros((BLOCK, 1), dtype="float32")
+        stream._callback(toSpk, BLOCK, tp, 0)
+        out.append(toSpk.copy())
+    out = np.vstack(out)[:, 0]
+
+    assert int(np.flatnonzero(out)[0]) == offset
