@@ -265,8 +265,15 @@ class _baseTest():
         if not s.contains(m.getPos()):
             pytest.skip()  # or can't test
 
+        prevButtons = event.mouseButtons
         event.mouseButtons = [1, 1, 1]
-        assert m.isPressedIn(s)
+        try:
+            assert m.isPressedIn(s)
+        finally:
+            # the buttons would otherwise stay held down for the rest of the
+            # session, so anything which reads the mouse (e.g. Slider.draw)
+            # would respond to a click
+            event.mouseButtons = prevButtons
 
     # obsolete?
     # m._pix2windowUnits()
