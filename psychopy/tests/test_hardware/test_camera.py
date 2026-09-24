@@ -15,7 +15,7 @@ import pytest
 from psychopy import core, session, visual
 from psychopy.hardware import DeviceManager
 from psychopy.hardware.camera import (
-    CAMERA_LIB_FFPYPLAYER, CAMERA_LIB_PYAV, PREFERED_CAMERA_LIB, Camera,
+    CAMERA_LIB_OPENCV, CAMERA_LIB_PYAV, PREFERED_CAMERA_LIB, Camera,
     getCameraDeviceClass, getCameras)
 from psychopy.sound.audioclip import AudioClip
 from psychopy.tests.utils import RUNNING_IN_VM
@@ -362,13 +362,13 @@ class TestCameraDeviceLibrary:
 
     @pytest.mark.parametrize("byName", [True, False], ids=["byName", "byObject"])
     @pytest.mark.parametrize(
-        "deviceLib", [CAMERA_LIB_FFPYPLAYER, CAMERA_LIB_PYAV])
+        "deviceLib", [CAMERA_LIB_OPENCV, CAMERA_LIB_PYAV])
     def test_readsDeviceWithItsLibrary(self, tmp_path, monkeypatch, deviceLib,
                                        byName):
         """Asking for a different library should warn, and use the device's."""
         device = self._addDevice(deviceLib)
-        otherLib = CAMERA_LIB_PYAV if deviceLib == CAMERA_LIB_FFPYPLAYER \
-            else CAMERA_LIB_FFPYPLAYER
+        otherLib = CAMERA_LIB_PYAV if deviceLib == CAMERA_LIB_OPENCV \
+            else CAMERA_LIB_OPENCV
 
         warnings = []
         monkeypatch.setattr(
@@ -410,8 +410,8 @@ class TestCameraDeviceLibrary:
         """
         # a library other than the preferred one, which the camera would pick
         # for itself, so that it can only get it from the device
-        deviceLib = CAMERA_LIB_FFPYPLAYER \
-            if PREFERED_CAMERA_LIB != CAMERA_LIB_FFPYPLAYER else CAMERA_LIB_PYAV
+        deviceLib = CAMERA_LIB_OPENCV \
+            if PREFERED_CAMERA_LIB != CAMERA_LIB_OPENCV else CAMERA_LIB_PYAV
         self._addDevice(deviceLib)
 
         warnings = []
