@@ -75,7 +75,7 @@
                 <Param name="stopVal" val="8" valType="code" updates="constant" plugin="None"/>
                 <Param name="durationEstim" val="" valType="code" updates="None" plugin="None"/>
                 <Param name="stopType" val="duration (s)" valType="str" updates="None" plugin="None"/>
-                <Param name="deviceLabel" val="" valType="device" updates="None" plugin="None"/>
+                <Param name="deviceLabel" val="test_camera" valType="device" updates="None" plugin="None"/>
                 <Param name="saveStartStop" val="True" valType="bool" updates="None" plugin="None"/>
                 <Param name="syncScreenRefresh" val="False" valType="bool" updates="None" plugin="None"/>
                 <Param name="disabled" val="False" valType="bool" updates="None" plugin="None"/>
