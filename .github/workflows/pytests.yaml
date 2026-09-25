@@ -31,12 +31,14 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         activate-environment: true
+        enable-cache: true
 
     - name: get_month
       if: runner.os=='Linux'
       id: month
       run: echo "month=$(date +'%Y-%m')" >> "$GITHUB_OUTPUT"
   
+    # NB no effect if we use uv to do the installation, only affects pip installs
     - name: cache wxPython for linux
       if: runner.os=='Linux'
       uses: actions/cache@v5
