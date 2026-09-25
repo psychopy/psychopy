@@ -29,6 +29,9 @@ from .gamma import (
 from .. import globalVars
 from ._base import BaseBackend
 
+if sys.platform == 'darwin':
+    from . import _macos
+
 import pyglet
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -350,6 +353,10 @@ class GLFWBackend(BaseBackend):
     simultaneously across multiple monitors, always check inter-display timings
     empirically if synchronization is critical!
 
+    On macOS 14 and later, flips of windows with vertical synchronization enabled
+    (e.g., `waitBlanking=True`) are synchronized with the refresh of the display
+    using a DisplayLink, like the Pyglet backend.
+
     Parameters
     ----------
     win : `psychopy.visual.Window` instance
@@ -395,6 +402,11 @@ class GLFWBackend(BaseBackend):
         self._origGammaRamp = None
         self._rampSize = None
         self._mouseVisible = True
+        self._swapInterval = 0
+
+        # macOS only, set once the window is created
+        self._displayLinkMacOS = None
+        self._appNapActivityMacOS = None
 
         # All windows share a context with the hidden shadow window, so objects
         # are shared between windows and outlive them. The `share` option
@@ -578,6 +590,15 @@ class GLFWBackend(BaseBackend):
 
         win._hw_handle = self._getNativeHandle()
 
+        if sys.platform == 'darwin':
+            # synchronize flips with the display refresh using a DisplayLink,
+            # the window must already be on the screen it's presented on
+            self._displayLinkMacOS = _macos.DisplayLinkMacOS.create(
+                glfw.get_cocoa_window(handle))
+
+            # opt out of App Nap while the window is open
+            self._appNapActivityMacOS = _macos.beginAppNapOptOut()
+
         # Assign event callbacks, these are dispatched when `glfw.poll_events`
         # is called.
         glfw.set_window_size_callback(handle, self._onWindowSize)
@@ -645,11 +666,14 @@ class GLFWBackend(BaseBackend):
         ----------
         interval : int
             Number of screen refreshes to wait before swapping buffers. Use `0`
-            to disable vertical synchronization.
+            to disable vertical synchronization. On macOS, flips are only held
+            until the display refreshes using the DisplayLink if this is
+            greater than `0`.
 
         """
         self.setCurrent()
-        glfw.swap_interval(int(interval))
+        self._swapInterval = int(interval)
+        glfw.swap_interval(self._swapInterval)
 
     @property
     def frameBufferSize(self):
@@ -660,6 +684,25 @@ class GLFWBackend(BaseBackend):
     def shadersSupported(self):
         # shaders are fine so just check GL>2.0
         return self._glVersion[0] >= 2
+
+    def getFutureFlipTimestamp(self):
+        """The WindowServer's own predicted presentation time for the frame
+        it's currently compositing, when a macOS DisplayLink is active for
+        this window (see `_macos.DisplayLinkMacOS`). Unlike simply assuming
+        one frame period of latency after the last flip, this reflects
+        whatever buffering depth (e.g. triple buffering) the compositor is
+        actually using, since it comes from the compositor itself.
+
+        Returns `None` if unavailable, e.g. on non-macOS platforms, macOS
+        versions prior to 14, if vertical synchronization is disabled, or if
+        the last flip wasn't confirmed by a DisplayLink callback (none received
+        yet, or callbacks are paused because the window is occluded/minimized),
+        since the last reported target timestamp would be stale.
+        """
+        if self._displayLinkMacOS is None or self._swapInterval < 1:
+            return None
+
+        return self._displayLinkMacOS.getFutureFlipTimestamp()
 
     @_requiresOpenWindow
     def swapBuffers(self, flipThisFrame=True):
@@ -686,7 +729,14 @@ class GLFWBackend(BaseBackend):
         glfw.poll_events()  # returns when event buffer is fully processed
 
         if flipThisFrame:
-            glfw.swap_buffers(self.winHandle.handle)
+            # only hold on the DisplayLink with vsync enabled, so windows with
+            # `waitBlanking=False` don't wait for the display to refresh
+            if self._displayLinkMacOS is not None and self._swapInterval > 0:
+                self._displayLinkMacOS.flip(self.winHandle.flip)
+                # process any input events that queued up while waiting
+                glfw.poll_events()
+            else:
+                glfw.swap_buffers(self.winHandle.handle)
 
     @_requiresOpenWindow
     def setCurrent(self):
@@ -920,6 +970,16 @@ class GLFWBackend(BaseBackend):
         # restore the gamma ramp that was active when window was opened
         if self._origGammaRamp is not None:
             self._setGammaRamp(self._origGammaRamp)
+
+        # end the App Nap opt-out started when the window was opened
+        if self._appNapActivityMacOS is not None:
+            _macos.endAppNapOptOut(self._appNapActivityMacOS)
+            self._appNapActivityMacOS = None
+
+        # stop the DisplayLink before its window goes away
+        if self._displayLinkMacOS is not None:
+            self._displayLinkMacOS.release()
+            self._displayLinkMacOS = None
 
         # check whether this window's context is current before destroying it
         handle = self.winHandle.handle
