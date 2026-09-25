@@ -6,11 +6,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy import prefs
+from psychopy.experiment.components import BaseDeviceComponent, Param, _translate
+from psychopy.experiment.devices import DeviceBackend
+import sys
 
-
-class ParallelOutComponent(BaseComponent):
+class ParallelOutComponent(BaseDeviceComponent):
     """A class for sending signals from the parallel port"""
 
     categories = ['I/O', 'EEG']
@@ -18,6 +18,11 @@ class ParallelOutComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'parallel.png'
     iconSVG = Path(__file__).parent / 'ParallelOutComponent.svg'
     tooltip = _translate('Parallel out: send signals from the parallel port')
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "address",
+        "register",
+    ]
 
     def __init__(self, exp, parentName, name='p_port',
                  startType='time (s)', startVal=0.0,
@@ -33,46 +38,22 @@ class ParallelOutComponent(BaseComponent):
 
         self.type = 'ParallelOut'
         self.url = "https://www.psychopy.org/builder/components/parallelout.html"
-        self.exp.requirePsychopyLibs(['parallel'])
+        self.exp.requirePsychopyLibs([
+            "hardware"
+        ])
 
         # params
         self.order += [
             'startData', 'stopData',  # Data tab
-            'address',  'register',   # Hardware tab
         ]
 
-        # main parameters
-        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3'] + [u'USB2TTL8'] 
-        if not address:
-            address = addressOptions[0]
-
-        msg = _translate("Parallel port to be used (you can change these "
-                         "options in preferences>general)")
-        self.params['address'] = Param(
-            address, valType='str', inputType="choice", allowedVals=addressOptions,
-            categ="Device", hint=msg, label=_translate("Port address"))
-
-        self.depends.append(
-            {"dependsOn": "address",  # must be param name
-             "condition": "=='LabJack U3'",  # val to check for
-             "param": "register",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
-             }
-        )
-
-        msg = _translate("U3 Register to write byte to")
-        self.params['register'] = Param(register, valType='str',
-                                        inputType="choice", allowedVals=['EIO', 'FIO'],
-                                        categ="Device", hint=msg, label=_translate("U3 register"))
-
         self.params['startData'] = Param(
-            startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
+            startData, valType='code', inputType="single", allowedTypes=[], categ='Basic',
             hint=_translate("Data to be sent at 'start'"),
             label=_translate("Start data"))
 
         self.params['stopData'] = Param(
-            stopData, valType='code', inputType="single", allowedTypes=[], categ='Data',
+            stopData, valType='code', inputType="single", allowedTypes=[], categ='Basic',
             hint=_translate("Data to be sent at 'end'"),
             label=_translate("Stop data"))
 
@@ -86,94 +67,176 @@ class ParallelOutComponent(BaseComponent):
             label=_translate("Sync to screen"))
 
     def writeInitCode(self, buff):
-        if self.params['address'].val == 'LabJack U3':
-            code = ("from psychopy.hardware import labjacks\n"
-                    "%(name)s = labjacks.U3()\n"
-                    "%(name)s.status = None\n"
-                    % self.params)
-            buff.writeIndentedLines(code)
-        elif self.params['address'].val == 'USB2TTL8':
-            code = ("from psychopy.hardware import labhackers\n"
-                    "%(name)s = labhackers.USB2TTL8()\n"
-                    "%(name)s.status = None\n"
-                    % self.params)
-            buff.writeIndentedLines(code)
-        else:
-            code = ("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %
-                    self.params)
-            buff.writeIndented(code)
+
+        code = (
+            "%(name)s = hardware.parallel.Parallel(\n"
+            "    device=%(deviceLabel)s\n"
+            ")\n"
+        )
+        buff.writeIndented(code % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
-        routineClockName = self.exp.flow._currentRoutine._clockName
-
-        buff.writeIndented("# *%s* updates\n" % (self.params['name']))
         # writes an if statement to determine whether to draw etc
         indented = self.writeStartTestCode(buff)
         if indented:
-            buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-
-            if self.params['address'].val == 'LabJack U3':
-                if not self.params['syncScreen'].val:
-                    code = "%(name)s.setData(int(%(startData)s), address=%(register)s)\n" % self.params
-                else:
-                    code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s), address=%(register)s)\n" %
-                            self.params)
+            # set start data
+            code = (
+                "# set %(name)s start data\n"
+            )
+            if not self.params['syncScreen'].val:
+                code += (
+                    "%(name)s.setData(\n"
+                    "    int(%(startData)s)\n"
+                    ")\n"
+                )
             else:
-                if not self.params['syncScreen'].val:
-                    code = "%(name)s.setData(int(%(startData)s))\n" % self.params
-                else:
-                    code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
-                            self.params)
-
-            buff.writeIndented(code)
-
+                code += (
+                    "win.callOnFlip(\n"
+                    "    %(name)s.setData, \n"
+                    "    int(%(startData)s)\n"
+                    ")\n"
+                )
+            buff.writeIndentedLines(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
         indented = self.writeStopTestCode(buff)
         if indented:
-            if self.params['address'].val == 'LabJack U3':
-                if not self.params['syncScreen'].val:
-                    code = "%(name)s.setData(int(%(stopData)s), address=%(register)s)\n" % self.params
-                else:
-                    code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s), address=%(register)s)\n" %
-                            self.params)
+            # set stop data
+            code = (
+                "# set %(name)s stop data\n"
+            )
+            if not self.params['syncScreen'].val:
+                code += (
+                    "%(name)s.setData(\n"
+                    "    int(%(stopData)s)\n"
+                    ")\n"
+                )
             else:
-                if not self.params['syncScreen'].val:
-                    code = "%(name)s.setData(int(%(stopData)s))\n" % self.params
-                else:
-                    code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
-                            self.params)
-
-            buff.writeIndented(code)
-
+                code += (
+                    "win.callOnFlip(\n"
+                    "    %(name)s.setData, \n"
+                    "    int(%(stopData)s)\n"
+                    ")\n"
+                )
+            buff.writeIndentedLines(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
 
-        # dedent
-# buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the
-# time test and button check
-
     def writeRoutineEndCode(self, buff):
-        # make sure that we do switch to stopData if the routine has been
-        # aborted before our 'end'
-        buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
-        if self.params['address'].val == 'LabJack U3':
-            if not self.params['syncScreen'].val:
-                code = "    %(name)s.setData(int(%(stopData)s), address=%(register)s)\n" % self.params
-            else:
-                code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s), address=%(register)s)\n" %
-                        self.params)
+        # set stop data at end of Routine (in case Routine ended before Component)
+        code = (
+            "# set %(name)s stop data\n"
+        )
+        if not self.params['syncScreen'].val:
+            code += (
+                "%(name)s.setData(\n"
+                "    int(%(stopData)s)\n"
+                ")\n"
+            )
         else:
-            if not self.params['syncScreen'].val:
-                code = "    %(name)s.setData(int(%(stopData)s))\n" % self.params
-            else:
-                code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" % self.params)
-
-        buff.writeIndented(code)
+            code += (
+                "win.callOnFlip(\n"
+                "    %(name)s.setData, \n"
+                "    int(%(stopData)s)\n"
+                ")\n"
+            )
+        buff.writeIndentedLines(code % self.params)
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
+
+
+class ParallelDeviceBackend(DeviceBackend):
+    backendLabel = "Parallel Port"
+    deviceClass = "psychopy.hardware.parallel.ParallelDevice"
+    icon = "light/parallel.png"
+
+    def __init__(self, profile):
+        # init parent class
+        DeviceBackend.__init__(self, profile)
+
+        # different default address options for Windows vs Linux...
+        addressOptions = [
+            "USB2TTL8",
+            "custom"
+        ]
+        if sys.platform == "win32":
+            addressOptions = [
+                "0x0378", 
+                "0x03BC"
+            ] + addressOptions
+        if sys.platform == "linux":
+            addressOptions = [
+                "/dev/parport0", 
+                "/dev/parport1"
+            ] + addressOptions
+
+        self.params['address'] = Param(
+            addressOptions[0],
+            valType="str",
+            inputType="choice",
+            allowedVals=addressOptions,
+            label=_translate("Port address"),
+            hint=_translate(
+                "Parallel port to be used (choose 'custom' to specify any address)"
+            )
+        )
+        self.params['customAddress'] = Param(
+            "",
+            valType="str",
+            inputType="single",
+            label=_translate("Custom port address"),
+            hint=_translate(
+                "Specify any address for the port"
+            )
+        )
+        self.depends.append({
+            "dependsOn": "address",  # if...
+            "condition": "== 'custom'",  # meets...
+            "param": "customAddress",  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
+        
+
+    def writeDeviceCode(self, buff):
+        # handle special case (USB2TTL)
+        if self.params['address'] == 'USB2TTL8':
+            code = (
+                "# initialize %(name)s\n"
+                "from psychopy.hardware import labhackers\n"
+                "deviceManager.devices[%(name)s] = labhackers.USB2TTL8()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            return
+
+        # open init call
+        code = (
+            "# initialize %(name)s\n"
+            "deviceManager.addDevice(\n"
+            "    deviceName=%(name)s,\n"
+            "    deviceClass='psychopy.hardware.parallel.ParallelDevice',\n"
+        )
+        
+        # add address (handle custom)
+        if self.params['address'] == "custom":
+            code += (
+            "    address=%(customAddress)s\n"
+            )
+        else:
+            code += (
+            "    address=%(address)s\n"
+            )
+        # close init call and write
+        code += (
+            ")\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+
+# register backend with Component
+ParallelOutComponent.registerBackend(ParallelDeviceBackend)
