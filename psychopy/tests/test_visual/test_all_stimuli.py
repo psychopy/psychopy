@@ -29,6 +29,7 @@ class Test_Window():
         self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
 
     def teardown_class(self):
+        self.win.close()
         shutil.rmtree(self.temp_dir)
 
     def test_captureMovieFrames(self):

@@ -51,7 +51,8 @@ class ProjectionsLinesAndCircles:
             self.stims.append(t)
 
         for c in range (1, nLines+1):
-            t = Circle (win, radius=c * 10, edges=128, units='deg', lineWidth=4)
+            t = Circle (win, size=c * 20, edges=128, units='deg', lineWidth=4,
+                        fillColor=None, lineColor=foregroundColor)
             self.stims.append(t)
 
         self.updateInfo()
@@ -96,7 +97,8 @@ class ProjectionsLinesAndCircles:
                 sys.exit()
             elif k in ['space']:
                 for c in range (1,2):
-                    t = Circle(self.win, radius=c)
+                    t = Circle(self.win, size=c * 2, fillColor=None,
+                               lineColor=foregroundColor)
                     self.stims.append (t)
                 #for c in range (1,2):
                 #    t = RadialStim(self.win)

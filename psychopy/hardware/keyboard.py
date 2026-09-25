@@ -81,7 +81,7 @@ try:
 
 except ImportError as err:
     logging.warning(("Import Error: "
-                     + err.args[0]
+                     + st.describePsychtoolboxImportError(err)
                      + ". Using event module for keyboard component."))
     from psychopy import event
     havePTB = False

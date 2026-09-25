@@ -574,6 +574,14 @@ class Window():
         backendConf['depthBits'] = depthBits
         backendConf['stencilBits'] = stencilBits
 
+        # check the view transform parameters before the backend creates the
+        # native window, so an invalid combination doesn't leave one open
+        if viewPos is not None and self.units is None:
+            raise ValueError('You must define the window units to use viewPos')
+        if float(viewOri) != 0. and viewPos is not None:
+            msg = "Window: viewPos & viewOri are currently incompatible"
+            raise NotImplementedError(msg)
+
         # get the backend, pass the options to it
         self.backend = backends.getBackend(win=self, backendConf=backendConf)
 
@@ -595,13 +603,8 @@ class Window():
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
-        if viewPos is not None and self.units is None:
-            raise ValueError('You must define the window units to use viewPos')
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
-        if self.viewOri != 0. and self.viewPos is not None:
-            msg = "Window: viewPos & viewOri are currently incompatible"
-            raise NotImplementedError(msg)
 
         # scaling factor for HiDPI displays, `None` until initialized
         self._contentScaleFactor = None

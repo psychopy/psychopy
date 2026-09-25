@@ -25,6 +25,10 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
         cls.forePoint = (64, 64)
         cls.foreUsed = True
 
+    @classmethod
+    def teardown_class(cls):
+        cls.win.close()
+
     def setup_method(self):
         # Set progress mid way at start of each test
         self.obj.progress = 0.5

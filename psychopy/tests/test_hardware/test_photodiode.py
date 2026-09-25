@@ -55,6 +55,9 @@ class TestPhotodiode:
         self.lightsensor = DummyPhotodiode()
         self.win = visual.Window()
 
+    def teardown_class(self):
+        self.win.close()
+
     def test_handle_no_response(self):
         """
         If no response (as will be the case here), should try n times and then give up.

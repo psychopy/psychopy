@@ -172,9 +172,10 @@ class SoundComponent(BaseDeviceComponent):
                 code = (
                     f"%(name)s.setSound(%(sound)s, secs={secs}, hamming=%(hamming)s"
                 )
-                if updateType == 'set every frame':
-                    code += ", log=False"
-                code += ")\n"
+                if self.params['stopVal'].val in ['', None, -1, 'None']:
+                    # also specify secs if we have a finite duration
+                    code += ", secs=%(stopVal)s"
+                code += f", log={updateType != 'set every frame'})"
                 buff.writeIndentedLines(code % self.params)
             # in JS, the resource needs to be fetched
             if target == "PsychoJS":
