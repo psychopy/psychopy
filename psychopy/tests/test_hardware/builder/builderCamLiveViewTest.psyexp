@@ -1,0 +1,119 @@
+<PsychoPy2experiment encoding="utf-8" version="2026.1.0">
+    <Settings>
+        <Param name="expName" val="" valType="str" updates="None" plugin="None"/>
+        <Param name="expVersion" val="" valType="str" updates="None" plugin="None"/>
+        <Param name="Audio lib" val="use prefs" valType="str" updates="None" plugin="None"/>
+        <Param name="Force stereo" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="exportHTML" val="on Sync" valType="str" updates="None" plugin="None"/>
+        <Param name="Completed URL" val="" valType="str" updates="None" plugin="None"/>
+        <Param name="Incomplete URL" val="" valType="str" updates="None" plugin="None"/>
+        <Param name="End Message" val="Thank you for your patience." valType="str" updates="None" plugin="None"/>
+        <Param name="Resources" val="[]" valType="list" updates="None" plugin="None"/>
+        <Param name="runMode" val="0" valType="code" updates="None" plugin="None"/>
+        <Param name="Use version" val="" valType="str" updates="None" plugin="None"/>
+        <Param name="Enable Escape" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="rush" val="False" valType="bool" updates="None" plugin="None"/>
+        <Param name="Show info dlg" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="Experiment info" val="{'participant':'f&quot;{randint(0, 999999):06.0f}&quot;', 'session':'001'}" valType="code" updates="None" plugin="None"/>
+        <Param name="Monitor" val="testMonitor" valType="str" updates="None" plugin="None"/>
+        <Param name="winBackend" val="pyglet" valType="str" updates="None" plugin="None"/>
+        <Param name="Screen" val="1" valType="num" updates="None" plugin="None"/>
+        <Param name="Full-screen window" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="Window size (pixels)" val="[1024,768]" valType="list" updates="None" plugin="None"/>
+        <Param name="Show mouse" val="False" valType="bool" updates="None" plugin="None"/>
+        <Param name="Units" val="height" valType="str" updates="None" plugin="None"/>
+        <Param name="color" val="$[0,0,0]" valType="color" updates="None" plugin="None"/>
+        <Param name="blendMode" val="avg" valType="str" updates="None" plugin="None"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="None" plugin="None"/>
+        <Param name="backgroundImg" val="" valType="str" updates="None" plugin="None"/>
+        <Param name="backgroundFit" val="none" valType="str" updates="None" plugin="None"/>
+        <Param name="measureFrameRate" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="frameRate" val="" valType="code" updates="None" plugin="None"/>
+        <Param name="frameRateMsg" val="Attempting to measure frame rate of screen, please wait..." valType="str" updates="None" plugin="None"/>
+        <Param name="Data filename" val="'data/' + expInfo['participant'] + '_' + expName + '_' + expInfo['date']" valType="code" updates="None" plugin="None"/>
+        <Param name="Data file delimiter" val="auto" valType="str" updates="None" plugin="None"/>
+        <Param name="sortColumns" val="time" valType="str" updates="None" plugin="None"/>
+        <Param name="colPriority" val="{&quot;thisRow.t&quot;:&quot;priority.CRITICAL&quot;,&quot;expName&quot;:&quot;priority.LOW&quot;}" valType="dict" updates="None" plugin="None"/>
+        <Param name="Save excel file" val="False" valType="bool" updates="None" plugin="None"/>
+        <Param name="Save log file" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="Save csv file" val="False" valType="bool" updates="None" plugin="None"/>
+        <Param name="Save wide csv file" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="Save psydat file" val="True" valType="bool" updates="None" plugin="None"/>
+        <Param name="Save hdf5 file" val="False" valType="bool" updates="None" plugin="None"/>
+        <Param name="logging level" val="info" valType="code" updates="None" plugin="None"/>
+        <Param name="consoleLoggingLevel" val="warning" valType="code" updates="None" plugin="None"/>
+        <Param name="clockFormat" val="float" valType="str" updates="None" plugin="None"/>
+        <Param name="eyetracker" val="None" valType="str" updates="None" plugin="None"/>
+        <Param name="mgMove" val="CONTINUOUS" valType="str" updates="None" plugin="None"/>
+        <Param name="mgBlink" val="MIDDLE_BUTTON" valType="list" updates="None" plugin="None"/>
+        <Param name="mgSaccade" val="0.5" valType="num" updates="None" plugin="None"/>
+        <Param name="keyboardBackend" val="PsychToolbox" valType="str" updates="None" plugin="None"/>
+    </Settings>
+    <Routines>
+        <Routine name="trial">
+            <RoutineSettingsComponent name="trial" plugin="None">
+                <Param name="name" val="trial" valType="code" updates="None" plugin="None"/>
+                <Param name="stopVal" val="" valType="code" updates="constant" plugin="None"/>
+                <Param name="durationEstim" val="" valType="code" updates="None" plugin="None"/>
+                <Param name="stopType" val="duration (s)" valType="str" updates="None" plugin="None"/>
+                <Param name="forceNonSlip" val="False" valType="code" updates="None" plugin="None"/>
+                <Param name="skipIf" val="" valType="code" updates="constant" plugin="None"/>
+                <Param name="useWindowParams" val="False" valType="bool" updates="None" plugin="None"/>
+                <Param name="color" val="$[0,0,0]" valType="color" updates="None" plugin="None"/>
+                <Param name="colorSpace" val="rgb" valType="str" updates="None" plugin="None"/>
+                <Param name="backgroundImg" val="" valType="str" updates="None" plugin="None"/>
+                <Param name="backgroundFit" val="none" valType="str" updates="None" plugin="None"/>
+                <Param name="saveStartStop" val="True" valType="bool" updates="None" plugin="None"/>
+                <Param name="disabled" val="False" valType="bool" updates="None" plugin="None"/>
+                <Param name="desc" val="" valType="str" updates="constant" plugin="None"/>
+            </RoutineSettingsComponent>
+            <CameraComponent name="cam" plugin="None">
+                <Param name="name" val="cam" valType="code" updates="None" plugin="None"/>
+                <Param name="startVal" val="1" valType="code" updates="None" plugin="None"/>
+                <Param name="startEstim" val="" valType="code" updates="None" plugin="None"/>
+                <Param name="startType" val="time (s)" valType="str" updates="None" plugin="None"/>
+                <Param name="stopVal" val="8" valType="code" updates="constant" plugin="None"/>
+                <Param name="durationEstim" val="" valType="code" updates="None" plugin="None"/>
+                <Param name="stopType" val="duration (s)" valType="str" updates="None" plugin="None"/>
+                <Param name="deviceLabel" val="test_camera" valType="device" updates="None" plugin="None"/>
+                <Param name="saveStartStop" val="True" valType="bool" updates="None" plugin="None"/>
+                <Param name="syncScreenRefresh" val="False" valType="bool" updates="None" plugin="None"/>
+                <Param name="disabled" val="False" valType="bool" updates="None" plugin="None"/>
+                <Param name="micDeviceLabel" val="" valType="device" updates="None" plugin="None"/>
+                <Param name="saveFile" val="True" valType="bool" updates="None" plugin="None"/>
+            </CameraComponent>
+            <ImageComponent name="image" plugin="None">
+                <Param name="name" val="image" valType="code" updates="None" plugin="None"/>
+                <Param name="startVal" val="0" valType="code" updates="None" plugin="None"/>
+                <Param name="startEstim" val="" valType="code" updates="None" plugin="None"/>
+                <Param name="startType" val="time (s)" valType="str" updates="None" plugin="None"/>
+                <Param name="stopVal" val="10" valType="code" updates="constant" plugin="None"/>
+                <Param name="durationEstim" val="" valType="code" updates="None" plugin="None"/>
+                <Param name="stopType" val="duration (s)" valType="str" updates="None" plugin="None"/>
+                <Param name="color" val="$[1,1,1]" valType="color" updates="constant" plugin="None"/>
+                <Param name="colorSpace" val="rgb" valType="str" updates="constant" plugin="None"/>
+                <Param name="opacity" val="" valType="num" updates="constant" plugin="None"/>
+                <Param name="size" val="[0.5,0.5]" valType="list" updates="constant" plugin="None"/>
+                <Param name="pos" val="[0,0]" valType="list" updates="constant" plugin="None"/>
+                <Param name="units" val="from exp settings" valType="str" updates="None" plugin="None"/>
+                <Param name="anchor" val="center" valType="str" updates="constant" plugin="None"/>
+                <Param name="ori" val="0" valType="num" updates="constant" plugin="None"/>
+                <Param name="image" val="$cam" valType="file" updates="constant" plugin="None"/>
+                <Param name="mask" val="" valType="str" updates="constant" plugin="None"/>
+                <Param name="texture resolution" val="128" valType="num" updates="constant" plugin="None"/>
+                <Param name="saveStartStop" val="True" valType="bool" updates="None" plugin="None"/>
+                <Param name="syncScreenRefresh" val="True" valType="bool" updates="None" plugin="None"/>
+                <Param name="disabled" val="False" valType="bool" updates="None" plugin="None"/>
+                <Param name="contrast" val="1" valType="num" updates="constant" plugin="None"/>
+                <Param name="validator" val="" valType="code" updates="None" plugin="None"/>
+                <Param name="interpolate" val="linear" valType="str" updates="constant" plugin="None"/>
+                <Param name="flipVert" val="False" valType="bool" updates="constant" plugin="None"/>
+                <Param name="flipHoriz" val="False" valType="bool" updates="constant" plugin="None"/>
+                <Param name="draggable" val="False" valType="code" updates="constant" plugin="None"/>
+            </ImageComponent>
+        </Routine>
+    </Routines>
+    <Flow>
+        <Routine name="trial"/>
+    </Flow>
+</PsychoPy2experiment>
