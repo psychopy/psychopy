@@ -172,10 +172,9 @@ class SoundComponent(BaseDeviceComponent):
                 code = (
                     f"%(name)s.setSound(%(sound)s, secs={secs}, hamming=%(hamming)s"
                 )
-                if self.params['stopVal'].val in ['', None, -1, 'None']:
-                    # also specify secs if we have a finite duration
-                    code += ", secs=%(stopVal)s"
-                code += f", log={updateType != 'set every frame'})"
+                if updateType == 'set every frame':
+                    code += ", log=False"
+                code += ")\n"
                 buff.writeIndentedLines(code % self.params)
             # in JS, the resource needs to be fetched
             if target == "PsychoJS":
@@ -331,16 +330,19 @@ class SoundComponent(BaseDeviceComponent):
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame', target="PsychoJS")
-        self.writeStartTestCodeJS(buff)
-        if self.params['syncScreenRefresh'].val:
-            code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n")
-        else:
-            code = "%(name)s.play();  // start the sound (it finishes automatically)\n"
-        code += "%(name)s.status = PsychoJS.Status.STARTED;\n"
-        buff.writeIndentedLines(code % self.params)
-        # because of the 'if' statement of the time test
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines('}\n')
+        # no start test is written (and nothing plays) if the start is blank, so
+        # close only the if statement(s) actually opened
+        indented = self.writeStartTestCodeJS(buff)
+        if indented:
+            if self.params['syncScreenRefresh'].val:
+                code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n")
+            else:
+                code = "%(name)s.play();  // start the sound (it finishes automatically)\n"
+            code += "%(name)s.status = PsychoJS.Status.STARTED;\n"
+            buff.writeIndentedLines(code % self.params)
+        for n in range(indented):
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines('}\n')
 
         # are we stopping this frame?
         indented = self.writeStopTestCodeJS(buff, extra=" || %(name)s.isFinished")
