@@ -159,7 +159,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             physical speaker best matching what was requested.
         """
         # get the devices from psychtoolbox
-        import psychtoolbox.audio as ptb
+        ptb = systemtools.importPsychtoolbox('psychtoolbox.audio')
         
         try:
             wasapiPref = prefs.hardware['audioWASAPIOnly']
@@ -382,7 +382,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             A list of dicts, each describing a speaker device.
         
         """
-        import psychtoolbox.audio as ptb
+        ptb = systemtools.importPsychtoolbox('psychtoolbox.audio')
 
         try:
             wasapiPref = prefs.hardware['audioWASAPIOnly']

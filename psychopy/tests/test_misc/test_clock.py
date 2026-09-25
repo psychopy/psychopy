@@ -29,12 +29,14 @@ def test_StaticPeriod_overrun():
 
 def test_StaticPeriod_recordFrameIntervals():
     win = Window(autoLog=False)
-    static = StaticPeriod(screenHz=60, win=win)
-    static.start(.002)
-    assert win.recordFrameIntervals is False
-    static.complete()
-    assert static._winWasRecordingIntervals == win.recordFrameIntervals
-    win.close()
+    try:
+        static = StaticPeriod(screenHz=60, win=win)
+        static.start(.002)
+        assert win.recordFrameIntervals is False
+        static.complete()
+        assert static._winWasRecordingIntervals == win.recordFrameIntervals
+    finally:
+        win.close()
 
 
 @skip_under_vm
@@ -48,16 +50,18 @@ def test_StaticPeriod_screenHz():
     timer = CountdownTimer()
     win = Window(autoLog=False)
 
-    static = StaticPeriod(screenHz=refresh_rate, win=win)
-    static.start(period_duration)
-    timer.reset(period_duration )
-    static.complete()
+    try:
+        static = StaticPeriod(screenHz=refresh_rate, win=win)
+        static.start(period_duration)
+        timer.reset(period_duration )
+        static.complete()
 
-    if systemtools.isVM_CI():
-        tolerance = 0.01  # without a proper screen timing might not be sub-ms
-    else:
-        tolerance = 0.001
-    assert np.allclose(timer.getTime(),
-                       1.0/refresh_rate,
-                       atol=tolerance)
-    win.close()
+        if systemtools.isVM_CI():
+            tolerance = 0.01  # without a proper screen timing might not be sub-ms
+        else:
+            tolerance = 0.001
+        assert np.allclose(timer.getTime(),
+                           1.0/refresh_rate,
+                           atol=tolerance)
+    finally:
+        win.close()

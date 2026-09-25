@@ -29,6 +29,10 @@ class TestSession:
         # setup devices
         cls.sess.setupDevicesFromExperiment("exp1")
 
+    def teardown_class(cls):
+        # closes the session's window too
+        cls.sess.close()
+
     def test_outside_root(self):
         # Add an experiment from outside of the Session root
         expFile = Path(utils.TESTS_DATA_PATH) / "test_session" / "outside_root" / "externalExp.psyexp"

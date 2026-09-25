@@ -14,28 +14,43 @@ mon = monitors.Monitor('testMonitor')
 mon.setDistance(57)
 mon.setWidth(40.0)
 mon.setSizePix([1024,768])
-win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
 
 unitDist = 0.2
 sqrt2 = sqrt(2)
 
-points = [
-    layout.Position((0, 0), 'height', win),
-    layout.Position((0, unitDist), 'height', win),
-    layout.Position((0, unitDist * 2), 'height', win),
-    layout.Position(((unitDist / sqrt2), (unitDist / sqrt2)), 'height', win),
-    layout.Position((unitDist * sqrt2, 0), 'height', win),
-    layout.Position((unitDist * sqrt2, unitDist * sqrt2), 'height', win)]
+# created in `setup_module()`, as they need a window
+win = None
+points = []
+postures = []
 
-postures = [
-    {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
-    {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
-    {'ori': 45,  'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
-    {'ori': 45,  'size': layout.Size((2.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
-    {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
-    {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
-    {'ori': -45, 'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
-    {'ori': -90, 'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)} ]
+
+def setup_module():
+    # open the window only while this module's tests run (rather than on
+    # import, which would keep it open for the whole test session)
+    global win, points, postures
+    win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
+
+    points = [
+        layout.Position((0, 0), 'height', win),
+        layout.Position((0, unitDist), 'height', win),
+        layout.Position((0, unitDist * 2), 'height', win),
+        layout.Position(((unitDist / sqrt2), (unitDist / sqrt2)), 'height', win),
+        layout.Position((unitDist * sqrt2, 0), 'height', win),
+        layout.Position((unitDist * sqrt2, unitDist * sqrt2), 'height', win)]
+
+    postures = [
+        {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+        {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+        {'ori': 45,  'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+        {'ori': 45,  'size': layout.Size((2.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+        {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
+        {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
+        {'ori': -45, 'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
+        {'ori': -90, 'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)} ]
+
+
+def teardown_module():
+    win.close()
 
 correctResults = [
     (True, True, False, False, False, False),
@@ -235,8 +250,10 @@ def test_line_contains():
 
 
 if __name__ == '__main__':
+    setup_module()
     test_overlaps()
     test_contains()
     test_border_contains()
     test_line_overlaps()
     test_line_contains()
+    teardown_module()

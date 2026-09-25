@@ -19,6 +19,9 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
             colorSpace='rgb1',
         )
 
+    def teardown_method(self):
+        self.win.close()
+
     def test_anchor_flip(self):
         """
         Check that flipping the image doesn't flip the direction of the anchor

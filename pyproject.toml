@@ -40,6 +40,9 @@ dependencies = [
     "soundfile",
     "sounddevice",
     "psychtoolbox",
+    # first with an Apple Silicon wheel, earlier ones build from source there
+    # without the PortAudio and libusb libraries they need
+    "psychtoolbox>=3.0.22.2; platform_system == \"Darwin\" and platform_machine == \"arm64\"",
     "imageio",
     "imageio-ffmpeg",
     # for iohub

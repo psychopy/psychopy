@@ -25,6 +25,10 @@ class TestCircle(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestS
         # Shape has no foreground color
         self.foreUsed = False
 
+    @classmethod
+    def teardown_class(self):
+        self.win.close()
+
     def resetObj(self):
         """Reset the stimulus to its initial state.
         """
