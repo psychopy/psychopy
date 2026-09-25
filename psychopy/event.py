@@ -32,9 +32,10 @@ try:
 except ImportError:
     havePyglet = False
 try:
+    # GLFW isn't initialized here, whatever uses it does that (e.g., the GLFW
+    # window backend), since initializing it has side effects (e.g., on macOS it
+    # replaces the application delegate) which aren't wanted if it goes unused
     import glfw
-    if not glfw.init():
-        raise ImportError
     haveGLFW = True
 except ImportError:
     haveGLFW = False
@@ -393,6 +394,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         - 2016 modifiers code provided by 5AM Solutions
     """
     keys = []
+    windowSystem = None
 
     if havePygame and display.get_init():
         # see if pygame has anything instead (if it exists)
@@ -421,9 +423,8 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             keys = _keyBuffer
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
-    if haveGLFW:
+    if _pollGLFWEvents():
         windowSystem = 'glfw'
-        glfw.poll_events()
         if len(_keyBuffer) > 0:
             keys = _keyBuffer
 
@@ -996,8 +997,7 @@ def clearEvents(eventType=None):
             for win in pyglet.app.windows:
                 win.dispatch_events()  # pump events on pyglet windows
 
-        if haveGLFW:
-            glfw.poll_events()
+        _pollGLFWEvents()
 
         if eventType == 'mouse':
             pass
@@ -1212,6 +1212,32 @@ class _GlobalEventKeys(MutableMapping):
             return
 
         del self[key, modifiers]
+
+
+def _pollGLFWEvents():
+    """Process pending events for GLFW windows, which passes them to the
+    `_onGLFW*` callbacks below.
+
+    Events are only polled while a GLFW window is open, otherwise there is
+    nothing to poll and GLFW may not have been initialized (see the import of
+    `glfw` at the top of this module).
+
+    Returns
+    -------
+    bool
+        `True` if events were polled.
+
+    """
+    if not haveGLFW:
+        return False
+
+    for ref in psychopy.core.openWindows:
+        win = ref()
+        if win is not None and win.winType == 'glfw' and not win._closed:
+            glfw.poll_events()
+            return True
+
+    return False
 
 
 def _onGLFWKey(*args, **kwargs):

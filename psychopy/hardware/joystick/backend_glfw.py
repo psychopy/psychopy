@@ -93,6 +93,10 @@ class JoystickInterfaceGLFW(BaseJoystickInterface):
         """
         import glfw
 
+        if not glfw.init():
+            logging.error("GLFW could not be initialized.")
+            return []
+
         deviceList = []
         for joy in range(glfw.JOYSTICK_1, glfw.JOYSTICK_LAST):
             if not glfw.joystick_present(joy):
