@@ -320,10 +320,6 @@ class BaseResponseDevice(BaseDevice):
         bool
             True if completed successfully
         """
-        # disregard any messages sent while the PsychoPy window wasn't in focus (for security)
-        from psychopy.tools.systemtools import isRegisteredApp
-        if self.muteOutsidePsychopy and not isRegisteredApp():
-            return
         # make sure response is of the correct class
         assert isinstance(message, self.responseClass), (
             "{ownType}.receiveMessage() can only receive messages of type {targetType}, instead received "

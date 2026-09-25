@@ -10,10 +10,6 @@ from pathlib import Path
 from psychopy.alerts._alerts import alert
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from pkgutil import find_loader
-
-# Check for psychtoolbox
-havePTB = find_loader('psychtoolbox') is not None
 
 
 class KeyboardComponent(BaseComponent):
