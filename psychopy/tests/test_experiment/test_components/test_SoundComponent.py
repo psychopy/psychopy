@@ -80,3 +80,16 @@ class TestSoundComponent(BaseComponentTests):
         init = IndentingBuffer(target="PsychoJS")
         comp.writeInitCodeJS(init)
         assert f"secs: {secs}," in init.getvalue()
+
+    @pytest.mark.parametrize("startVal, stopVal", [
+        ("", "1"), ("0", ""), ("", ""), ("0", "1"),
+    ])
+    def test_frame_code_js_blank_timing(self, startVal, stopVal):
+        """The JS frame code must be valid and close every block it opens, even
+        with a blank start, for which no start test is written."""
+        comp = self._make(stopVal)
+        comp.params['startVal'].val = startVal
+        buff = IndentingBuffer(target="PsychoJS")
+        comp.writeFrameCodeJS(buff)
+        assert buff.indentLevel == 0
+        esprima.parseScript("function f() {\n" + buff.getvalue() + "\n}")
