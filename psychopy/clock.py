@@ -19,6 +19,7 @@ Clock logic.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import logging
+import threading
 import time
 import sys
 from datetime import datetime
@@ -561,7 +562,14 @@ class StaticPeriod:
 def _dispatchWindowEvents():
     """Helper function for :func:`~.psychopy.core.wait`. Handles window event if
     needed or returns otherwise.
+
+    Events are only dispatched when called from the main thread, which owns the
+    windows. Dispatching from other threads isn't thread-safe, and on macOS
+    aborts the process since AppKit only allows it on the main thread.
     """
+    if threading.current_thread() is not threading.main_thread():
+        return  # nop
+
     from . import core
 
     if not (core.havePyglet and core.checkPygletDuringWait):
