@@ -138,6 +138,21 @@ class SoundComponent(BaseDeviceComponent):
             )
         )
 
+    @staticmethod
+    def _getSecs(stopVal):
+        """Value to give a Sound's `secs` for this Component's duration.
+
+        A short numeric duration (2 s or less) is passed on, so that a tone is
+        generated at that length and fades out rather than being cut off by
+        `stop()`. Anything else (blank, a variable or a longer duration) gives
+        -1: the sound plays until the Component stops it (the whole clip for
+        files and arrays).
+        """
+        val = getattr(stopVal, 'val', stopVal)
+        if val in ['', None, 'None'] or not canBeNumeric(val) or float(val) > 2:
+            return -1
+        return val
+
     def writeParamUpdate(
         self, 
         buff, 
@@ -150,24 +165,23 @@ class SoundComponent(BaseDeviceComponent):
     ):
         # updating sound param is something of a special case
         if paramName == "sound":
+            # same secs as the init code, so a new sound gets the same duration
+            secs = self._getSecs(self.params['stopVal'])
             # in Python, needs to have hamming specified
             if target == "PsychoPy":
                 code = (
-                    "%(name)s.setSound(%(sound)s, hamming=%(hamming)s"
+                    f"%(name)s.setSound(%(sound)s, secs={secs}, hamming=%(hamming)s"
                 )
-                if self.params['stopVal'].val in ['', None, -1, 'None']:
-                    # also specify secs if we have a finite duration
-                    code += ", secs=%(stopVal)s"
-                code += f", logging={updateType != 'set every frame'})"
+                if updateType == 'set every frame':
+                    code += ", log=False"
+                code += ")\n"
                 buff.writeIndentedLines(code % self.params)
             # in JS, the resource needs to be fetched
             if target == "PsychoJS":
                 code = (
                     "%(name)s.setSound(%(sound)s);\n"
+                    f"%(name)s.secs = {secs};\n"
                 )
-                if self.params['stopVal'].val in ['', None, -1, 'None']:
-                    # also specify secs if we have a finite duration
-                    code += "%(name)s.secs = %(stopVal)s;\n"
                 buff.writeIndentedLines(code % self.params)
         else:
             BaseDeviceComponent.writeParamUpdate(
@@ -204,13 +218,7 @@ class SoundComponent(BaseDeviceComponent):
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if not canBeNumeric(inits['stopVal'].val):
-            inits['stopVal'].val = -1
-        else:
-            if inits['stopVal'].val in ['', None, 'None']:
-                inits['stopVal'].val = -1
-            elif float(inits['stopVal'].val) > 2:
-                inits['stopVal'].val = -1
+        inits['stopVal'].val = self._getSecs(inits['stopVal'])
         # are we forcing stereo?
         inits['forceStereo'] = self.exp.settings.params['Force stereo']
         # write init code
@@ -239,12 +247,7 @@ class SoundComponent(BaseDeviceComponent):
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if not canBeNumeric(inits['stopVal'].val):
-            inits['stopVal'].val = -1
-        elif inits['stopVal'].val in ['', None, 'None']:
-            inits['stopVal'].val = -1
-        elif float(inits['stopVal'].val) > 2:
-            inits['stopVal'].val = -1
+        inits['stopVal'].val = self._getSecs(inits['stopVal'])
         buff.writeIndented("%s = new sound.Sound({\n"
                            "    win: psychoJS.window,\n"
                            "    value: %s,\n"
