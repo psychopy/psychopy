@@ -18,6 +18,10 @@ class TestTarget(_TestUnitsMixin, _TestSerializationMixin):
         cls.obj = visual.TargetStim(cls.win, "TargetStim", units='pix', pos=(-64, 64),
                                     innerRadius=20, radius=60, lineWidth=10, innerLineWidth=5)
 
+    @classmethod
+    def teardown_class(cls):
+        cls.win.close()
+
     def test_radius(self):
         # Define some cases to test
         cases = [
