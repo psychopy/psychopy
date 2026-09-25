@@ -46,8 +46,8 @@ USE_LEGACY_GL = pyglet.version < '2.0'
 # Wayland.
 import glfw
 
-# GLFW may have already been initialized elsewhere (e.g., `psychopy.event`),
-# calling `glfw.init()` again does nothing in that case.
+# GLFW may have already been initialized elsewhere (e.g., the GLFW joystick
+# backend), calling `glfw.init()` again does nothing in that case.
 if not glfw.init():
     raise RuntimeError(
         "Failed to initialize GLFW. Check if GLFW has been correctly installed "
