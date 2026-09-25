@@ -114,7 +114,9 @@ class HammingWindow:
             sound block, or 1.0 if no windowing is needed.
 
         """
-        startSample = int(t*self.sampleRate)
+        # round (not truncate): t may sit fractionally off the sample grid,
+        # e.g. 127.99999 samples, which int() would put a sample early
+        startSample = int(round(t*self.sampleRate))
         if startSample < self.winSamples:
             # we're in beginning hanning window (start of sound)
             # 2 options:
