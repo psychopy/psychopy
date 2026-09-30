@@ -149,7 +149,7 @@ class KeyboardComponent(BaseComponent):
         code = (
             "%(name)s = keyboard.Keyboard(deviceName='defaultKeyboard', backend={keyboardBackend})\n"
         ).format(
-            **self.exp.settings.params
+            keyboardBackend=self.exp.settings.params['keyboardBackend'] if self.exp.settings.params['useLegacyKeyboard'] else "None"
         )
         buff.writeIndentedLines(code % inits)
 

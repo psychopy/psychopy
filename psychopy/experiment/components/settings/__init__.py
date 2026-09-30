@@ -786,7 +786,9 @@ class SettingsComponent:
             "\n"
         )
 
-        if not self.params['eyetracker'] == "None" or self.params['keyboardBackend'] == "ioHub":
+        if not self.params['eyetracker'] == "None" or (
+            self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == "ioHub"
+        ):
             code = (
                 "import psychopy.iohub as io\n"
             )
