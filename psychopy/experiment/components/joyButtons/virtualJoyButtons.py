@@ -5,30 +5,15 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Support for fake joystick/gamepad during development
-# if no 'real' joystick/gamepad is available use keyboard emulation
-# 'ctrl' + 'alt' + numberKey
+"""Deprecated location for the emulated joystick buttons.
 
-from psychopy import event
+The virtual joystick is now a proper joystick backend and lives at
+`psychopy.hardware.joystick.backend_virtual`, where one implementation covers
+both this and `virtualJoystick`. See that module for details.
 
+"""
 
-class VirtualJoyButtons:
-    def __init__(self, device_number):
-        self.device_number = device_number
-        self.numberKeys=['0','1','2','3','4','5','6','7','8','9']
-        self.modifierKeys=['ctrl','alt']
-        self.mouse = event.Mouse()
-        event.Mouse(visible=False)
-        # Create .corr property with placeholder value
-        self.corr = False
+__all__ = ['VirtualJoyButtons']
 
-    def getNumButtons(self):
-        return len(self.numberKeys)
-
-    def getAllButtons(self):
-        keys = event.getKeys(keyList=self.numberKeys, modifiers=True)
-        values = [key for key, modifiers in keys if all([modifiers[modKey] for modKey in self.modifierKeys])]
-        self.state = [key in values for key in self.numberKeys]
-        mouseButtons = self.mouse.getPressed()
-        self.state[:len(mouseButtons)] = [a or b != 0 for (a,b) in zip(self.state, mouseButtons)]
-        return self.state
+from psychopy.hardware.joystick.backend_virtual import (
+    JoystickDeviceVirtual as VirtualJoyButtons)
