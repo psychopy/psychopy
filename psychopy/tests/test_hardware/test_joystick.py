@@ -30,6 +30,7 @@ from psychopy.hardware.joystick import (
     getBackend, setBackend)
 import psychopy.hardware.joystick as joystick
 import psychopy.hardware.joystick.mappings as mappings
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy import logging
 from psychopy.tests.utils import RUNNING_IN_VM
 
@@ -173,6 +174,32 @@ class TestDeviceManagerContract:
                 assert isinstance(dev, JoystickDevice)
             finally:
                 dev.close()
+
+    def test_device_name_is_matched_in_full(self):
+        """A name is matched exactly, bracket and all.
+
+        `deviceName` is the system's own name for the device, and looking one
+        up used to also accept it with a trailing bracket trimmed off -- a name
+        the system never reported, which would find the wrong stick where two
+        differ only there, e.g. 'Wireless Controller (DualShock 4)'.
+
+        NB `DeviceNotConnectedError` derives from `BaseException`, so a plain
+        `pytest.raises(Exception)` would not catch it.
+        """
+        profile = getJoystickInterfaces()['virtual'].getAvailableDevices()[0]
+        name = profile['deviceName']
+        # the virtual joystick is named "... (keyboard + mouse)", so trimming
+        # the bracket off it leaves a different, plausible-looking name
+        assert " (" in name
+
+        dev = JoystickDevice(device=name, backend='virtual')
+        try:
+            assert dev.getName() == name
+        finally:
+            dev.close()
+
+        with pytest.raises(DeviceNotConnectedError):
+            JoystickDevice(device=name.rsplit(" (", 1)[0], backend='virtual')
 
     def test_is_same_device_accepts_profile_dict(self, virtualJoystick):
         """`BaseDevice.getDeviceProfile` passes a dict, which used to crash."""
