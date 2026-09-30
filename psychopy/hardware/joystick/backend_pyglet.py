@@ -107,7 +107,7 @@ class JoystickDevicePyglet(JoystickDevice):
         profiles = []
         for i, joy in enumerate(getPygletJoysticks()):
             profiles.append({
-                'deviceName': "{}".format(joy.device.name),
+                'deviceName': joy.device.name,
                 'deviceClass':
                     "psychopy.hardware.joystick.backend_pyglet."
                     "JoystickDevicePyglet",

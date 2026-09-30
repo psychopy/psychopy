@@ -74,8 +74,7 @@ class JoystickDeviceGLFW(JoystickDevice):
                 continue
 
             profiles.append({
-                'deviceName': "{}".format(
-                    _decodeName(glfw.get_joystick_name(joy))),
+                'deviceName': _decodeName(glfw.get_joystick_name(joy)),
                 'deviceClass':
                     "psychopy.hardware.joystick.backend_glfw."
                     "JoystickDeviceGLFW",

@@ -386,11 +386,13 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
                     "No joysticks are connected.", deviceClass=cls)
             return indices[0]
 
-        # by name, accepting the backend-suffixed form too
+        # by name. NB matched in full: `deviceName` is the system's own name
+        # for the device, so trimming a trailing bracket off it would match a
+        # name the system never reported -- and match the wrong stick where two
+        # differ only in that bracket, e.g. 'Wireless Controller (DualShock 4)'
         if isinstance(device, str):
             for profile in profiles:
-                name = profile['deviceName']
-                if device in (name, name.rsplit(" (", 1)[0]):
+                if device == profile['deviceName']:
                     return profile['device']
             raise DeviceNotConnectedError(
                 "No joystick found with the name '{}'".format(device),
@@ -493,13 +495,14 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
                 val = other.get(key, None)
                 if isinstance(val, int) and not isinstance(val, bool):
                     return val == self.deviceIndex
-            # otherwise match on name
+            # otherwise match on name. NB a name is the system's own name for
+            # the device, so it's shared by every backend reporting that stick
+            # and by two identical sticks -- match a backend or an index too to
+            # tell those apart.
             for key in ('deviceName', 'name', 'device'):
                 val = other.get(key, None)
                 if isinstance(val, str):
-                    return val in (
-                        self.getName(),
-                        "{} ({})".format(self.getName(), self.inputLib))
+                    return val == self.getName()
             return False
 
         if isinstance(other, bool):
