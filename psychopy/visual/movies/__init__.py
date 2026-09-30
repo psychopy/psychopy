@@ -39,7 +39,7 @@ from psychopy import logging
 import numpy as np
 import pyglet
 pyglet.options['debug_gl'] = False
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 # threshold to stop reporting dropped frames
 reportNDroppedFrames = 10

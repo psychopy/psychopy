@@ -26,7 +26,7 @@ determines how they change on every call to the .draw() method.
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -48,7 +48,7 @@ _piOver180 = np.pi / 180.
 _2pi = 2 * np.pi
 
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 
 class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -570,7 +570,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             
             GL.glPointSize(self.dotSize)
             projectionMatrix = win._projectionMatrix
-            modelViewMatrix = win._viewMatrix
+            modelViewMatrix = win._getPixViewMatrix()
 
             gt.setUniformValue(
                 _prog, 
