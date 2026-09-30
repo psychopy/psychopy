@@ -7,33 +7,76 @@
 
 """Control joysticks and gamepads from within PsychoPy.
 
-For most backends, you do need a window using the same backend (and you need to 
-be flipping it) for the joystick to be updated.
+Joysticks are managed by `DeviceManager`, so a joystick may be configured once
+and referred to by name::
+
+    from psychopy.hardware import DeviceManager
+
+    joy = DeviceManager.addDevice(
+        deviceClass="psychopy.hardware.joystick.JoystickDevice",
+        deviceName="myGamepad", device=0)
+
+The `Joystick` class below wraps a `JoystickDevice` and is what Builder
+generates. Creating one registers the underlying device with `DeviceManager` if
+it isn't registered already.
+
+Which input library is used depends on the backend. The `'pyglet'` backend needs
+an open pyglet window which is being flipped in order to update, while the
+`'glfw'` backend needs no window at all and works alongside a window created by
+any library. A `'virtual'` backend emulates a joystick with the keyboard and
+mouse. Backends may be selected per device::
+
+    joy = Joystick(0, backend='glfw')
 
 """
 
 __all__ = [
-    'Joystick', 
+    'Joystick',
+    'JoystickDevice',
+    'JoystickResponse',
+    'XboxController',
     'JoystickError',
+    'JoystickBackendNotAvailableError',
     'JoystickAxisNotAvailableError',
     'JoystickButtonNotAvailableError',
+    'InvalidInputNameError',
+    'getBackend',
+    'setBackend',
     'getJoystickInterfaces',
     'getAllJoysticks',
-    'getNumJoysticks'
+    'getNumJoysticks',
+    'mappings',
+    # legacy names, kept so existing code and plugins keep importing
+    'BaseJoystickDevice',
+    'BaseJoystickInterface',
 ]
 
-from psychopy import logging, visual
-from psychopy.hardware.joystick._base import BaseJoystickInterface
-from psychopy.hardware.joystick.backend_pyglet import JoystickInterfacePyglet
-from psychopy.hardware.joystick.backend_glfw import JoystickInterfaceGLFW
+from psychopy import logging
+from psychopy.constants import NOT_STARTED
+from psychopy.hardware.manager import DeviceManager
+from psychopy.hardware.exceptions import (
+    DeviceNotConnectedError, ManagedDeviceError)
+from psychopy.hardware.joystick._base import (
+    JoystickDevice,
+    JoystickResponse,
+    JoystickError,
+    JoystickBackendNotAvailableError,
+    JoystickAxisNotAvailableError,
+    JoystickButtonNotAvailableError,
+    InvalidInputNameError,
+    # re-exported for backwards compatibility, these named the same concept
+    # before the DeviceManager migration
+    BaseJoystickDevice,
+    BaseJoystickInterface,
+)
+# re-exported so `joystick.mappings` keeps working for existing code
 import psychopy.hardware.joystick.mappings as mappings
 import psychopy.core as core
 
-import math
-import numpy as np
-
-# backend to use when creating joystick objects
-backend = 'pyglet'  # 'pyglet' or 'pygame'
+# Default backend used when a joystick doesn't name one. This stays a plain
+# module attribute because assigning to it directly is long-standing public
+# usage, e.g. `joystick.backend = 'glfw'`.
+backend = 'pyglet'
 
 # constants
 JOYSTICK_AXIS_X = JOYSTICK_BUTTON_A = 0
@@ -44,796 +87,384 @@ JOYSTICK_AXIS_RY = 4
 JOYSTICK_AXIS_RZ = 5
 
 
-class JoystickError(Exception):
-    """Exception raised for errors in the joystick module.
-    """
-    pass
-
-
-class JoystickBackendNotAvailableError(JoystickError):
-    """Exception raised when the backend is not available.
-    """
-    pass
-
-
-class JoystickAxisNotAvailableError(JoystickError):
-    """Exception raised when an axis is not available on the joystick.
-    """
-    pass
-
-
-class InvalidInputNameError(JoystickError):
-    """Exception raised when an input name is not valid.
-    """
-    pass
-
-
-class JoystickButtonNotAvailableError(JoystickError):
-    """Exception raised when a button is not available on the joystick.
-    """
-    pass
-
-
 class Joystick:
-    """Class for interfacing with a multi-axis joystick or gamepad.
+    """A joystick or gamepad.
 
-    Upon creating a `Joystick` object, the joystick device is opened and the 
-    states of the device's axes and buttons can be read.
-
-    Values for the axes are returned as floating point numbers, typically
-    between -1.0 and +1.0 unless scaling is applied. The values for the buttons
-    are returned as booleans, where True indicates the button is pressed down
-    at the time the device was last polled.
-
-    Scaling factors can be set for each axis to adjust the range of the axis
-    values. The scaling factor is a floating point value that is multiplied by
-    the axis value. If the scaling factor is negative, the axis value is
-    inverted. Deadzones can also be applied for each axis to prevent small 
-    fluctuations in the joystick's resting position from being interpreted as 
-    valid input. The deadzone is a floating point value between 0.0 and 1.0. If 
-    the absolute value of the axis value is less than the deadzone, the axis 
-    value is set to zero.
-
-    Device inputs can be named to provide a more human-readable interface. The 
-    names can be set for axes, buttons, and hats where they can be used to get 
-    the input values instead of using the integer indices. Furthermore,
-    like inputs can be grouped together under a single name. For example, both
-    X and Y of a thumbstick can be grouped together under the name 'thumbstick'.
-    When getting the value of the thumbstick, a tuple of the X and Y values is
-    returned instead of having to get each axis individually.
+    This wraps a `JoystickDevice` registered with `DeviceManager`, and adds the
+    per-experiment state that Builder needs (a status flag, clocks, and the
+    data arrays a Routine fills in). Creating one registers the underlying
+    device if it isn't registered already, so two Components naming the same
+    device share one piece of hardware.
 
     Parameters
     ----------
-    device : int or str
-        The index or name of the joystick to control.
-
-    Examples
-    --------
-    Typical usage::
-
-        from psychopy.hardware import joystick
-        from psychopy import visual
-
-        joystick.backend='pyglet'  # must match the Window
-        win = visual.Window([400,400], winType='pyglet')
-
-        nJoys = joystick.getNumJoysticks()  # to check if we have any
-        id = 0
-        joy = joystick.Joystick(id)  # id must be <= nJoys - 1
-
-        nAxes = joy.getNumAxes()  # for interest
-        while True:  # while presenting stimuli
-            joyX = joy.getX()
-            # ...
-            win.flip()  # flipping implicitly updates the joystick info
-    
-    Set the deadzone for axis 0 to 0.1::
-
-        joy.setAxisDeadzone(0, 0.1)
-
-    Set the scaling factor for 1 axis to 2.0::
-
-        joy.setAxisScale(1, 2.0)
-
-    Setting the names of the inputs can be useful for debugging and for
-    providing a more human-readable interface::
-
-        joy.setInputName('axis', 0, 'x')
-        joy.setInputName('axis', 1, 'y')
-
-    You can get the imput value by name by passing it to the get method for the
-    input type::
-
-        joy.getAxis('axis', 'x')  # instead of joy.getAxis(0)
-
-    Automatically set the input names to the default Xbox controller mapping
-    scheme::
-
-        joy.setInputScheme('xbox')
-        # ...
-        xVal, yVal = joy.getAxis('left_thumbstick')
-        leftTrigger, rightTrigger = joy.getAxis('triggers')
+    device : str, int, JoystickDevice or None
+        The device to use. A `str` names a device in `DeviceManager`, an `int`
+        is a legacy device index, and `None` resolves automatically.
+    index : int or None
+        Legacy device index, used only when `device` is `None`. This is what
+        Builder's deprecated "device number" param feeds in.
+    backend : str or None
+        Input library to use for this joystick (`'pyglet'`, `'glfw'`,
+        `'virtual'`). `None` uses the module-level default.
+    win : psychopy.visual.Window or None
+        Window used to work out the scaling applied to `getX`/`getY` when the
+        window is in `'height'` units.
+    deviceName : str or None
+        Name to register the device under. Defaults to a name derived from the
+        backend and index, so repeated calls reuse one device.
+    fallback : bool or None
+        Whether to fall back to the emulated keyboard-and-mouse joystick when no
+        physical device can be found. `None` (the default) means fall back only
+        on the legacy index path -- an experiment which names a device gets an
+        error instead, so a missing gamepad can't silently become keyboard data.
 
     Notes
     -----
-    * You do need to be flipping frames (or dispatching events manually) in 
-      order for the values of the joystick to be updated.
-    * Currently under pyglet backends the axis values initialise to zero
-      rather than reading the current true value. This gets fixed on the first 
-      change to each axis.
-    * Currently pygame (1.9.1) spits out lots of debug messages about the
-      joystick and these can't be turned off :-/
-    * The GLFW backend can be used without first opening a window and can be 
-      used with other window backends.
+    * The `'pyglet'` backend needs an open pyglet window which is being flipped
+      in order for the joystick state to update.
+    * The `'glfw'` backend can be used without a window, and alongside a window
+      created by any other library.
 
     """
-    def __init__(self, device=0, **kwargs):
-        # get the joystick device interface
+    def __init__(self, device=None, index=None, backend=None, win=None,
+                 deviceName=None, fallback=None, **kwargs):
+        self.device = self._resolveDevice(
+            device, index, backend, deviceName, fallback, kwargs)
+        # deprecated alias, some code reached into `joy._joy`
+        self._joy = self.device
+
+        # scaling applied by `getX`/`getY` so a joystick maps onto a window in
+        # 'height' units
+        self.xFactor = self.yFactor = 1.0
+        self.setWindow(win)
+
+        # Builder state
+        self.status = NOT_STARTED
+        self.clock = core.Clock()
+        self.joystickClock = core.Clock()
+        self.device_number = self.device.deviceIndex
+        self.numButtons = self.device.getNumButtons()
+        self.activeButtons = list(range(self.numButtons))
+        self.oldButtonState = self.device.getAllButtons()[:]
+        self.clearData()
+
+    @staticmethod
+    def _resolveDevice(device, index, backend, deviceName, fallback, kwargs):
+        """Work out which `JoystickDevice` this wrapper should drive."""
+        # an already-constructed device
+        if isinstance(device, JoystickDevice):
+            return device
+
+        # a named device in DeviceManager
+        if isinstance(device, str):
+            found = DeviceManager.getDevice(device)
+            if found is None:
+                raise JoystickError(
+                    "No joystick named '{}' has been set up. Add it in Device "
+                    "Manager, or check the device name for typos.".format(
+                        device))
+            return found
+
+        # a legacy integer index, either given as `device` or as `index`
+        if isinstance(device, int) and not isinstance(device, bool):
+            index = device
+        if fallback is None:
+            # lenient on the legacy path only
+            fallback = True
+
+        if deviceName is None:
+            deviceName = "joystick_{}_{}".format(
+                backend or getBackend(), index if index is not None else 0)
+
+        # reuse an existing registration under this name
+        found = DeviceManager.getDevice(deviceName)
+        if found is not None:
+            return found
+
+        # reuse an already-initialised device at this index
+        if index is not None:
+            for existing in DeviceManager.getInitialisedDevices(
+                    JoystickDevice).values():
+                if existing.deviceIndex == index:
+                    return existing
+
         try:
-            joyInterface = getJoystickInterfaces()[backend]
-            logging.info(
-                "Using joystick interface '{}' for backend '{}'".format(
-                    joyInterface.__name__, backend))
-        except KeyError:
-            logging.error(
-                "No joystick interface found for backend '{}'".format(
-                    backend))
+            return DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.joystick.JoystickDevice",
+                deviceName=deviceName,
+                device=index, backend=backend, **kwargs)
+        # NB: both hardware exceptions derive from BaseException rather than
+        # Exception, so they have to be named explicitly or the fallback below
+        # would never run
+        except (Exception, DeviceNotConnectedError, ManagedDeviceError) as err:
+            if not fallback:
+                raise
+            logging.warning(
+                "No joystick or gamepad was found ({}). Falling back to "
+                "keyboard and mouse emulation -- hold 'ctrl' + 'alt' and press "
+                "a number key to press a joystick button.".format(err))
+            return DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.joystick.JoystickDevice",
+                deviceName=deviceName + "_virtual",
+                device=0, backend='virtual')
 
-        # create a device interface
-        self._joy = joyInterface(device, **kwargs)
-
-        # input counts for the device, these don't chnage after opening
-        self._numAxes = self._joy.getNumAxes()
-        self._numButtons = self._joy.getNumButtons()
-        self._numHats = self._joy.getNumHats()
-
-        # axis value modifiers
-        self._axisScale = [1.0] * self._numAxes
-        self._axisDeadzone = [0.0] * self._numAxes
-
-        # device states
-        self._lastUpdateTime = 0.0  # in experiment time
-        self._axisVals = np.zeros(self._numAxes, dtype=np.float32)
-        self._btnStates = np.zeros(self._numButtons, dtype=bool)
-        self._hatStates = np.zeros((self._numHats, 2), dtype=np.int8)
-
-        # VR and motion tracking properties
-        self._pos = np.zeros(3, dtype=np.float32)
-        self._ori = np.array([0., 0., 0., 1.], dtype=np.float32)
-        self._angularVel = np.zeros(3, dtype=np.float32)
-        self._linearVel = np.zeros(3, dtype=np.float32)
-
-        # axis name mapping, some defaults are provided for common axes
-        self._inputNames = {}
-        self.setInputScheme('default')  # use default mapping scheme
-
-    def __del__(self):
-        """Close the joystick device when the object is deleted.
-        """
-        if hasattr(self, '_joy'):
-            self.close()
-
-    def lastUpdateTime(self):
-        """Return the time of the last update to the joystick state.
-
-        Returns
-        -------
-        float
-            The time of the last update to the joystick state.
-
-        """
-        return self._lastUpdateTime
-
-    def poll(self):
-        """Poll the joystick device for the current state.
-
-        This method should be called at the beginning of each frame to update
-        the state of the joystick device. The time of the last update is stored
-        and can be accessed using the `lastUpdateTime` property.
-
-        """
-        self._joy.update()
-
-        # update the internal state of the joystick
-        self._axisVals[:] = self.getAllAxes()
-        self._btnStates[:] = self.getAllButtons()
-
-        if backend != 'glfw':  # cannot use hats with GLFW
-            self._hatStates[:] = self.getAllHats()
-
-        # update the VR properties
-        if self.hasTracking:
-            self._pos = self.getPos()
-            self._ori = self.getOri()
-            self._angularVel = self.getAngularVelocity()
-            self._linearVel = self.getLinearVelocity()
-
-        if self._joy.trackerData is None:
-            self._lastUpdateTime = core.getTime()
+    def setWindow(self, win):
+        """Set the window used to scale `getX`/`getY` in 'height' units."""
+        self.win = win
+        if win is not None and getattr(win, 'units', None) == 'height':
+            self.xFactor = 0.5 * win.size[0] / win.size[1]
+            self.yFactor = 0.5
         else:
-            self._lastUpdateTime = self._joy.trackerData._absSampleTime
+            self.xFactor = self.yFactor = 1.0
 
-        return self._lastUpdateTime
-        
+    def clearData(self):
+        """Clear the per-Routine data arrays Builder fills in."""
+        self.x = []
+        self.y = []
+        self.time = []
+        self.buttons = []
+        self.pressedButtons = []
+        self.releasedButtons = []
+        self.newPressedButtons = []
+        self.buttonLogs = [[] for _ in range(self.numButtons)]
+
+    def __getattr__(self, name):
+        """Forward anything we don't define ourselves to the device."""
+        # NB: guard against recursion before `device` has been assigned
+        if name in ("device", "_joy"):
+            raise AttributeError(name)
+        device = self.__dict__.get("device", None)
+        if device is None:
+            raise AttributeError(name)
+        return getattr(device, name)
+
+    # --------------------------------------------------------------------------
+    # Discovery
+    #
+
     @staticmethod
     def getAvailableDevices():
         """Return a list of available joystick devices.
 
-        This method is used by `DeviceManager` to get a list of available
-        devices.
-
         Returns
         -------
-        list
-            A list of available joystick devices.
+        list of dict
+            Device profiles. These carry the `'index'` and `'name'` keys this
+            method has always returned, in addition to the `'deviceName'` and
+            `'deviceClass'` keys `DeviceManager` uses.
 
         """
-        # use the selected backend class to get the available devices
-        global backend
-        return getJoystickInterfaces()[backend].getAvailableDevices()
-    
+        profiles = []
+        for profile in JoystickDevice.getAvailableDevices():
+            profile = profile.copy()
+            # legacy keys, kept at the legacy entry points only -- 'index' is
+            # not a valid constructor argument, so it can't live in a profile
+            # that DeviceManager will splat into `addDevice`
+            profile['index'] = profile.get('device', None)
+            profile['name'] = profile.get('deviceName', None)
+            profiles.append(profile)
+
+        return profiles
+
     @staticmethod
     def getNumJoysticks():
-        """Return the number of available joystick devices.
-        
-        Returns
-        -------
-        int
-            The number of available joystick devices.
-        
-        """
+        """Return the number of available joystick devices (`int`)."""
         return len(Joystick.getAvailableDevices())
 
-    @property
-    def inputLib(self):
-        """Input interface library used (`str`).
-        """
-        if not hasattr(self, '_joy'):
-            return None
-            
-        return self._joy.inputLib
+    # --------------------------------------------------------------------------
+    # Delegated to the device
+    #
 
-    @property
-    def hasTracking(self):
-        """Check if the joystick has tracking capabilities.
+    def poll(self):
+        """Sample the device and update its state.
 
         Returns
         -------
-        bool
-            True if the joystick has tracking capabilities, False otherwise.
+        float
+            The time at which the device was sampled.
 
         """
-        return self._joy.hasTracking
-
-    def isSameDevice(self, otherDevice):
-        """Check if the device is the same as another device.
-
-        Parameters
-        ----------
-        otherDevice : Joystick
-            The other device to compare against.
-
-        Returns
-        -------
-        bool
-            True if the devices are the same, False otherwise.
-
-        """
-        # only need to check the index since the device ID is unique
-        return self._joy.isSameDevice(otherDevice._device)
+        return self.device.poll()
 
     def open(self):
-        """Open the joystick device.
-        """
-        if self.isOpen:
-            return
+        """Open the joystick device."""
+        return self.device.open()
 
-        self._joy.open()
+    def close(self):
+        """Close the joystick device."""
+        return self.device.close()
 
     @property
     def isOpen(self):
-        """Check if the joystick device is open.
-
-        Returns
-        -------
-        bool
-            True if the joystick device is open, False otherwise.
-
-        """
-        return self._joy.isOpen
-
-    def close(self):
-        """Close the joystick device.
-        """
-        if not self.isOpen:
-            return
-
-        self._joy.close()
+        """Whether the joystick device is open (`bool`)."""
+        return self.device.isOpen
 
     @property
     def name(self):
-        """Name of the joystick reported by the system (`str`).
-        """
-        return self.getName()
-    
+        """Name of the joystick reported by the system (`str`)."""
+        return self.device.getName()
+
     @property
     def deviceIndex(self):
-        """The index of the joystick (`int`).
-        """
-        return self._deviceIndex
+        """The backend's index for this joystick (`int`)."""
+        return self.device.deviceIndex
 
     @property
-    def x(self):
-        """The X axis value (`float`).
-        """
-        return self.getX()
+    def inputLib(self):
+        """Name of the input library backing this device (`str`)."""
+        return self.device.inputLib
 
     @property
-    def y(self):
-        """The Y axis value (`float`).
-        """
-        return self.getY()
+    def hasTracking(self):
+        """Whether the device reports position and orientation (`bool`)."""
+        return self.device.hasTracking
 
-    @property
-    def z(self):
-        """The Z axis value (`float`).
-        """
-        return self.getZ()
-
-    @property
-    def rx(self):
-        """The RX axis value (`float`).
-        """
-        return self.getRX()
-
-    @property
-    def ry(self):
-        """The RY axis value (`float`).
-        """
-        return self.getRY()
-
-    @property
-    def rz(self):
-        """The RZ axis value (`float`).
-        """
-        return self.getRZ()
-    
     @property
     def trackerData(self):
-        """Tracker data for the controller.
+        """Raw tracking data, if the device provides any."""
+        return self.device.trackerData
 
-        Returns
-        -------
-        `TrackerData` or `None`
-            The tracker data.
+    def lastUpdateTime(self):
+        """Time at which the device state was last sampled (`float`)."""
+        return self.device.lastUpdateTime()
 
-        """
-        return self._joy.trackerData
+    def isSameDevice(self, other):
+        """Whether `other` refers to the same physical device."""
+        if isinstance(other, Joystick):
+            other = other.device
+        return self.device.isSameDevice(other)
 
     def getName(self):
-        """Return the manufacturer-defined name describing the device (`str`).
-        """
-        return self._joy.getName()
+        """Return the manufacturer-defined name describing the device."""
+        return self.device.getName()
 
-    def setInputScheme(self, mapping):
-        """Set the input mapping scheme for the joystick.
-
-        The input mapping scheme determines the names of the inputs for the
-        joystick. The mapping scheme can be set to 'default', 'xbox', or
-        'custom'. The default mapping scheme provides names for the axes and
-        buttons that are common to most joysticks.
-
-        Note that setting the mapping scheme will overwrite any custom input
-        names that have been set prior to calling this method.
-
-        Parameters
-        ----------
-        mapping : str
-            The mapping scheme to set. Must be one of 'default', 'xbox', or
-            'custom'.
-
-        """
-        # get the mapping scheme
-        inputMap = mappings.getInputScheme(mapping, self.inputLib)
-        if inputMap is None:
-            raise ValueError("Invalid mapping scheme '{}'.".format(mapping))
-
-        logging.info(
-            "Setting input scheme for joystick to '{}'.".format(mapping))
-
-        # set the input names
-        self._inputNames = inputMap
-    
-    def setInputName(self, inputType, inputIndex, name):
-        """Set the name of an input.
-
-        Parameters
-        ----------
-        inputType : str
-            The type of input to set the name for. Must be one of 'axis',
-            'button', or 'hat'.
-        inputIndex : int or list of int
-            The index of the input to set the name for. If a list of indices is
-            supplied, multiple axes will be grouped together.
-        name : str or None
-            The name to set for the axis. If None, the name for the axis is
-            removed.
-
-        Raises
-        ------
-        ValueError
-            If the inputType is not 'axis', 'button', or 'hat'.
-        
-        Examples
-        --------
-        Set the name of axis `0` to 'x' and get its value by name::
-
-            joy.setInputName('axis', 0, 'x')
-            xVal = joy.getAxis('x')  # instead of joy.getAxis(0)
-
-        Joystick inputs often have multiple axes ganged together on a single
-        control, such as a thumbstick. You can group axes together by passing a 
-        list of indices::
-
-            joy.setInputName('axis', [0, 1], 'left_thumbstick')
-            xVal, yVal = joy.getAxis('left_thumbstick')  # returns 2 values
-
-        """
-        if inputType not in ('axes', 'buttons', 'hats'):
-            raise ValueError("Input type must be 'axes', 'buttons', or 'hats'.")
-
-        if name is None:
-            if inputIndex in self._inputNames[inputType]:
-                del self._inputNames[inputType][inputIndex]
-            return
-
-        self._inputNames[inputType][inputIndex] = name
-
-    def _getIndexFromName(self, inputType, name):
-        """Get the index of an input from its name.
-
-        Parameters
-        ----------
-        inputType : str
-            The type of input to get the index for. Must be one of 'axis',
-            'button', or 'hat'.
-        name : str
-            The name of the input to get the index for.
-
-        Returns
-        -------
-        int or None
-            The index of the input. If the input name is not found, `None` is
-            returned.
-
-        Raises
-        ------
-        InvalidInputNameError
-            If the input name is not valid or has not been set.
-        
-        """
-        inputIndex = self._inputNames[inputType].get(name, None)
-        if inputIndex is not None:
-            return inputIndex
-
-        raise InvalidInputNameError("Input name '{}' is not valid.".format(name))
-
-    # --------------------------------------------------------------------------
-    # Event handling methods
-    #
-
-    def setEventCallback(self, evt, callback):
-        """Set a callback function to be called when a joystick event occurs.
-
-        Parameters
-        ----------
-        evt : str
-            The event type to listen for (e.g., 'on_joybutton_press',
-            'on_joybutton_release', 'on_joyaxis_motion', etc.). The name used 
-            depends on the backend.
-        callback : callable or None
-            The callback function to be called when a joystick event occurs. 
-            If None, the event handler is removed.
-
-        """
-        raise NotImplementedError("Event handling is not supported for the "
-                                  "'{}' backend.".format(self._backend))
-
-    # --------------------------------------------------------------------------
-    # Axis filtering methods
-    #
-
-    def getAxisScale(self, axisId):
-        """Get the scale factor for a given axis.
-
-        Parameters
-        ----------
-        axisId : int
-            The axis ID to get the scale factor for.
-
-        Returns
-        -------
-        float
-            The scale factor for the given axis.
-
-        """
-        return self._axisScale[axisId]
-
-    def setAxisScale(self, axisId, scale):
-        """Set the scale factor for a given axis.
-
-        Parameters
-        ----------
-        axisId : int or None
-            The axis ID to set the scale factor for. If None, set the scale
-            factor for all axes to the given value.
-        scale : float
-            The scale factor to set. This factor will be multiplied by the
-            axis value. If negative, the axis value will be inverted.
-
-        """
-        if not isinstance(scale, (int, float)):
-            raise TypeError("Scaling factor must be a numeric type.")
-
-        if isinstance(axisId, str):
-            axisId = self._getIndexFromName('axes', axisId)
-
-        if axisId is None:
-            self._axisScale = [scale] * len(self._axisScale)
-        else:
-            self._axisScale[axisId] = scale
-        
-    def getAxisDeadzone(self, axisId):
-        """Get the deadzone for a given axis.
-
-        Parameters
-        ----------
-        axisId : int
-            The axis ID to get the deadzone for.
-
-        Returns
-        -------
-        float
-            The deadzone for the given axis.
-
-        """
-        if axisId is None:
-            return self._axisDeadzone
-
-        if isinstance(axisId, str):
-            axisId = self._getIndexFromName('axes', axisId)
-
-        if isinstance(axisId, (list, tuple)):
-            return [self.getAxisDeadzone(ax) for ax in axisId]
-
-        return self._axisDeadzone[axisId]
-
-    def setAxisDeadzone(self, axisId=None, deadzone=0.1):
-        """Set the deadzone for a given axis.
-
-        Parameters
-        ----------
-        axisId : int, str, list or None
-            The axis ID to set the deadzone for. If None, set the deadzone for
-            all axes to the given value. A string can be supplied to set the
-            deadzone for an axis by name. A list of axes can also be supplied to
-            set the deadzone for multiple axes at once.
-        deadzone : float
-            The deadzone to set, must be between 0.0 and 1.0.
-
-        """
-        if not isinstance(deadzone, (int, float)):
-            raise TypeError("Deadzone must be a numeric type.")
-
-        deadzone = min(1.0, max(0.0, deadzone))
-        if axisId is None:
-            self._axisDeadzone = [deadzone] * len(self._axisDeadzone)
-            return
-
-        if isinstance(axisId, str):  # name supplied
-            axisId = self._getIndexFromName('axes', axisId)
-
-        if isinstance(axisId, (list, tuple)):
-            for ax in axisId:
-                self.setAxisDeadzone(ax, deadzone)
-            return
-
-        self._axisDeadzone[axisId] = deadzone
-
-    # --------------------------------------------------------------------------
-    # Axis methods
-    #
+    # axes
+    def getNumAxes(self):
+        """Number of axes on the device (`int`)."""
+        return self.device.getNumAxes()
 
     def getAllAxes(self):
-        """Get a list of all current axis values (`int`).
-        """
-        allAxes = self._joy.getAllAxes()
-
-        # apply scaling and deadzone to axes
-        for i, axisVal in enumerate(allAxes):
-            allAxes[i] = axisVal * self._axisScale[i] \
-                if abs(axisVal) >= self._axisDeadzone[i] else 0.0
-
-        return allAxes
-
-    def getNumAxes(self):
-        """Get the number of available joystick axes.
-
-        The first axis usually corresponds to the X axis, the second to the Y
-        axis for most joysticks. Additional axes may be present for other 
-        controls such as addtional thumbsticks or throttle lever.
-
-        Returns
-        -------
-        int
-            The number of axes found on the joystick.
-
-        """
-        return self._numAxes
+        """All current axis values, with scaling and deadzone applied."""
+        return self.device.getAllAxes()
 
     def getAxis(self, axisId):
-        """Get the value of an axis by an integer id.
-
-        Parameters
-        ----------
-        axisId : int, str or list
-            The axis ID to get the value for. If a string is supplied, the name
-            of the axis is used to get the value. If a list of axes indices or
-            names is supplied, a list of values is returned.
-
-        Returns
-        -------
-        float or list
-            The value of the axis. If a list of axes is supplied, a list of
-            values is returned.
-
-        """
-        if isinstance(axisId, str):  # name supplied
-            axisId = self._getIndexFromName('axes', axisId)
-
-        # is axisId a sequence?
-        if isinstance(axisId, (list, tuple)):
-            return [self.getAxis(ax) for ax in axisId]  # recusively called
-
-        # get the axis value from `int` axisId
-        axisVal = self._joy.getAxis(axisId)
-        return axisVal * self._axisScale[axisId] \
-            if abs(axisVal) >= self._axisDeadzone[axisId] else 0.0
+        """Get the value of an axis, by index or name."""
+        return self.device.getAxis(axisId)
 
     def getX(self):
-        """Return the X axis value (equivalent to joystick.getAxis(0))."""
-        return self.getAxis(JOYSTICK_AXIS_X)
+        """Return the X axis value, scaled to the window units."""
+        return self.xFactor * self.device.getX()
 
     def getY(self):
-        """Return the Y axis value (equivalent to joystick.getAxis(1))."""
-        return self.getAxis(JOYSTICK_AXIS_Y)
-    
+        """Return the Y axis value, scaled to the window units."""
+        return self.yFactor * self.device.getY()
+
     def getXY(self):
-        """Return the X and Y axis values as a tuple.
-
-        Returns
-        -------
-        tuple
-            The X and Y axis values as a tuple.
-
-        """
-        return self.getAxis([JOYSTICK_AXIS_X, JOYSTICK_AXIS_Y])
+        """Return the X and Y axis values, scaled to the window units."""
+        return [self.getX(), self.getY()]
 
     def getZ(self):
-        """Return the Z axis value (equivalent to joystick.getAxis(2))."""
-        return self.getAxis(JOYSTICK_AXIS_Z)
+        """Return the Z axis value."""
+        return self.device.getZ()
 
     def getRX(self):
-        """Return the RX axis value (equivalent to joystick.getAxis(3))."""
-        return self.getAxis(JOYSTICK_AXIS_RX)
+        """Return the RX axis value."""
+        return self.device.getRX()
 
     def getRY(self):
-        """Return the RY axis value (equivalent to joystick.getAxis(4))."""
-        return self.getAxis(JOYSTICK_AXIS_RY)
+        """Return the RY axis value."""
+        return self.device.getRY()
 
     def getRZ(self):
-        """Return the RZ axis value (equivalent to joystick.getAxis(5))."""
-        return self.getAxis(JOYSTICK_AXIS_RZ)
+        """Return the RZ axis value."""
+        return self.device.getRZ()
 
-    # --------------------------------------------------------------------------
-    # Button methods
-    #
+    def getAxisScale(self, axisId=None):
+        """Get the scale factor applied to an axis."""
+        return self.device.getAxisScale(axisId)
 
+    def setAxisScale(self, axisId, scale):
+        """Set the scale factor applied to an axis."""
+        return self.device.setAxisScale(axisId, scale)
+
+    def getAxisDeadzone(self, axisId=None):
+        """Get the deadzone applied to an axis."""
+        return self.device.getAxisDeadzone(axisId)
+
+    def setAxisDeadzone(self, axisId=None, deadzone=0.1):
+        """Set the deadzone applied to an axis."""
+        return self.device.setAxisDeadzone(axisId, deadzone)
+
+    # buttons
     def getNumButtons(self):
-        """Get the number of buttons on the device (`int`).
-
-        Returns
-        -------
-        int
-            The number of buttons on the joystick.
-
-        """
-        return self._numButtons
+        """Number of buttons on the device (`int`)."""
+        return self.device.getNumButtons()
 
     def getAllButtons(self):
-        """Get the state of all buttons on the devics.
-
-        Returns
-        -------
-        list
-            A list of button states. Each state is a boolean.
-
-        """
-        return self._joy.getAllButtons()
+        """State of every button, as a list of `bool`."""
+        return self.device.getAllButtons()
 
     def getButton(self, buttonId):
-        """Get the state of a given button on the device (`bool`).
+        """Get the state of a button, by index or name."""
+        return self.device.getButton(buttonId)
 
-        Parameters
-        ----------
-        buttonId : int, str or list
-            The button ID to get the state for. If a string is supplied, the
-            name of the button is used to get the state. If a list of button
-            indices or names is supplied, a list of states is returned.
-
-        Returns
-        -------
-        bool or list
-            The state of the button. If a list of buttons was passed as 
-            `buttonId`, a list of states is returned where each state is a
-            boolean.
-
-        """
-        if isinstance(buttonId, str):  # name supplied
-            buttonId = self._getIndexFromName('buttons', buttonId)
-
-        if isinstance(buttonId, (list, tuple)):
-            return [self.getButton(b) for b in buttonId]
-
-        return self._joy.getButton(buttonId)
-
-    # --------------------------------------------------------------------------
-    # Hat methods
-    #
+    # hats
     def getNumHats(self):
-        """Get the number of hats on this joystick.
-
-        The GLFW backend makes no distinction between hats and buttons. Calling
-        'getNumHats()' will return 0.
-
-        """
-        return self._numHats
+        """Number of hats on the device (`int`)."""
+        return self.device.getNumHats()
 
     def getAllHats(self):
-        """Get the current values of all available hats.
-
-        Returns
-        -------
-        list
-            Each value is a tuple (x, y) where x and y axis states are trinary
-            (-1, 0, +1)
-
-        """
-        return self._joy.getAllHats()
+        """Position of every hat, as a list of (x, y) tuples."""
+        return self.device.getAllHats()
 
     def getHat(self, hatId=0):
-        """Get the position of a particular hat.
+        """Get the position of a hat, by index or name."""
+        return self.device.getHat(hatId)
 
-        Parameters
-        ----------
-        hatId : int or str
-            The hat ID to get the position for. If a string is supplied, the
-            name of the hat is used to get the position.
+    # naming
+    def setInputScheme(self, mapping):
+        """Apply a named input scheme to this device."""
+        return self.device.setInputScheme(mapping)
 
-        Returns
-        -------
-        tuple
-            The position returned is an (x, y) tuple where x and y can be -1, 0 
-            or +1.
+    def setInputName(self, inputType, inputIndex, name):
+        """Give an input a name, so it can be addressed by that name."""
+        return self.device.setInputName(inputType, inputIndex, name)
 
-        """
-        if isinstance(hatId, str):  # name supplied
-            hatId = self._getIndexFromName('hats', hatId)
+    # events and responses
+    def setEventCallback(self, evt, callback):
+        """Set a callback to be invoked when a joystick event occurs."""
+        return self.device.setEventCallback(evt, callback)
 
-        if isinstance(hatId, (list, tuple)):
-            return [self.getHat(h) for h in hatId]
+    def dispatchMessages(self):
+        """Sample the device and emit a response for anything which changed."""
+        return self.device.dispatchMessages()
 
-        return self._joy.getHat(hatId)
+    def getResponses(self, state=None, channel=None, inputType=None,
+                     clear=True):
+        """Get responses matching the given criteria."""
+        return self.device.getResponses(
+            state=state, channel=channel, inputType=inputType, clear=clear)
+
+    def getState(self, channel, inputType="button"):
+        """Get the current state of a single input."""
+        return self.device.getState(channel, inputType=inputType)
+
+    def clearResponses(self):
+        """Clear the response queue."""
+        return self.device.clearResponses()
+
+    def addListener(self, listener, startLoop=False):
+        """Attach a listener to the underlying device."""
+        return self.device.addListener(listener, startLoop=startLoop)
+
+    def clearListeners(self):
+        """Remove every listener from the underlying device."""
+        return self.device.clearListeners()
+
+    def resetTimer(self, clock=None):
+        """Reset the clock used to timestamp responses."""
+        return self.device.resetTimer(clock)
 
 
 class XboxController(Joystick):
@@ -845,22 +476,15 @@ class XboxController(Joystick):
         y_btn_state = xbctrl.y  # get the state of the 'Y' button
 
     """
-    def __init__(self, deviceIndex, **kwargs):
-        deviceIndex = kwargs.get('id', deviceIndex)  # legacy param
-        super(XboxController, self).__init__(deviceIndex)
+    def __init__(self, deviceIndex=None, **kwargs):
+        deviceIndex = kwargs.pop('id', deviceIndex)  # legacy param
+        super(XboxController, self).__init__(deviceIndex, **kwargs)
 
         # validate if this is an Xbox controller by its reported name
         if self.name.find("Xbox 360") == -1:
             logging.warning("The connected controller does not appear "
                             "compatible with the 'XboxController' template. "
                             "Unexpected input behaviour may result!")
-
-        if backend != 'glfw':
-            logging.error("Controller templates are only supported when using "
-                          "the GLFW window backend. You must also set "
-                          "joystick.backend='glfw' prior to creating a "
-                          "joystick.")
-
 
         # button mapping for the XBox controller
         self._button_mapping = {'a': 0,
@@ -1125,20 +749,20 @@ def getBackend():
         The name of the joystick backend in use.
 
     """
-    global backend
     return backend
 
 
 def setBackend(inputLib):
     """Set the joystick backend (input library) to use.
-    
-    Successive instances of `Joystick` will use the backend set here. If the
-    backend is not available, a `ValueError` is raised.
+
+    Successive instances of `Joystick` will use the backend set here unless they
+    name one of their own. If the backend is not available, a
+    `JoystickBackendNotAvailableError` is raised.
 
     Parameters
     ----------
     inputLib : str or None
-        The name of the joystick input library to use. If None, the value will 
+        The name of the joystick input library to use. If None, the value will
         be set to match the window backend name. You cannot set the backend to
         None if there are no open windows.
 
@@ -1159,20 +783,27 @@ def setBackend(inputLib):
 
     """
     if inputLib is None:
+        # imported here rather than at module scope -- `psychopy.visual` imports
+        # `psychopy.hardware`, so a top-level import risks a cycle
+        from psychopy import visual
         if not visual.openWindows:
             raise ValueError("Cannot determine the window backend.")
-        
+
         win = visual.openWindows[0]()
         inputLib = win.backend.winTypeName  # get window backend name
 
-    # get available backends and check if the requested backend is available
-    availableBackends = getJoystickInterfaces()
-    if inputLib not in availableBackends.keys():
+    # check the backend is known and can actually be imported
+    if inputLib not in JoystickDevice.backends:
         raise JoystickBackendNotAvailableError(
-            "Joystick backend '{}' is not available.".format(inputLib))
+            "Joystick backend '{}' is not available, known backends are: "
+            "{}".format(inputLib, list(JoystickDevice.backends)))
+
+    JoystickDevice.resolveBackend(inputLib, allowFallback=False)
 
     global backend  # set the global backend
-    backend = inputLib 
+    backend = inputLib
+    # clear any class-level override so the global reliably wins from here on
+    JoystickDevice.backend = None
 
 
 def getJoystickInterfaces():
@@ -1187,21 +818,19 @@ def getJoystickInterfaces():
         joystick interface.
 
     """
-    foundJoystickInterfaces = {}
+    found = {}
+    for name in list(JoystickDevice.backends):
+        try:
+            found[name] = JoystickDevice.resolveBackend(
+                name, allowFallback=False)
+        except (JoystickBackendNotAvailableError, ImportError):
+            continue
 
-    # look for subclasses of JoystickInterface in this module's namespace
-    for name in globals():
-        obj = globals()[name]
-        if isinstance(obj, type) and issubclass(obj, BaseJoystickInterface):
-            if obj != BaseJoystickInterface:
-                foundJoystickInterfaces[obj._inputLib] = obj
-
-    return foundJoystickInterfaces.copy()
+    return found
 
 
 def getAllJoysticks():
-    """Enumerate all available joysticks and return a dictionary of their
-    information.
+    """Enumerate all available joysticks and return a list of their information.
 
     Uses the presently set joystick backend to get the available joysticks.
 

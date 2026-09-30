@@ -7,9 +7,15 @@
 
 """Pyglet backend for joystick support.
 
+Note that this backend requires an open pyglet `Window` which is being flipped,
+since joystick state is updated by pyglet's event dispatch loop. Use the GLFW
+backend if you need joystick input without a window, or with a window created by
+another library.
+
 """
 
-__all__ = ['JoystickInterfacePyglet']
+__all__ = ['JoystickDevicePyglet', 'JoystickInterfacePyglet',
+           'getPygletJoysticks']
 
 try:
     from pyglet import input as pyglet_input  # pyglet 1.2+
@@ -18,312 +24,197 @@ try:
 except Exception:
     havePyglet = False
 
-from psychopy import logging, visual
-from psychopy.hardware.joystick._base import BaseJoystickInterface
+from psychopy import logging
+from psychopy.hardware.joystick._base import JoystickDevice
+
+
+# pyglet `Joystick` objects handed out so far, see `getPygletJoysticks`
+_pygletJoysticks = []
+
+
+def getPygletJoysticks():
+    """All joysticks pyglet can see, reusing the objects handed out before.
+
+    `pyglet.input.get_joysticks()` builds a brand new `Joystick` on every call,
+    over device objects it caches. Building one rebinds the `on_change` handler
+    of every control on that device to the new `Joystick`, which orphans any
+    `Joystick` handed out earlier -- it keeps its last values and never updates
+    again. Anything which enumerated the hardware while a device was open would
+    therefore freeze that device, and since `getDeviceProfile` enumerates the
+    first time a response is timestamped, one button press was enough to do it.
+
+    Re-enumerating is only safe while nothing is open, so that is the only time
+    we do it. Joysticks plugged in after one has been opened aren't picked up
+    until the open ones are closed.
+
+    Returns
+    -------
+    list
+        pyglet `Joystick` objects, in the order pyglet reports them.
+
+    """
+    global _pygletJoysticks
+    if not havePyglet:
+        return []
+
+    if not any(joy.device.is_open for joy in _pygletJoysticks):
+        _pygletJoysticks = pyglet_input.get_joysticks()
+
+    return _pygletJoysticks
+
 
 if havePyglet:
     class PygletDispatcher:
+        """Steps pyglet's platform event loop.
+
+        Retained for backwards compatibility; `JoystickDevicePyglet` now
+        registers itself with open windows and steps the loop from `update()`.
+
+        """
         def dispatch_events(self):
             pyglet_app.platform_event_loop.step(timeout=0.001)
 
     pyglet_dispatcher = PygletDispatcher()
 
 
-class JoystickInterfacePyglet(BaseJoystickInterface):
-    """Class for defining an interface for joystick and gamepad devices using
-    the Pyglet library.
+class JoystickDevicePyglet(JoystickDevice):
+    """Joystick or gamepad accessed through the pyglet library.
+
+    Requires an open pyglet `Window` which is being flipped.
 
     Parameters
     ----------
-    device : str or int
-        The name or index of the joystick to control.
+    device : int, str or None
+        Index or name of the joystick to open.
 
     """
     _inputLib = 'pyglet'
-    def __init__(self, device, **kwargs):
-        super(JoystickInterfacePyglet, self).__init__(device, **kwargs)
-
-        joys = pyglet_input.get_joysticks()  # enum all joysticks
-
-        if isinstance(device, str):   # get index by string name
-            if device in ('None', 'default'):
-                self._device = 0  # use first device
-            else:
-                # find the device by name
-                for i, joy in enumerate(joys):
-                    if joy.device.name == device:
-                        self._device = i
-                        break
-                else:
-                    logging.error(
-                        "No joystick found with the name '%s'" % device)
-        elif isinstance(device, int):  # get by index
-            if device >= len(joys):
-                logging.error(
-                    "You don't have that many joysticks attached (remember "
-                    "that the first joystick has deviceIndex=0 etc...)")
-
-            self._device = joys[device]
-
-        self._isOpen = False
-
-        try:
-            self.open()  # open the device
-        except pyglet_input.DeviceOpenException as e:
-            pass
 
     @staticmethod
     def getAvailableDevices():
         """Return a list of available joystick devices.
 
-        This method is used by `DeviceManager` to get a list of available
-        devices.
-
         Returns
         -------
-        list
-            A list of available joystick devices.
+        list of dict
+            Device profiles, whose keys other than `deviceName` and
+            `deviceClass` are valid `__init__` keyword arguments.
 
         """
-        joys = pyglet_input.get_joysticks()
-
-        if not joys:
+        if not havePyglet:
             return []
 
-        deviceList = []
-        for i, joy in enumerate(joys):
-            config = {}
-            config['index'] = i
-            config['name'] = joy.device.name
-            deviceList.append(config)
+        profiles = []
+        for i, joy in enumerate(getPygletJoysticks()):
+            profiles.append({
+                'deviceName': "{} (pyglet)".format(joy.device.name),
+                'deviceClass':
+                    "psychopy.hardware.joystick.backend_pyglet."
+                    "JoystickDevicePyglet",
+                'device': i,
+                'backend': 'pyglet',
+            })
 
-        return deviceList
+        return profiles
 
-    @property
-    def hasTracking(self):
-        """Check if the joystick has tracking capabilities.
+    # --------------------------------------------------------------------------
+    # Lifecycle
+    #
 
-        Returns
-        -------
-        bool
-            True if the joystick has tracking capabilities, False otherwise.
+    def _openDevice(self):
+        """Acquire the pyglet joystick object and open it."""
+        joys = getPygletJoysticks()
+        # the index was validated by `_resolveDeviceIndex`
+        self._device = joys[self._deviceIndex]
 
-        """
-        return False
-    
-    def open(self):
-        """Open the joystick device.
+        try:
+            self._device.open()
+        except pyglet_input.DeviceOpenException:
+            # the device may already be open, which is not an error
+            pass
 
-        """
-        self._device.open()
-        self._isOpen = True
-
-        # register with pyglet event loop
+        # imported here rather than at module scope -- `psychopy.visual` imports
+        # `psychopy.hardware`, so a top-level import risks a cycle and drags the
+        # whole visual stack into any joystick import
+        from psychopy import visual
         if len(visual.openWindows) == 0:
-            logging.error(
-                "You need to open a window before creating your joystick " \
-                "interface when using the 'pyglet' backend.")
-        else:
-           for _win in visual.openWindows:
-               _win()._eventDispatchers.append(pyglet_dispatcher)
-               # invoke setter again as suggested by user `fboers`
-               _win()._eventDispatchers = list(set(_win()._eventDispatchers))
+            logging.warning(
+                "The 'pyglet' joystick backend needs an open pyglet window "
+                "which is being flipped in order to update. Open a window "
+                "before polling this joystick, or use the 'glfw' backend.")
 
-    @property
-    def isOpen(self):
-        """Check if the joystick device is open.
+    def _closeDevice(self):
+        """Release the pyglet joystick object."""
+        if self._device is not None and hasattr(self._device, 'close'):
+            try:
+                self._device.close()
+            except Exception:
+                pass
 
-        Returns
-        -------
-        bool
-            True if the joystick device is open, False otherwise.
+    def update(self):
+        """Step pyglet's platform event loop so joystick state refreshes."""
+        if havePyglet:
+            pyglet_app.platform_event_loop.step(timeout=0.001)
+
+    # --------------------------------------------------------------------------
+    # Raw state
+    #
+
+    def getName(self):
+        """The manufacturer-defined name describing the device (`str`)."""
+        return self._device.device.name
+
+    def _getRawAxes(self):
+        """Raw axis values, in the conventional x/y/z/rx/ry/rz order."""
+        names = ['x', 'y', 'z', 'rx', 'ry', 'rz']
+        axes = []
+        for axName in names:
+            if hasattr(self._device, axName):
+                val = getattr(self._device, axName)
+                axes.append(0.0 if val is None else val)
+        return axes
+
+    def _getRawButtons(self):
+        """Raw button states."""
+        return list(self._device.buttons)
+
+    def _getRawHats(self):
+        """Raw hat positions.
+
+        pyglet exposes a hat as a pair of controls named `hat_x` and `hat_y`.
+        Counting those controls individually reports twice as many hats as the
+        device actually has, so a device with any hat control has exactly one
+        hat.
 
         """
-        # return self._device.device.is_open
-        return self._isOpen
-    
+        for ctrl in self._device.device.get_controls():
+            if ctrl.name is not None and 'hat' in ctrl.name:
+                return [(self._device.hat_x, self._device.hat_y)]
+        return []
+
+    # --------------------------------------------------------------------------
+    # Events
+    #
+
     def setEventCallback(self, evt, callback):
-        """Set a callback function to be called when a joystick event occurs.
+        """Set a callback to be invoked when a joystick event occurs.
 
         Parameters
         ----------
         evt : str
-            The event type to listen for (e.g., 'on_joybutton_press',
-            'on_joybutton_release', 'on_joyaxis_motion', etc.). The name used 
-            depends on the backend.
-        callback : callable or None
-            The callback function to be called when a joystick event occurs. 
-            If None, the event handler is removed.
+            Name of the pyglet event to listen for, e.g.
+            `'on_joybutton_press'`, `'on_joybutton_release'`,
+            `'on_joyaxis_motion'`.
+        callback : callable
+            Function called when the event occurs.
 
         """
-        kwargs = {evt: callback}
-        self._device.push_handlers(**kwargs)
+        self._device.push_handlers(**{evt: callback})
 
-    def close(self):
-        """Close the joystick device.
 
-        """
-        if hasattr(self._device, 'close'):
-            self._device.close()
-
-        self._isOpen = False
-
-    def __del__(self):
-        """Close the joystick device when the object is deleted.
-
-        """
-        if hasattr(self, '_device'):
-            self.close()
-
-    def getName(self):
-        """Get the manufacturer-defined name describing the device.
-
-        Returns
-        -------
-        str
-            The name of the joystick.
-
-        """
-        return self._device.device.name
-
-    def getNumButtons(self):
-        """Number of digital buttons on the device.
-
-        Returns
-        -------
-        int
-            The number of buttons on the joystick.
-
-        """
-        return len(self._device.buttons)
-
-    def getButton(self, buttonId):
-        """Get the state of a given button.
-
-        buttonId should be a value from 0 to the number of buttons-1
-
-        Parameters
-        ----------
-        buttonId : int
-            The button ID to get the state of.
-
-        Returns
-        -------
-        bool
-            True if the button is pressed, False otherwise.
-
-        """
-        return self._device.buttons[buttonId]
-
-    def getAllButtons(self):
-        """Get the state of all buttons.
-
-        Returns
-        -------
-        list
-            A list of button states.
-
-        """
-        return self._device.buttons
-
-    def getAllHats(self):
-        """Get the current values of all available hats as a list of tuples.
-
-        Returns
-        -------
-        list
-            A list of tuples representing the state of each hat. Each value is
-            a tuple (x, y) where x and y can be -1, 0, +1.
-
-        """
-        hats = []
-        for ctrl in self._device.device.get_controls():
-            if ctrl.name != None and 'hat' in ctrl.name:
-                hats.append((self._device.hat_x, self._device.hat_y))
-        return hats
-
-    def getNumHats(self):
-        """Get the number of hats on this joystick.
-
-        Returns
-        -------
-        int
-            The number of hats on the joystick.
-
-        """
-        return len(self.getAllHats())
-
-    def getHat(self, hatId=0):
-        """Get the position of a particular hat.
-
-        Returns
-        -------
-        tuple
-            The position of the hat as an (x, y) tuple where x and y can be -1,
-            0, or +1.
-
-        """
-        if hatId == 0:
-            return self._device.hat_x, self._device.hat_y
-        else:
-            return self.getAllHats()[hatId]
-    
-    def getX(self):
-        """Return the X axis value (equivalent to joystick.getAxis(0))."""
-        return self._device.x
-
-    def getY(self):
-        """Return the Y axis value (equivalent to joystick.getAxis(1))."""
-        return self._device.y
-
-    def getZ(self):
-        """Return the Z axis value (equivalent to joystick.getAxis(2))."""
-        return self._device.z
-
-    def getAllAxes(self):
-        """Get a list of all current axis values."""
-        names = ['x', 'y', 'z', 'rx', 'ry', 'rz', ]
-        axes = []
-        for axName in names:
-            if hasattr(self._device, axName):
-                axes.append(getattr(self._device, axName))
-        return axes
-    
-    def getNumAxes(self):
-        """Number of joystick axes found.
-
-        Returns
-        -------
-        int
-            The number of axes found on the joystick.
-
-        """
-        return len(self.getAllAxes())
-
-    def getAxis(self, axisId):
-        """Get the value of an axis by an integer id.
-
-        (from 0 to number of axes - 1)
-        """
-        val = self.getAllAxes()[axisId]
-        return 0 if val is None else val
-
-    def poll(self):
-        """Check for new joystick events.
-
-        Returns
-        -------
-        bool
-            True if there are new joystick events, False otherwise.
-
-        """
-        return self._device.poll()
-
-    def update(self):
-        """Update the joystick state.
-
-        """
-        pass  # NOP, automatically done by pyglet event dispatching loop
+# legacy alias, this class was named for an interface before the DeviceManager
+# migration made it a device in its own right
+JoystickInterfacePyglet = JoystickDevicePyglet
 
 
 if __name__ == "__main__":
