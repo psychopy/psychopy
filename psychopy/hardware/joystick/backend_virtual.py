@@ -58,7 +58,10 @@ class JoystickDeviceVirtual(JoystickDevice):
         from psychopy import event
         self._event = event
         self._mouse = event.Mouse()
-        event.Mouse(visible=False)
+        # hide the cursor through the mouse we already have; building a second
+        # one just to set its visibility leaves a throwaway object behind, and
+        # logs a second time when there's no window to attach to yet
+        self._mouse.setVisible(False)
         self._state = [False] * len(self.numberKeys)
         self._device = self._deviceIndex
 

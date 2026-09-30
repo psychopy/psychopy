@@ -7,8 +7,16 @@
 
 """Tests for `psychopy.hardware.joystick`.
 
-Most tests use the virtual backend so they run without a joystick attached. The
-tests which need real hardware skip themselves when none is present.
+Most tests drive the virtual backend, which emulates a joystick with the
+keyboard and mouse, so they run anywhere -- including CI, where nothing is
+plugged in. The tests which need real hardware skip themselves when none is
+found.
+
+Anything enumerating the hardware has to cope with finding nothing. Note that
+`JoystickDevice.getAvailableDevices()` reports only the currently selected
+backend, so it comes back empty on a machine with no joystick; use
+`_availableProfiles()` where a profile is needed but the backend isn't the
+point of the test.
 
 """
 
@@ -22,14 +30,26 @@ from psychopy.hardware.joystick import (
     getBackend, setBackend)
 import psychopy.hardware.joystick as joystick
 import psychopy.hardware.joystick.mappings as mappings
+from psychopy import logging
+from psychopy.tests.utils import RUNNING_IN_VM
 
 
 def _physicalProfiles():
     """Profiles for any physically attached joystick, excluding the virtual.
 
+    Enumeration reaches out to the OS and can raise if a backend isn't usable
+    here, which for our purposes is the same as that backend seeing no
+    joystick.
+
     NB: enumerated per backend class rather than through
     `JoystickDevice.getAvailableDevices()`, which only reports devices for the
     currently selected backend.
+
+    Returns
+    -------
+    list of dict
+        Device profiles, empty if no joystick was found.
+
     """
     profiles = []
     for name, cls in getJoystickInterfaces().items():
@@ -42,8 +62,47 @@ def _physicalProfiles():
     return profiles
 
 
-needs_joystick = pytest.mark.skipif(
-    not _physicalProfiles(), reason="no joystick attached")
+# Enumerated once at import time, so that collection reports the tests needing
+# hardware as skipped, and so the hardware isn't re-enumerated while a test
+# holds a device open (which the pyglet backend can't do safely). Skipped
+# entirely under CI, where there's nothing to find and enumerating only risks
+# upsetting a backend on a headless runner.
+_attachedJoysticks = [] if RUNNING_IN_VM else _physicalProfiles()
+
+
+def _availableProfiles():
+    """Profiles for every joystick which can be opened here.
+
+    Always includes the virtual joystick, so this never comes back empty --
+    unlike `JoystickDevice.getAvailableDevices()`, which reports only the
+    currently selected backend.
+
+    Returns
+    -------
+    list of dict
+        Device profiles, virtual first.
+
+    """
+    virtual = getJoystickInterfaces()['virtual'].getAvailableDevices()
+    return virtual + _attachedJoysticks
+
+
+@pytest.fixture(autouse=True)
+def quietLogs():
+    """Keep the handled "there's no window" chatter out of the test output.
+
+    The virtual backend reads a mouse, and a mouse with no window to attach to
+    logs at ERROR every time one is opened and at WARNING every time it's
+    polled. Nothing is wrong -- the backend tolerates a missing window by
+    design, reading the axes as zero -- but the tests open a device apiece and
+    never open a window, so the real results get buried.
+    """
+    level = logging.console.level
+    logging.console.setLevel(logging.CRITICAL)
+    try:
+        yield
+    finally:
+        logging.console.setLevel(level)
 
 
 @pytest.fixture
@@ -104,7 +163,7 @@ class TestDeviceManagerContract:
         `DeviceManager.addDevice` splats the profile straight into the
         constructor, so a stray key breaks device setup.
         """
-        for profile in JoystickDevice.getAvailableDevices():
+        for profile in _availableProfiles():
             assert 'deviceName' in profile
             assert 'deviceClass' in profile
             kwargs = {k: v for k, v in profile.items()
@@ -133,7 +192,10 @@ class TestDeviceManagerContract:
         assert isinstance(virtualJoystick.deviceIndex, int)
 
     def test_add_and_retrieve_through_manager(self):
-        profile = JoystickDevice.getAvailableDevices()[-1]
+        """The virtual joystick stands in here, as nothing about the manager
+        contract depends on which backend the device came from, and
+        `JoystickDevice.getAvailableDevices()` is empty without hardware."""
+        profile = _availableProfiles()[0]
         dev = DeviceManager.addDevice(**profile)
         name = profile['deviceName']
         try:
@@ -348,12 +410,23 @@ class TestLegacyAPI:
             joy.close()
 
 
-@needs_joystick
 class TestPhysicalDevice:
+    """Tests which need a joystick plugged in.
+
+    Deselectable with `-m "not needs_joystick"`, and skipped outright when
+    nothing was found to talk to.
+    """
+    pytestmark = [
+        pytest.mark.needs_joystick,
+        pytest.mark.skipif(
+            not _attachedJoysticks,
+            reason="no joystick attached to this system"),
+    ]
+
     def test_hats_counted_once(self):
         """pyglet exposes a hat as `hat_x` and `hat_y`; counting those
         separately reported twice as many hats as the device has."""
-        for profile in _physicalProfiles():
+        for profile in _attachedJoysticks:
             if profile['backend'] != 'pyglet':
                 continue
             dev = JoystickDevice(**{
@@ -370,7 +443,7 @@ class TestPhysicalDevice:
         """The same stick under two backends must not compare equal, or a
         device would bind to the wrong backend's profile."""
         byBackend = {}
-        for profile in _physicalProfiles():
+        for profile in _attachedJoysticks:
             byBackend.setdefault(profile['backend'], profile)
         if len(byBackend) < 2:
             pytest.skip("need the same joystick under two backends")
