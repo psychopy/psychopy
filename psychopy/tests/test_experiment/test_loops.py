@@ -93,7 +93,7 @@ class TestLoops:
         for filename, case in self.cases.items():
             if filename in answers:
                 assert len(case['data']) == answers[filename], (
-                    f"Expected array {answers[filename]} long, received:\n"
+                    f"Expected array {answers[filename]} long from {filename}, received:\n"
                     f"{case['data']}"
                 )
 
