@@ -1,4 +1,6 @@
 from psychopy.hardware import parallel
+import sys
+import pytest
 
 
 class _TestParallelBackend(parallel._BaseParallelBackend):
@@ -20,6 +22,9 @@ class TestParallelDevice:
         parallel._LinuxParallelBackend = _TestParallelBackend
         parallel._DLPortIOParallelBackend = _TestParallelBackend
         parallel._InpOutParallelBackend = _TestParallelBackend
+        # skip on Mac OS
+        if sys.platform == "darwin":
+            pytest.skip()
 
     def test_getset_pins(self):
         # make a parallel device
