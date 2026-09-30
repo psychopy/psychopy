@@ -1229,6 +1229,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._initParams = dir()
         self._initParams.remove('self')
 
+        self._player = None
+        self._isLoaded = False
+
         super(MovieStim, self).__init__(
             win, units=units, name=name, autoLog=False)
 
@@ -1665,6 +1668,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         self.setMovie(filename)
 
+    def _freePlayer(self):
+        """Free the player interface and associated resources.
+
+        This function closes the player and clears the player object.
+        """
+        if hasattr(self, '_player') and self._player is not None:
+            self._player.close()
+            self._player = None
+
     def unload(self, log=True):
         """Stop and unload the movie.
 
@@ -1674,9 +1686,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        if self._isLoaded:
+        if getattr(self, '_isLoaded', False):
             self._freePlayer()  # free the player if it is already open
             self._freeTextureBuffers()  # free buffer before creating a new one
+            self._cleanupAudioTrack()
             self._isLoaded = False
 
     # --------------------------------------------------------------------------
@@ -2182,8 +2195,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if log:
             logging.debug("Stopping movie: {}".format(self._filename))
 
-        self._player.close()  # close the player
-        self._cleanupAudioTrack()  # clean up the audio track
+        self.unload()
 
         self.loadMovie(self._filename)  # reload the movie
         
