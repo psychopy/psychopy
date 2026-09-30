@@ -230,9 +230,27 @@ some shaders differ for FBO use if they're performing any signed math.
 if USE_LEGACY_GL:
     fragFBOtoFrame = """
         uniform sampler2D texture;
+        // software gamma, used when the hardware gamma table can't be set
+        uniform int uGammaMode;  // 0: none, 1: power function, 2: look-up table
+        uniform vec3 uInvGamma;
+        uniform sampler1D uGammaLUT;
+        uniform float uGammaLUTSize;
 
         float rand(vec2 seed){
             return fract(sin(dot(seed.xy ,vec2(12.9898,78.233))) * 43758.5453);
+        }
+
+        vec3 applyGamma(vec3 rgb) {
+            if (uGammaMode == 1) {
+                return pow(rgb, uInvGamma);
+            } else if (uGammaMode == 2) {
+                // sample texel centers, so 0 and 1 map to the first and last
+                vec3 coord = (rgb * (uGammaLUTSize - 1.0) + 0.5) / uGammaLUTSize;
+                return vec3(texture1D(uGammaLUT, coord.r).r,
+                            texture1D(uGammaLUT, coord.g).g,
+                            texture1D(uGammaLUT, coord.b).b);
+            }
+            return rgb;
         }
 
         void main() {
@@ -245,6 +263,9 @@ if USE_LEGACY_GL:
             //! if too low then show red/black noise
             else if ( gl_FragColor.r<0.0 || gl_FragColor.g<0.0 || gl_FragColor.b<0.0) {
                 gl_FragColor.rgb = vec3 (0, 0, rand(gl_TexCoord[0].st));
+            }
+            else {
+                gl_FragColor.rgb = applyGamma(gl_FragColor.rgb);
             }
         }
         """
@@ -690,10 +711,28 @@ else:
     # copies the FBO to the back buffer
     fragFBOtoFrame = """
         uniform sampler2D uTexture;
+        // software gamma, used when the hardware gamma table can't be set
+        uniform int uGammaMode;  // 0: none, 1: power function, 2: look-up table
+        uniform vec3 uInvGamma;
+        uniform sampler1D uGammaLUT;
+        uniform float uGammaLUTSize;
         VARYING vec4 vTexCoord0;
 
         float rand(vec2 seed){
             return fract(sin(dot(seed.xy ,vec2(12.9898,78.233))) * 43758.5453);
+        }
+
+        vec3 applyGamma(vec3 rgb) {
+            if (uGammaMode == 1) {
+                return pow(rgb, uInvGamma);
+            } else if (uGammaMode == 2) {
+                // sample texel centers, so 0 and 1 map to the first and last
+                vec3 coord = (rgb * (uGammaLUTSize - 1.0) + 0.5) / uGammaLUTSize;
+                return vec3(texture1D(uGammaLUT, coord.r).r,
+                            texture1D(uGammaLUT, coord.g).g,
+                            texture1D(uGammaLUT, coord.b).b);
+            }
+            return rgb;
         }
 
         void main() {
@@ -706,6 +745,9 @@ else:
             //! if too low then show red/black noise
             else if ( fragColor.r<0.0 || fragColor.g<0.0 || fragColor.b<0.0) {
                 fragColor.rgb = vec3 (0, 0, rand(vTexCoord0.st));
+            }
+            else {
+                fragColor.rgb = applyGamma(fragColor.rgb);
             }
         }
         """
