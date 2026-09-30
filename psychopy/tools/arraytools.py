@@ -455,7 +455,7 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
         rad = _makeRadialMatrix(res)
         intensity = 1 - 2 * rad
         # clip off the corners (circular)
-        intensity = numpy.where(rad < -1, intensity, -1)
+        intensity = numpy.where(rad < 1, intensity, -1)
     elif patternType == "raisedCos":  # A raised cosine
         hammingLen = 1000  # affects the 'granularity' of the raised cos
         rad = _makeRadialMatrix(res)

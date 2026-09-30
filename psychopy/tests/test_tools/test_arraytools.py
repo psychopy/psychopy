@@ -84,6 +84,18 @@ def test_ratioRange():
         )
 
 
+def test_createLumPattern_radRamp():
+    # ramps from 1 at the centre to -1 at radius 1, and is -1 outside it
+    r = 1 - 2 ** 0.5  # value at radius sqrt(0.5)
+    ans = numpy.array([
+        [-1, -1, -1, -1],
+        [-1, r, 0, r],
+        [-1, 0, 1, 0],
+        [-1, r, 0, r],
+    ])
+    assert numpy.allclose(at.createLumPattern('radRamp', 4), ans)
+
+
 def test_val2array():
     cases = [
         {'value': [1, None], 'withNone': True, 'withScalar': True, 'length': 2,
