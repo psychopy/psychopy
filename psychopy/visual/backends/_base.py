@@ -19,6 +19,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter
+from .. import globalVars
 
 
 class BaseBackend(ABC):
@@ -193,6 +194,40 @@ class BaseBackend(ABC):
 
         if self._onMoveCallback is not None:
             self._onMoveCallback(self.win, posX, posY)
+
+    def _makeOpenWindowCurrent(self):
+        """Make another open window's context current after this one has been
+        closed.
+
+        Closing a window may leave no context current, or another one than
+        `globalVars.currWindow` says (e.g., Pyglet's shadow window). This makes
+        the window which was current before closing current again if it's still
+        open, otherwise the first open window.
+
+        Returns
+        -------
+        bool
+            `True` if a window was made current, `False` if there are no other
+            open windows.
+
+        """
+        from psychopy.visual.window import openWindows
+        remaining = [w for w in openWindows.getOpen() if w.backend is not self]
+        if not remaining:
+            globalVars.currWindow = None
+            return False
+
+        # `currWindow` may be set to either a window or its backend
+        lastCurrent = globalVars.currWindow
+        nextWin = next(
+            (w for w in remaining
+             if lastCurrent is w or lastCurrent is w.backend),
+            remaining[0])
+
+        globalVars.currWindow = None  # force the switch
+        nextWin._setCurrent()
+
+        return True
 
     # Helper methods that don't need converting
 

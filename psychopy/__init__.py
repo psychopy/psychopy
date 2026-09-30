@@ -42,6 +42,14 @@ if 'PYGLET_DEBUG_GL' not in os.environ:
     except ImportError:
         pass  # pyglet isn't required to merely import psychopy
 
+# Use the X11 build of GLFW on Linux, even in Wayland sessions (via XWayland).
+# Pyglet is our OpenGL loader and uses GLX, which cannot be made current
+# alongside the EGL contexts GLFW creates under Wayland. pyGLFW picks the build
+# when first imported, so this must happen before anything imports `glfw`.
+# Setting `PYGLFW_LIBRARY_VARIANT` in the environment overrides this.
+if sys.platform.startswith('linux') and os.environ.get('DISPLAY'):
+    os.environ.setdefault('PYGLFW_LIBRARY_VARIANT', 'x11')
+
 # for developers the following allows access to the current git sha from
 # their repository
 if __git_sha__ == 'n/a':

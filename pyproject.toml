@@ -30,6 +30,10 @@ dependencies = [
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
+    # pyGLFW for the GLFW window backend, published as `glfw` (the `pyglfw`
+    # package is another project). 2.5.7 added `PYGLFW_LIBRARY_VARIANT`, which
+    # `psychopy/__init__.py` uses to select the X11 build on Linux
+    "glfw>=2.5.7",
     "pillow>=9.4.0",
     "pyqt6",
     "pandas>=1.5.3",
@@ -128,7 +132,6 @@ suggested = [
 ]
 legacy = [
     "pyo>=1.0.3",
-    "pyglfw",
     "pygame",
 ]
 
