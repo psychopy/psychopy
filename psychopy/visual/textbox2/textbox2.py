@@ -20,7 +20,7 @@ from ast import literal_eval
 import numpy as np
 import sys
 from arabic_reshaper import ArabicReshaper
-from pyglet import gl
+import psychopy.tools.pygletgl as gl
 from bidi import algorithm as bidi
 import re
 
@@ -40,9 +40,7 @@ from ... import core, alerts, layout
 
 from psychopy.tools.linebreak import get_breakable_points, break_units
 
-import pyglet
-USE_LEGACY_GL = pyglet.version < '2.0'
-import pyglet.gl as gl
+USE_LEGACY_GL = gl.USE_LEGACY_GL
 
 allFonts = FontManager()
 
@@ -1398,7 +1396,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             gt.setUniformMatrix(
                 prog, 
                 b'uModelViewMatrix', 
-                self.win._viewMatrix,
+                self.win._getPixViewMatrix(),
                 transpose=True)
             gt.setUniformMatrix(
                 prog, 
@@ -1818,7 +1816,7 @@ class Caret(ColorMixin):
         gt.setUniformMatrix(
             prog, 
             b'uModelViewMatrix', 
-            self.win.viewMatrix,
+            self.win._getPixViewMatrix(),
             transpose=True)
         gt.drawClientArrays({
             'gl_Vertex': self.vertices}, 'lines')

@@ -20,7 +20,7 @@ from psychopy.layout import Vector, Position, Size, Vertices, unitTypes
 
 import pyglet
 pyglet.options['debug_gl'] = False
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 try:
     from PIL import Image

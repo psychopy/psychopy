@@ -19,7 +19,7 @@ from psychopy.colors import Color
 
 pyglet.options['debug_gl'] = False
 import ctypes
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -32,7 +32,7 @@ from psychopy.visual.basevisual import (
 )
 import numpy
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 
 class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
@@ -471,7 +471,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         gt.setUniformMatrix(
             _prog, 
             b'uModelViewMatrix', 
-            win._viewMatrix,
+            win._getPixViewMatrix(),
             transpose=True)
 
         gt.drawClientArrays({

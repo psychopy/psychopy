@@ -6835,7 +6835,7 @@ class Camera:
         This is used to free up any texture buffers used by the camera. This
         is called when the camera is closed or when the window is closed.
         """
-        import pyglet.gl as GL  # needed for OpenGL texture management
+        import psychopy.tools.pygletgl as GL  # needed for OpenGL texture management
 
         try:
             # delete buffers and textures if previously created
@@ -6869,7 +6869,7 @@ class Camera:
 
         self._freeTextureBuffers()  # free any existing buffers
 
-        import pyglet.gl as GL
+        import psychopy.tools.pygletgl as GL
 
         # Get the size of the camera frame and compute the buffer size. Both
         # are cached so that `_pixelTransfer` works from the dimensions the
@@ -6929,7 +6929,7 @@ class Camera:
         The video texture must be bound before calling this.
 
         """
-        import pyglet.gl as GL
+        import psychopy.tools.pygletgl as GL
 
         if self._interpolate:
             texFilter = GL.GL_LINEAR
@@ -6956,7 +6956,7 @@ class Camera:
         if self._lastFrame is None:
             return  # no frame to upload
 
-        import pyglet.gl as GL
+        import psychopy.tools.pygletgl as GL
 
         if self._texBufferSizeBytes is None or self._textureId is None or \
                 self._textureId.value == 0:
