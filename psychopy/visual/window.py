@@ -228,6 +228,19 @@ class OpenWinList(list):
 
         self[:] = keep
 
+    def getOpen(self):
+        """Get the windows which are still open, skipping any which have been
+        closed or deleted.
+
+        Returns
+        -------
+        list of :class:`~psychopy.visual.Window`
+            Open windows, in the order they were opened.
+
+        """
+        wins = (ref() for ref in self)
+        return [win for win in wins if win is not None and not win._closed]
+
 
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
@@ -541,29 +554,32 @@ class Window():
             self.__dict__['blendMode'] = blendMode
             # then set up gl context and then call self.setBlendMode
 
-        # setup context and openGL()
-        if winType is None:  # choose the default windowing
-            winType = "pyglet"
-        self.winType = winType
+        # Only one kind of `winType` can be used at a time, so new windows must
+        # use the same `winType` as those already open. Another `winType` can
+        # be used once all windows are closed.
+        activeWindows = openWindows.getOpen()
+        activeWinType = activeWindows[0].winType if activeWindows else None
 
-        # setup the context
+        if winType is None:  # use the open windows' type, or the default
+            winType = activeWinType or "pyglet"
+        elif activeWinType is not None and winType != activeWinType:
+            raise ValueError(
+                "Cannot open a window with `winType='{}'` while windows with "
+                "`winType='{}'` are open. Only one `winType` can be used at a "
+                "time, close all open windows first.".format(
+                    winType, activeWinType))
+        self.winType = winType
 
         # backend specific options are passed as a dictionary
         backendConf = backendConf if backendConf is not None else {}
 
-        # Here we make sure all the open windows use the same `winType` and have
-        # context sharing enabled. The context to share is passed as an option
-        # to `backendConf`.
-        if openWindows:
-            primaryWindow = openWindows[0]()  # resolve ref
-            if primaryWindow.winType != self.winType:
-                raise ValueError(
-                    "Only one kind of `winType` can be used per session.")
-
+        # Enable context sharing with the first open window. The context to
+        # share is passed as an option to `backendConf`.
+        if activeWindows:
             # Allow for context sharing, only used by the GLFW backend, Pyglet
             # uses `shadow_window` by default here so we don't need to worry
             # about it.
-            backendConf['share'] = self
+            backendConf['share'] = activeWindows[0]
 
         if not isinstance(backendConf, dict):  # type check on options
             raise TypeError(
