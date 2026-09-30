@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.10, <3.13"
+requires-python = ">=3.10, <3.15"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -31,7 +31,7 @@ dependencies = [
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    "pyqt6",
+    # "pyqt6; platform_system != \"Linux\"",
     "pandas>=1.5.3",
     "questplus>=2023.1",
     "openpyxl",
@@ -39,18 +39,13 @@ dependencies = [
     # for core stimuli
     "soundfile",
     "sounddevice",
-    "psychtoolbox",
-    # first with an Apple Silicon wheel, earlier ones build from source there
-    # without the PortAudio and libusb libraries they need
-    "psychtoolbox>=3.0.22.2; platform_system == \"Darwin\" and platform_machine == \"arm64\"",
+    "psychtoolbox; python_version < \"3.14\"",
     "imageio",
     "imageio-ffmpeg",
     # for iohub
-    "pywinhook; platform_system == \"Windows\"",
-    "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
-    "zope.interface==7.2",  # needed for gevent on macos
-    "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
-    "MeshPy",
+    "gevent; python_version < \"3.14\"",
+    "gevent==25.5.1; platform_system==\"Darwin\"",
+    # "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
     "ujson",
@@ -73,13 +68,14 @@ dependencies = [
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
+    "pynput; platform_system != \"Linux\"",
     # movie backends
     "av",  # PyAV, also used to extract movie audio tracks
-    "ffpyplayer",
-    "opencv-python",
+    "ffpyplayer; python_version < \"3.14\"",
+    "opencv-python; python_version < \"3.14\"",
     # platform specific
     "python-vlc >= 3.0.21203",
-    "pypiwin32; platform_system == \"Windows\"",
+    # "pypiwin32; platform_system == \"Windows\"",
     "pyobjc-core > 8.0; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz > 8.0; platform_system == \"Darwin\"",
     "pyobjc > 8.0; platform_system == \"Darwin\"",
