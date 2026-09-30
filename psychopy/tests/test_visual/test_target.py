@@ -1,4 +1,6 @@
+import pytest
 from psychopy import visual, layout
+from psychopy.tests import utils
 from .test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
 
 class TestTarget(_TestUnitsMixin, _TestSerializationMixin):
@@ -21,6 +23,14 @@ class TestTarget(_TestUnitsMixin, _TestSerializationMixin):
     @classmethod
     def teardown_class(cls):
         cls.win.close()
+
+    def test_pos_size(self):
+        # Mesa hardware drivers draw wide `GL_LINE_LOOP` borders as axis-aligned
+        # strips even with `GL_LINE_SMOOTH`, notching the ring at the diagonals
+        if utils.isMesaHardwareDriver():
+            pytest.skip("Wide lines are rasterized differently by Mesa hardware "
+                        "drivers, so screenshots don't match the reference")
+        super().test_pos_size()
 
     def test_radius(self):
         # Define some cases to test
