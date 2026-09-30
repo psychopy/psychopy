@@ -9,6 +9,9 @@ class TestPanorama:
         cls.win = visual.Window(monitor="testMonitor")
         cls.obj = visual.PanoramicImageStim(cls.win, image=cls.path / "panoramaTestImage.png")
 
+    def teardown_class(cls):
+        cls.win.close()
+
     def test_movement(self):
         cases = []
         # Try different azimuths & elevations

@@ -42,6 +42,14 @@ if 'PYGLET_DEBUG_GL' not in os.environ:
     except ImportError:
         pass  # pyglet isn't required to merely import psychopy
 
+# Use the X11 build of GLFW on Linux, even in Wayland sessions (via XWayland).
+# Pyglet is our OpenGL loader and uses GLX, which cannot be made current
+# alongside the EGL contexts GLFW creates under Wayland. pyGLFW picks the build
+# when first imported, so this must happen before anything imports `glfw`.
+# Setting `PYGLFW_LIBRARY_VARIANT` in the environment overrides this.
+if sys.platform.startswith('linux') and os.environ.get('DISPLAY'):
+    os.environ.setdefault('PYGLFW_LIBRARY_VARIANT', 'x11')
+
 # Pyglet 2+ creates a hidden "shadow" window when `pyglet.gl` is imported, and
 # on macOS its context is core profile, which PsychoPy's fixed-function OpenGL
 # can't use. Stop that here, before anything imports `pyglet.gl`, so that

@@ -15,7 +15,6 @@ import sys
 import time
 from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
-from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs, core
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
@@ -33,12 +32,13 @@ import threading
 _hasPTB = True
 try:
     import psychtoolbox.audio as audio
-except (ImportError, ModuleNotFoundError):
+except ImportError as err:
     logging.warning(
         "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture (use `pip install psychtoolbox` to get it). Microphone "
-        "recording will be unavailable this session. Note that opening a "
-        "microphone stream will raise an error.")
+        "capture ({}; use `pip install psychtoolbox` if it isn't installed). "
+        "Microphone recording will be unavailable this session. Note that "
+        "opening a microphone stream will raise an error.".format(
+            st.describePsychtoolboxImportError(err)))
     _hasPTB = False
 
 
