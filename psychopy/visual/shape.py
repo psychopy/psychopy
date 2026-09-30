@@ -32,9 +32,9 @@ from psychopy.colors import Color
 import psychopy.visual
 
 pyglet.options['debug_gl'] = False
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 
 knownShapes = {
@@ -438,7 +438,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             gt.setUniformMatrix(
                 _prog, 
                 b'uModelViewMatrix',
-                win._viewMatrix,
+                win._getPixViewMatrix(),
                 transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
@@ -459,7 +459,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             gt.setUniformMatrix(
                 _prog, 
                 b'uModelViewMatrix', 
-                win._viewMatrix,
+                win._getPixViewMatrix(),
                 transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
@@ -869,7 +869,7 @@ class ShapeStim(BaseShapeStim):
             gt.setUniformMatrix(
                 _prog, 
                 b'uModelViewMatrix', 
-                win._viewMatrix, 
+                win._getPixViewMatrix(), 
                 transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
@@ -888,7 +888,7 @@ class ShapeStim(BaseShapeStim):
             gt.setUniformMatrix(
                 _prog, 
                 b'uModelViewMatrix', 
-                win._viewMatrix, 
+                win._getPixViewMatrix(), 
                 transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self._borderPix},

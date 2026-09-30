@@ -10,7 +10,7 @@
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
 
-from pyglet.gl import gl_info
+from psychopy.tools.pygletgl import gl_info
 import os
 import sys
 import wx

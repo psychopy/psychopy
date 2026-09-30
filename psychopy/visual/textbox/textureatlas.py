@@ -10,7 +10,7 @@
 #
 # -----------------------------------------------------------------------------
 
-from pyglet.gl import (GLuint, glEnable, GL_TEXTURE_2D, glBindTexture, glTexParameteri,
+from psychopy.tools.pygletgl import (GLuint, glEnable, GL_TEXTURE_2D, glBindTexture, glTexParameteri,
                        GL_TEXTURE_WRAP_S, GL_CLAMP, GL_TEXTURE_WRAP_T, glTexImage2D,
                        GL_TEXTURE_MIN_FILTER, GL_LINEAR, GL_TEXTURE_MAG_FILTER, GL_ALPHA,
                        GL_UNSIGNED_BYTE, GL_RGB, GL_RGBA, glGenTextures)

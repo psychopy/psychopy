@@ -18,10 +18,10 @@ import psychopy.tools.colorspacetools as colortools
 import psychopy.tools.arraytools as arraytools
 import pyglet
 pyglet.options['debug_gl'] = False
-from pyglet.gl import (glCallList, glFinish, glGenLists, glNewList, glViewport,
+from psychopy.tools.pygletgl import (glCallList, glFinish, glGenLists, glNewList, glViewport,
                        glMatrixMode, glLoadIdentity, glDisable, glEnable, glColorMaterial,
                        glBlendFunc, glTranslatef, glColor4f, glRectf, glLineWidth, glBegin,
-                       GL_LINES, glVertex2d, glEndList, glClearColor, gluOrtho2D, glOrtho,
+                       GL_LINES, glVertex2d, glEndList, glClearColor, glOrtho,
                        glDeleteLists, GL_COMPILE, GL_PROJECTION, GL_MODELVIEW, glEnd,
                        GL_DEPTH_TEST, GL_BLEND, GL_COLOR_MATERIAL, GL_FRONT_AND_BACK,
                        GL_AMBIENT_AND_DIFFUSE, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
@@ -1058,7 +1058,7 @@ class TextBox:
                 self._window.size[1]))
             glMatrixMode(GL_PROJECTION)  # Reset The Projection Matrix
             glLoadIdentity()
-            gluOrtho2D(-1, 1, -1, 1)
+            glOrtho(-1, 1, -1, 1, -1, 1)
             glMatrixMode(GL_MODELVIEW)  # Reset The Projection Matrix
             glLoadIdentity()
 

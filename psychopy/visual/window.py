@@ -29,7 +29,7 @@ import math
 from ..colors import Color, colorSpaces
 from .textbox2 import TextBox2
 
-import pyglet
+import psychopy.tools.pygletgl as pygletgl
 
 
 haveAvbin = False
@@ -262,7 +262,7 @@ class Window():
     project (we won't be fixing pygame-specific bugs).
 
     """
-    USE_LEGACY_GL = pyglet.version < '2.0'
+    USE_LEGACY_GL = pygletgl.USE_LEGACY_GL
     def __init__(self,
                  size=(800, 600),
                  pos=None,
@@ -753,6 +753,9 @@ class Window():
         # allows the pointers below to stay valid for the life of the window.
         self._projectionMatrix = numpy.identity(4, dtype=numpy.float32)
         self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        # the view matrix scaled for drawing in pixels, see `_getPixViewMatrix`
+        self._pixScaleMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._pixViewMatrix = numpy.identity(4, dtype=numpy.float32)
 
         # Pointers handed to the GL matrix calls. Deriving these on every call
         # is a measurable cost in the draw loop, so cache them here along with
@@ -3849,6 +3852,28 @@ class Window():
 
         return thisScale
 
+    def _getPixViewMatrix(self):
+        """Get the view matrix for drawing in pixels with non-legacy OpenGL.
+
+        This is the view matrix followed by the scaling `setScale('pix')`
+        applies to the current matrix with legacy OpenGL, so vertices in pixels
+        (e.g. `verticesPix`) are drawn at the same size and position.
+
+        Returns
+        -------
+        ndarray
+            4x4 `float32` matrix. The same array is updated and returned on
+            each call.
+
+        """
+        sx, sy = self.setScale('pix')
+        self._pixScaleMatrix[0, 0] = sx
+        self._pixScaleMatrix[1, 1] = sy
+        numpy.matmul(
+            self._viewMatrix, self._pixScaleMatrix, out=self._pixViewMatrix)
+
+        return self._pixViewMatrix
+
     def _checkMatchingSizes(self, requested, actual):
         """Checks whether the requested and actual screen sizes differ.
         If not then a warning is output and the window size is set to actual
@@ -3876,7 +3901,7 @@ class Window():
         if self.USE_LEGACY_GL:
             GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
             GL.glLoadIdentity()
-            GL.gluOrtho2D(-1, 1, -1, 1)
+            GL.glOrtho(-1, 1, -1, 1, -1, 1)
 
             GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset the modelview matrix
             GL.glLoadIdentity()
@@ -3890,9 +3915,10 @@ class Window():
         GL.glEnable(GL.GL_BLEND)
 
         # check for GL_ARB_texture_float
-        # (which is needed for shaders to be useful)
+        # (which is needed for shaders to be useful), part of OpenGL 3.0+
         # this needs to be done AFTER the context has been created
-        if not GL.gl_info.have_extension('GL_ARB_texture_float'):
+        if not (GL.gl_info.have_version(3) or
+                GL.gl_info.have_extension('GL_ARB_texture_float')):
             self._haveShaders = False
 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
@@ -3972,23 +3998,9 @@ class Window():
             fragSrc = gltools.embedShaderSourceDefs(
                 _shaders.fragPhongLighting, srcDefs)
 
-            # build a shader program
-            prog = gltools.createProgram()
-            vertexShader = gltools.compileShader(
-                vertSrc, GL.GL_VERTEX_SHADER)
-            fragmentShader = gltools.compileShader(
-                fragSrc, GL.GL_FRAGMENT_SHADER)
-
-            gltools.attachShader(prog, vertexShader)
-            gltools.attachShader(prog, fragmentShader)
-            gltools.linkProgram(prog)
-            gltools.detachShader(prog, vertexShader)
-            gltools.detachShader(prog, fragmentShader)
-            gltools.deleteShader(vertexShader)
-            gltools.deleteShader(fragmentShader)
-
-            # set the flag
-            self._shaders['stim3d_phong'][flag] = prog        
+            # build a shader program, set the flag
+            self._shaders['stim3d_phong'][flag] = _shaders.compileProgram(
+                vertSrc, fragSrc)
 
     def _setupFrameBuffer(self):
         """Setup the framebuffer object for this window.
@@ -4411,7 +4423,12 @@ class Window():
             GL.glVertex2f(1.0, -1.0)
             GL.glEnd()
         else:
-            gltools.setUniformSampler2D(self._progFBOtoFrame, b'texture', 0)
+            gltools.setUniformSampler2D(self._progFBOtoFrame, b'uTexture', 0)
+            # `_fboVerts` are already in clip coordinates
+            gltools.setUniformMatrix(
+                self._progFBOtoFrame, b'uProjectionMatrix', IDENTITY_MATRIX4)
+            gltools.setUniformMatrix(
+                self._progFBOtoFrame, b'uModelViewMatrix', IDENTITY_MATRIX4)
             gltools.drawClientArrays({
                 'gl_Vertex': self._fboVerts, 
                 'gl_MultiTexCoord0': self._fboTexCoords}, 

@@ -20,7 +20,7 @@ import math
 import numpy as np
 import ctypes
 import freetype as ft
-from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
+import psychopy.tools.pygletgl as gl  # import OpenGL.GL not compatible with Big Sur (2020)
 from pathlib import Path
 import requests
 
