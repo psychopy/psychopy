@@ -143,7 +143,7 @@ class VlcMovieStim(MovieStim):
             win,
             filename=filename,
             movieLib='vlc',
-            audioLib='vlc',
+            audioLib=None,
             units=units,
             size=size,
             pos=pos,
