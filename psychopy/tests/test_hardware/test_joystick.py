@@ -439,6 +439,38 @@ class TestPhysicalDevice:
             finally:
                 dev.close()
 
+    def test_same_name_is_not_an_identity(self):
+        """`deviceName` is the name the system itself reports, so the same
+        stick carries the same name under every backend, and two identical
+        gamepads carry it as each other. Nothing may tell devices apart by it
+        -- identity is the backend plus the index -- or one device would
+        resolve to another's profile and bind to the wrong hardware.
+        """
+        byName = {}
+        for profile in _attachedJoysticks:
+            byName.setdefault(profile['deviceName'], []).append(profile)
+        shared = [group for group in byName.values() if len(group) > 1]
+        if not shared:
+            pytest.skip("no two joysticks report the same name")
+
+        for group in shared:
+            devices = []
+            try:
+                for profile in group:
+                    devices.append(JoystickDevice(**{
+                        k: v for k, v in profile.items()
+                        if k not in ('deviceName', 'deviceClass')}))
+                for i, dev in enumerate(devices):
+                    # sharing a name doesn't make them the same device
+                    for other in devices[i + 1:]:
+                        assert not dev.isSameDevice(other)
+                        assert not other.isSameDevice(dev)
+                    # and each still finds its own profile, not a namesake's
+                    assert dev.getDeviceProfile()['backend'] == dev.inputLib
+            finally:
+                for dev in devices:
+                    dev.close()
+
     def test_backends_are_distinct_devices(self):
         """The same stick under two backends must not compare equal, or a
         device would bind to the wrong backend's profile."""
@@ -446,7 +478,13 @@ class TestPhysicalDevice:
         for profile in _attachedJoysticks:
             byBackend.setdefault(profile['backend'], profile)
         if len(byBackend) < 2:
-            pytest.skip("need the same joystick under two backends")
+            # naming what was found, as "a joystick is attached" isn't enough
+            # for this one and the difference is otherwise invisible -- e.g.
+            # the pyglet backend needs a display, so over SSH only glfw
+            # enumerates and this skips on a machine with a stick plugged in
+            pytest.skip(
+                "need the same joystick under two backends, found: {}".format(
+                    ", ".join(sorted(byBackend)) or "no backend"))
 
         devices = []
         try:
