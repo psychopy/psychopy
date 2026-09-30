@@ -31,7 +31,7 @@ dependencies = [
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    # "pyqt6; platform_system != \"Linux\"",
+    "pyqt6; platform_system != \"Linux\"",
     "pandas>=1.5.3",
     "questplus>=2023.1",
     "openpyxl",
@@ -43,9 +43,12 @@ dependencies = [
     "imageio",
     "imageio-ffmpeg",
     # for iohub
+    "pywinhook; platform_system == \"Windows\"",
+    "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
+    "zope.interface==7.2",  # needed for gevent on macos
     "gevent; python_version < \"3.14\"",
     "gevent==25.5.1; platform_system==\"Darwin\"",
-    # "MeshPy",
+    "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
     "ujson",
