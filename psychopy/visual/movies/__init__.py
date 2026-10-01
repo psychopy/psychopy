@@ -3486,8 +3486,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         logging.debug(
             "Loading audio track from temporary file: {}".format(
                 self._audioTempFile.name))
+        # play on the requested speaker, or the default one if none was given
+        speakerKwargs = {}
+        if self._audioDevice is not None:
+            speakerKwargs['speaker'] = self._audioDevice
         self._audioTrack = _sound.Sound(
-            self._audioTempFile.name)
+            self._audioTempFile.name, **speakerKwargs)
         self._audioTrack.volume = self._volume  # set the volume to the current level
         
     def _cleanupAudioTrack(self):
@@ -4051,10 +4055,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
            return  # nop
         
         if not self._noAudio:
-            if self._audioDevice is None:
-                if self._decoderPlaysAudio:
-                    self._player.mute(False)
-                    self._player.setVolume(self._volume)
+            if self._decoderPlaysAudio:
+                self._player.mute(False)
+                self._player.setVolume(self._volume)
             else:
                 if self._audioTrack is not None and hasattr(self._audioTrack, 'play'):
                     self._audioTrack.play()
