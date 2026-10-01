@@ -114,7 +114,9 @@ class HammingWindow:
             sound block, or 1.0 if no windowing is needed.
 
         """
-        startSample = int(t*self.sampleRate)
+        # round (not truncate): t may sit fractionally off the sample grid,
+        # e.g. 127.99999 samples, which int() would put a sample early
+        startSample = int(round(t*self.sampleRate))
         if startSample < self.winSamples:
             # we're in beginning hanning window (start of sound)
             # 2 options:
@@ -333,15 +335,17 @@ class _SoundBase(AttributeGetSetMixin):
         ----------
         thisFreq : float
             Frequency in Hz.
-        secs : float
-            Duration of the sound in seconds. If negative, the sound will loop
-            indefinitely (until stopped).
+        secs : float or None
+            Duration of the sound in seconds (0.5 if None). If negative, the
+            sound will loop indefinitely (until stopped).
         hamming : bool
             Whether to apply a Hanning window to the sound to reduce 'click' onset
             and offset. Not applied to sounds from files.
         
         """
         # note freq -> array -> sound
+        if secs is None:
+            secs = 0.5  # default tone length
         if secs < 0:
             # want infinite duration - create 1 sec sound and loop it
             secs = 10.0
@@ -407,20 +411,22 @@ class _SoundBase(AttributeGetSetMixin):
 
         fileDuration = float(len(f)) / f.samplerate  # needed for duration?
 
-        # process start time
+        # process start time. t is the time within the snippet, so it starts
+        # at 0 whatever the startTime (when streaming, seek() adds the start
+        # frame back on to find the position in the file)
         if self.startTime and self.startTime > 0:
-            startFrame = self.startTime * self.sampleRate
-            self.sndFile.seek(int(startFrame))
-            self.t = self.startTime
+            startTime = self.startTime
+            self.sndFile.seek(int(round(startTime * self.sampleRate)))
         else:
-            self.t = 0
+            startTime = 0
+        self.t = 0
 
         # process stop time
         if self.stopTime and self.stopTime > 0:
-            requestedDur = self.stopTime - self.t
-            self.duration = min(requestedDur, fileDuration)
+            stopTime = min(self.stopTime, fileDuration)
         else:
-            self.duration = fileDuration - self.t
+            stopTime = fileDuration
+        self.duration = max(0.0, stopTime - startTime)
 
         # can now calculate duration in frames
         self.durationFrames = int(round(self.duration * self.sampleRate))
@@ -432,7 +438,7 @@ class _SoundBase(AttributeGetSetMixin):
         elif self.preBuffer == -1:
             # full pre-buffer. Load requested duration to memory
             sndArr = self.sndFile.read(
-                frames=int(self.sampleRate * self.duration))
+                frames=self.durationFrames)
             self.sndFile.close()
             self._setSndFromArray(sndArr)
         

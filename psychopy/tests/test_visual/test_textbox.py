@@ -583,8 +583,8 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             self.obj.draw()
             # Compare
             nameSafe = str(case).replace(".", "p")
-            filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
-            self.win.getMovieFrame(buffer='back').save(filename)
+            filename = Path(utils.TESTS_DATA_PATH) / f"{self.__class__.__name__}_testLetterSpacing_{nameSafe}.png"
+            # self.win.getMovieFrame(buffer='back').save(filename)
             utils.compareScreenshot(filename, self.win, crit=20)
 
 

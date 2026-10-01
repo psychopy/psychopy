@@ -815,7 +815,9 @@ class ExperimentHandler(_ComparisonMixin, FileSaveMixin):
         return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
-        self.save()
+        if self.status != constants.FINISHED:
+            # autosave data if unfinished
+            self.save()
         self.abort()
         self.autoLog = False
 

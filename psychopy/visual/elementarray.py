@@ -19,7 +19,7 @@ from ..colors import Color
 
 pyglet.options['debug_gl'] = False
 import ctypes
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -37,7 +37,7 @@ from . import globalVars
 
 import numpy
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 
 class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
@@ -170,7 +170,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != globalVars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType in ('pyglet', 'glfw'):
             win.winHandle.switch_to()
             globalVars.currWindow = win
 
@@ -623,7 +623,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         gt.setUniformMatrix(
             _prog, 
             b'uModelViewMatrix', 
-            win._viewMatrix,
+            win._getPixViewMatrix(),
             transpose=True)
 
         verticesPix = self.verticesPix.reshape(-1, 3)

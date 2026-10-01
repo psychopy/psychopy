@@ -19,6 +19,7 @@ Clock logic.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import logging
+import threading
 import time
 import sys
 from datetime import datetime
@@ -372,6 +373,62 @@ class CountdownTimer(Clock):
         if start:
             self.reset()
 
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        """
+        CountdownTimer is iterable, meaning you can use it to run a for loop for a given time.
+
+        Example
+        -------
+        ```
+        # this will run for 10s and print every 0.1s
+        for t in CountdownTimer(10):
+            time.sleep(0.1)
+            print(t)
+        ```
+
+        Returns
+        -------
+        float
+            The current time remaining
+
+        Raises
+        ------
+        StopIteration
+            Iteration will stop when time remaining reaches 0
+        """
+        # get time
+        t = self.getTime()
+        # stop iteration when finished
+        if t < 0:
+            raise StopIteration()
+
+        return t
+
+    def __bool__(self):
+        """
+        CountdownTimer can be interpreted as a boolean, meaning you can use it to run a while loop 
+        for a given time.
+
+        Example
+        -------
+        ```
+        # this will run for 10s and print every 0.1s
+        timer = CountdownTimer(10)
+        while timer:
+            time.sleep(0.1)
+            print(timer.getTime())
+        ```
+
+        Returns
+        -------
+        bool
+            True until time remaining reaches 0
+        """
+        return self.getTime() > 0
+
     def getTime(self):
         """Returns the current time left on this timer in seconds with sub-ms
         precision (`float`).
@@ -505,7 +562,14 @@ class StaticPeriod:
 def _dispatchWindowEvents():
     """Helper function for :func:`~.psychopy.core.wait`. Handles window event if
     needed or returns otherwise.
+
+    Events are only dispatched when called from the main thread, which owns the
+    windows. Dispatching from other threads isn't thread-safe, and on macOS
+    aborts the process since AppKit only allows it on the main thread.
     """
+    if threading.current_thread() is not threading.main_thread():
+        return  # nop
+
     from . import core
 
     if not (core.havePyglet and core.checkPygletDuringWait):
@@ -525,7 +589,7 @@ def _dispatchWindowEvents():
         pass
     for winWeakRef in core.openWindows:
         win = winWeakRef()
-        if (win.winType == "pyglet" and
+        if (win.winType in ("pyglet", "glfw") and
                 hasattr(win.winHandle, "dispatch_events")):
             win.winHandle.dispatch_events()  # pump events
 

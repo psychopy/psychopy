@@ -132,7 +132,7 @@ __all__ = [
 import ctypes
 from io import StringIO
 from collections import namedtuple
-import pyglet.gl as GL  # using Pyglet for now
+import psychopy.tools.pygletgl as GL  # using Pyglet for now
 from contextlib import contextmanager
 from PIL import Image
 import numpy as np
@@ -2698,7 +2698,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     --------
     Creating a texture from an image file::
 
-        import pyglet.gl as GL  # using Pyglet for now
+        import psychopy.tools.pygletgl as GL  # using Pyglet for now
 
         # empty texture
         textureDesc = createTexImage2D(1024, 1024, internalFormat=GL.GL_RGBA8)

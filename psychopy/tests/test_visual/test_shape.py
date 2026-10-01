@@ -21,3 +21,7 @@ class TestShape(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestSe
         self.fillUsed = True
         # Shape has no foreground color
         self.foreUsed = False
+
+    @classmethod
+    def teardown_class(self):
+        self.win.close()

@@ -16,6 +16,7 @@ import time
 import subprocess
 import traceback
 import threading
+from urllib.parse import urlparse
 
 import pandas
 from packaging.version import Version
@@ -1633,13 +1634,23 @@ def getProject(filename):
         localRepo = git.Repo(gitRoot)
         for remote in localRepo.remotes:
             for url in remote.urls:
-                if "gitlab.pavlovia.org" in url:
-                    # Get namespace from url
-                    # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
-                    # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
-                    namespaceName = url.split('gitlab.pavlovia.org')[1]
+                namespaceName = None
+                # Handle standard URL remotes, e.g.:
+                #   https://gitlab.pavlovia.org/NameSpace/Name.git
+                if "://" in url:
+                    parsed = urlparse(url)
+                    if parsed.hostname == "gitlab.pavlovia.org":
+                        namespaceName = parsed.path.lstrip("/")
+                else:
+                    # Handle SCP-style git remotes, e.g.:
+                    #   git@gitlab.pavlovia.org:NameSpace/Name.git
+                    match = re.match(r'^(?P<user>[^@]+)@(?P<host>[^:]+):(?P<path>.+)$', url)
+                    if match and match.group("host") == "gitlab.pavlovia.org":
+                        namespaceName = match.group("path").lstrip("/")
+
+                if namespaceName is not None:
                     # remove the first char if it's : or /
-                    if namespaceName[0] in ['/', ':']:
+                    if namespaceName and namespaceName[0] in ['/', ':']:
                         namespaceName = namespaceName[1:]
                     # Remove .git
                     namespaceName = namespaceName.replace(".git", "")

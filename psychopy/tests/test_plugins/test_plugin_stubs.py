@@ -96,7 +96,6 @@ def test_plugin_stub_links():
         "psychopy.hardware.bbtk",
         "psychopy.sound.backend_pyo",
         "psychopy.sound.backend_sounddevice",
-        "psychopy.visual.backends.glfwbackend",
     ]
     for stubModule in knownStubModules:
         importlib.import_module(stubModule)

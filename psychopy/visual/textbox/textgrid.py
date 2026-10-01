@@ -9,7 +9,7 @@ Created on Mon Jan 07 11:18:51 2013
 import numpy as np
 from weakref import proxy
 from psychopy import core
-from pyglet.gl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
+from psychopy.tools.pygletgl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
                        glTranslatef, glColor4f, glLineWidth, glBegin,
                        GL_LINES, glEndList, glDeleteLists, GL_COMPILE, glEnd,
                        GL_TEXTURE0, GL_TEXTURE_2D, GL_TEXTURE_ENV,
