@@ -24,7 +24,7 @@ import pytest
 
 from psychopy.hardware import DeviceManager
 from psychopy.hardware.joystick import (
-    Joystick, JoystickDevice, JoystickResponse,
+    Joystick, JoystickDevice, JoystickResponse, XboxController,
     JoystickBackendNotAvailableError, InvalidInputNameError,
     getJoystickInterfaces, getNumJoysticks, getAllJoysticks,
     getBackend, setBackend)
@@ -150,6 +150,35 @@ class TestBackendResolution:
         with pytest.raises(JoystickBackendNotAvailableError):
             setBackend('nonexistent')
 
+    def test_backend_class_may_be_positional(self):
+        """`backend` is documented as taking a class as well as a name, but a
+        class passed positionally used to be dropped and the module default
+        resolved instead."""
+        virtualCls = getJoystickInterfaces()['virtual']
+        dev = JoystickDevice(0, virtualCls)
+        try:
+            assert type(dev) is virtualCls
+        finally:
+            dev.close()
+
+    def test_sparse_backend_ids_keep_ordinal_indexing(self):
+        """GLFW addresses sticks by a fixed slot, so its ids go sparse as
+        sticks are unplugged. `Joystick(0)` has always meant "the first
+        connected stick", so it must not stop working when slot 0 is empty."""
+        class SparseDevice(JoystickDevice):
+            _inputLib = 'sparse'
+
+            @staticmethod
+            def getAvailableDevices():
+                return [{'deviceName': 'stick', 'deviceClass': 'sparse',
+                         'device': 3}]
+
+        # exact id still wins, and the ordinal is the fallback
+        assert SparseDevice._resolveDeviceIndex(3) == 3
+        assert SparseDevice._resolveDeviceIndex(0) == 3
+        with pytest.raises(DeviceNotConnectedError):
+            SparseDevice._resolveDeviceIndex(9)
+
 
 class TestDeviceManagerContract:
     def test_registered_with_device_manager(self):
@@ -245,6 +274,20 @@ class TestInputNaming:
         with pytest.raises(InvalidInputNameError):
             virtualJoystick.getAxis('nosuchaxis')
 
+    def test_set_input_name_none_removes_the_name(self, virtualJoystick):
+        """Names map to indices, so removal used to pop a literal `None` key
+        and leave the old name working."""
+        virtualJoystick.setInputName('axes', 0, 'myaxis')
+        virtualJoystick.setInputName('axes', 0, None)
+        with pytest.raises(InvalidInputNameError):
+            virtualJoystick.getAxis('myaxis')
+
+    def test_set_input_name_none_removes_a_ganged_name(self, virtualJoystick):
+        virtualJoystick.setInputName('axes', [0, 1], 'pair')
+        virtualJoystick.setInputName('axes', [0, 1], None)
+        with pytest.raises(InvalidInputNameError):
+            virtualJoystick.getAxis('pair')
+
     def test_input_scheme_is_copied(self):
         """`getInputScheme` used to hand back the shared mapping table, so
         renaming an input leaked into every joystick made afterwards."""
@@ -294,6 +337,26 @@ class TestResponses:
         for _ in range(20):
             virtualJoystick.dispatchMessages()
         assert virtualJoystick.responses == []
+
+    def test_zero_axis_threshold_still_needs_movement(self, virtualJoystick):
+        """A threshold of 0 means "report any movement", not "report on every
+        dispatch" -- `abs(delta) >= 0` is true for a stick sitting still."""
+        virtualJoystick.setAxisResponseThreshold(0)
+        virtualJoystick.dispatchMessages()
+        virtualJoystick.clearResponses()
+        for _ in range(20):
+            virtualJoystick.dispatchMessages()
+        assert virtualJoystick.getResponses(inputType='axis') == []
+
+    def test_zero_axis_threshold_reports_any_movement(self, virtualJoystick):
+        axes = [0.0] * len(virtualJoystick.getAllAxes())
+        virtualJoystick._getRawAxes = lambda: axes
+        virtualJoystick.setAxisResponseThreshold(0)
+        virtualJoystick.dispatchMessages()
+        virtualJoystick.clearResponses()
+        axes[0] = 0.01
+        virtualJoystick.dispatchMessages()
+        assert len(virtualJoystick.getResponses(inputType='axis')) == 1
 
     def test_button_edges_emit_responses(self, virtualJoystick):
         state = list(virtualJoystick._getRawButtons())
@@ -387,6 +450,67 @@ class TestResponses:
         assert resp == 0
 
 
+class TestWindowDispatch:
+    """`Window.flip` dispatches everything in `win._eventDispatchers`."""
+
+    @pytest.fixture
+    def fakeWindow(self, monkeypatch):
+        """Stand in for an open `Window`, so this needs no graphics stack."""
+        import weakref
+        from psychopy import visual
+
+        class FakeWin:
+            def __init__(self):
+                self._eventDispatchers = []
+
+        win = FakeWin()
+        monkeypatch.setattr(visual, 'openWindows', [weakref.ref(win)])
+        return win
+
+    def test_closing_one_device_leaves_an_equal_one_registered(self, fakeWindow):
+        """Joystick equality is `isSameDevice`, so two devices opened on the
+        same stick compare equal. Registration used to go through `in` and
+        `remove`, so closing the second unregistered the first and silently
+        stopped the still-open device being updated."""
+        # NB: a stub backend rather than the virtual one, which reads a mouse
+        # and so would want a real `Window` rather than this stand-in
+        class StubDevice(JoystickDevice):
+            _inputLib = 'stub'
+
+            @staticmethod
+            def getAvailableDevices():
+                return [{'deviceName': 'stub', 'deviceClass': 'stub',
+                         'device': 0}]
+
+            def _openDevice(self):
+                self._device = self._deviceIndex
+
+            def _closeDevice(self):
+                pass
+
+            def _getRawAxes(self):
+                return [0.0, 0.0]
+
+            def _getRawButtons(self):
+                return [False, False]
+
+            def _getRawHats(self):
+                return []
+
+        first = StubDevice(0)
+        second = StubDevice(0)
+        try:
+            assert first is not second and first == second
+            assert len(fakeWindow._eventDispatchers) == 2
+            second.close()
+            assert any(each is first for each in fakeWindow._eventDispatchers)
+            assert not any(each is second
+                           for each in fakeWindow._eventDispatchers)
+        finally:
+            first.close()
+        assert fakeWindow._eventDispatchers == []
+
+
 class TestLegacyAPI:
     def test_module_functions(self):
         assert getNumJoysticks() == len(getAllJoysticks())
@@ -423,6 +547,48 @@ class TestLegacyAPI:
         silently falling back to keyboard emulation."""
         with pytest.raises(Exception):
             Joystick(device='nosuchdevice_xyz')
+
+    def test_reused_device_is_reopened(self):
+        """A `JoystickDevice` outlives the wrappers around it, so closing one
+        wrapper used to hand the next one a closed device whose `poll()`
+        silently returned no input."""
+        first = Joystick(0, backend='virtual')
+        first.close()
+        second = Joystick(0, backend='virtual')
+        try:
+            assert second.device is first.device
+            assert second.isOpen
+        finally:
+            second.close()
+
+    def test_reuse_respects_the_requested_backend(self):
+        """Reuse used to match on index alone, so asking for one backend could
+        hand back a device belonging to another at the same index."""
+        joy = Joystick(0, backend='virtual')
+        try:
+            other = Joystick(0, backend='nonexistent')
+        except Exception:
+            pass    # no such backend, which is the right answer too
+        else:
+            try:
+                assert other.device is not joy.device
+            finally:
+                other.close()
+        finally:
+            joy.close()
+
+    def test_xbox_controller_constructs(self):
+        """`XboxController` repurposes `x`/`y` as read-only button properties,
+        which collided with the per-Routine data arrays the base class sets up
+        and made the subclass impossible to instantiate."""
+        ctrl = XboxController(0, backend='virtual')
+        try:
+            # the Xbox meaning of `x`/`y` wins, as it always has
+            assert ctrl.x in (True, False)
+            assert ctrl.y in (True, False)
+            ctrl.clearData()
+        finally:
+            ctrl.close()
 
     def test_height_units_scaling(self):
         class FakeWin:

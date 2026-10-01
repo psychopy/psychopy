@@ -221,9 +221,12 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
         # a concrete backend constructs itself as normal
         if cls is not JoystickDevice:
             return super().__new__(cls)
-        # find the requested backend, allowing it as the 2nd positional arg
+        # find the requested backend, allowing it as the 2nd positional arg.
+        # NB: `backend` may be a name *or* a `JoystickDevice` subclass, so the
+        # positional form is forwarded whatever its type -- `resolveBackend`
+        # is what decides whether it's something we support
         backend = kwargs.get('backend', None)
-        if backend is None and len(args) > 1 and isinstance(args[1], str):
+        if backend is None and len(args) > 1 and args[1] is not None:
             backend = args[1]
         backendCls = cls.resolveBackend(backend)
         # returning an instance of a *subclass* means Python still calls
@@ -398,8 +401,14 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
                 "No joystick found with the name '{}'".format(device),
                 deviceClass=cls)
 
-        # by index
+        # by index. NB: GLFW addresses joysticks by a fixed slot, so its ids go
+        # sparse as sticks are unplugged, whereas `Joystick(0)` has always meant
+        # "the first connected stick". An exact id match wins; failing that we
+        # fall back to the ordinal position, so the legacy call still works when
+        # slot 0 happens to be empty
         if device not in indices:
+            if isinstance(device, int) and 0 <= device < len(indices):
+                return int(indices[device])
             raise DeviceNotConnectedError(
                 "No joystick at index {} ({} joystick(s) connected)".format(
                     device, len(indices)),
@@ -448,9 +457,13 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
         from psychopy import visual
         for ref in visual.openWindows:
             win = ref()
-            if win is None or win in self._dispatchWindows:
+            if win is None or any(each is win for each in self._dispatchWindows):
                 continue
-            if self not in win._eventDispatchers:
+            # NB: identity, not `in`/`remove` -- `__eq__` is `isSameDevice`, so a
+            # second device opened on the same stick would look like it was
+            # already registered, and closing either one would then unregister
+            # whichever instance the list happened to hold first
+            if not any(each is self for each in win._eventDispatchers):
                 win._eventDispatchers.append(self)
             self._dispatchWindows.append(win)
 
@@ -463,8 +476,8 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
         """
         for win in self._dispatchWindows:
             try:
-                if self in win._eventDispatchers:
-                    win._eventDispatchers.remove(self)
+                win._eventDispatchers[:] = [
+                    each for each in win._eventDispatchers if each is not self]
             except Exception:
                 pass
         self._dispatchWindows = []
@@ -733,13 +746,16 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
         if inputType not in ('axes', 'buttons', 'hats'):
             raise ValueError("Input type must be 'axes', 'buttons', or 'hats'.")
 
-        if name is None:
-            # remove by name, not by index
-            self._inputNames[inputType].pop(name, None)
-            return
-
         if isinstance(inputIndex, list):
             inputIndex = tuple(inputIndex)
+
+        if name is None:
+            # names map to indices, so removing a name means dropping every
+            # entry pointing at this input rather than popping a `None` key
+            self._inputNames[inputType] = {
+                each: idx for each, idx in self._inputNames[inputType].items()
+                if idx != inputIndex}
+            return
 
         # names map to indices, not the other way around
         self._inputNames[inputType][name] = inputIndex
@@ -1107,7 +1123,11 @@ class JoystickDevice(BaseResponseDevice, aliases=["joystick", "gamepad"]):
                 # keep the cache fresh even when not reporting
                 self._axisVals[i] = val
                 continue
-            if abs(val - self._axisVals[i]) >= threshold:
+            # NB: the change test is separate from the threshold test, so a
+            # threshold of 0 means "report any movement" rather than "report on
+            # every dispatch whether or not the axis moved"
+            if val != self._axisVals[i] and abs(
+                    val - self._axisVals[i]) >= threshold:
                 self._axisVals[i] = val
                 self.receiveMessage(JoystickResponse(
                     t=t, value=float(val), channel=i, inputType="axis",

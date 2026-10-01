@@ -159,12 +159,12 @@ class Joystick:
         # a named device in DeviceManager
         if isinstance(device, str):
             found = DeviceManager.getDevice(device)
-            if found is None:
+            if not isinstance(found, JoystickDevice):
                 raise JoystickError(
                     "No joystick named '{}' has been set up. Add it in Device "
                     "Manager, or check the device name for typos.".format(
                         device))
-            return found
+            return Joystick._reuse(found)
 
         # a legacy integer index, either given as `device` or as `index`
         if isinstance(device, int) and not isinstance(device, bool):
@@ -173,23 +173,31 @@ class Joystick:
             # lenient on the legacy path only
             fallback = True
 
+        wanted = backend or getBackend()
         if deviceName is None:
             deviceName = "joystick_{}_{}".format(
-                backend or getBackend(), index if index is not None else 0)
+                wanted, index if index is not None else 0)
 
-        # reuse an existing registration under this name
-        found = DeviceManager.getDevice(deviceName)
-        if found is not None:
-            return found
-
-        # reuse an already-initialised device at this index
-        if index is not None:
-            for existing in DeviceManager.getInitialisedDevices(
-                    JoystickDevice).values():
-                if existing.deviceIndex == index:
-                    return existing
-
+        # NB: reuse sits inside the `try` so that a registration left behind for
+        # a stick which has since been unplugged falls back the same way a fresh
+        # open would, rather than raising out of the lenient legacy path
         try:
+            # reuse an existing registration under this name
+            found = DeviceManager.getDevice(deviceName)
+            if isinstance(found, JoystickDevice):
+                return Joystick._reuse(found)
+
+            # reuse an already-initialised device at this index. NB: the backend
+            # has to match too -- an experiment which asked for one explicitly
+            # must not be handed a device from another backend that happens to
+            # sit at the same index, or Components bind to the wrong stick
+            if index is not None:
+                for existing in DeviceManager.getInitialisedDevices(
+                        JoystickDevice).values():
+                    if (existing.inputLib == wanted
+                            and existing.deviceIndex == index):
+                        return Joystick._reuse(existing)
+
             return DeviceManager.addDevice(
                 deviceClass="psychopy.hardware.joystick.JoystickDevice",
                 deviceName=deviceName,
@@ -209,6 +217,20 @@ class Joystick:
                 deviceName=deviceName + "_virtual",
                 device=0, backend='virtual')
 
+    @staticmethod
+    def _reuse(device):
+        """Hand back a device shared with another wrapper, ready for use.
+
+        A `JoystickDevice` outlives the wrappers around it -- it stays
+        registered with `DeviceManager` once any wrapper has closed it -- so
+        reopen it here. Without this, a second `Joystick(...)` gets the closed
+        device back and `poll()` silently returns no input.
+
+        """
+        if not device.isOpen:
+            device.open()
+        return device
+
     def setWindow(self, win):
         """Set the window used to scale `getX`/`getY` in 'height' units."""
         self.win = win
@@ -220,8 +242,13 @@ class Joystick:
 
     def clearData(self):
         """Clear the per-Routine data arrays Builder fills in."""
-        self.x = []
-        self.y = []
+        # NB: written through `__dict__` because `XboxController` repurposes the
+        # names `x` and `y` as read-only properties for its X and Y buttons, so
+        # a plain assignment raises and makes that subclass impossible to
+        # construct. Builder only ever drives the base class, where the two
+        # forms are equivalent
+        self.__dict__['x'] = []
+        self.__dict__['y'] = []
         self.time = []
         self.buttons = []
         self.pressedButtons = []
