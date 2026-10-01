@@ -4488,6 +4488,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         if not self._noAudio and not self._decoderPlaysAudio:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'play'):
+                # Start the audio from wherever the video is. A paused track
+                # can't be relied on to carry on from the right place itself:
+                # the `sounddevice` backend reads blocks ahead of playback, so
+                # it would resume ~20 ms past where it was paused.
+                if hasattr(self._audioTrack, 'seek'):
+                    self._audioTrack.seek(self._movieTime)
+
                 if when is None:
                     self._audioTrack.play()
                 else:
