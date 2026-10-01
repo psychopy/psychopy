@@ -26,7 +26,7 @@ try:
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
 
-from psychopy import logging
+from psychopy import logging, clock
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
 from psychopy.sound.exceptions import SoundFormatError, DependencyError
@@ -703,9 +703,11 @@ class SoundDeviceSound(_SoundBase):
             Number of loops to play (-1=forever, 0=single repeat). If `None`, uses the 
             value set during initialisation.
         when: float, `psychopy.visual.Window` or None
-            Time to begin playback, in seconds relative to the global clock. If a 
-            `psychopy.visual.Window` is passed, the audio will be played at the 
-            next window flip. If 0.0 or `None`, playback will start immediately.
+            Time to begin playback, as an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads. If a
+            `psychopy.visual.Window` is passed, the audio will be played at the
+            next window flip. If `None`, or a time which has
+            already passed, playback will start immediately.
 
         """
         if self.isPlaying:
@@ -722,12 +724,14 @@ class SoundDeviceSound(_SoundBase):
         tRequest = time.monotonic()
         logTime = None
         if when is not None:
-            if isinstance(when, (int, float)):
-                tRequest += when
-            elif hasattr(when, 'getFutureFlipTime'):
+            if hasattr(when, 'getFutureFlipTime'):
                 logTime = when.getFutureFlipTime(clock=None)
                 when = when.getFutureFlipTime(clock='now')
                 tRequest += when
+            else:
+                # an absolute time, so convert it to the monotonic timebase the
+                # stream callback schedules against
+                tRequest += float(when) - clock.getTime()
         else:
             if hasattr(self.win, 'getFutureFlipTime'):
                 logTime = self.win.getFutureFlipTime(clock=None)
