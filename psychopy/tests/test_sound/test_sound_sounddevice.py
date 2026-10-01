@@ -49,11 +49,12 @@ def _ramp(n):
     return ((np.arange(n) + 1) / n).reshape(n, 1)
 
 
-def _new_sound(value, hamming=False, **kwargs):
+def _new_sound(value, hamming=False, speaker=None, **kwargs):
     """A real SoundDeviceSound playing ``value``, no device opened."""
+    if speaker is None:
+        speaker = SoundDeviceSpeakerDevice(name="test speaker")
     return SoundDeviceSound(
-        value, blockSize=BLOCK,
-        speaker=SoundDeviceSpeakerDevice(name="test speaker"),
+        value, blockSize=BLOCK, speaker=speaker,
         hamming=hamming, autoLog=False, **kwargs)
 
 
@@ -445,3 +446,97 @@ def test_set_sound_without_hamming_drops_window():
     sound.play(log=False)
     out = _render(sound, nblocks=_nblocksFor(n))
     assert np.allclose(out[:n], _ramp(n)[:, 0])
+
+
+# --------------------------------------------------------------------------
+# Speakers and their streams
+#
+
+def _speaker(name, **kwargs):
+    return SoundDeviceSpeakerDevice(name=name, **kwargs)
+
+
+def _blockOut(sound):
+    """One block of every channel of the sound's stream."""
+    stream = sound.stream
+    tp = types.SimpleNamespace(currentTime=NOW, inputBufferAdcTime=0.0,
+                               outputBufferDacTime=NOW)
+    toSpk = np.zeros((BLOCK, stream.channels), dtype="float32")
+    stream._callback(toSpk, BLOCK, tp, 0)
+    return toSpk
+
+
+def test_sounds_on_a_speaker_share_its_stream():
+    """Every sound on a speaker plays through the one stream, whatever its
+    channels and block size, since a hardware device takes only one."""
+    speaker = _speaker("speaker A")
+    mono = _new_sound(_ramp(N), sampleRate=SR, speaker=speaker)
+    stereo = _new_sound(np.hstack([_ramp(N), _ramp(N)]), sampleRate=SR,
+                        speaker=speaker)
+    smallBlocks = SoundDeviceSound(
+        _ramp(N), sampleRate=SR, blockSize=16, speaker=speaker,
+        hamming=False, autoLog=False)
+    assert mono.stream is stereo.stream is smallBlocks.stream
+    assert len(bsd.streams) == 1
+
+
+def test_speakers_get_streams_of_their_own():
+    a = _new_sound(_ramp(N), sampleRate=SR, speaker=_speaker("speaker A"))
+    b = _new_sound(_ramp(N), sampleRate=SR, speaker=_speaker("speaker B"))
+    assert a.stream is not b.stream
+    assert a.streamLabel == bsd.getDeviceStreamLabel("speaker A")
+    assert b.streamLabel == bsd.getDeviceStreamLabel("speaker B")
+
+
+@pytest.mark.parametrize("rate", [22050, 48000])
+def test_sound_resampled_to_its_speakers_rate(rate):
+    """A sound made at another rate is resampled to the stream's on load,
+    keeping its duration, as the ``ptb`` backend does."""
+    n = rate // 10  # 0.1 s
+    sound = _new_sound(np.zeros((n, 1)) + 0.5, sampleRate=rate)
+    assert sound.stream.sampleRate == SR
+    assert sound.sampleRate == SR
+    assert sound.duration == pytest.approx(0.1, abs=1 / SR)
+    assert len(sound.sndArr) == pytest.approx(SR // 10, abs=1)
+
+
+def test_sound_at_another_rate_rejected_without_resampling():
+    speaker = _speaker("test speaker", resample=False)
+    with pytest.raises(bsd.SoundFormatError):
+        _new_sound(_ramp(N), sampleRate=22050, speaker=speaker)
+
+
+def test_file_at_another_rate(tmp_path):
+    """A file at another rate is resampled when loaded up front, but can't be
+    streamed from disk (which reads it as it plays) to the speaker."""
+    path = str(tmp_path / "ramp22k.wav")
+    sf.write(path, _ramp(M)[:, 0].astype("float32"), 22050, subtype="FLOAT")
+
+    loaded = _new_sound(path, preBuffer=-1)
+    assert loaded.sampleRate == SR
+    assert loaded.duration == pytest.approx(M / 22050, abs=1 / SR)
+
+    with pytest.raises(bsd.SoundFormatError):
+        _new_sound(path, preBuffer=0)
+
+
+def test_mono_sound_plays_on_every_channel():
+    sound = _make_sound()
+    assert sound.stream.channels == 2
+    sound.play(log=False)
+    out = _blockOut(sound)
+    assert np.allclose(out[:, 0], _ramp(N)[:BLOCK, 0])
+    assert np.allclose(out[:, 1], out[:, 0])
+
+
+def test_stereo_sound_mixed_down_on_a_mono_stream():
+    """A stereo sound on a mono device plays as a mix of its channels."""
+    label = bsd.getDeviceStreamLabel("mono speaker")
+    bsd.streams[label] = bsd._SoundStream(SR, 1, BLOCK, device="mono speaker")
+    left, right = _ramp(N), np.zeros((N, 1)) + 0.25
+    sound = _new_sound(np.hstack([left, right]), sampleRate=SR,
+                       speaker=_speaker("mono speaker"))
+    assert sound.stream is bsd.streams[label]
+    sound.play(log=False)
+    out = _blockOut(sound)
+    assert np.allclose(out[:, 0], (left[:BLOCK, 0] + right[:BLOCK, 0]) / 2)
