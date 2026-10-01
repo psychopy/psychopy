@@ -898,6 +898,13 @@ SCHEDULE_DELAY = 0.25
 SCHEDULE_TOL = MOVIE_FRAME_INTERVAL
 
 
+def _absTime(t):
+    """Convert a `core.getTime()` time to the absolute time on the clock
+    `psychopy.clock.getTime()` reads, which `when` is given in (as for
+    `Sound.play()`)."""
+    return t + core.monotonicClock.getLastResetTime()
+
+
 def _drawUntil(win, mov, t):
     """Draw the movie until `core.getTime()` reaches `t`.
 
@@ -951,7 +958,7 @@ class TestMovieStimScheduling:
         position until then, and the movie clock runs from that time."""
         with movieStim(win, movieLib) as mov:
             tStart = core.getTime() + SCHEDULE_DELAY
-            mov.play(when=tStart)
+            mov.play(when=_absTime(tStart))
 
             # scheduled playback counts as playing, so that a
             # `while mov.isPlaying` loop keeps drawing until it starts
@@ -984,12 +991,28 @@ class TestMovieStimScheduling:
             assert mov.movieTime == pytest.approx(
                 tDrawn - tFlip, abs=SCHEDULE_TOL)
 
+    def test_playWhenAbsoluteFlipTime(self, win, movieLib):
+        """The next flip as an absolute time, as it would be passed to
+        `Sound.play()`, schedules playback for that flip too."""
+        with movieStim(win, movieLib) as mov:
+            win.flip()  # so the next flip is a frame away
+
+            mov.play(when=win.getFutureFlipTime(clock='ptb'))
+
+            mov.draw()
+            assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
+
+            tFlip = win.flip()
+            tDrawn = _drawUntil(win, mov, tFlip + SCHEDULE_DELAY)
+            assert mov.movieTime == pytest.approx(
+                tDrawn - tFlip, abs=SCHEDULE_TOL)
+
     def test_playWhenInThePastStartsNow(self, win, movieLib):
         """A start time which has already gone by starts playback straight
         away, rather than jumping ahead to where the movie would be by now."""
         with movieStim(win, movieLib) as mov:
             tPlay = core.getTime()
-            mov.play(when=tPlay - 10.0)
+            mov.play(when=_absTime(tPlay - 10.0))
 
             tDrawn = _drawUntil(win, mov, tPlay + SCHEDULE_DELAY)
             assert mov.movieTime == pytest.approx(
@@ -999,7 +1022,7 @@ class TestMovieStimScheduling:
         """Pausing before a scheduled start cancels it, and playing again
         starts from the same position straight away."""
         with movieStim(win, movieLib) as mov:
-            mov.play(when=core.getTime() + 60.0)
+            mov.play(when=_absTime(core.getTime() + 60.0))
             _drawFrames(win, mov)
             mov.pause()
 
@@ -1024,7 +1047,7 @@ class TestMovieStimScheduling:
             assert mov.movieTime == pytest.approx(SAMPLE_EARLY, abs=1e-6)
 
             tStart = core.getTime() + SCHEDULE_DELAY
-            mov.play(when=tStart)
+            mov.play(when=_absTime(tStart))
             _drawFrames(win, mov)
             assert mov.movieTime == pytest.approx(SAMPLE_EARLY, abs=1e-6)
 
@@ -1037,8 +1060,8 @@ class TestMovieStimScheduling:
         video, in a form each `Sound` backend can convert to its own clock.
 
         The `Sound` backends ask a window passed as `when` for its next flip
-        time, on either PsychoPy's clock, the PTB clock, or relative to now, so
-        `when` must answer for the start time on each of those.
+        time, either on PsychoPy's clock, as an absolute time, or relative to
+        now, so `when` must answer for the start time in each of those.
 
         """
         with movieStim(win, movieLib) as mov:
@@ -1055,12 +1078,13 @@ class TestMovieStimScheduling:
             mov.pause()
 
             tStart = core.getTime() + 1.0
-            mov.play(when=tStart)
+            mov.play(when=_absTime(tStart))
             when = track.playedWhen[-1]
 
-            assert when.getFutureFlipTime(clock=None) == pytest.approx(tStart)
             assert when.getFutureFlipTime(clock='ptb') == pytest.approx(
-                tStart + logging.defaultClock.getLastResetTime())
+                _absTime(tStart))
+            assert when.getFutureFlipTime(clock=None) == pytest.approx(
+                _absTime(tStart) - logging.defaultClock.getLastResetTime())
             assert when.getFutureFlipTime(clock='now') == pytest.approx(
                 tStart - core.getTime(), abs=0.01)
             mov.pause()
