@@ -54,12 +54,19 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             pref = pref[0] if isinstance(pref, (list, tuple)) else pref
 
             if pref in ("default", "None"):
-                # if no pref, use first device
-                name = self.getAvailableDevices()[0]['deviceName']
-                # warn the user, this speaker might be a virtual device with no audio or something
-                logging.warn(
+                # If no pref, use the system's default output. The first device listed
+                # can be something nobody listens to, such as an unused HDMI output.
+                # Leaving the name as None plays on whatever the default is, should
+                # sounddevice be unable to say which device that is.
+                try:
+                    import sounddevice as sd
+                    name = sd.query_devices(kind='output')['name']
+                except Exception:
+                    name = None
+                logging.info(
                     _translate(
-                        "No default speaker specified in Preferences / Hardware, using first speaker found: {}"
+                        "No default speaker specified in Preferences / Hardware, using the "
+                        "system default output: {}"
                     ).format(name)
                 )
             else:
