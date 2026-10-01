@@ -161,10 +161,14 @@ class SoundPTB(_SoundBase):
         self.hamming = hamming
         self._hammingWindow = None  # will be created during setSound
         self.win = syncToWin
+        # set before `setSound`, which seeks to the start of the new sound
+        self._isPlaying = False  # set `True` after `play()` is called
+        # whether `play()` carries on from where the sound was paused
+        self._resumeOnPlay = False
+        self._repetitions = None  # as last passed to the track by `play()`
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
-        self._isPlaying = False  # set `True` after `play()` is called
         self._isFinished = False
         self.status = NOT_STARTED
 
@@ -275,6 +279,8 @@ class SoundPTB(_SoundBase):
         # create/update track
         if  self.track:
             self.track.stop()
+            # so the seek below doesn't start the new sound playing
+            self._isPlaying = False
             self.track.fill_buffer(samples)
         else:
             self.track = audio.Slave(
@@ -318,7 +324,9 @@ class SoundPTB(_SoundBase):
         sound.
 
         """
-        if self._checkPlaybackFinished():
+        # A paused track looks the same as a finished one to PTB, so only check
+        # for the end when not about to carry on from a pause.
+        if not self._resumeOnPlay and self._checkPlaybackFinished():
             self.stop(reset=True)
 
         if loops is not None and self.loops != loops:
@@ -334,7 +342,10 @@ class SoundPTB(_SoundBase):
             when = self.win.getFutureFlipTime(clock='ptb')
         else:
             logTime = None
-        self.track.start(repetitions=loops, when=when)
+        self._repetitions = loops
+        self.track.start(
+            repetitions=loops, when=when, resume=int(self._resumeOnPlay))
+        self._resumeOnPlay = False
         self._isPlaying = True
         self._isFinished = False
         # time.sleep(0.)
@@ -346,6 +357,7 @@ class SoundPTB(_SoundBase):
         """
         if self._isPlaying:
             self.stop(reset=False, log=False)
+            self._resumeOnPlay = True
             if log and self.autoLog:
                 logging.exp(u"Sound %s paused" % (self.name), obj=self)
 
@@ -367,11 +379,38 @@ class SoundPTB(_SoundBase):
             logging.exp(u"Sound %s stopped" % (self.name), obj=self)
 
     def seek(self, t):
+        """Move playback to `t` seconds into the sound, carrying on playing
+        from there if the sound is playing."""
         self.t = t
         self.frameN = int(round(t * self.sampleRate))
         if self.sndFile and not self.sndFile.closed:
             self.sndFile.seek(self.frameN)
         self._isFinished = t >= self.duration
+
+        track = self.track
+        if track is None:
+            return
+
+        # play from `t` next, rather than from wherever it was paused
+        self._resumeOnPlay = False
+
+        wasPlaying = self._isPlaying
+        if wasPlaying:
+            track.stop()
+
+        # PTB can only start a track from the start of its loop range, so move
+        # that to `t` (refilling the buffer resets it to the whole sound).
+        # Seeking to the end leaves a sample or two to play, since the range
+        # can't be empty, and lets the sound finish as normal.
+        if self.clip is not None:
+            t = min(t, self.clip.duration - 2.0 / self.speaker.sampleRateHz)
+        audio.PsychPortAudio(
+            'SetLoop', track.handle, max(0.0, t), None, 1)
+
+        if wasPlaying:
+            track.start(repetitions=self._repetitions)
+            # it finishes (and ends as usual) once what's left has played
+            self._isFinished = False
 
     def _EOS(self, reset=True, log=True):
         """Function called on End Of Stream
