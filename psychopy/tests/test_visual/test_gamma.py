@@ -1,9 +1,11 @@
 from psychopy import visual, monitors
+import ctypes
 import numpy
 import pytest
 
 from psychopy.tests import skip_under_vm
 from psychopy.visual.backends.pygletbackend import PygletBackend
+import psychopy.tools.pygletgl as GL
 
 
 def _skipWithoutHardwareGamma(win):
@@ -169,14 +171,38 @@ def noHardwareGamma(monkeypatch):
 
 
 def _getCenterPixel(win):
-    """Get the RGB value of the center pixel of the window, as displayed."""
-    win.color = 0  # mid grey, 0.5 in 0:1
-    for _ in range(3):
-        win.flip()
-    pixels = win._getPixels(buffer='front', includeAlpha=False)
-    h, w = pixels.shape[:2]
+    """Get the RGB value of the center pixel of the window, as displayed.
 
-    return pixels[h // 2, w // 2].astype(float)
+    Software gamma is applied when the framebuffer is drawn to the window, so
+    the pixel is read from the window's back buffer at the end of the flip,
+    after that has been done but before the buffers are swapped. The front
+    buffer can't be used: reading it gives back nothing on the software
+    renderer (llvmpipe) the test suite runs on in CI.
+    """
+    pixel = []
+
+    def grabPixel():
+        type(win)._afterFBOrender(win)
+        # the default framebuffer is bound at this point, whether or not an FBO
+        # is used for the frame itself
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        GL.glReadBuffer(GL.GL_BACK)
+        w, h = (int(dim) for dim in win.frameBufferSize)
+        buffer = numpy.empty((h, w, 4), dtype=numpy.uint8)
+        GL.glReadPixels(
+            0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
+            buffer.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
+        pixel.append(buffer[h // 2, w // 2, :3].astype(float))
+
+    win.color = 0  # mid grey, 0.5 in 0:1
+    win._afterFBOrender = grabPixel
+    try:
+        for _ in range(3):
+            win.flip()
+    finally:
+        del win._afterFBOrender
+
+    return pixel[-1]
 
 
 def test_softwareGamma(noHardwareGamma):
