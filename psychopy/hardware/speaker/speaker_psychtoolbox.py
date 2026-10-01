@@ -100,9 +100,13 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         # store playback prefs
         self.resample = resample
         self.latencyClass = latencyClass
-        # find the device, but don't create a stream until we know how many channels are needed
+        # find the device and start a stream on it straight away, since some outputs (such as
+        # HDMI audio) take a second or so to start playing a new stream, which would cut off
+        # the start of the first sound. Sounds are only ever mono or stereo, so open as many
+        # channels as a stereo clip needs; clips are padded to fit a stream with more.
         self.stream = None
         self.findProfile()
+        self.open(channels=min(2, self.channels))
 
     @staticmethod
     def getNumericIndex(index):
