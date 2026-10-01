@@ -3829,6 +3829,28 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioTempFile.name, **speakerKwargs)
         self._audioTrack.volume = self._volume  # set the volume to the current level
         
+    def _restartAudioTrack(self):
+        """Play the extracted audio track again from the start, as when the
+        movie loops.
+
+        Decoders which play the audio themselves loop it along with the video,
+        so this only applies to the track played back separately.
+
+        """
+        track = self._audioTrack
+        if self._noAudio or self._decoderPlaysAudio or track is None:
+            return
+        if not (hasattr(track, 'seek') and hasattr(track, 'play')):
+            return
+
+        # The track may still be playing out its last moments, or have
+        # finished already if it is a little shorter than the video. Seeking
+        # restarts one which is playing, and the other needs playing again.
+        wasPlaying = getattr(track, 'isPlaying', False)
+        track.seek(0.0)
+        if not wasPlaying:
+            track.play()
+
     def _cleanupAudioTrack(self):
         """Clean up the audio track.
 
@@ -3912,6 +3934,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                     # if looping, reset the movie time to 0
                     self._loopCount += 1  # increment loop count
                     self._movieTime = 0.0
+                    self._restartAudioTrack()
                 else:
                     # if not looping, stop playback
                     self._player.pause(True)
