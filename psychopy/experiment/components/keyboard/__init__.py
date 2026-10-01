@@ -68,7 +68,7 @@ class KeyboardComponent(BaseComponent):
             valType="bool", 
             inputType="bool", 
             updates="constant",
-            label=_translate("Mute outside PsychoPy"),
+            label=_translate("Ignore keypresses outside PsychoPy"),
             hint=_translate(
                 "Only collect responses when the PsychoPy window has focus (this is better for security)"
             )
