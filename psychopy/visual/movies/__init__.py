@@ -20,6 +20,7 @@ import os.path
 import sys
 import threading
 import weakref
+from collections import deque
 from pathlib import Path
 
 import tempfile
@@ -46,6 +47,31 @@ reportNDroppedFrames = 10
 
 # time to wait for the movie decoder to respond
 defaultTimeout = 5.0  # seconds
+
+# Pixel format every decoder backend delivers frames in, and the number of bytes
+# per pixel it uses. Frames are packed RGBA rather than RGB even though the
+# movie has no use for the alpha channel, since many drivers have no native
+# three-byte texture format and convert RGB uploads on the way to the GPU.
+FRAME_PIXEL_FORMAT = 'rgba'
+FRAME_BYTES_PER_PIXEL = 4
+
+# Memory the `pyav` backend may use for frames decoded ahead of playback, and
+# the bounds on how many frames that comes to. Decoding ahead on a background
+# thread absorbs frames which take longer than usual to decode, such as the
+# first after a seek while the decoder's own threads refill, rather than
+# stalling the drawing loop. A 4K frame is ~33 MB, so this is 8 frames at 4K
+# and the maximum at 1080p and below.
+PYAV_DECODE_AHEAD_BYTES = 256 * 1024 ** 2
+PYAV_DECODE_AHEAD_MIN_FRAMES = 2
+PYAV_DECODE_AHEAD_MAX_FRAMES = 16
+
+# How far back the `pyav` backend first goes when a seek lands on a frame past
+# the position asked for, doubling each time it still does.
+PYAV_SEEK_BACKOFF = 0.5  # seconds
+
+# Placed in the `pyav` decode-ahead queue where the movie ends. When looping,
+# frames from the start of the next pass are queued after it.
+_PYAV_END_OF_STREAM = object()
 
 # constants for use with ffpyplayer
 FFPYPLAYER_STATUS_EOF = 'eof'
@@ -205,7 +231,7 @@ class MovieMetadata:
     duration : float
         The duration of the movie in seconds.
     colorFormat : str
-        The color format of the movie (e.g. 'rgb24', etc.).
+        The color format of the movie (e.g. 'rgba', etc.).
     audioTrack : AudioMetadata or None
         The audio track metadata.
     
@@ -307,8 +333,8 @@ NULL_MOVIE_METADATA = MovieMetadata(
 
 class _RGBFrameAdapter:
     """Lightweight adapter exposing an `ffpyplayer`-like interface around raw
-    RGB24 frame bytes obtained from other decoder backends (currently
-    `PyAV` and `OpenCV`).
+    RGBA frame bytes obtained from other decoder backends (currently
+    `PyAV`, `OpenCV` and `VLC`).
 
     Higher level code (`MovieFileReader`, `MovieStim`) was originally written
     around `ffpyplayer`'s `Image` objects, which expose `.to_memoryview()`
@@ -320,7 +346,8 @@ class _RGBFrameAdapter:
     Parameters
     ----------
     rgbData : bytes or numpy.ndarray
-        Raw RGB24 pixel data, row-major, 3 bytes per pixel. An array is kept
+        Raw RGBA pixel data, row-major, 4 bytes per pixel (see
+        `FRAME_PIXEL_FORMAT`). An array is kept
         as-is (made contiguous first if needed) rather than converted to
         `bytes`, which would cost a whole-frame copy per decoded frame for no
         benefit; everything downstream reads this through the buffer protocol.
@@ -342,7 +369,7 @@ class _RGBFrameAdapter:
         return self._data
 
     def get_pixel_format(self):
-        return 'rgb24'
+        return FRAME_PIXEL_FORMAT
 
 
 class MovieFileReader:
@@ -371,9 +398,10 @@ class MovieFileReader:
     -----
     * If `decoderLib='ffpyplayer'` or `decoderLib='vlc'`, the decoder is left
       paused after `open()`, so `getFrame()` returns `None` until
-      `pause(False)` is called. The `pyav` and `opencv` backends decode on
-      demand and return a frame immediately. `MovieStim` handles this for you
-      via `play()`.
+      `pause(False)` is called. The `pyav` and `opencv` backends return a
+      frame immediately. `MovieStim` handles this for you via `play()`.
+    * If `decoderLib='pyav'`, frames are decoded ahead of playback on a
+      background thread, up to `PYAV_DECODE_AHEAD_BYTES` worth of them.
     * If `decoderLib='ffpyplayer'`, audio playback is handled externally by 
       SDL2. This means that audio playback is not synchronized with frame 
       presentation in PsychoPy. However, playback will not begin until the audio 
@@ -425,6 +453,29 @@ class MovieFileReader:
         self._container = None  # av.container.InputContainer
         self._videoStream = None  # av video stream being decoded
         self._packetIterator = None  # generator yielding decoded video frames
+        # Frames are decoded ahead of playback on a background thread, which
+        # has sole use of the container and stream above from when it starts
+        # until it is stopped (see `_runPyAVDecoder`). The state shared with
+        # it below is guarded by `_pyavCondition`.
+        self._pyavThread = None
+        self._pyavCondition = threading.Condition()
+        # decoded frames as `(frame, pts)` waiting to be shown, oldest first,
+        # with `_PYAV_END_OF_STREAM` where the movie ends
+        self._pyavQueue = deque()
+        self._pyavQueueDepth = PYAV_DECODE_AHEAD_MIN_FRAMES  # set on open
+        self._pyavSeekTarget = None  # position the thread is to seek to
+        # Bumped on every seek, so the thread can tell that a frame it has
+        # just decoded is from before the seek and drop it
+        self._pyavGeneration = 0
+        self._pyavAtEnd = False  # thread is idle at the end of the movie
+        self._pyavStopping = False  # thread has been asked to exit
+        # Used only by the thread calling `getFrame()`. The first frame after
+        # a seek or a loop wrapping round is shown even if it is a little
+        # ahead of the time asked for, as when a stream starts a frame or two
+        # in. `_pyavLastPTS` is the time the last frame was shown for, to
+        # recognise the movie clock wrapping back round to the start.
+        self._pyavLanding = False
+        self._pyavLastPTS = None
 
         # OpenCV specific state
         self._capture = None  # cv2.VideoCapture object
@@ -710,7 +761,8 @@ class MovieFileReader:
             'an': False,
             'volume': 0.0,  # mute
             'loop': 1,  # number of replays (0=infinite, 1=once, 2=twice, etc.)
-            'infbuf': True
+            'infbuf': True,
+            'out_fmt': FRAME_PIXEL_FORMAT  # so frames need no conversion here
         }
 
         # merge user settings with defaults, user settings take precedence
@@ -798,12 +850,13 @@ class MovieFileReader:
         self._duration = duration
 
         # Report the pixel format frames are actually delivered in rather
-        # than `src_pix_fmt` (the format of the *source* stream). FFPyPlayer
-        # converts to `rgb24` by default, so reporting the source format here
-        # would disagree with what `getFrame()` returns and with the other
-        # decoder backends.
+        # than `src_pix_fmt` (the format of the *source* stream). Frames are
+        # always converted to `FRAME_PIXEL_FORMAT`, whatever `out_fmt` the user
+        # passed, so reporting the source format here would disagree with
+        # what `getFrame()` returns and with the other decoder backends.
         img, curPts = frame
-        deliveredPixFmt = img.get_pixel_format()
+        initialFrameRGB = self._convertFrameToRGBFFPyPlayer(img)
+        deliveredPixFmt = initialFrameRGB.get_pixel_format()
 
         # populate the metadata object with the movie metadata we got
         self._metadata = MovieMetadata(
@@ -815,9 +868,8 @@ class MovieFileReader:
 
         logging.debug("Movie metadata: {}".format(movieMetadata))
 
-        # process the frame we got during warmup, store it so it shows 
-        # when the movie is stopped+idle but not paused
-        initialFrameRGB = self._convertFrameToRGBFFPyPlayer(img)
+        # store the frame we got during warmup so it shows when the movie is
+        # stopped+idle but not paused
         self._frameStore.append(
             (initialFrameRGB, curPts, FFPYPLAYER_STATUS_PAUSED))
     
@@ -865,11 +917,13 @@ class MovieFileReader:
         return reqPTS
     
     def _convertFrameToRGBFFPyPlayer(self, frame):
-        """Convert a frame to RGB format.
+        """Convert a frame to RGBA format.
 
-        This function converts a frame to RGB format. The frame is returned as
-        a Numpy array. The resulting array will be in the correct format to
-        upload to OpenGL as a texture.
+        This function converts a frame to `FRAME_PIXEL_FORMAT`. The player is
+        asked for frames in that format already (see `out_fmt` in
+        `_openFFPyPlayer`), so this only converts if a user-supplied `out_fmt`
+        overrode it. The result will be in the correct format to upload to
+        OpenGL as a texture.
 
         Parameters
         ----------
@@ -878,13 +932,13 @@ class MovieFileReader:
 
         Returns
         -------
-        numpy.ndarray
-            The converted frame in RGB format.
+        ffpyplayer.pic.Image
+            The converted frame in RGBA format.
 
         """
         srcPixFmt = frame.get_pixel_format()
 
-        if srcPixFmt == 'rgb24':  # already converted
+        if srcPixFmt == FRAME_PIXEL_FORMAT:  # already converted
             return frame
 
         from ffpyplayer.pic import SWScale
@@ -897,7 +951,8 @@ class MovieFileReader:
         # it across frames and only rebuild when the format or size changes.
         contextKey = (srcPixFmt, width, height)
         if self._swsContext is None or self._swsContextKey != contextKey:
-            self._swsContext = SWScale(width, height, srcPixFmt, ofmt='rgb24')
+            self._swsContext = SWScale(
+                width, height, srcPixFmt, ofmt=FRAME_PIXEL_FORMAT)
             self._swsContextKey = contextKey
 
         return self._swsContext.scale(frame)
@@ -913,9 +968,9 @@ class MovieFileReader:
         metadata about the movie file. Metadata will be accessible via the
         `getMetadata()` method.
 
-        PyAV pulls frames on demand (there is no background decode thread as
-        with `ffpyplayer`), which makes it well suited for rapidly seeking to
-        and reading arbitrary frames.
+        Once the first frame has been read, frames are decoded ahead of
+        playback on a background thread (see `_runPyAVDecoder`), so that a
+        frame which is slow to decode does not hold up drawing.
 
         """
         logging.info("Using PyAV for reading movie frames.")
@@ -978,7 +1033,7 @@ class MovieFileReader:
             (width, height),
             frameRate,
             duration,
-            'rgb24')
+            FRAME_PIXEL_FORMAT)
 
         logging.debug("Movie metadata: {}".format(repr(self._metadata)))
 
@@ -998,18 +1053,29 @@ class MovieFileReader:
                 'PyAV failed to decode the first frame of the movie. Check '
                 'the movie file.')
 
-        curPts = float(firstFrame.pts * videoStream.time_base) \
-            if firstFrame.pts is not None else 0.0
+        # Show the first frame from the very start of the movie. Streams often
+        # start a frame or two in (when B-frames delay the first one), which
+        # would otherwise leave nothing to show before it.
         initialFrameRGB = self._convertFrameToRGBPyAV(firstFrame)
-        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+        self._frameStore.append((initialFrameRGB, 0.0, 'paused'))
+        self._pyavLastPTS = 0.0
 
-        # reset back to the start of the stream so playback begins at frame 0
-        self._seekPyAV(0.0)
-        # re-add the first frame to the store since seeking clears it
-        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+        # Carry on decoding from here in the background. Seeking back to the
+        # start instead would empty the decoder, which with frame threading
+        # then takes several frames' worth of decoding to produce one again
+        # (~50 ms at 4K), and playback would start by waiting on that.
+        frameBytes = width * height * FRAME_BYTES_PER_PIXEL
+        self._pyavQueueDepth = min(
+            max(PYAV_DECODE_AHEAD_BYTES // frameBytes,
+                PYAV_DECODE_AHEAD_MIN_FRAMES),
+            PYAV_DECODE_AHEAD_MAX_FRAMES)
+        self._startPyAVDecoder()
 
     def _seekPyAV(self, reqPTS):
         """PyAV specific seek routine.
+
+        The seek is handed to the decode thread, which seeks the container and
+        decodes forward to the requested position in the background.
 
         Parameters
         ----------
@@ -1019,9 +1085,8 @@ class MovieFileReader:
         Returns
         -------
         float
-            The presentation timestamp (PTS) requested (PyAV seeks to the
-            nearest preceding keyframe; subsequent `getFrame()` calls decode
-            forward to the exact requested position).
+            The presentation timestamp (PTS) requested. `getFrame()` returns
+            the frame for it once the decode thread has reached it.
 
         """
         reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
@@ -1031,20 +1096,228 @@ class MovieFileReader:
 
         self._cleanUpFrameStore()
 
-        timeBase = self._videoStream.time_base
-        seekTarget = int(reqPTS / timeBase)
+        with self._pyavCondition:
+            self._pyavGeneration += 1
+            self._pyavQueue.clear()  # all from before the seek
+            self._pyavSeekTarget = reqPTS
+            self._pyavAtEnd = False
+            self._pyavCondition.notify_all()
 
-        self._container.seek(
-            seekTarget, stream=self._videoStream, any_frame=False,
-            backward=True)
-
-        # decoding must restart after a container-level seek
-        self._packetIterator = self._container.decode(video=0)
+        self._pyavLanding = True
+        self._pyavLastPTS = None
 
         return reqPTS
 
+    def _startPyAVDecoder(self):
+        """Start the thread which decodes frames ahead of playback.
+
+        From here until `_stopPyAVDecoder()` the container and video stream
+        belong to that thread, and must not be used from any other.
+
+        """
+        with self._pyavCondition:
+            self._pyavQueue.clear()
+            self._pyavSeekTarget = None
+            self._pyavAtEnd = False
+            self._pyavStopping = False
+
+        self._pyavThread = threading.Thread(
+            target=self._runPyAVDecoder,
+            name='PyAVDecoder({})'.format(os.path.basename(self._filename)),
+            daemon=True)
+        self._pyavThread.start()
+
+    def _stopPyAVDecoder(self):
+        """Stop the decode thread and drop any frames it decoded.
+
+        Returns
+        -------
+        bool
+            `True` if the thread has stopped (or was never started), after
+            which the container is free to be closed.
+
+        """
+        if self._pyavThread is None:
+            return True
+
+        with self._pyavCondition:
+            self._pyavStopping = True
+            self._pyavCondition.notify_all()
+
+        # it only checks between frames, so this waits out at most one decode
+        self._pyavThread.join(timeout=defaultTimeout)
+        if self._pyavThread.is_alive():
+            logging.warning(
+                "PyAV decode thread for {} did not stop within {} seconds."
+                .format(self._filename, defaultTimeout))
+            return False
+
+        self._pyavThread = None
+        with self._pyavCondition:
+            self._pyavQueue.clear()
+
+        return True
+
+    def _queuedPyAVFrameCount(self):
+        """Number of decoded frames waiting in the queue (`int`). Must be
+        called holding `_pyavCondition`."""
+        return sum(
+            1 for item in self._pyavQueue if item is not _PYAV_END_OF_STREAM)
+
+    def _runPyAVDecoder(self):
+        """Decode frames ahead of playback. This runs on the decode thread.
+
+        Frames are decoded and converted until `_pyavQueueDepth` of them are
+        waiting, then this waits for `getFrame()` to take some. Seeks are
+        carried out here too, since only this thread may use the container.
+        At the end of the movie `_PYAV_END_OF_STREAM` is queued, and when
+        looping, decoding carries on from the start straight away so that the
+        next pass is ready by the time playback wraps round to it.
+
+        """
+        cond = self._pyavCondition
+        timeBase = self._videoStream.time_base
+        frameInterval = self._frameInterval
+        seekTarget = None  # frames from before this are skipped after a seek
+        # Where the container was last seeked to, and how much further back to
+        # go if the first frame from there turns out to be past `seekTarget`
+        # (`None` once a frame from at or before it has been reached).
+        seekFrom = 0.0
+        seekBackoff = None
+
+        with cond:
+            generation = self._pyavGeneration
+
+        while True:
+            with cond:
+                while not self._pyavStopping and \
+                        self._pyavSeekTarget is None and \
+                        (self._pyavAtEnd or self._queuedPyAVFrameCount() >=
+                            self._pyavQueueDepth):
+                    cond.wait()
+
+                if self._pyavStopping:
+                    return
+
+                seekNow = self._pyavSeekTarget is not None
+                if seekNow:
+                    seekTarget = seekFrom = self._pyavSeekTarget
+                    seekBackoff = PYAV_SEEK_BACKOFF
+                    self._pyavSeekTarget = None
+                    generation = self._pyavGeneration
+
+            failed = False
+            try:
+                if seekNow:
+                    self._seekContainerPyAV(seekFrom)
+
+                avFrame = next(self._packetIterator, None)
+            except Exception as err:
+                # Treat a corrupt or truncated file as the end of the movie,
+                # rather than leave playback waiting on frames that will never
+                # come.
+                logging.error(
+                    "PyAV failed to decode {}: {}".format(self._filename, err))
+                avFrame = None
+                failed = True
+
+            if avFrame is None:  # reached the end of the movie
+                # infinite looping is requested when `loop` is explicitly `0`,
+                # mirroring the `ffpyplayer` convention used elsewhere
+                loopInfinitely = \
+                    self._decoderOpts.get('loop', 1) == 0 and not failed
+                with cond:
+                    if generation != self._pyavGeneration:
+                        continue  # seeked since, so this is not the end now
+                    self._pyavQueue.append(_PYAV_END_OF_STREAM)
+                    self._pyavAtEnd = not loopInfinitely
+                    cond.notify_all()
+
+                if loopInfinitely:
+                    seekTarget = None
+                    try:
+                        self._seekContainerPyAV(0.0)
+                    except Exception as err:
+                        logging.error(
+                            "PyAV failed to rewind {} to loop it: {}".format(
+                                self._filename, err))
+                        with cond:
+                            self._pyavAtEnd = True
+                continue
+
+            pts = float(avFrame.pts * timeBase) \
+                if avFrame.pts is not None else 0.0
+
+            if seekTarget is not None:
+                if seekBackoff is not None:
+                    if pts > seekTarget and seekFrom > 0.0:
+                        # The container seeks to keyframes by decode time, and
+                        # with B-frames the one it lands on can be shown after
+                        # the position asked for, leaving the frames up to it
+                        # unreachable from there. Go back further and decode
+                        # forward instead.
+                        seekFrom = max(0.0, seekFrom - seekBackoff)
+                        seekBackoff *= 2
+                        try:
+                            self._seekContainerPyAV(seekFrom)
+                        except Exception as err:
+                            logging.error("PyAV failed to seek {}: {}".format(
+                                self._filename, err))
+                            seekBackoff = None
+                        continue
+                    seekBackoff = None  # reached a frame from before it
+
+                if pts + frameInterval <= seekTarget:
+                    continue  # from before the position seeked to
+                seekTarget = None
+
+            frame = self._convertFrameToRGBPyAV(avFrame)
+
+            with cond:
+                if generation == self._pyavGeneration:  # else seeked since
+                    self._pyavQueue.append((frame, pts))
+                    cond.notify_all()
+
+    def _seekContainerPyAV(self, pts):
+        """Seek the container to the keyframe at or before `pts` (seconds).
+        Only the decode thread may call this once it has been started."""
+        self._container.seek(
+            int(pts / self._videoStream.time_base), stream=self._videoStream,
+            any_frame=False, backward=True)
+        # decoding must restart after a container-level seek
+        self._packetIterator = self._container.decode(video=0)
+
+    def _skipToNextPassPyAV(self):
+        """Skip ahead to the next pass of a looping movie.
+
+        Returns
+        -------
+        bool
+            `True` if the decode thread had already reached the end of the
+            movie and the frames after it, from the start of the next pass,
+            are now next in line. `False` if it hadn't, or the movie is not
+            looping, in which case nothing is changed.
+
+        """
+        if self._decoderOpts.get('loop', 1) != 0:
+            return False
+
+        with self._pyavCondition:
+            if not any(item is _PYAV_END_OF_STREAM for item in self._pyavQueue):
+                return False
+
+            while self._pyavQueue.popleft() is not _PYAV_END_OF_STREAM:
+                pass  # the rest of the pass being left
+            self._pyavCondition.notify_all()
+
+        self._cleanUpFrameStore()
+        self._pyavLanding = True
+        self._pyavLastPTS = None
+
+        return True
+
     def _convertFrameToRGBPyAV(self, frame):
-        """Convert a PyAV frame to RGB format.
+        """Convert a PyAV frame to RGBA format.
 
         Parameters
         ----------
@@ -1062,15 +1335,21 @@ class MovieFileReader:
         if isinstance(frame, _RGBFrameAdapter):
             return frame  # already converted
 
-        return _RGBFrameAdapter(frame.to_ndarray(format='rgb24'))
+        return _RGBFrameAdapter(frame.to_ndarray(format=FRAME_PIXEL_FORMAT))
 
-    def _getFramePyAV(self, reqPTS=0.0):
+    def _getFramePyAV(self, reqPTS=0.0, blocking=True):
         """Get a frame from the movie file using PyAV.
+
+        Frames are taken from those the decode thread has decoded ahead.
 
         Parameters
         ----------
         reqPTS : float
             The presentation timestamp (PTS) of the frame to get in seconds.
+        blocking : bool
+            Whether to wait for the decode thread if it has yet to reach
+            `reqPTS`. If `False`, returns `None` straight away instead (or the
+            most recent frame before `reqPTS`, if one has been decoded).
 
         Returns
         -------
@@ -1090,40 +1369,84 @@ class MovieFileReader:
         if frame is not None:
             return frame
 
-        # infinite looping is requested when `loop` is explicitly `0`,
-        # mirroring the `ffpyplayer` convention used elsewhere in this file
-        loopInfinitely = self._decoderOpts.get('loop', 1) == 0
+        # A time before the frame last shown, without a seek in between, is
+        # the movie clock wrapping back round to the start for looping
+        # playback. Carry on into the next pass if the decode thread has
+        # queued it up already, and seek there if it hasn't.
+        if self._pyavLastPTS is not None and reqPTS < self._pyavLastPTS:
+            if not self._skipToNextPassPyAV():
+                self._seekPyAV(reqPTS)
 
-        while True:
-            try:
-                avFrame = next(self._packetIterator)
-            except StopIteration:
-                if loopInfinitely:
-                    # restart decoding from the beginning of the stream and
-                    # keep looking for the requested frame (used when the
-                    # caller wraps `reqPTS` back around to 0 for looping
-                    # playback)
-                    self._seekPyAV(0.0)
-                    continue
+        frameInterval = self._metadata.frameInterval
+        deadline = time.time() + defaultTimeout
+        cond = self._pyavCondition
+        found = None  # most recent decoded frame due by `reqPTS`
+        reachedEnd = False
 
-                if self._streamEOFCallback is not None:
-                    self._streamEOFCallback()
-                self._cleanUpFrameStore()
-                self._seeking = False  # nothing left to seek to
-                break
+        with cond:
+            while True:
+                if self._pyavQueue:
+                    head = self._pyavQueue[0]
 
-            curPts = float(avFrame.pts * self._videoStream.time_base) \
-                if avFrame.pts is not None else 0.0
+                    if head is _PYAV_END_OF_STREAM:
+                        # The end only counts once no frame from before it is
+                        # still to be shown. A seek landing here has gone past
+                        # the end, and otherwise it's the end unless the movie
+                        # is looping, which waits here for the movie clock to
+                        # wrap round to the next pass.
+                        if found is None and \
+                                (self._pyavLanding or self._pyavAtEnd):
+                            self._pyavQueue.popleft()
+                            reachedEnd = True
+                        break
 
-            if curPts + self._metadata.frameInterval >= reqPTS:
-                self._frameStore.append(
-                    (self._convertFrameToRGBPyAV(avFrame), curPts, 'playing'))
-                break
+                    img, pts = head
+                    if pts <= reqPTS or (self._pyavLanding and found is None):
+                        self._pyavQueue.popleft()
+                        cond.notify_all()  # room for another
+                        found = head
+                        if reqPTS < pts + frameInterval:
+                            break  # the frame for `reqPTS`
+                        # This one has gone by already, but is the one to show
+                        # unless one after it is due too.
+                        continue
 
-        toReturn = self._getFrameFromStore(reqPTS)
+                    break  # the next frame is not due yet
+
+                # The decode thread has yet to get this far. Without waiting,
+                # the most recent frame found (if any) is the best there is.
+                if self._pyavAtEnd or not blocking:
+                    break
+
+                remaining = deadline - time.time()
+                if remaining <= 0:
+                    logging.warning(
+                        "PyAV did not decode a frame within {} seconds."
+                        .format(defaultTimeout))
+                    break
+
+                cond.wait(remaining)
+
+        if reachedEnd:
+            if self._streamEOFCallback is not None:
+                self._streamEOFCallback()
+            self._cleanUpFrameStore()
+            self._seeking = False  # nothing left to seek to
+            self._pyavLanding = False
+            return None
+
+        if found is None:
+            return None
+
+        img, pts = found
+        self._frameStore.append((img, pts, 'playing'))
         self._cleanUpFrameStore(reqPTS)
+        self._pyavLanding = False
+        # a landing frame can be a little ahead of the time asked for, and
+        # that's not the movie clock going backwards when the next is asked for
+        self._pyavLastPTS = min(pts, reqPTS)
 
-        return toReturn
+        return (img, pts, 'playing')
 
     # --------------------------------------------------------------------------
     # OpenCV specific methods
@@ -1198,7 +1521,7 @@ class MovieFileReader:
             (width, height),
             frameRate,
             duration,
-            'rgb24')
+            FRAME_PIXEL_FORMAT)
 
         logging.debug("Movie metadata: {}".format(repr(self._metadata)))
 
@@ -1277,7 +1600,8 @@ class MovieFileReader:
 
         import cv2
 
-        return _RGBFrameAdapter(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        # OpenCV decodes to BGR; this also fills in an opaque alpha channel
+        return _RGBFrameAdapter(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
 
     def _getFrameOpenCV(self, reqPTS=0.0):
         """Get a frame from the movie file using OpenCV.
@@ -1541,15 +1865,15 @@ class MovieFileReader:
             (width, height),
             frameRate,
             duration,
-            'rgb24')
+            FRAME_PIXEL_FORMAT)
 
         logging.debug("Movie metadata: {}".format(repr(self._metadata)))
 
-        # Ask VLC for packed 24-bit RGB so frames arrive in the format the rest
-        # of this class works in and no colour conversion is needed per frame.
-        # `RV24` is VLC's name for it and is laid out R, G, B in memory.
-        pitch = width * 3
-        self._vlcPlayer.video_set_format('RV24', width, height, pitch)
+        # Ask VLC for packed RGBA so frames arrive in the format the rest of
+        # this class works in and no colour conversion is needed per frame.
+        # `RGBA` is VLC's name for it and is laid out R, G, B, A in memory.
+        pitch = width * FRAME_BYTES_PER_PIXEL
+        self._vlcPlayer.video_set_format('RGBA', width, height, pitch)
 
         # Two buffers so VLC can decode the next frame while the last one is
         # being read, see `displayCallback` above. The spare bytes guard
@@ -1917,8 +2241,8 @@ class MovieFileReader:
     def _convertFrameToRGBVLC(self, frame):
         """Convert a VLC frame to RGB format.
 
-        VLC is asked for `RV24` frames in `_openVLC`, which is already the
-        packed RGB24 layout used throughout this class, so frames are wrapped
+        VLC is asked for `RGBA` frames in `_openVLC`, which is already the
+        packed RGBA layout used throughout this class, so frames are wrapped
         as they are taken from the buffer and nothing is left to do here.
 
         Parameters
@@ -2438,11 +2762,17 @@ class MovieFileReader:
             self._swsContext = None
             self._swsContextKey = None
         elif self._decoderLib == 'pyav':
+            # the decode thread must be done with the container before it can
+            # be closed
+            if not self._stopPyAVDecoder():
+                return
             if self._container is not None:
                 self._container.close()
                 self._container = None
             self._videoStream = None
             self._packetIterator = None
+            self._pyavLanding = False
+            self._pyavLastPTS = None
         elif self._decoderLib == 'opencv':
             if self._capture is not None:
                 self._capture.release()
@@ -2587,9 +2917,10 @@ class MovieFileReader:
 
             self._setVLCPaused(state)
         elif self._decoderLib in ('pyav', 'opencv'):
-            # these backends decode on-demand (there is no background playback
-            # thread to pause); `MovieStim` already stops requesting new frames
-            # when paused, so there is nothing additional to do here.
+            # These backends have no playback clock of their own to pause.
+            # `opencv` decodes on demand, and `pyav` decodes ahead only as far
+            # as its queue allows, then waits. `MovieStim` already stops
+            # requesting new frames when paused, so there is nothing to do.
             pass
 
     def seek(self, pts):
@@ -2687,9 +3018,13 @@ class MovieFileReader:
             The amount of memory used by the movie reader in bytes.
 
         """
-        # sum of bytes used by video segments
+        # sum of bytes used by video segments, including those decoded ahead
         totalFramesDecoded = len(self._frameStore)
-        pixelSize = 3  # all frames are normalized to RGB24 in the frame store
+        if self._decoderLib == 'pyav':
+            with self._pyavCondition:
+                totalFramesDecoded += self._queuedPyAVFrameCount()
+        # all frames are normalized to `FRAME_PIXEL_FORMAT`
+        pixelSize = FRAME_BYTES_PER_PIXEL
         pixelCount = self._srcFrameSize[0] * self._srcFrameSize[1]
 
         return totalFramesDecoded * pixelCount * pixelSize
@@ -2707,9 +3042,9 @@ class MovieFileReader:
             Whether to wait for the decoder to catch up if the frame is not
             ready yet. Pass `False` to return `None` straight away instead, so
             the caller can keep showing the previous frame and ask again later.
-            This only affects `ffpyplayer` and `vlc`, the backends which
-            decode ahead on their own schedule; the others decode on demand
-            when asked.
+            This only affects `ffpyplayer`, `pyav` and `vlc`, the backends
+            which decode ahead on their own schedule; `opencv` decodes on
+            demand when asked.
 
         Returns
         -------
@@ -2720,7 +3055,7 @@ class MovieFileReader:
         if self._decoderLib == 'ffpyplayer':
             frameData = self._getFrameFFPyPlayer(pts, blocking=blocking)
         elif self._decoderLib == 'pyav':
-            frameData = self._getFramePyAV(pts)
+            frameData = self._getFramePyAV(pts, blocking=blocking)
         elif self._decoderLib == 'opencv':
             frameData = self._getFrameOpenCV(pts)
         elif self._decoderLib == 'vlc':
@@ -3704,7 +4039,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     def _setupTextureBuffers(self):
         """Setup texture buffers which hold frame data. This creates a 2D
-        RGB texture and pixel buffer. The pixel buffer serves as the store for
+        RGBA texture and pixel buffer. The pixel buffer serves as the store for
         texture color data. Each frame, the pixel buffer memory is mapped and
         frame data is copied over to the GPU from the decoder.
 
@@ -3718,7 +4053,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # are fixed for the life of the buffers, so they are cached here rather
         # than recomputed on every pixel transfer.
         vidWidth, vidHeight = self._player.getMetadata().size
-        nBufferBytes = vidWidth * vidHeight * 3
+        nBufferBytes = vidWidth * vidHeight * FRAME_BYTES_PER_PIXEL
         self._vidWidth = vidWidth
         self._vidHeight = vidHeight
         self._nBufferBytes = nBufferBytes
@@ -3742,10 +4077,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,
             0,
-            GL.GL_RGB8,
+            GL.GL_RGBA8,
             vidWidth, vidHeight,  # frame dims in pixels
             0,
-            GL.GL_RGB,
+            GL.GL_RGBA,
             GL.GL_UNSIGNED_BYTE,
             None)
 
@@ -3842,13 +4177,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # which `_drawRectangle` sets up for itself.
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        # rows of 4-byte pixels are always 4-byte aligned
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
 
-        # copy the PBO to the texture
+        # copy the PBO to the texture, the format matching the texture's own
+        # so that the driver can copy it as-is rather than convert it
         GL.glTexSubImage2D(
             GL.GL_TEXTURE_2D, 0, 0, 0,
             vidWidth, vidHeight,
-            GL.GL_RGB,
+            GL.GL_RGBA,
             GL.GL_UNSIGNED_BYTE,
             0)  # point to the presently bound buffer
 
