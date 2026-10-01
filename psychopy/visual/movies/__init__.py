@@ -373,7 +373,7 @@ class _RGBFrameAdapter:
 
 
 class _ScheduledTime:
-    """A fixed time on PsychoPy's clock, to pass as `when` to `Sound.play()`.
+    """A fixed absolute time, to pass as `when` to `Sound.play()`.
 
     The `Sound` backends accept a window as `when`, and ask it for the time of
     its next flip in whichever clock they schedule playback with. This answers
@@ -383,8 +383,8 @@ class _ScheduledTime:
     Parameters
     ----------
     t : float
-        Time in seconds on `logging.defaultClock` (as returned by
-        `core.getTime()`).
+        Absolute time in seconds, on the clock `psychopy.clock.getTime()`
+        reads.
 
     """
     __slots__ = ['_t']
@@ -393,17 +393,17 @@ class _ScheduledTime:
         self._t = t
 
     def getFutureFlipTime(self, targetTime=0, clock=None):
-        # mirrors the clock conversion in `Window.getFutureFlipTime`
-        baseClock = logging.defaultClock
+        # mirrors the clock conversion in `Window.getFutureFlipTime`, where
+        # every clock's last reset time is an absolute time like `_t`
         if clock == 'ptb':
-            return self._t + baseClock.getLastResetTime()
+            return self._t
         elif clock == 'now':
-            return self._t - baseClock.getTime()
+            return self._t - core.monotonicClock.getLastResetTime() - \
+                core.getTime()
         elif clock:
-            return self._t + baseClock.getLastResetTime() - \
-                clock.getLastResetTime()
+            return self._t - clock.getLastResetTime()
 
-        return self._t
+        return self._t - logging.defaultClock.getLastResetTime()
 
 
 class MovieFileReader:
@@ -4453,12 +4453,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         Parameters
         ----------
         when : float, :class:`~psychopy.visual.Window` or None
-            When to start playback. Either a time in seconds on PsychoPy's
-            clock (as returned by `core.getTime()`), or a window to start on
-            its next flip. The audio track is scheduled to start at the same
-            time. If `None` (default), or a time which has already passed,
-            playback starts straight away. Until then, the frame at the current
-            position stays on-screen.
+            When to start playback. Either an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads, the same as `when` for
+            `Sound.play()`, or a window to start on its next flip. The audio track is scheduled to start at the same time.
+            If `None` (default), or a time which has already passed, playback
+            starts straight away. Until then, the frame at the current position
+            stays on-screen.
         log : bool
             Log the play event.
 
@@ -4475,13 +4475,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._playbackStatus == PLAYING:
            return  # nop
 
+        # The movie clock runs on `core.getTime()`, which is
+        # `psychopy.clock.getTime()` less `monotonicClock`'s last reset time.
         now = core.getTime()
         if when is None:
             tStart = now
         elif hasattr(when, 'getFutureFlipTime'):
-            tStart = when.getFutureFlipTime(clock=None)
+            tStart = when.getFutureFlipTime(clock=core.monotonicClock)
         else:
-            tStart = float(when)
+            tStart = float(when) - core.monotonicClock.getLastResetTime()
         tStart = max(tStart, now)  # can't start in the past
 
         if not self._noAudio and not self._decoderPlaysAudio:
@@ -4489,7 +4491,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 if when is None:
                     self._audioTrack.play()
                 else:
-                    self._audioTrack.play(when=_ScheduledTime(tStart))
+                    self._audioTrack.play(when=_ScheduledTime(
+                        tStart + core.monotonicClock.getLastResetTime()))
 
         self._playbackStatus = PLAYING
         self._wasPaused = False  # reset the paused flag
