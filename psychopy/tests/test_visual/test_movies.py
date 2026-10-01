@@ -17,7 +17,7 @@ from contextlib import contextmanager
 import numpy as np
 import pytest
 
-from psychopy import visual, prefs
+from psychopy import visual, prefs, core, logging
 from psychopy.visual.movies import MovieFileReader
 from .. import utils
 
@@ -882,3 +882,194 @@ class TestMovieStimPlayback:
 
             mov.muted = False
             assert not mov.muted
+
+
+# --------------------------------------------------------------------------
+# Scheduling
+#
+
+# How far ahead playback is scheduled to start. Long enough to draw a few
+# frames before it, short enough not to slow the suite down.
+SCHEDULE_DELAY = 0.25
+
+# The movie clock is worked out from `core.getTime()` when the movie is drawn,
+# so it should match the wall time since the start to well within a frame.
+# This is a frame of slack for a loaded machine.
+SCHEDULE_TOL = MOVIE_FRAME_INTERVAL
+
+
+def _drawUntil(win, mov, t):
+    """Draw the movie until `core.getTime()` reaches `t`.
+
+    Returns
+    -------
+    float
+        The time the movie was last drawn (just before `draw()` was called).
+
+    """
+    tDrawn = core.getTime()
+    while tDrawn < t:
+        mov.draw()
+        win.flip()
+        tDrawn = core.getTime()
+
+    mov.draw()  # once more at or after `t`
+    win.flip()
+
+    return tDrawn
+
+
+class _AudioTrackStandIn:
+    """Stands in for the `Sound` holding a movie's audio track.
+
+    Audio is disabled in these tests, so this records what `MovieStim` asks of
+    its audio track instead of playing anything.
+
+    """
+    def __init__(self):
+        self.volume = 1.0
+        self.playedWhen = []  # `when` passed to each call to `play()`
+
+    def play(self, when=None, **kwargs):
+        self.playedWhen.append(when)
+
+    def pause(self, **kwargs):
+        pass
+
+    def stop(self, **kwargs):
+        pass
+
+    def seek(self, t):
+        pass
+
+
+class TestMovieStimScheduling:
+    """Tests for scheduling the start of playback with `play(when=...)`."""
+
+    def test_playWhenHoldsUntilStartTime(self, win, movieLib):
+        """Playback scheduled for a time to come holds the movie at its
+        position until then, and the movie clock runs from that time."""
+        with movieStim(win, movieLib) as mov:
+            tStart = core.getTime() + SCHEDULE_DELAY
+            mov.play(when=tStart)
+
+            # scheduled playback counts as playing, so that a
+            # `while mov.isPlaying` loop keeps drawing until it starts
+            assert mov.isPlaying
+
+            drawn = 0
+            while core.getTime() < tStart - MOVIE_FRAME_INTERVAL:
+                _drawFrames(win, mov, count=1)
+                drawn += 1
+                assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
+            assert drawn > 0  # the hold was actually exercised
+
+            tDrawn = _drawUntil(win, mov, tStart + SCHEDULE_DELAY)
+            assert mov.movieTime == pytest.approx(
+                tDrawn - tStart, abs=SCHEDULE_TOL)
+
+    def test_playWhenWindowStartsOnNextFlip(self, win, movieLib):
+        """Passing a window starts playback on its next flip."""
+        with movieStim(win, movieLib) as mov:
+            win.flip()  # so the next flip is a frame away
+
+            mov.play(when=win)
+
+            # drawn ahead of the flip it was scheduled for, so still held
+            mov.draw()
+            assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
+
+            tFlip = win.flip()
+            tDrawn = _drawUntil(win, mov, tFlip + SCHEDULE_DELAY)
+            assert mov.movieTime == pytest.approx(
+                tDrawn - tFlip, abs=SCHEDULE_TOL)
+
+    def test_playWhenInThePastStartsNow(self, win, movieLib):
+        """A start time which has already gone by starts playback straight
+        away, rather than jumping ahead to where the movie would be by now."""
+        with movieStim(win, movieLib) as mov:
+            tPlay = core.getTime()
+            mov.play(when=tPlay - 10.0)
+
+            tDrawn = _drawUntil(win, mov, tPlay + SCHEDULE_DELAY)
+            assert mov.movieTime == pytest.approx(
+                tDrawn - tPlay, abs=SCHEDULE_TOL)
+
+    def test_pauseCancelsScheduledStart(self, win, movieLib):
+        """Pausing before a scheduled start cancels it, and playing again
+        starts from the same position straight away."""
+        with movieStim(win, movieLib) as mov:
+            mov.play(when=core.getTime() + 60.0)
+            _drawFrames(win, mov)
+            mov.pause()
+
+            assert mov.isPaused
+            _drawFrames(win, mov)
+            assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
+
+            tPlay = core.getTime()
+            mov.play()
+            tDrawn = _drawUntil(win, mov, tPlay + SCHEDULE_DELAY)
+            assert mov.movieTime == pytest.approx(
+                tDrawn - tPlay, abs=SCHEDULE_TOL)
+
+    def test_seekBeforePlayIsKept(self, win, movieLib):
+        """A seek before playback starts is where playback starts from, both
+        while waiting for a scheduled start and after it."""
+        with movieStim(win, movieLib) as mov:
+            mov.seek(SAMPLE_EARLY)
+
+            # drawing a movie which hasn't started must not undo the seek
+            _drawFrames(win, mov)
+            assert mov.movieTime == pytest.approx(SAMPLE_EARLY, abs=1e-6)
+
+            tStart = core.getTime() + SCHEDULE_DELAY
+            mov.play(when=tStart)
+            _drawFrames(win, mov)
+            assert mov.movieTime == pytest.approx(SAMPLE_EARLY, abs=1e-6)
+
+            tDrawn = _drawUntil(win, mov, tStart + SCHEDULE_DELAY)
+            assert mov.movieTime == pytest.approx(
+                SAMPLE_EARLY + tDrawn - tStart, abs=SCHEDULE_TOL)
+
+    def test_playWhenSchedulesAudioTrack(self, win, movieLib):
+        """The audio track is scheduled to start at the same time as the
+        video, in a form each `Sound` backend can convert to its own clock.
+
+        The `Sound` backends ask a window passed as `when` for its next flip
+        time, on either PsychoPy's clock, the PTB clock, or relative to now, so
+        `when` must answer for the start time on each of those.
+
+        """
+        with movieStim(win, movieLib) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            track = _AudioTrackStandIn()
+            mov._noAudio = False
+            mov._audioTrack = track
+
+            # without `when`, the track is started straight away
+            mov.play()
+            assert track.playedWhen[-1] is None
+            mov.pause()
+
+            tStart = core.getTime() + 1.0
+            mov.play(when=tStart)
+            when = track.playedWhen[-1]
+
+            assert when.getFutureFlipTime(clock=None) == pytest.approx(tStart)
+            assert when.getFutureFlipTime(clock='ptb') == pytest.approx(
+                tStart + logging.defaultClock.getLastResetTime())
+            assert when.getFutureFlipTime(clock='now') == pytest.approx(
+                tStart - core.getTime(), abs=0.01)
+            mov.pause()
+
+            # a window is resolved to its next flip, the same time the video
+            # is held until
+            win.flip()
+            mov.play(when=win)
+            tFlip = track.playedWhen[-1].getFutureFlipTime(clock=None)
+            assert tFlip == pytest.approx(
+                win.getFutureFlipTime(clock=None), abs=1e-3)
+            assert tFlip > core.getTime()
