@@ -323,6 +323,12 @@ class SoundPTB(_SoundBase):
         Calling this after the sound has finished playing will restart the
         sound.
 
+        `when` is when to start playback: an absolute time in seconds on the
+        clock `psychopy.clock.getTime()` reads, or a `psychopy.visual.Window`
+        to start on its next flip. If `None`, playback starts on the next flip of
+        the window given as `syncToWin`, or immediately without one. A time
+        which has already passed starts playback immediately.
+
         """
         # A paused track looks the same as a finished one to PTB, so only check
         # for the end when not about to carry on from a pause.
