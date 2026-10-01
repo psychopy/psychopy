@@ -74,6 +74,7 @@ from psychopy.sound.audioclip import AudioClip
 from psychopy.sound.microphone import Microphone
 from psychopy.hardware.microphone import MicrophoneDevice
 import psychopy.logging as logging
+import psychopy.clock as clock
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -5744,6 +5745,29 @@ class Camera:
         """
         return time.monotonic()  # timebase of the stream
 
+    def _whenToLocalTime(self, when):
+        """Convert a `when` argument to a time on the camera's own clock.
+
+        Parameters
+        ----------
+        when : float, `psychopy.visual.Window` or None
+            Absolute time in seconds, on the clock `psychopy.clock.getTime()`
+            reads. A window stands for its next flip, and `None` for now.
+
+        Returns
+        -------
+        float
+            The same moment on the clock `_getTime()` reads.
+
+        """
+        now = self._getTime()
+        if when is None:
+            return now
+        if hasattr(when, 'getFutureFlipTime'):
+            return now + when.getFutureFlipTime(clock='now')
+
+        return now + float(when) - clock.getTime()
+
     def record(self, clearLastRecording=True, waitForStart=False, when=None):
         """Start recording frames.
 
@@ -5778,12 +5802,13 @@ class Camera:
             ensure the microphone is actually recording valid samples. In some 
             cases this will result in a delay of up to 1 second before the
             recording starts.
-        when : float or None
-            How long from now to wait before starting the recording, in
-            seconds. This is an offset from the moment `record()` is called,
-            not an absolute time on any clock. If `None`, recording starts
-            immediately. This is useful for synchronizing the recording with
-            other devices or events.
+        when : float, `psychopy.visual.Window` or None
+            Time to start the recording, as an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads, the same as `when` for
+            `Sound.play()`. If a `psychopy.visual.Window` is passed, recording
+            starts at its next flip. If `None`, or a time which has already
+            passed, recording starts immediately. This is useful for
+            synchronizing the recording with other devices or events.
 
             Frames which arrive before the requested start time are not part
             of the recording. They are left out of `frameCount` and out of the
@@ -5837,13 +5862,16 @@ class Camera:
             self._openMovieFileWriter()
 
         # start camera recording
-        self._tRecordingStartRequested = \
-            self._getTime() if when is None else when + self._getTime()
+        self._tRecordingStartRequested = self._whenToLocalTime(when)
 
         # start microphone recording
         if self._usageMode == CAMERA_MODE_VIDEO:
             if self.mic is not None:
-                self.mic.record(when=self._tRecordingStartRequested)
+                # The device works from the requested start above, since this
+                # camera is bound to it as a client, but is told the same time
+                # as an absolute one too.
+                self.mic.record(when=clock.getTime() + (
+                    self._tRecordingStartRequested - self._getTime()))
             else:
                 self._audioReady = True  # no audio stream to wait on
         else:
@@ -5918,19 +5946,21 @@ class Camera:
 
         Parameters
         ----------
-        when : float or None
-            How long from now to wait before stopping, in seconds. This is an
-            offset from the moment `stop()` is called, not an absolute time on
-            any clock. If `None` (or zero, or in the past), recording stops
-            immediately. This is useful for synchronizing the end of the
-            recording with other devices or events.
+        when : float, `psychopy.visual.Window` or None
+            Time to stop the recording, as an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads, the same as `when` for
+            `record()`. If a `psychopy.visual.Window` is passed, recording
+            stops at its next flip. If `None`, or a time which has already
+            passed, recording stops immediately. This is useful for
+            synchronizing the end of the recording with other devices or
+            events.
 
         """
         # poll any remaining frames and stop
         # self.update()
 
         # stop the camera stream
-        self._absVideoRecStopTime = self._getTime() if when is None else when + self._getTime()
+        self._absVideoRecStopTime = self._whenToLocalTime(when)
 
         # Setting the stop time tells microphone backends which stream into our
         # buffer to stop adding to it, and gates the frames `_onNewFrames()`
