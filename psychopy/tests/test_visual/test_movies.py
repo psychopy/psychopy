@@ -936,9 +936,11 @@ class _AudioTrackStandIn:
     def __init__(self):
         self.volume = 1.0
         self.playedWhen = []  # `when` passed to each call to `play()`
+        self.calls = []  # `('play', when)` and `('seek', t)`, in call order
 
     def play(self, when=None, **kwargs):
         self.playedWhen.append(when)
+        self.calls.append(('play', when))
 
     def pause(self, **kwargs):
         pass
@@ -947,7 +949,7 @@ class _AudioTrackStandIn:
         pass
 
     def seek(self, t):
-        pass
+        self.calls.append(('seek', t))
 
 
 class TestMovieStimScheduling:
@@ -1054,6 +1056,40 @@ class TestMovieStimScheduling:
             tDrawn = _drawUntil(win, mov, tStart + SCHEDULE_DELAY)
             assert mov.movieTime == pytest.approx(
                 SAMPLE_EARLY + tDrawn - tStart, abs=SCHEDULE_TOL)
+
+    def test_playStartsAudioTrackFromMovieTime(self, win, movieLib):
+        """Playing seeks the audio track to wherever the video is first, so
+        that resuming doesn't rely on the track carrying on from the right
+        place by itself (the `sounddevice` backend reads ahead of playback,
+        so would resume from a little past where it was paused)."""
+        with movieStim(win, movieLib) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            track = _AudioTrackStandIn()
+            mov._noAudio = False
+            mov._audioTrack = track
+
+            mov.play()
+            _drawFrames(win, mov, count=5, interval=0.01)
+            mov.pause()
+            paused = mov.movieTime
+            assert paused > 0.0
+
+            del track.calls[:]
+            mov.play()
+            (seek, tSeek), (play, _) = track.calls
+            assert (seek, play) == ('seek', 'play')
+            assert tSeek == pytest.approx(paused, abs=1e-6)
+
+            # and from a position seeked to while paused
+            mov.pause()
+            mov.seek(SAMPLE_EARLY)
+            del track.calls[:]
+            mov.play()
+            assert track.calls[0][0] == 'seek'
+            assert track.calls[0][1] == pytest.approx(SAMPLE_EARLY, abs=1e-6)
+            assert track.calls[-1][0] == 'play'
 
     def test_playWhenSchedulesAudioTrack(self, win, movieLib):
         """The audio track is scheduled to start at the same time as the
