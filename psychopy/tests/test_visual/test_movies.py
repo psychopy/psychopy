@@ -332,8 +332,8 @@ class TestMovieStimDecoding:
         """A frame is decoded when the movie is loaded, before playback."""
         with movieStim(win, movieLib) as mov:
             frame = np.asarray(mov._recentFrame)
-            # three bytes per pixel, RGB24
-            assert frame.size == MOVIE_SIZE[0] * MOVIE_SIZE[1] * 3
+            # four bytes per pixel, RGBA
+            assert frame.size == MOVIE_SIZE[0] * MOVIE_SIZE[1] * 4
             assert frame.dtype == np.uint8
             # a real frame, not a blank buffer
             assert frame.std() > 1.0
