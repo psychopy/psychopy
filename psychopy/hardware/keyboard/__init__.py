@@ -9,7 +9,6 @@ __all__ = [
 
 
 if sysconfig.get_config_var("Py_GIL_DISABLED"):
-    print("NO GIL")
     from .thread_keyboard import KeyboardDevice, KeyPress, Keyboard 
 else:
     from .subprocess_keyboard import KeyboardDevice, KeyPress, Keyboard
