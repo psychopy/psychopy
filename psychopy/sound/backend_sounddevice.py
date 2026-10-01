@@ -127,20 +127,22 @@ def _getOutputDevice(speaker):
         returned as it is, there being no devices to look it up among.
 
     """
-    if speaker.index is not None:
-        return int(speaker.index)
-    if speaker.name is None:
+    if speaker.index is None and speaker.name is None:
         return None
     if travisCI:
-        return speaker.name
+        return speaker.name if speaker.index is None else int(speaker.index)
 
     for profile in speaker.queryDevices():
-        if profile['DeviceName'] == speaker.name:
+        if speaker.index is not None:
+            if int(profile['DeviceIndex']) == int(speaker.index):
+                return int(speaker.index)
+        elif profile['DeviceName'] == speaker.name:
             return int(profile['DeviceIndex'])
 
     raise DeviceNotConnectedError(
-        "No audio output device named '{}' found by sounddevice.".format(
-            speaker.name),
+        "No audio output device with {} '{}' found by sounddevice.".format(
+            *(("index", speaker.index) if speaker.index is not None else
+              ("name", speaker.name))),
         deviceClass=type(speaker))
 
 
