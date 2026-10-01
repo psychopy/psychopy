@@ -171,7 +171,7 @@ class KeyboardComponent(BaseComponent):
             "%(name)s = keyboard.Keyboard(\n"
             "    deviceName='defaultKeyboard', \n"
             "    backend={keyboardBackend},\n"
-            "    muteOutsidePsychopy=%(muteOutsidePsychopy)s"
+            "    muteOutsidePsychopy=%(muteOutsidePsychopy)s\n"
             ")\n"
         ).format(
             keyboardBackend=self.exp.settings.params['keyboardBackend'] if self.exp.settings.params['useLegacyKeyboard'] else "None"
