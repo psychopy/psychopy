@@ -78,7 +78,7 @@ dependencies = [
     "opencv-python; python_version < \"3.14\"",
     # platform specific
     "python-vlc >= 3.0.21203",
-    # "pypiwin32; platform_system == \"Windows\"",
+    "pypiwin32; platform_system == \"Windows\"",
     "pyobjc-core > 8.0; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz > 8.0; platform_system == \"Darwin\"",
     "pyobjc > 8.0; platform_system == \"Darwin\"",
@@ -127,7 +127,6 @@ suggested = [
 ]
 legacy = [
     "pyo>=1.0.3",
-    "pyglfw",
     "pygame",
 ]
 
