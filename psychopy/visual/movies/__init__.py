@@ -372,6 +372,40 @@ class _RGBFrameAdapter:
         return FRAME_PIXEL_FORMAT
 
 
+class _ScheduledTime:
+    """A fixed time on PsychoPy's clock, to pass as `when` to `Sound.play()`.
+
+    The `Sound` backends accept a window as `when`, and ask it for the time of
+    its next flip in whichever clock they schedule playback with. This answers
+    the same question for a fixed time, so that each backend converts it to its
+    own clock the same way it would a flip time.
+
+    Parameters
+    ----------
+    t : float
+        Time in seconds on `logging.defaultClock` (as returned by
+        `core.getTime()`).
+
+    """
+    __slots__ = ['_t']
+
+    def __init__(self, t):
+        self._t = t
+
+    def getFutureFlipTime(self, targetTime=0, clock=None):
+        # mirrors the clock conversion in `Window.getFutureFlipTime`
+        baseClock = logging.defaultClock
+        if clock == 'ptb':
+            return self._t + baseClock.getLastResetTime()
+        elif clock == 'now':
+            return self._t - baseClock.getTime()
+        elif clock:
+            return self._t + baseClock.getLastResetTime() - \
+                clock.getLastResetTime()
+
+        return self._t
+
+
 class MovieFileReader:
     """Read movie frames from file.
 
@@ -3328,6 +3362,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # internal status flags for keeping track of the playback state
         self._playbackStatus = NOT_STARTED
         self._wasPaused = False  # was the movie paused?
+        # time playback was scheduled to start by `play(when=...)`, until the
+        # decoder has been started then (`None` when there's nothing pending)
+        self._startPlayerAt = None
 
         # audio stuff
         if audioDevice is not None:
@@ -3642,6 +3679,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._playbackStatus = NOT_STARTED  # reset playback status
         self._pts = 0.0  # reset presentation timestamp
         self._movieTime = 0.0  # reset movie time
+        self._startPlayerAt = None
         self._isLoaded = True
 
         # set the volume to previous 
@@ -3923,6 +3961,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         #     return
 
         if self._playbackStatus == PLAYING:
+            if now < self._lastFrameAbsTime:
+                # Playback is scheduled to start later, see `play(when=...)`.
+                # Hold the current position until then, leaving the start time
+                # where the movie clock will run from.
+                return
+
+            if self._startPlayerAt is not None:
+                self._startPlayer()
+
             # check if were at the end of the movie
             if self._movieTime < self.duration:
                 # determine the current movie time
@@ -3940,9 +3987,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                     self._player.pause(True)
                     self._movieTime = self.duration  # set to end of movie
                     self._playbackStatus = FINISHED  # indicate movie is done
-                
-        elif self._playbackStatus == NOT_STARTED:
-            self._movieTime = 0.0  # reset movie time to 0
+
+        # A movie which hasn't started stays where it is, which is the start
+        # unless it has been seeked (loading, `stop()` and `reset()` all put
+        # it back there themselves).
 
         # if paused, the movie time does not advance but we still need to
         # update the last frame time
@@ -4399,13 +4447,26 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         return self._movieTime
 
-    def play(self, log=True):
+    def play(self, when=None, log=True):
         """Start or continue a paused movie from current position.
 
         Parameters
         ----------
+        when : float, :class:`~psychopy.visual.Window` or None
+            When to start playback. Either a time in seconds on PsychoPy's
+            clock (as returned by `core.getTime()`), or a window to start on
+            its next flip. The audio track is scheduled to start at the same
+            time. If `None` (default), or a time which has already passed,
+            playback starts straight away. Until then, the frame at the current
+            position stays on-screen.
         log : bool
             Log the play event.
+
+        Notes
+        -----
+        * When the decoder plays the audio itself (`ffpyplayer` and `vlc`), it
+          is started on the first `draw()` at or after `when`, so the audio
+          onset is only as precise as the drawing loop.
 
         """
         if self._player is None:
@@ -4413,24 +4474,56 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         
         if self._playbackStatus == PLAYING:
            return  # nop
-        
-        if not self._noAudio:
-            if self._decoderPlaysAudio:
-                self._player.mute(False)
-                self._player.setVolume(self._volume)
-            else:
-                if self._audioTrack is not None and hasattr(self._audioTrack, 'play'):
-                    self._audioTrack.play()
 
-        self._player.pause(False)  # start the player
+        now = core.getTime()
+        if when is None:
+            tStart = now
+        elif hasattr(when, 'getFutureFlipTime'):
+            tStart = when.getFutureFlipTime(clock=None)
+        else:
+            tStart = float(when)
+        tStart = max(tStart, now)  # can't start in the past
+
+        if not self._noAudio and not self._decoderPlaysAudio:
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'play'):
+                if when is None:
+                    self._audioTrack.play()
+                else:
+                    self._audioTrack.play(when=_ScheduledTime(tStart))
+
         self._playbackStatus = PLAYING
         self._wasPaused = False  # reset the paused flag
-        self._lastFrameAbsTime = core.getTime()  # get the current time
+        # the movie clock runs from `tStart`, see `_updateMoviePos`
+        self._lastFrameAbsTime = tStart
+
+        if tStart > now:
+            # Decoders with a clock of their own (and which may be playing the
+            # audio too) are started once the time comes round, see
+            # `_updateMoviePos`.
+            self._startPlayerAt = tStart
+        else:
+            self._startPlayer()
 
         if log:
-            logging.info(
-                "Movie playback {} started at {:.2f} seconds".format(
-                    self._filename, self._movieTime))
+            if tStart > now:
+                logging.info(
+                    "Movie playback {} scheduled to start at {:.2f} seconds "
+                    "in, at t={:.4f}".format(
+                        self._filename, self._movieTime, tStart))
+            else:
+                logging.info(
+                    "Movie playback {} started at {:.2f} seconds".format(
+                        self._filename, self._movieTime))
+
+    def _startPlayer(self):
+        """Start the decoder, and its audio if it plays the audio itself."""
+        self._startPlayerAt = None
+
+        if not self._noAudio and self._decoderPlaysAudio:
+            self._player.mute(False)
+            self._player.setVolume(self._volume)
+
+        self._player.pause(False)  # start the player
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -4450,6 +4543,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                     self._audioTrack.pause()
 
         self._player.pause()
+        self._startPlayerAt = None  # cancel a start still to come, if any
         self._wasPaused = True  # set the paused flag
         self._playbackStatus = PAUSED
 
