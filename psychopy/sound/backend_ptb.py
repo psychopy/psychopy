@@ -254,10 +254,6 @@ class SoundPTB(_SoundBase):
     def _setSndFromClip(self, clip: AudioClip):
         # store clip
         self.clip = clip
-        # resample the clip if needed and allowed
-        if self.speaker.resample:
-            if clip.sampleRateHz != self.speaker.sampleRateHz:
-                clip.resample(targetSampleRateHz=self.speaker.sampleRateHz)
         # work out stop time
         if self.stopTime == -1:
             self.duration = clip.samples.shape[0] / clip.sampleRateHz
@@ -266,14 +262,24 @@ class SoundPTB(_SoundBase):
             clip = clip.asStereo()
         else:
             clip = clip.asMono()
+        # if the speaker has no stream yet, create one with as many channels as the clip
+        self.speaker.open(channels=clip.channels)
+        # resample the clip if needed and allowed
+        if self.speaker.resample:
+            if clip.sampleRateHz != self.speaker.sampleRateHz:
+                clip.resample(targetSampleRateHz=self.speaker.sampleRateHz)
+        # if the stream was already created with more channels, pad with silent channels
+        samples = clip.samples
+        if self.speaker.channels > samples.shape[1]:
+            samples = np.pad(samples, ((0, 0), (0, self.speaker.channels - samples.shape[1])))
         # create/update track
         if  self.track:
             self.track.stop()
-            self.track.fill_buffer(clip.samples)
+            self.track.fill_buffer(samples)
         else:
             self.track = audio.Slave(
                 self.stream.handle, 
-                data=clip.samples,
+                data=samples,
                 volume=self.volume,
                 mode=1
             )
@@ -350,7 +356,9 @@ class SoundPTB(_SoundBase):
         if not self._isPlaying:
             return
 
-        self.track.stop()
+        # track is a weak reference, so may already be gone (e.g. during interpreter shutdown)
+        if self.track is not None:
+            self.track.stop()
         self._isPlaying = False
 
         if reset:
