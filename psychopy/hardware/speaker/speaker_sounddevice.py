@@ -44,9 +44,18 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
             )
             index = None
-        # handle string index
+        # handle string index, which may be a number or a device name
         if isinstance(index, str):
-            index = self.getNumericIndex(index or name)
+            requested = index
+            index = self.getNumericIndex(index)
+            if index is None:
+                # rather than fall back to the default speaker, which would play somewhere
+                # other than asked without saying so
+                raise DeviceNotConnectedError(
+                    _translate(
+                        "No speaker device found with index or name '{}'"
+                    ).format(requested),
+                    deviceClass=SoundDeviceSpeakerDevice)
         # if index is default, get default speaker device
         if index in (-1, None) and name is None:
             index = None  # set to none so we can find by name later
