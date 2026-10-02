@@ -73,7 +73,7 @@
                 <Param name="disabled" val="False" valType="bool" updates="None" plugin="None"/>
                 <Param name="Before Experiment" val="" valType="extendedCode" updates="constant" plugin="None"/>
                 <Param name="Begin Experiment" val="expectedValues = {&#13;&#10;    'variableA': [&quot;a1&quot;, &quot;a2&quot;, &quot;a3&quot;, &quot;a4&quot;, &quot;a5&quot;],&#13;&#10;    'variableB': [&quot;b1&quot;, &quot;b2&quot;, &quot;b3&quot;, &quot;b4&quot;, &quot;b5&quot;],&#13;&#10;    'variableC': [&quot;c1&quot;, &quot;c2&quot;, &quot;c3&quot;, &quot;c4&quot;, &quot;c5&quot;],&#13;&#10;}" valType="extendedCode" updates="constant" plugin="None"/>
-                <Param name="Begin Routine" val="assert variableA === expectedValues['variableA'][trials.thisN]&#13;&#10;assert variableB === expectedValues['variableB'][trials.thisN]&#13;&#10;assert variableC === expectedValues['variableC'][trials.thisN]" valType="extendedCode" updates="constant" plugin="None"/>
+                <Param name="Begin Routine" val="assert variableA == expectedValues['variableA'][trials.thisN]&#13;&#10;assert variableB == expectedValues['variableB'][trials.thisN]&#13;&#10;assert variableC == expectedValues['variableC'][trials.thisN]" valType="extendedCode" updates="constant" plugin="None"/>
                 <Param name="Each Frame" val="" valType="extendedCode" updates="constant" plugin="None"/>
                 <Param name="End Routine" val="" valType="extendedCode" updates="constant" plugin="None"/>
                 <Param name="End Experiment" val="" valType="extendedCode" updates="constant" plugin="None"/>
