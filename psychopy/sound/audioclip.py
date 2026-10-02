@@ -110,7 +110,6 @@ class AudioClip:
         # samples should be a 2D array where columns represent channels
         self._samples = np.atleast_2d(
             np.asarray(samples, dtype=np.float32, order='C'))
-        self._samples.clip(-1, 1)  # force values to be clipped
 
         # set the sample rate of the clip
         self._sampleRateHz = int(sampleRateHz)
