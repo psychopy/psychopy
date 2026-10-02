@@ -349,6 +349,41 @@ def test_audioclip_clipping():
     assert np.allclose(audioClip.samples, [[1.0, 1.0], [-1.0, -1.0]])
 
 
+@pytest.mark.audioclip
+def test_audioclip_copying():
+    """Test that a clip keeps its own copy of the samples by default, and
+    shares the caller's array only when asked to and only when that is safe.
+    """
+    inRange = np.full((128, 2), 0.5, dtype=np.float32)
+
+    # by default the clip has a copy of its own, which the caller can't touch
+    audioClip = AudioClip(inRange, sampleRateHz=SAMPLE_RATE_48kHz)
+    assert not np.shares_memory(audioClip.samples, inRange)
+    inRange[:] = 0.25
+    assert np.allclose(audioClip.samples, 0.5)
+
+    # with `copy=False` the array is used as it is, saving the copy
+    inRange = np.full((128, 2), 0.5, dtype=np.float32)
+    audioClip = AudioClip(inRange, sampleRateHz=SAMPLE_RATE_48kHz, copy=False)
+    assert np.shares_memory(audioClip.samples, inRange)
+
+    # ...but never where samples need clipping, which must not reach back into
+    # the caller's array
+    outOfRange = np.full((128, 2), 2.0, dtype=np.float32)
+    audioClip = AudioClip(
+        outOfRange, sampleRateHz=SAMPLE_RATE_48kHz, copy=False)
+    assert not np.shares_memory(audioClip.samples, outOfRange)
+    assert np.allclose(audioClip.samples, 1.0)
+    assert np.allclose(outOfRange, 2.0)
+
+    # ...nor where the samples had to be converted, which copies them anyway
+    needsConverting = np.full((128, 2), 0.5, dtype=np.float64)
+    audioClip = AudioClip(
+        needsConverting, sampleRateHz=SAMPLE_RATE_48kHz, copy=False)
+    assert not np.shares_memory(audioClip.samples, needsConverting)
+    assert audioClip.samples.dtype == np.float32
+
+
 if __name__ == "__main__":
     # runs if this script is directly executed
     test_audioclip_create()
@@ -358,3 +393,4 @@ if __name__ == "__main__":
     test_audioclip_file()
     test_audioclip_clipping()
     test_audioclip_rms()
+    test_audioclip_copying()
