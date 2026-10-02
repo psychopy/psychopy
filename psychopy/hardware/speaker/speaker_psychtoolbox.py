@@ -176,18 +176,15 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             The number of output channels. Until a stream is created, this is the maximum number of 
             channels the device supports.
         """
-        # get the devices from psychtoolbox
-        ptb = systemtools.importPsychtoolbox('psychtoolbox.audio')
-        
+        # get the devices from psychtoolbox, which raises a plain `Exception` rather than giving
+        # an empty list when PortAudio finds no devices at all
         try:
-            wasapiPref = prefs.hardware['audioWASAPIOnly']
-        except KeyError:
-            wasapiPref = False
-            
-        if sys.platform == 'win32' and wasapiPref:
-            allFoundDevices = ptb.get_devices(device_type=13)
-        else:
-            allFoundDevices = ptb.get_devices()
+            allFoundDevices = self._getDevicesPsychtoolbox()
+        except Exception as err:
+            raise DeviceNotConnectedError(
+                _translate("No audio devices found! ({})").format(err),
+                deviceClass=PsychtoolboxSpeakerDevice
+            ) from err
 
         if not allFoundDevices:
             raise DeviceNotConnectedError(
