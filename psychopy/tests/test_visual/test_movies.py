@@ -327,6 +327,25 @@ def _drawnSize(win, mov):
 class TestMovieStimDecoding:
     """Tests for opening movie files and decoding frames from them."""
 
+    def test_readerClassForBackend(self, movieLib):
+        """Creating a `MovieFileReader` gives the reader of the backend asked
+        for, whose own class can't be asked for another."""
+        reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
+        readerClass = type(reader)
+        assert readerClass is not MovieFileReader
+        assert isinstance(reader, MovieFileReader)
+        assert reader.decoderLib == movieLib
+
+        assert type(readerClass(str(MOVIE_PATH))) is readerClass
+
+        otherLib = next(
+            lib for lib in movies.SUPPORTED_VIDEO_LIBS if lib != movieLib)
+        with pytest.raises(ValueError):
+            readerClass(str(MOVIE_PATH), decoderLib=otherLib)
+
+        with pytest.raises(ValueError):
+            MovieFileReader(str(MOVIE_PATH), decoderLib='nonsense')
+
     def test_metadata(self, win, movieLib):
         """Movie metadata is reported correctly and agrees across backends."""
         with movieStim(win, movieLib) as mov:
@@ -1287,14 +1306,14 @@ class TestMovieStimFrameTiming:
             pytest.skip('{} does not decode ahead'.format(movieLib))
 
         decodedOn = set()
-        decodeNextFrame = movies.MovieFileReader._decodeNextFrame
+        readerClass = movies.readers._base._MOVIE_READER_CLASSES[movieLib]
+        decodeNextFrame = readerClass._decodeNextFrame
 
         def recording(reader):
             decodedOn.add(threading.current_thread())
             return decodeNextFrame(reader)
 
-        monkeypatch.setattr(
-            movies.MovieFileReader, '_decodeNextFrame', recording)
+        monkeypatch.setattr(readerClass, '_decodeNextFrame', recording)
 
         with movieStim(win, movieLib) as mov:
             mov.play()
@@ -1861,7 +1880,8 @@ class TestMovieStimDownscaling:
             reader.seek(SAMPLE_EARLY)
             img = reader.getFrame(SAMPLE_EARLY)[0]
             assert img.size == (MOVIE_SIZE[0], 10)
-            assert reader._decodeQueueDepth == movies.DECODE_AHEAD_MAX_FRAMES
+            assert reader._decodeQueueDepth == \
+                movies.readers._base.DECODE_AHEAD_MAX_FRAMES
         finally:
             reader.close()
 
@@ -1882,12 +1902,13 @@ class TestMovieStimDownscaling:
             0, 256, (288, 352, 3), dtype=np.uint8)
         frame = cv2.GaussianBlur(frame, (0, 0), 3)  # some structure to keep
 
-        scaled = movies._resizeFrameOpenCV(frame, size)
+        scaled = movies.readers.opencv_reader._resizeFrameOpenCV(frame, size)
         assert (scaled.shape[1], scaled.shape[0]) == size
         oneGo = cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
         assert np.abs(scaled.astype(int) - oneGo).mean() < 2.0
 
-        nearest = movies._resizeFrameOpenCV(frame, size, 'POINT')
+        nearest = movies.readers.opencv_reader._resizeFrameOpenCV(
+            frame, size, 'POINT')
         np.testing.assert_array_equal(
             nearest, cv2.resize(frame, size, interpolation=cv2.INTER_NEAREST))
 
@@ -2002,7 +2023,7 @@ class TestMovieStimGPUColorConversion:
         """Frames are converted with the colour matrix they're tagged with,
         or the one video players take untagged frames of their size to be."""
         frame = _TaggedFrame(colorspace, *size)
-        assert movies._frameColorMatrix(frame) == expected
+        assert movies.frame._frameColorMatrix(frame) == expected
 
     @pytest.mark.parametrize('fullRange', [False, True])
     @pytest.mark.parametrize('colorMatrix', sorted(movies._COLOR_MATRIX_KR_KB))
@@ -2039,7 +2060,8 @@ class TestMovieStimGPUColorConversion:
 
         with movieStim(win, movieLib, gpuColorConversion=False) as mov:
             assert mov._player.outputPixelFormat == 'rgba'
-            assert isinstance(mov._recentFrameImage, movies._RGBFrameAdapter)
+            assert isinstance(
+                mov._recentFrameImage, movies.frame._RGBFrameAdapter)
             assert mov._planeTextureIds is None
 
     @pytest.mark.parametrize('colorspace, colorRange', [
@@ -2160,7 +2182,8 @@ class TestMovieStimGPUColorConversion:
         path = _writeTaggedMovie(tmp_path / 'grey.mkv', pixelFormat='gray')
         with movieStim(win, movieLib, filename=path) as mov:
             assert mov._player.outputPixelFormat == 'yuv'
-            assert isinstance(mov._recentFrameImage, movies._RGBFrameAdapter)
+            assert isinstance(
+                mov._recentFrameImage, movies.frame._RGBFrameAdapter)
             assert mov._planeTextureIds is None
             mov.draw()
 
