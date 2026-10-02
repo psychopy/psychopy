@@ -73,10 +73,10 @@ def expression2js(expr):
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
         # for py2 using 'unicode_literals' we don't want
-        if isinstance(node, ast.Str) and type(node.s)==bytes:
-            node.s = str(node.s, 'utf-8')
-        elif isinstance(node, ast.Str) and node.s.startswith("u'"):
-            node.s = node.s[1:]
+        if isinstance(node, ast.Constant) and isinstance(node.value, bytes):
+            node.value = str(node.value, 'utf-8')
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value.startswith("u'"):
+            node.value = node.value[1:]
         if isinstance(node, ast.Name):
             if node.id == 'undefined':
                 continue
