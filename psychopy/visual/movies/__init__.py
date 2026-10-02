@@ -230,6 +230,68 @@ def _frameSampleOffset(framePeriod, frameInterval):
     return min(frameInterval / (2 * cadence.denominator), framePeriod / 2.0)
 
 
+# OpenCV's nearest equivalents of the `swscale` filters frames are scaled down
+# with, see `_resizeFrameOpenCV`
+_OPENCV_INTERPOLATION = {
+    'POINT': 'INTER_NEAREST',
+    'FAST_BILINEAR': 'INTER_LINEAR',
+    'BILINEAR': 'INTER_LINEAR',
+    'BICUBIC': 'INTER_CUBIC',
+    'LANCZOS': 'INTER_LANCZOS4'}
+
+
+def _resizeFrameOpenCV(frame, size, interpolation='AREA'):
+    """Scale a frame decoded by OpenCV down to `size`.
+
+    A box filter (`'AREA'`) is quick where the frame's size is a whole multiple
+    of `size`, but the general case is slow for large reductions (~20 ms
+    taking a 4K frame down to 333x250). So unless the sizes divide exactly,
+    the frame is first halved for as long as it divides exactly without going
+    below `size`, which stays on the quick path, and only what's left is done
+    the slow way. That softens the result a little compared with doing it in
+    one go, and makes the cost a few milliseconds at most for a 4K frame.
+
+    Parameters
+    ----------
+    frame : ndarray
+        Frame decoded by OpenCV, shaped `(h, w, channels)`.
+    size : tuple
+        Size `(w, h)` in pixels to scale to, no larger than the frame's own.
+    interpolation : str
+        `swscale` name of the filter to use, see `setOutputFrameSize`.
+
+    Returns
+    -------
+    ndarray
+        The frame at `size`.
+
+    """
+    import cv2
+
+    if interpolation != 'AREA':
+        return cv2.resize(frame, size, interpolation=getattr(
+            cv2, _OPENCV_INTERPOLATION.get(interpolation, 'INTER_AREA')))
+
+    height, width = frame.shape[:2]
+    if width % size[0] or height % size[1]:
+        def halvings(src, dst):
+            factor = 1
+            while src % (2 * factor) == 0 and src // (2 * factor) >= dst:
+                factor *= 2
+            return factor
+
+        xFactor, yFactor = halvings(width, size[0]), halvings(height, size[1])
+        if xFactor > 1 or yFactor > 1:
+            frame = cv2.resize(
+                frame, (width // xFactor, height // yFactor),
+                interpolation=cv2.INTER_AREA)
+
+    if (frame.shape[1], frame.shape[0]) == tuple(size):
+        return frame
+
+    return cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
+
+
 # ------------------------------------------------------------------------------
 # Classes
 #
@@ -811,8 +873,8 @@ class MovieFileReader:
 
         Frames are never scaled up, nor is their own size changed in either
         dimension beyond `size`. Frames already decoded keep the size they
-        were decoded at. Only `pyav` scales frames, the other backends always
-        give them at their own size.
+        were decoded at. Only `pyav` and `opencv` scale frames, the other
+        backends always give them at their own size.
 
         Parameters
         ----------
@@ -821,7 +883,9 @@ class MovieFileReader:
             keep their own size.
         interpolation : str
             `swscale` filter to scale frames with, such as `'AREA'` (box
-            filter, the default) or `'POINT'` (nearest neighbour).
+            filter, the default) or `'POINT'` (nearest neighbour). For
+            `opencv`, the nearest equivalent of OpenCV's is used, see
+            `_resizeFrameOpenCV`.
 
         """
         if size is not None:
@@ -1930,6 +1994,15 @@ class MovieFileReader:
             return frame  # already converted
 
         import cv2
+
+        # Scaled down before converting, which then has fewer pixels to do,
+        # see `setOutputFrameSize`
+        outputSize, interpolation = self._outputFrameFormat
+        if outputSize is not None:
+            height, width = frame.shape[:2]
+            size = (min(outputSize[0], width), min(outputSize[1], height))
+            if size != (width, height):
+                frame = _resizeFrameOpenCV(frame, size, interpolation)
 
         # OpenCV decodes to BGR; this also fills in an opaque alpha channel
         return _RGBFrameAdapter(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
@@ -3600,7 +3673,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         the GPU for each frame (a 4K frame drawn at 800x600 goes from ~33 MB to
         ~2 MB), and looks better than leaving the GPU to shrink it. Frames are
         scaled with a box filter, or nearest neighbour if `interpolate` is
-        `False`. Only the `pyav` backend scales frames. Default is `True`.
+        `False`. Only the `pyav` and `opencv` backends scale frames. Default
+        is `True`.
 
     Notes
     -----
