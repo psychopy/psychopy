@@ -16,11 +16,13 @@ __all__ = [
 
 
 import ctypes
+import functools
 import os.path
 import sys
 import threading
 import weakref
 from collections import deque
+from fractions import Fraction
 from pathlib import Path
 
 import tempfile
@@ -72,6 +74,12 @@ PYAV_SEEK_BACKOFF = 0.5  # seconds
 # Placed in the `pyav` decode-ahead queue where the movie ends. When looping,
 # frames from the start of the next pass are queued after it.
 _PYAV_END_OF_STREAM = object()
+
+# Largest denominator considered when working out how display refreshes line
+# up with movie frames, see `_frameSampleOffset`. Large enough for the common
+# pairings (e.g. 25 FPS at 60 Hz is 5/12, 30 FPS at 144 Hz is 5/24), and small
+# enough that a refresh rate measured as 59.96 Hz still counts as 60.
+FRAME_CADENCE_MAX_DENOMINATOR = 24
 
 # constants for use with ffpyplayer
 FFPYPLAYER_STATUS_EOF = 'eof'
@@ -162,6 +170,50 @@ def getBackend():
 
     """
     return backend
+
+
+@functools.lru_cache(maxsize=16)
+def _frameSampleOffset(framePeriod, frameInterval):
+    """How far past the movie clock to look for the frame to show.
+
+    The movie clock is read at each flip, and when playback starts it is on a
+    flip too. Unless the display refresh period and the movie frame interval
+    are unrelated, the clock then keeps landing on the same few positions
+    within a frame, and when playback starts at the start of a frame, one of
+    those is the very start of a frame. The slightest jitter then decides
+    between that frame and the one before it, and the movie judders, repeating
+    one frame and skipping the next. A 60 FPS movie on a 60 Hz display does
+    this on every flip.
+
+    Where the refresh period is `p / q` frame intervals in lowest terms, the
+    clock lands on positions `frameInterval / q` apart. Looking half that far
+    ahead keeps all of them as far from the start of a frame as they can be.
+
+    Parameters
+    ----------
+    framePeriod : float
+        Display refresh period in seconds.
+    frameInterval : float
+        Movie frame interval in seconds.
+
+    Returns
+    -------
+    float
+        Offset in seconds to add to the movie clock when choosing the frame to
+        show, or `0.0` if either period is unknown.
+
+    """
+    if not (framePeriod and frameInterval) or \
+            framePeriod < 0.0 or frameInterval < 0.0:
+        return 0.0
+
+    cadence = Fraction(framePeriod / frameInterval).limit_denominator(
+        FRAME_CADENCE_MAX_DENOMINATOR)
+
+    # Where the true denominator is larger than allowed above, positions are
+    # closer together than the approximation suggests, so never look further
+    # ahead than half a refresh. This only changes the result in that case.
+    return min(frameInterval / (2 * cadence.denominator), framePeriod / 2.0)
 
 
 # ------------------------------------------------------------------------------
@@ -503,6 +555,16 @@ class MovieFileReader:
         self._pyavGeneration = 0
         self._pyavAtEnd = False  # thread is idle at the end of the movie
         self._pyavStopping = False  # thread has been asked to exit
+        # Frames this reader is finished with, which the decode thread drops so
+        # that freeing them (~2 ms each at 4K) doesn't hold up drawing. They
+        # are collected by the thread calling `getFrame()` in
+        # `_pyavReleasePending`, which only it uses, and handed over to
+        # `_pyavReleased` (guarded by `_pyavCondition`) by `decodeAhead()`.
+        self._pyavReleasePending = []
+        self._pyavReleased = []
+        # `getFrame()` has taken frames from the queue without letting the
+        # decode thread know yet, see `decodeAhead()`
+        self._pyavRefillPending = False
         # Used only by the thread calling `getFrame()`. The first frame after
         # a seek or a loop wrapping round is shown even if it is a little
         # ahead of the time asked for, as when a stream starts a frame or two
@@ -1132,7 +1194,10 @@ class MovieFileReader:
 
         with self._pyavCondition:
             self._pyavGeneration += 1
-            self._pyavQueue.clear()  # all from before the seek
+            # all from before the seek, freed by the decode thread on its way
+            # to the new position
+            self._pyavReleased.extend(self._pyavQueue)
+            self._pyavQueue.clear()
             self._pyavSeekTarget = reqPTS
             self._pyavAtEnd = False
             self._pyavCondition.notify_all()
@@ -1151,9 +1216,13 @@ class MovieFileReader:
         """
         with self._pyavCondition:
             self._pyavQueue.clear()
+            self._pyavReleased.clear()
             self._pyavSeekTarget = None
             self._pyavAtEnd = False
             self._pyavStopping = False
+
+        self._pyavReleasePending.clear()
+        self._pyavRefillPending = False
 
         self._pyavThread = threading.Thread(
             target=self._runPyAVDecoder,
@@ -1189,6 +1258,10 @@ class MovieFileReader:
         self._pyavThread = None
         with self._pyavCondition:
             self._pyavQueue.clear()
+            self._pyavReleased.clear()
+
+        self._pyavReleasePending.clear()
+        self._pyavRefillPending = False
 
         return True
 
@@ -1226,6 +1299,7 @@ class MovieFileReader:
             with cond:
                 while not self._pyavStopping and \
                         self._pyavSeekTarget is None and \
+                        not self._pyavReleased and \
                         (self._pyavAtEnd or self._queuedPyAVFrameCount() >=
                             self._pyavQueueDepth):
                     cond.wait()
@@ -1233,12 +1307,26 @@ class MovieFileReader:
                 if self._pyavStopping:
                     return
 
+                released = self._pyavReleased  # dropped below
+                self._pyavReleased = []
+
                 seekNow = self._pyavSeekTarget is not None
                 if seekNow:
                     seekTarget = seekFrom = self._pyavSeekTarget
                     seekBackoff = PYAV_SEEK_BACKOFF
                     self._pyavSeekTarget = None
                     generation = self._pyavGeneration
+
+                # woken only to free frames, with nowhere to put another
+                noRoom = not seekNow and (
+                    self._pyavAtEnd or self._queuedPyAVFrameCount() >=
+                    self._pyavQueueDepth)
+
+            # Free the frames handed over here, outside the lock, rather than
+            # on the thread drawing them where it would hold up a frame.
+            del released
+            if noRoom:
+                continue
 
             failed = False
             try:
@@ -1340,8 +1428,12 @@ class MovieFileReader:
             if not any(item is _PYAV_END_OF_STREAM for item in self._pyavQueue):
                 return False
 
-            while self._pyavQueue.popleft() is not _PYAV_END_OF_STREAM:
-                pass  # the rest of the pass being left
+            while True:
+                item = self._pyavQueue.popleft()
+                if item is _PYAV_END_OF_STREAM:
+                    break
+                # the rest of the pass being left, for the decode thread to free
+                self._pyavReleased.append(item)
             self._pyavCondition.notify_all()
 
         self._cleanUpFrameStore()
@@ -1371,7 +1463,7 @@ class MovieFileReader:
 
         return _RGBFrameAdapter(frame.to_ndarray(format=FRAME_PIXEL_FORMAT))
 
-    def _getFramePyAV(self, reqPTS=0.0, blocking=True):
+    def _getFramePyAV(self, reqPTS=0.0, blocking=True, deferDecoding=False):
         """Get a frame from the movie file using PyAV.
 
         Frames are taken from those the decode thread has decoded ahead.
@@ -1384,6 +1476,10 @@ class MovieFileReader:
             Whether to wait for the decode thread if it has yet to reach
             `reqPTS`. If `False`, returns `None` straight away instead (or the
             most recent frame before `reqPTS`, if one has been decoded).
+        deferDecoding : bool
+            Leave the decode thread be until `decodeAhead()` is called, rather
+            than having it replace the frames taken straight away. See
+            `getFrame()`.
 
         Returns
         -------
@@ -1394,6 +1490,10 @@ class MovieFileReader:
         """
         if self._container is None:
             return None
+
+        # in case the last call deferred decoding and `decodeAhead()` has not
+        # been called since
+        self.decodeAhead()
 
         reqPTS = min(
             max(0.0, reqPTS),
@@ -1436,8 +1536,17 @@ class MovieFileReader:
 
                     img, pts = head
                     if pts <= reqPTS or (self._pyavLanding and found is None):
+                        # The decode thread is not told there is room for
+                        # another until `decodeAhead()`. Waking it here would
+                        # have it decoding and converting a frame just as this
+                        # one is copied to the GPU, and they compete for memory
+                        # bandwidth, which roughly doubles the time taken by
+                        # that copy for 4K frames.
                         self._pyavQueue.popleft()
-                        cond.notify_all()  # room for another
+                        self._pyavRefillPending = True
+                        if found is not None:
+                            # gone by already, so not shown after all
+                            self._pyavReleasePending.append(found)
                         found = head
                         if reqPTS < pts + frameInterval:
                             break  # the frame for `reqPTS`
@@ -1459,6 +1568,8 @@ class MovieFileReader:
                         .format(defaultTimeout))
                     break
 
+                # the decode thread may be waiting on room made above
+                cond.notify_all()
                 cond.wait(remaining)
 
         if reachedEnd:
@@ -1467,20 +1578,24 @@ class MovieFileReader:
             self._cleanUpFrameStore()
             self._seeking = False  # nothing left to seek to
             self._pyavLanding = False
-            return None
+            frameData = None
+        elif found is None:
+            frameData = None
+        else:
+            img, pts = found
+            self._frameStore.append((img, pts, 'playing'))
+            self._cleanUpFrameStore(reqPTS)
+            self._pyavLanding = False
+            # a landing frame can be a little ahead of the time asked for, and
+            # that's not the movie clock going backwards when the next is
+            # asked for
+            self._pyavLastPTS = min(pts, reqPTS)
+            frameData = (img, pts, 'playing')
 
-        if found is None:
-            return None
+        if not deferDecoding:
+            self.decodeAhead()
 
-        img, pts = found
-        self._frameStore.append((img, pts, 'playing'))
-        self._cleanUpFrameStore(reqPTS)
-        self._pyavLanding = False
-        # a landing frame can be a little ahead of the time asked for, and
-        # that's not the movie clock going backwards when the next is asked for
-        self._pyavLastPTS = min(pts, reqPTS)
-
-        return (img, pts, 'playing')
+        return frameData
 
     # --------------------------------------------------------------------------
     # OpenCV specific methods
@@ -2829,14 +2944,19 @@ class MovieFileReader:
 
         """
         if keepAfterPTS is None:
-            self._frameStore.clear()
-            return
-        
-        for i, frame in enumerate(self._frameStore):
-            if frame[1] >= keepAfterPTS - self._metadata.frameInterval:
-                self._frameStore = self._frameStore[i:]
-                break
-            
+            keepFrom = len(self._frameStore)
+        else:
+            keepFrom = next(
+                (i for i, (_, pts, _) in enumerate(self._frameStore)
+                 if pts >= keepAfterPTS - self._metadata.frameInterval),
+                0)  # keep them all if none are recent enough
+
+        if self._pyavThread is not None:
+            # freed by the decode thread, see `decodeAhead()`
+            self._pyavReleasePending.extend(self._frameStore[:keepFrom])
+
+        del self._frameStore[:keepFrom]
+
     def _getFrameFromStore(self, reqPTS):
         """Get a frame from the store.
 
@@ -3063,8 +3183,8 @@ class MovieFileReader:
 
         return totalFramesDecoded * pixelCount * pixelSize
     
-    def getFrame(self, pts=0.0, blocking=True):
-        """Get a frame from the movie file at the specified presentation 
+    def getFrame(self, pts=0.0, blocking=True, deferDecoding=False):
+        """Get a frame from the movie file at the specified presentation
         timestamp.
 
         Parameters
@@ -3079,6 +3199,13 @@ class MovieFileReader:
             This only affects `ffpyplayer`, `pyav` and `vlc`, the backends
             which decode ahead on their own schedule; `opencv` decodes on
             demand when asked.
+        deferDecoding : bool
+            If `True`, the decoder is left to replace the frames this takes
+            when `decodeAhead()` is next called, rather than straight away.
+            Call that once done with the frame, such as once it has been
+            copied to the GPU, so that the decoder isn't competing with that
+            for the CPU and memory bandwidth. Failing that, it happens at the
+            start of the next call to this. Only affects `pyav`.
 
         Returns
         -------
@@ -3089,7 +3216,8 @@ class MovieFileReader:
         if self._decoderLib == 'ffpyplayer':
             frameData = self._getFrameFFPyPlayer(pts, blocking=blocking)
         elif self._decoderLib == 'pyav':
-            frameData = self._getFramePyAV(pts, blocking=blocking)
+            frameData = self._getFramePyAV(
+                pts, blocking=blocking, deferDecoding=deferDecoding)
         elif self._decoderLib == 'opencv':
             frameData = self._getFrameOpenCV(pts)
         elif self._decoderLib == 'vlc':
@@ -3103,6 +3231,30 @@ class MovieFileReader:
             self._seeking = False
 
         return frameData
+
+    def decodeAhead(self):
+        """Let the decoder replace the frames `getFrame()` has taken.
+
+        This goes with `getFrame(deferDecoding=True)`, and does nothing
+        otherwise. The decoder also frees the frames this reader is finished
+        with, so that doing so doesn't hold up the caller either.
+
+        """
+        if self._pyavThread is None:
+            return
+
+        if not (self._pyavRefillPending or self._pyavReleasePending):
+            return
+
+        with self._pyavCondition:
+            # Handed over and dropped here together while holding the lock,
+            # which the decode thread needs to take them. Otherwise it could
+            # drop its references first, leaving the last to go here.
+            self._pyavReleased.extend(self._pyavReleasePending)
+            self._pyavReleasePending.clear()
+            self._pyavCondition.notify_all()
+
+        self._pyavRefillPending = False
 
     @property
     def isSeeking(self):
@@ -3943,6 +4095,23 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     # Time and frame management
     #
 
+    def _nextFlipTime(self):
+        """Time of the next flip of the window, in seconds on the clock
+        `core.getTime()` reads (`float`).
+
+        This is the time the movie clock is read at, being when the frame drawn
+        now will appear. Reading it at the time of drawing instead would let
+        that jitter by however long the rest of the drawing loop varies by,
+        and put the movie a refresh behind its own clock. Before the window has
+        flipped at all, this is the present time.
+
+        """
+        try:
+            return self.win.getFutureFlipTime(clock=core.monotonicClock)
+        except (AttributeError, IndexError):
+            # the refresh rate is unknown, or there is no flip to go from yet
+            return core.getTime()
+
     def _updateMoviePos(self):
         """Update the movie position.
 
@@ -3951,10 +4120,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         when the movie is played or paused.
 
         """
-        # todo - use 'geFutureFlipTime' to get the time of the next flip to align
-
-        # the movie with the flip time
-        now = core.getTime()
+        # the movie clock, as of the flip the frame drawn now will appear on
+        now = self._nextFlipTime()
         # if self._playbackStatus == SEEKING:
         #     self._lastFrameAbsTime = now
         #     # if we are seeking, the movie time is not updated until done
@@ -4040,7 +4207,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # is retried on the next draw.
             blocking = not self._player.isSeeking
 
-        frameData = self._player.getFrame(self._movieTime, blocking=blocking)
+        # Decoding is deferred until `draw()` has copied the frame to the GPU,
+        # see `MovieFileReader.decodeAhead()`. Called on its own, this leaves
+        # it to the next call instead.
+        frameData = self._player.getFrame(
+            self._movieTime + _frameSampleOffset(
+                self.win.monitorFramePeriod, self._player.frameInterval),
+            blocking=blocking,
+            deferDecoding=True)
         
         if frameData is None:  # handle frame not available by showing last frame
             # if self._playbackStatus == PLAYING:  # something went wrong
@@ -4374,6 +4548,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         self._drawRectangle()  # draw the texture to the target window
 
+        # the frame is on its way to the GPU, so the decoder can carry on
+        self._player.decodeAhead()
+
         # if self._playbackStatus == SEEKING:
         #     self._drawThrobber()
 
@@ -4442,8 +4619,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     @property
     def movieTime(self):
         """Current movie time in seconds (`float`). This is the time since the
-        movie started playing. If the movie is paused, this time will not
-        advance.
+        movie started playing, as of the flip the most recently drawn frame
+        appears on. If the movie is paused, this time will not advance.
         """
         return self._movieTime
 
@@ -4457,8 +4634,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             clock `psychopy.clock.getTime()` reads, the same as `when` for
             `Sound.play()`, or a window to start on its next flip. The audio track is scheduled to start at the same time.
             If `None` (default), or a time which has already passed, playback
-            starts straight away. Until then, the frame at the current position
-            stays on-screen.
+            starts straight away, the video from the next flip of the window.
+            Until playback starts, the frame at the current position stays
+            on-screen.
         log : bool
             Log the play event.
 
@@ -4484,7 +4662,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             tStart = when.getFutureFlipTime(clock=core.monotonicClock)
         else:
             tStart = float(when) - core.monotonicClock.getLastResetTime()
-        tStart = max(tStart, now)  # can't start in the past
+
+        scheduled = tStart > now
+        if not scheduled:
+            # Straight away, which for the video means from the next flip, the
+            # first it can be shown on. The movie clock is read at the flip
+            # each frame appears on (see `_updateMoviePos`), so starting it
+            # there puts the first frame on that flip.
+            tStart = max(self._nextFlipTime(), now)
 
         if not self._noAudio and not self._decoderPlaysAudio:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'play'):
@@ -4506,7 +4691,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # the movie clock runs from `tStart`, see `_updateMoviePos`
         self._lastFrameAbsTime = tStart
 
-        if tStart > now:
+        if scheduled:
             # Decoders with a clock of their own (and which may be playing the
             # audio too) are started once the time comes round, see
             # `_updateMoviePos`.
@@ -4515,7 +4700,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._startPlayer()
 
         if log:
-            if tStart > now:
+            if scheduled:
                 logging.info(
                     "Movie playback {} scheduled to start at {:.2f} seconds "
                     "in, at t={:.4f}".format(
@@ -4650,7 +4835,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # to the next `draw()`. This has to wait explicitly: the seek is
             # outstanding at this point, which is exactly when
             # `updateVideoFrame` would otherwise choose not to.
-            self._lastFrameAbsTime = core.getTime()
+            self._lastFrameAbsTime = self._nextFlipTime()
             _ = self.updateVideoFrame(blocking=True)
 
             # Moving the decoder and waiting on the frame for the new position
@@ -4659,7 +4844,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # movie past the position asked for, and compound over a run of
             # seeks since `rewind`/`fastForward` work from where the last one
             # left off.
-            self._lastFrameAbsTime = core.getTime()
+            self._lastFrameAbsTime = self._nextFlipTime()
 
     def rewind(self, seconds=1, blocking=True, log=True):
         """Rewind the video.
