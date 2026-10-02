@@ -173,6 +173,42 @@ class TestSounds:
             snd.sndArr, expected.reshape(len(expected), -1))
         assert peak < 1.5 * expected.nbytes
 
+    def test_fillInBlocks(self):
+        """
+        Test that a sound can be filled in a block at a time from another
+        thread (as a movie's audio track is), ending up as if set in one go,
+        and that it plays to the end of what was written rather than of the
+        room made for it
+        """
+        import threading
+        import time
+
+        snd = sound.Sound(value=numpy.zeros((128, 2), numpy.float32))
+        rate = snd.sampleRate
+        samples = numpy.random.default_rng(0).uniform(
+            -0.1, 0.1, (rate // 2, 2)).astype(numpy.float32)
+
+        snd._allocateSamples(rate, 2)  # room for twice what's written
+
+        def write():
+            for start in range(0, len(samples), 4096):
+                snd._writeSamples(start, samples[start:start + 4096])
+
+        writer = threading.Thread(target=write)
+        writer.start()
+        writer.join()
+        snd._trimSamples(len(samples))
+
+        numpy.testing.assert_array_equal(snd.sndArr, samples)
+        assert snd.duration == pytest.approx(0.5)
+
+        tStart = time.time()
+        snd.play()
+        while not snd.isFinished and time.time() - tStart < 5.0:
+            time.sleep(0.005)
+        assert snd.isFinished
+        assert time.time() - tStart < 0.9
+
     def test_volume(self):
         """
         Test that Sound can handle setting/getting its volume
