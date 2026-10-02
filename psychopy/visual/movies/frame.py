@@ -71,6 +71,7 @@ def _isYUVFormat(formatName):
     """Whether a pixel format holds YUV (rather than RGB or grey) samples."""
     return 'yuv' in formatName or formatName.startswith(('nv', 'p01', 'p21'))
 
+
 class _RGBFrameAdapter:
     """Lightweight adapter exposing an `ffpyplayer`-like interface around raw
     RGBA frame bytes obtained from other decoder backends (currently

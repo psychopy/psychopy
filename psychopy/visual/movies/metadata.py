@@ -13,6 +13,7 @@ __all__ = [
     'NULL_MOVIE_METADATA',
 ]
 
+
 class MovieMetadata:
     """Class for storing metadata about a movie file.
 

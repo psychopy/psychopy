@@ -64,6 +64,7 @@ _openMovieReaders = set()
 # is defined, see `MovieFileReader.__init_subclass__`
 _MOVIE_READER_CLASSES = {}
 
+
 class MovieFileReader:
     """Read movie frames from file.
 

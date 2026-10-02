@@ -78,6 +78,7 @@ def _resizeFrameOpenCV(frame, size, interpolation='AREA'):
 
     return cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
 
+
 class OpenCVMovieFileReader(MovieFileReader):
     """Read movie frames from a file with OpenCV.
 

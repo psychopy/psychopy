@@ -22,6 +22,7 @@ from ._base import MovieFileReader, defaultTimeout
 FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
+
 class FFPyPlayerMovieFileReader(MovieFileReader):
     """Read movie frames from a file with `ffpyplayer`.
 

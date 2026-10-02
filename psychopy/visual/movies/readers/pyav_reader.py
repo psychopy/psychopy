@@ -21,6 +21,7 @@ from ..frame import (
     _YUV_PLANAR_FORMATS, _frameColorMatrix, _isYUVFormat)
 from ._base import MovieFileReader, defaultTimeout
 
+
 class PyAVMovieFileReader(MovieFileReader):
     """Read movie frames from a file with PyAV.
 

@@ -50,6 +50,7 @@ VLC_PAUSE_SETTLE_TIMEOUT = 0.25  # seconds
 # pause, but on its own that proved to come too early to seek on.
 VLC_PAUSE_SETTLE_MIN = 0.05  # seconds
 
+
 class VLCMovieFileReader(MovieFileReader):
     """Read movie frames from a file with VLC.
 

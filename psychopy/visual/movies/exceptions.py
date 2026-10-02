@@ -15,6 +15,7 @@ __all__ = [
     'MovieAudioError',
 ]
 
+
 class MoviePlaybackError(Exception):
     """Exception raised when there is an error during movie playback."""
     def __init__(self, message):
