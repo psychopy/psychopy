@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 
 from psychopy import visual, prefs, core, logging
+import psychopy.visual.movies as movies
 from psychopy.visual.movies import MovieFileReader, _frameSampleOffset
 from .. import utils
 
@@ -1314,13 +1315,16 @@ def _readAudioTrackProperties(filename):
 
 MOVIE_AUDIO = _readAudioTrackProperties(MOVIE_PATH)
 
+# as defined, rather than as any test has patched it
+_decodeAudioTrack = movies.MovieStim._decodeAudioTrack
+
 needsMovieAudio = pytest.mark.skipif(
     MOVIE_AUDIO is None, reason='test movie has no audio track')
 
 
 class _SoundStandIn(_AudioTrackStandIn):
     """Stands in for `psychopy.sound.Sound`, as made for a movie's audio
-    track, on a speaker playing at `SPEAKER_RATE`.
+    track, on a stereo speaker playing at `SPEAKER_RATE`.
 
     This records what the track is loaded with instead of opening an audio
     device, which test machines often lack.
@@ -1332,13 +1336,32 @@ class _SoundStandIn(_AudioTrackStandIn):
 
     def __init__(self, value, **kwargs):
         super().__init__()
-        self.speaker = type('Speaker', (), {'sampleRateHz': self.SPEAKER_RATE})
+        self.speaker = type(
+            'Speaker', (), {'sampleRateHz': self.SPEAKER_RATE, 'channels': 2})
         self.sampleRate = self.SPEAKER_RATE
-        self.loaded = np.asarray(value)
+        self.sndArr = np.asarray(value)
+        self.writes = 0  # calls to `_writeSamples`
         _SoundStandIn.made.append(self)
 
+    @property
+    def loaded(self):
+        """Samples the track is loaded with."""
+        return self.sndArr
+
     def setSound(self, value, log=True):
-        self.loaded = value
+        self.sndArr = np.asarray(value)
+
+    def _allocateSamples(self, nSamples, channels):
+        self.sndArr = np.zeros((nSamples, channels), np.float32)
+
+    def _writeSamples(self, start, samples):
+        nWritten = max(0, min(len(samples), len(self.sndArr) - start))
+        self.sndArr[start:start + nWritten] = samples[:nWritten]
+        self.writes += 1
+        return nWritten
+
+    def _trimSamples(self, nSamples):
+        self.sndArr = self.sndArr[:nSamples]
 
     def stop(self, **kwargs):
         self.calls.append(('stop', None))
@@ -1353,6 +1376,44 @@ def soundStandIn(monkeypatch):
     monkeypatch.setattr(psychopy.sound, 'Sound', _SoundStandIn)
 
     return _SoundStandIn
+
+
+@pytest.fixture
+def gatedAudioDecode(monkeypatch):
+    """Hold up `MovieStim` decoding audio tracks in the background until the
+    event returned is set (or decoding is cancelled)."""
+    release = threading.Event()
+
+    def gated(container, audioStream, sampleRate, layout=None, onBlock=None,
+              cancel=None):
+        while not release.is_set() and not cancel.is_set():
+            time.sleep(0.005)
+        return _decodeAudioTrack(
+            container, audioStream, sampleRate, layout=layout,
+            onBlock=onBlock, cancel=cancel)
+
+    monkeypatch.setattr(
+        movies.MovieStim, '_decodeAudioTrack', staticmethod(gated))
+
+    return release
+
+
+def _decodeMovieAudio(sampleRate, layout='stereo'):
+    """The test movie's audio track, decoded in one go."""
+    import av
+
+    with av.open(str(MOVIE_PATH)) as container:
+        return _decodeAudioTrack(
+            container, container.streams.audio[0], sampleRate, layout=layout)
+
+
+def _waitForAudio(mov, timeout=10.0):
+    """Wait for a movie's audio track to finish loading in the background."""
+    deadline = time.time() + timeout
+    while not mov.isAudioReady and time.time() < deadline:
+        time.sleep(0.005)
+
+    assert mov.isAudioReady
 
 
 @needsMovieAudio
@@ -1432,6 +1493,7 @@ class TestMovieStimAudioTrack:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
+            _waitForAudio(mov)
             track = mov._audioTrack
             assert soundStandIn.made == [track]
             assert track.sampleRate == soundStandIn.SPEAKER_RATE
@@ -1441,6 +1503,12 @@ class TestMovieStimAudioTrack:
             assert samples.shape[1] == 2
             assert len(samples) / soundStandIn.SPEAKER_RATE == \
                 pytest.approx(MOVIE_AUDIO[1], abs=0.05)
+
+            # written a block at a time as it decoded, to the same result as
+            # decoding it in one go
+            assert track.writes > 0
+            np.testing.assert_array_equal(
+                samples, _decodeMovieAudio(soundStandIn.SPEAKER_RATE))
 
     def test_stopKeepsAudioTrack(self, win, movieLib, soundStandIn):
         """`stop()` reloads the movie, but keeps its audio track (back at the
@@ -1492,3 +1560,146 @@ class TestMovieStimAudioTrack:
             mov.loadMovie(str(MOVIE_PATH))
             assert mov._audioTrack is not second
             assert len(soundStandIn.made) == 3
+
+    def test_loadingDoesNotWaitForAudioTrack(self, win, movieLib,
+                                             soundStandIn, gatedAudioDecode):
+        """Loading a movie returns while its audio track is still decoding in
+        the background, and `play()` waits for it to finish."""
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            assert not mov.isAudioReady
+            mov.volume = 0.25  # applies to the track while it loads
+
+            threading.Timer(0.2, gatedAudioDecode.set).start()
+            mov.play()
+
+            assert mov.isAudioReady
+            assert mov.isPlaying
+            track = mov._audioTrack
+            assert track.volume == pytest.approx(0.25)
+            assert track.calls[-1][0] == 'play'
+            np.testing.assert_array_equal(
+                track.loaded, _decodeMovieAudio(soundStandIn.SPEAKER_RATE))
+
+    def test_unloadStopsAudioTrackDecoding(self, win, movieLib, soundStandIn,
+                                           gatedAudioDecode):
+        """Unloading a movie while its audio track is decoding stops it, and
+        nothing more is written to the track afterwards."""
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            loader = mov._audioLoader
+            track = mov._audioTrack
+            mov.unload()
+
+            assert loader.isDone
+            assert loader.error is None
+            assert loader.nSamples == 0
+            assert track.writes == 0
+            assert mov._audioTrack is None
+            assert loader not in movies._audioTrackLoaders
+
+    def test_stopKeepsAudioTrackDecoding(self, win, movieLib, soundStandIn,
+                                         gatedAudioDecode):
+        """`stop()` while the audio track is still decoding carries on with it,
+        rather than starting it over."""
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            loader = mov._audioLoader
+            mov.stop()
+            assert mov._audioLoader is loader
+            assert not loader.isDone
+
+            gatedAudioDecode.set()
+            mov.play()
+
+            assert soundStandIn.made == [mov._audioTrack]
+            np.testing.assert_array_equal(
+                mov._audioTrack.loaded,
+                _decodeMovieAudio(soundStandIn.SPEAKER_RATE))
+
+    def test_loadingWaitsForAudioTrackByDefault(self, win, movieLib,
+                                                soundStandIn):
+        """Unless asked to load it in the background, the audio track has
+        loaded by the time loading the movie returns."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            assert mov._audioLoader is None
+            assert mov.isAudioReady
+            np.testing.assert_array_equal(
+                mov._audioTrack.loaded,
+                _decodeMovieAudio(soundStandIn.SPEAKER_RATE))
+
+    @pytest.mark.parametrize('inBackground', [False, True])
+    def test_audioTrackErrorRaised(self, win, movieLib, soundStandIn,
+                                   monkeypatch, inBackground):
+        """An error decoding the audio track is raised by loading the movie,
+        or by `play()` if loading it in the background, after which the movie
+        plays without it."""
+        def broken(*args, **kwargs):
+            raise RuntimeError('broken audio track')
+
+        monkeypatch.setattr(
+            movies.MovieStim, '_decodeAudioTrack', staticmethod(broken))
+
+        if not inBackground:
+            with pytest.raises(RuntimeError, match='broken audio track'):
+                with movieStim(win, movieLib, noAudio=False):
+                    pass
+            return
+
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            with pytest.raises(RuntimeError, match='broken audio track'):
+                mov.play()
+            assert mov._audioTrack is None
+
+            mov.play()
+            assert mov.isPlaying
+
+    @pytest.mark.parametrize('inBackground', [False, True])
+    @pytest.mark.parametrize('duration', [0.25, None])
+    def test_audioTrackLongerThanAllocated(self, win, movieLib, soundStandIn,
+                                           monkeypatch, duration, inBackground):
+        """A track which decodes longer than the movie file says, or whose
+        length it doesn't say, is still loaded whole."""
+        monkeypatch.setattr(
+            movies.MovieStim, '_getAudioDuration',
+            staticmethod(lambda container, audioStream: duration))
+
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=inBackground) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            _waitForAudio(mov)
+            np.testing.assert_array_equal(
+                mov._audioTrack.loaded,
+                _decodeMovieAudio(soundStandIn.SPEAKER_RATE))
+
+    def test_audioTrackAtRequestedRate(self, win, movieLib, soundStandIn):
+        """`audioConfig['fps']` decodes the track at that rate instead of the
+        speaker's, leaving the `Sound` to resample it."""
+        with movieStim(win, movieLib, noAudio=False,
+                       audioConfig={'fps': 22050}) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            _waitForAudio(mov)
+            track = mov._audioTrack
+            assert track.sampleRate == 22050
+            np.testing.assert_array_equal(
+                track.loaded, _decodeMovieAudio(22050))
