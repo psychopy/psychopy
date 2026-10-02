@@ -1773,16 +1773,25 @@ class TestMovieStimAudioTrack:
 # Scaling frames down as they're decoded
 #
 
-def _drawUntilFrameSize(win, mov, size, maxFrames=60):
+def _drawUntilFrameSize(win, mov, size, timeout=3.0, interval=1 / 60.):
     """Play the movie until it shows a frame of `size`, returning whether it
-    got to one (frames decoded ahead before a size change keep the old size).
+    got to one within `timeout` seconds (frames decoded ahead before a size
+    change keep the old size).
+
+    This waits on time rather than a number of flips, since the frames decoded
+    ahead take up to `DECODE_AHEAD_MAX_FRAMES` frames' worth of playback to get
+    through, and `flip()` doesn't wait for a refresh without vsync (as under
+    Xvfb), so a fixed number of flips can be over before the movie gets there.
+
     """
     mov.play()
-    for _ in range(maxFrames):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
         mov.draw()
         win.flip()
         if tuple(mov._recentFrameSize) == tuple(size):
             return True
+        time.sleep(interval)
 
     return False
 
