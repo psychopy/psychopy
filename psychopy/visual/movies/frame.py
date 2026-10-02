@@ -41,6 +41,15 @@ _AVCOL_SPC_TO_SWSCALE = {
     9: 'BT2020',  # BT2020_NCL
     10: 'BT2020'}  # BT2020_CL, which a matrix can only approximate
 
+# `AVColorSpace` to tag a frame with for `swscale` to convert it with each
+# colour matrix, for PyAV versions with no name for one (BT.2020 before 18)
+_SWSCALE_TO_AVCOL_SPC = {
+    'ITU709': 1,
+    'FCC': 4,
+    'ITU601': 5,
+    'SMPTE240M': 7,
+    'BT2020': 9}  # BT2020_NCL, `swscale` refuses BT2020_CL
+
 # Luma coefficients (Kr, Kb) of each colour matrix, see `_yuvToRGBUniforms`
 _COLOR_MATRIX_KR_KB = {
     'ITU601': (0.299, 0.114),
