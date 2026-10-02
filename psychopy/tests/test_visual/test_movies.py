@@ -173,6 +173,16 @@ def movieStim(win, movieLib, filename=MOVIE_PATH, **kwargs):
         mov.unload()
 
 
+def _frameBytesExpected(mov):
+    """Bytes of pixel data `mov._recentFrame` should hold at least: the whole
+    RGBA frame, or the luma plane of a frame uploaded as YUV."""
+    width, height = mov._recentFrameSize
+    if isinstance(mov._recentFrameImage, movies._YUVFrameAdapter):
+        return width * height
+
+    return width * height * 4
+
+
 def _drawFrames(win, mov, count=3, interval=0.0):
     """Draw the movie `count` times, flipping the window between each."""
     for _ in range(count):
@@ -336,10 +346,9 @@ class TestMovieStimDecoding:
         """A frame is decoded when the movie is loaded, before playback."""
         with movieStim(win, movieLib) as mov:
             frame = np.asarray(mov._recentFrame)
-            # four bytes per pixel, RGBA, at the size the frame came out at
-            # (see `TestMovieStimDownscaling`)
-            width, height = mov._recentFrameSize
-            assert frame.size == width * height * 4
+            # four bytes per pixel for RGBA, or the luma plane of YUV, at the
+            # size the frame came out at (see `TestMovieStimDownscaling`)
+            assert frame.size >= _frameBytesExpected(mov)
             assert frame.dtype == np.uint8
             # a real frame, not a blank buffer
             assert frame.std() > 1.0
@@ -1276,8 +1285,11 @@ class TestMovieStimFrameTiming:
         freedOn = []
 
         def watch(frameImage):
+            # the samples, which the frame is the last thing holding on to
+            samples = frameImage.planes[0][0] if isinstance(
+                frameImage, movies._YUVFrameAdapter) else frameImage.memview
             weakref.finalize(
-                frameImage.memview,
+                samples,
                 lambda: freedOn.append(threading.current_thread()))
 
         with movieStim(win, movieLib) as mov:
@@ -1744,7 +1756,7 @@ class TestMovieStimDownscaling:
             assert mov._player.outputFrameSize == drawnSize
             assert tuple(mov._recentFrameSize) == drawnSize
             assert (mov._vidWidth, mov._vidHeight) == drawnSize
-            assert mov._recentFrame.size == drawnSize[0] * drawnSize[1] * 4
+            assert mov._recentFrame.size >= _frameBytesExpected(mov)
 
             # and still draws to the size asked for
             assert _drawnSize(win, mov) == pytest.approx(drawnSize, abs=1)
@@ -1850,3 +1862,246 @@ class TestMovieStimDownscaling:
         nearest = movies._resizeFrameOpenCV(frame, size, 'POINT')
         np.testing.assert_array_equal(
             nearest, cv2.resize(frame, size, interpolation=cv2.INTER_NEAREST))
+
+
+# --------------------------------------------------------------------------
+# Converting frames to RGB on the GPU
+#
+
+def _writeTaggedMovie(path, pixelFormat='yuv444p', colorspace=1, colorRange=1,
+                      size=(64, 48), nFrames=5):
+    """Write a short lossless (FFV1) movie of smooth random colour, tagged
+    with the colour matrix (`AVColorSpace` value) and range given, returning
+    its first frame's planes."""
+    import av
+    import cv2
+
+    rng = np.random.default_rng(0)
+    width, height = size
+    first = None
+    with av.open(str(path), 'w') as container:
+        stream = container.add_stream('ffv1', rate=30)
+        stream.width, stream.height, stream.pix_fmt = width, height, pixelFormat
+        stream.codec_context.colorspace = colorspace
+        stream.codec_context.color_range = colorRange
+        for _ in range(nFrames):
+            # smooth, so that interpolating chroma makes little difference
+            rgb = cv2.GaussianBlur(
+                rng.integers(0, 256, (height, width, 3), dtype=np.uint8),
+                (0, 0), 4)
+            rgb = cv2.normalize(rgb, None, 20, 235, cv2.NORM_MINMAX)
+            frame = av.VideoFrame.from_ndarray(rgb, format='rgb24').reformat(
+                format=pixelFormat)
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode(None):
+            container.mux(packet)
+
+    return path
+
+
+def _movieRegion(win, size, inset=2):
+    """Index of the part of a captured window a movie of `size` drawn in the
+    middle of it covers, `inset` pixels in from its edges."""
+    x0 = (win.size[0] - size[0]) // 2
+    y0 = (win.size[1] - size[1]) // 2
+
+    return np.s_[y0 + inset:y0 + size[1] - inset,
+                 x0 + inset:x0 + size[0] - inset]
+
+
+class _TaggedFrame:
+    """Just what `_frameColorMatrix` looks at of a frame."""
+    def __init__(self, colorspace, width, height):
+        self.colorspace, self.width, self.height = colorspace, width, height
+
+
+class TestMovieStimGPUColorConversion:
+    """Tests for uploading frames as YUV and converting them in a shader."""
+
+    @pytest.mark.parametrize('colorspace, size, expected', [
+        (1, (320, 240), 'ITU709'),  # tagged, whatever the size
+        (6, (3840, 2160), 'ITU601'),
+        (5, (640, 480), 'ITU601'),
+        (9, (3840, 2160), 'BT2020'),
+        (2, (1920, 1080), 'ITU709'),  # untagged HD is taken to be BT.709
+        (2, (1280, 720), 'ITU709'),
+        (2, (720, 576), 'ITU601'),  # and SD BT.601
+        (8, (640, 480), 'ITU601')])  # YCgCo has no matrix to use
+    def test_frameColorMatrix(self, win, movieLib, colorspace, size,
+                              expected):
+        """Frames are converted with the colour matrix they're tagged with,
+        or the one video players take untagged frames of their size to be."""
+        frame = _TaggedFrame(colorspace, *size)
+        assert movies._frameColorMatrix(frame) == expected
+
+    @pytest.mark.parametrize('fullRange', [False, True])
+    @pytest.mark.parametrize('colorMatrix', sorted(movies._COLOR_MATRIX_KR_KB))
+    def test_yuvToRGBMatchesSwscale(self, win, movieLib, colorMatrix,
+                                    fullRange):
+        """What the shader converts YUV to RGB with matches `swscale`."""
+        import av
+
+        rng = np.random.default_rng(1)
+        planes = rng.integers(16, 236, (3, 32, 32), dtype=np.uint8)
+        frame = av.VideoFrame.from_ndarray(planes, format='yuv444p')
+        expected = frame.to_ndarray(
+            format='rgb24', src_colorspace=colorMatrix,
+            src_color_range='JPEG' if fullRange else 'MPEG')
+
+        matrix, offset = movies._yuvToRGBUniforms(colorMatrix, fullRange)
+        yuv = np.moveaxis(planes, 0, -1) / 255.0
+        rgb = (yuv - np.array(offset)) @ np.array(matrix).reshape(3, 3).T
+        rgb = np.round(np.clip(rgb, 0.0, 1.0) * 255.0)
+
+        assert np.abs(rgb - expected).max() <= 1
+
+    def test_framesUploadedAsYUV(self, win, movieLib):
+        """With `pyav`, frames are kept as YUV and drawn from one texture per
+        plane, unless turned off with `gpuColorConversion=False`."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+
+        with movieStim(win, movieLib) as mov:
+            assert mov._player.outputPixelFormat == 'yuv'
+            assert isinstance(mov._recentFrameImage, movies._YUVFrameAdapter)
+            assert mov._textureLayout[0] == 'yuv'
+            assert len(mov._planeTextureIds) == 3
+
+        with movieStim(win, movieLib, gpuColorConversion=False) as mov:
+            assert mov._player.outputPixelFormat == 'rgba'
+            assert isinstance(mov._recentFrameImage, movies._RGBFrameAdapter)
+            assert mov._planeTextureIds is None
+
+    @pytest.mark.parametrize('colorspace, colorRange', [
+        (1, 1),  # BT.709, limited range
+        (6, 2)])  # BT.601, full range
+    def test_gpuConversionMatchesCPU(self, win, movieLib, tmp_path,
+                                     colorspace, colorRange):
+        """Frames drawn through the shader look the same as frames converted
+        as they're decoded, using the colour matrix and range the movie is
+        tagged with. (Without chroma subsampling, which the two upsample
+        differently, see `test_gpuConversionUpsamplesChroma`.)"""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+
+        size = (64, 48)
+        path = _writeTaggedMovie(
+            tmp_path / 'tagged.mkv', 'yuv444p', colorspace, colorRange, size)
+
+        drawn = {}
+        for gpu in (True, False):
+            with movieStim(win, movieLib, filename=path, units='pix',
+                           size=size, gpuColorConversion=gpu) as mov:
+                drawn[gpu], _ = _drawToBackBuffer(win, mov)
+
+        region = _movieRegion(win, size)
+        difference = np.abs(drawn[True][region] - drawn[False][region])
+        assert difference.mean() < 1.0
+        assert difference.max() <= 3
+
+    def test_gpuConversionUpsamplesChroma(self, win, movieLib, tmp_path):
+        """Subsampled chroma is interpolated up to the size of the luma as
+        it's drawn, centred on each pair of pixels."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+        import av
+        import cv2
+
+        size = (64, 48)
+        path = _writeTaggedMovie(
+            tmp_path / 'tagged.mkv', 'yuv420p', colorspace=1, colorRange=1,
+            size=size)
+
+        # what the shader should come out with, from the decoded planes
+        with av.open(str(path)) as container:
+            frame = next(container.decode(video=0))
+            planes = [
+                np.frombuffer(plane, np.uint8).reshape(
+                    plane.height, plane.line_size)[:, :plane.width]
+                for plane in frame.planes]
+        upsampled = [planes[0]] + [
+            cv2.resize(plane, size, interpolation=cv2.INTER_LINEAR)
+            for plane in planes[1:]]
+        matrix, offset = movies._yuvToRGBUniforms('ITU709', False)
+        yuv = np.stack(upsampled, axis=-1) / 255.0
+        expected = np.clip(
+            (yuv - np.array(offset)) @ np.array(matrix).reshape(3, 3).T,
+            0.0, 1.0) * 255.0
+
+        with movieStim(win, movieLib, filename=path, units='pix',
+                       size=size) as mov:
+            drawn, _ = _drawToBackBuffer(win, mov)
+
+        region = _movieRegion(win, size)
+        difference = np.abs(drawn[region] - expected[2:-2, 2:-2])
+        assert difference.mean() < 1.0
+        assert difference.max() <= 3
+
+    def test_rgbaConversionUsesFrameMatrix(self, win, movieLib, tmp_path):
+        """Frames converted as they're decoded use the colour matrix the movie
+        is tagged with, or for an untagged HD movie, BT.709 (where PyAV would
+        take it to be BT.601)."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav reads the colour matrix')
+        import av
+
+        cases = (
+            ('untagged HD', 2, (1280, 720), 'ITU709'),
+            ('tagged BT.601', 6, (1280, 720), 'ITU601'))
+        for name, colorspace, size, colorMatrix in cases:
+            path = _writeTaggedMovie(
+                tmp_path / '{}.mkv'.format(colorspace), colorspace=colorspace,
+                size=size, nFrames=2)
+            with av.open(str(path)) as container:
+                frame = next(container.decode(video=0))
+                expected = frame.to_ndarray(
+                    format='rgba', src_colorspace=colorMatrix)
+
+            reader = MovieFileReader(str(path), decoderLib=movieLib)
+            reader.open()
+            try:
+                image = reader._getFrameFromStore(0.0)[0]
+                np.testing.assert_array_equal(image.memview, expected, name)
+            finally:
+                reader.close()
+
+    def test_yuvFramesScaledDown(self, win, movieLib):
+        """Frames kept as YUV are still scaled down to the size they're drawn
+        at, each plane by as much."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+
+        drawnSize = (MOVIE_SIZE[0] // 4, MOVIE_SIZE[1] // 4)
+        with movieStim(win, movieLib, size=drawnSize, units='pix') as mov:
+            image = mov._recentFrameImage
+            assert image.size == drawnSize
+            lumaSize = image.planes[0][1:3]
+            chromaSize = image.planes[1][1:3]
+            assert tuple(lumaSize) == drawnSize
+            assert tuple(chromaSize) == tuple(
+                (val + 1) // 2 for val in drawnSize)  # the movie is 4:2:0
+
+    def test_otherFormatsConvertedAsDecoded(self, win, movieLib, tmp_path):
+        """Frames in a format the shader doesn't take (here greyscale) are
+        converted to RGBA as they're decoded instead."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+
+        path = _writeTaggedMovie(tmp_path / 'grey.mkv', pixelFormat='gray')
+        with movieStim(win, movieLib, filename=path) as mov:
+            assert mov._player.outputPixelFormat == 'yuv'
+            assert isinstance(mov._recentFrameImage, movies._RGBFrameAdapter)
+            assert mov._planeTextureIds is None
+            mov.draw()
+
+    def test_noShaderConvertsAsDecoded(self, win, movieLib, monkeypatch):
+        """Without the shader (where it can't be made), frames are converted
+        to RGBA as they're decoded instead."""
+        monkeypatch.setattr(movies, '_getYUVToRGBProgram', lambda win: None)
+
+        with movieStim(win, movieLib) as mov:
+            assert mov._player.outputPixelFormat == 'rgba'
+            assert not isinstance(
+                mov._recentFrameImage, movies._YUVFrameAdapter)
+            mov.draw()
