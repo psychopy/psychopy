@@ -26,10 +26,11 @@ try:
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
 
-from psychopy import logging
+from psychopy import logging, clock
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
 from psychopy.sound.exceptions import SoundFormatError, DependencyError
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.sound._base import _SoundBase, HammingWindow
 from ..hardware import DeviceManager
 from psychopy.hardware.speaker import SpeakerDevice
@@ -103,73 +104,99 @@ def getStreamLabel(sampleRate, channels, blockSize):
     return "{}_{}_{}".format(sampleRate, channels, blockSize)
 
 
+def getDeviceStreamLabel(device):
+    """Label of the stream for an output device, as `_getOutputDevice()`
+    returns it (`None` being the system default output)."""
+    return "device_{}".format("default" if device is None else device)
+
+
+def _getOutputDevice(speaker):
+    """Get the output device a speaker plays on, to open a stream on it.
+
+    Parameters
+    ----------
+    speaker : SoundDeviceSpeakerDevice
+        The speaker.
+
+    Returns
+    -------
+    int, str or None
+        PortAudio index of the device, so that speakers referring to the same
+        device by name and by index share a stream. `None` is the system
+        default output. Without a sound device (on CI), the speaker's name is
+        returned as it is, there being no devices to look it up among.
+
+    """
+    if speaker.index is None and speaker.name is None:
+        return None
+    if travisCI:
+        return speaker.name if speaker.index is None else int(speaker.index)
+
+    for profile in speaker.queryDevices():
+        if speaker.index is not None:
+            if int(profile['DeviceIndex']) == int(speaker.index):
+                return int(speaker.index)
+        elif profile['DeviceName'] == speaker.name:
+            return int(profile['DeviceIndex'])
+
+    raise DeviceNotConnectedError(
+        "No audio output device with {} '{}' found by sounddevice.".format(
+            *(("index", speaker.index) if speaker.index is not None else
+              ("name", speaker.name))),
+        deviceClass=type(speaker))
+
+
 class _StreamsDict(dict):
-    """Keeps track of what streams have been created. On macOS we can have
-    multiple streams under portaudio but under windows we can only have one.
+    """Keeps track of what streams have been created, one per output device.
+    On macOS we can have multiple streams under portaudio but under windows we
+    can only have one.
 
     use the instance `streams` rather than creating a new instance of this
     """
+    def getDeviceStream(self, device, blockSize=128):
+        """Get the stream for an output device, opening it if need be.
 
-    def getStream(self, sampleRate, channels, blockSize):
-        """Gets a stream of exact match or returns a new one
-        (if possible for the current operating system)
+        Every sound on a device plays through the one stream, since a hardware
+        device can only have one open at once. It runs at the device's default
+        sample rate, and in stereo (or mono, on a mono device), with sounds
+        resampled and their channels mapped to fit it, as the `ptb` backend
+        does.
+
+        Parameters
+        ----------
+        device : int, str or None
+            The device, as `_getOutputDevice()` returns it.
+        blockSize : int
+            Block size to open the stream with, if it isn't open already.
+
+        Returns
+        -------
+        tuple
+            The stream's label, and the stream.
+
         """
-        # if the query looks flexible then try getSimilar
-        if channels == -1 or blockSize == -1:
-            return self._getSimilar(sampleRate,
-                                    channels=channels,
-                                    blockSize=blockSize)
-        else:
-            return self._getStream(sampleRate,
-                                   channels=channels,
-                                   blockSize=blockSize)
-
-    def _getSimilar(self, sampleRate, channels=-1, blockSize=-1):
-        """Do we already have a compatible stream?
-
-        Many sounds can allow channels and blocksize to change but samplerate
-        is generally fixed. Any values set to -1 above will be flexible. Any
-        values set to an alternative number will be fixed
-
-        usage:
-
-            label, stream = streams._getSimilar(sampleRate=44100,  # must match
-                                               channels=-1,  # any
-                                               blockSize=-1)  # wildcard
-        """
-        label = getStreamLabel(sampleRate, channels, blockSize)
-        # replace -1 with any regex integer
-        simil = re.compile(label.replace("-1", r"[-+]?(\d+)"))  # I hate REGEX!
-        for thisFormat in self:
-            if simil.match(thisFormat):  # we found a close-enough match
-                return thisFormat, self[thisFormat]
-        # no compatible stream found, create new stream replacing flexible values with defaults
-        if channels in [None, -1]:
-            channels = 2
-        if sampleRate in [None, -1, 0]:
-            sampleRate = 44100
-        if blockSize in [None, -1]:
-            blockSize = 128
-        return self._getStream(sampleRate, channels, blockSize)
-
-    def _getStream(self, sampleRate, channels, blockSize):
-        """Strict check for this format or create new
-        """
-        label = getStreamLabel(sampleRate, channels, blockSize)
-        # try to retrieve existing stream of that name
+        label = getDeviceStreamLabel(device)
         if label in self:
-            pass
-        # on some systems more than one stream isn't supported so check
-        elif sys.platform == 'win32' and len(self):
+            return label, self[label]
+
+        if sys.platform == 'win32' and len(self):
             raise SoundFormatError(
                 "Tried to create audio stream {} but {} already exists "
                 "and {} doesn't support multiple portaudio streams"
                     .format(label, list(self.keys())[0], sys.platform)
             )
+
+        if travisCI:  # no device to ask, so CD quality stereo
+            sampleRate, channels = 44100, 2
         else:
-            # create new stream
-            self[label] = _SoundStream(sampleRate, channels, blockSize,
-                                       device=defaultOutput)
+            # with no device given, this is the default output device
+            info = sd.query_devices(device, 'output')
+            sampleRate = int(info['default_samplerate'])
+            channels = min(2, int(info['max_output_channels']))
+
+        self[label] = _SoundStream(
+            sampleRate, channels, blockSize, device=device)
+
         return label, self[label]
 
 
@@ -308,18 +335,22 @@ class _SoundStream:
                 dat *= thisSound.volume  # Set the volume block by block
 
             datSize = len(dat)
-            datDims = len(dat.shape)
             end = offset + datSize  # write the block starting at the sample offset
 
-            if self.channels == 2 and datDims == 2:
+            # Every sound on the device shares this stream, so its channels
+            # needn't match the sound's: mono goes to every channel, and
+            # beyond that a mono stream gets a mix and any extra channels are
+            # dropped.
+            if dat.ndim == 1:
+                dat = dat[:, np.newaxis]
+            nDat = dat.shape[1]
+            if nDat == 1 or nDat == self.channels:
                 toSpk[offset:end, :] += dat  # add to out stream
-            elif self.channels == 2 and datDims == 1:
-                toSpk[offset:end, 0] += dat
-                toSpk[offset:end, 1] += dat
-            elif self.channels == 1 and datDims == 2:
-                toSpk[offset:end, :] += dat
+            elif self.channels == 1:
+                toSpk[offset:end, 0] += dat.mean(axis=1)
             else:
-                toSpk[offset:end, 0:self.channels] += dat
+                nCommon = min(nDat, self.channels)
+                toSpk[offset:end, :nCommon] += dat[:, :nCommon]
 
             # check if that was a short block (sound is finished). Compare to the
             # number of samples requested this block (nReq), not the full buffer,
@@ -447,13 +478,16 @@ class SoundDeviceSound(_SoundBase):
         # accurate timing of play requests; -1 until the onset has been placed
         self._blockOffset = -1
 
-        if sampleRate:  #a rate was requested so use it
+        # every sound on the speaker plays through its one stream, and is
+        # resampled to that stream's rate
+        self._outputDevice = _getOutputDevice(speaker)
+        self.streamLabel, stream = streams.getDeviceStream(
+            self._outputDevice, blockSize=blockSize)
+
+        if sampleRate:  # a rate was requested, so the sound is made at it
             self.sampleRate = sampleRate
-        else:  # no requested rate so use current stream or a default of 44100
-            rate = 44100  # start with a default
-            for streamLabel in streams:  # then look to see if we have an open stream and use that
-                rate = streams[streamLabel].sampleRate
-            self.sampleRate = rate
+        else:  # otherwise at the stream's rate, so needs no resampling
+            self.sampleRate = stream.sampleRate
 
         self.stereo = stereo
 
@@ -464,7 +498,6 @@ class SoundDeviceSound(_SoundBase):
         self.multichannel = False
         self.duplex = None
         self.autoLog = autoLog
-        self.streamLabel = ""
         self.sourceType = 'unknown'  # set to be file, array or freq
         self.sndFile = None
         self.sndArr = None
@@ -554,6 +587,10 @@ class SoundDeviceSound(_SoundBase):
             Whether to log this change.
 
         """
+        # the speaker's stream, which loading the sound resamples it to fit
+        self.streamLabel, stream = streams.getDeviceStream(
+            self._outputDevice, blockSize=self.blockSize)
+
         # start with the base class method
         self.secs = secs
         _SoundBase.setSound(self, value, secs, octave, hamming, log)
@@ -562,30 +599,12 @@ class SoundDeviceSound(_SoundBase):
         if secs is not None and secs > 0:
             self.duration = min(self.duration, secs)
 
-        try:
-            label, s = streams.getStream(
-                sampleRate=self.sampleRate,
-                channels=self.channels,
-                blockSize=self.blockSize)
-        except SoundFormatError as err:
-            # try to use something similar (e.g. mono->stereo)
-            # then check we have an appropriate stream open
-            altern = streams._getSimilar(
-                sampleRate=self.sampleRate,
-                channels=-1,
-                blockSize=-1)
-            
-            if altern is None:
-                raise err
-            else:  # safe to extract data
-                label, s = altern
-
-            # update self in case it changed to fit the stream
-            self.sampleRate = s.sampleRate
-            self.channels = s.channels
-            self.blockSize = s.blockSize
-
-        self.streamLabel = label
+        # a file streamed from disk is read as it plays, so can't be resampled
+        if self.sourceType == 'file' and self.sampleRate != stream.sampleRate:
+            raise SoundFormatError(
+                "Can't stream {} from disk at {} Hz to a speaker playing at {} "
+                "Hz. Use `preBuffer=-1` to load it first, which resamples "
+                "it.".format(self.fileName, self.sampleRate, stream.sampleRate))
 
         if hamming is None:
             hamming = self.hamming
@@ -619,6 +638,18 @@ class SoundDeviceSound(_SoundBase):
                 self.channels = 1
             elif self.stereo == 1:
                 self.channels = 2
+
+        # resample to the rate of the speaker's stream, which plays every sound
+        # on the speaker
+        outRate = self.stream.sampleRate
+        if clip.sampleRateHz != outRate:
+            if not getattr(self.speaker, 'resample', True):
+                raise SoundFormatError(
+                    "Sound is at {} Hz but its speaker plays at {} Hz, and the "
+                    "speaker is set not to resample sounds.".format(
+                        clip.sampleRateHz, outRate))
+            clip = clip.resample(targetSampleRateHz=outRate, copy=True)
+            self.sampleRate = outRate
 
         thisArray = clip.samples
 
@@ -703,9 +734,11 @@ class SoundDeviceSound(_SoundBase):
             Number of loops to play (-1=forever, 0=single repeat). If `None`, uses the 
             value set during initialisation.
         when: float, `psychopy.visual.Window` or None
-            Time to begin playback, in seconds relative to the global clock. If a 
-            `psychopy.visual.Window` is passed, the audio will be played at the 
-            next window flip. If 0.0 or `None`, playback will start immediately.
+            Time to begin playback, as an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads. If a
+            `psychopy.visual.Window` is passed, the audio will be played at the
+            next window flip. If `None`, or a time which has
+            already passed, playback will start immediately.
 
         """
         if self.isPlaying:
@@ -722,12 +755,14 @@ class SoundDeviceSound(_SoundBase):
         tRequest = time.monotonic()
         logTime = None
         if when is not None:
-            if isinstance(when, (int, float)):
-                tRequest += when
-            elif hasattr(when, 'getFutureFlipTime'):
+            if hasattr(when, 'getFutureFlipTime'):
                 logTime = when.getFutureFlipTime(clock=None)
                 when = when.getFutureFlipTime(clock='now')
                 tRequest += when
+            else:
+                # an absolute time, so convert it to the monotonic timebase the
+                # stream callback schedules against
+                tRequest += float(when) - clock.getTime()
         else:
             if hasattr(self.win, 'getFutureFlipTime'):
                 logTime = self.win.getFutureFlipTime(clock=None)

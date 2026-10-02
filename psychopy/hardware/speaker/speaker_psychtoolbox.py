@@ -70,9 +70,18 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
             )
             index = None
-        # handle string index
+        # handle string index, which may be a number or a device name
         if isinstance(index, str):
+            requested = index
             index = self.getNumericIndex(index)
+            if index is None:
+                # rather than fall back to the default speaker, which would play somewhere
+                # other than asked without saying so
+                raise DeviceNotConnectedError(
+                    _translate(
+                        "No speaker device found with index or name '{}'"
+                    ).format(requested),
+                    deviceClass=PsychtoolboxSpeakerDevice)
 
         # if index is default, get default speaker device
         if index in (-1, None) and name is None:
@@ -100,10 +109,13 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         # store playback prefs
         self.resample = resample
         self.latencyClass = latencyClass
-        # create stream
-        self.createStream()
-        # start off open
-        self.open()
+        # find the device and start a stream on it straight away, since some outputs (such as
+        # HDMI audio) take a second or so to start playing a new stream, which would cut off
+        # the start of the first sound. Sounds are only ever mono or stereo, so open as many
+        # channels as a stereo clip needs; clips are padded to fit a stream with more.
+        self.stream = None
+        self.findProfile()
+        self.open(channels=min(2, self.channels))
 
     @staticmethod
     def getNumericIndex(index):
@@ -135,9 +147,9 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         """
         return self.latencyClass >= 2
     
-    def createStream(self):
+    def findProfile(self):
         """
-        Create the psychtoolbox audio stream
+        Find the psychtoolbox profile for this device, without creating a stream.
 
         Attributes
         ----------
@@ -157,19 +169,22 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             A string name referring to the device. This may differ from the value of `name` this 
             object was initialised with, as this will be the system-reported name of the actual 
             physical speaker best matching what was requested.
+        sampleRateHz : int
+            The sample rate of the device. Until a stream is created, this is the device's default 
+            sample rate.
+        channels : int
+            The number of output channels. Until a stream is created, this is the maximum number of 
+            channels the device supports.
         """
-        # get the devices from psychtoolbox
-        ptb = systemtools.importPsychtoolbox('psychtoolbox.audio')
-        
+        # get the devices from psychtoolbox, which raises a plain `Exception` rather than giving
+        # an empty list when PortAudio finds no devices at all
         try:
-            wasapiPref = prefs.hardware['audioWASAPIOnly']
-        except KeyError:
-            wasapiPref = False
-            
-        if sys.platform == 'win32' and wasapiPref:
-            allFoundDevices = ptb.get_devices(device_type=13)
-        else:
-            allFoundDevices = ptb.get_devices()
+            allFoundDevices = self._getDevicesPsychtoolbox()
+        except Exception as err:
+            raise DeviceNotConnectedError(
+                _translate("No audio devices found! ({})").format(err),
+                deviceClass=PsychtoolboxSpeakerDevice
+            ) from err
 
         if not allFoundDevices:
             raise DeviceNotConnectedError(
@@ -205,12 +220,62 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         logging.debug(
             f"Found speaker device: {self.profile['DeviceName']} ({self.profile['DeviceIndex']})"
         )
-            
+
+        self.index = self.profile['DeviceIndex']
+        self.name = self.profile['DeviceName']
+        self.sampleRateHz = int(self.profile['DefaultSampleRate'])
+        self.channels = int(self.profile['NrOutputChannels'])
         # if physical device already has a stream, use it rather than making a new one
-        if self.profile['DeviceIndex'] in PsychtoolboxSpeakerDevice.streams:
-            self.stream = PsychtoolboxSpeakerDevice.streams[self.profile['DeviceIndex']]
-        else:
-            self.stream = None
+        self._useExistingStream()
+
+    def _useExistingStream(self):
+        """
+        If the physical device already has an open stream, use it (and its sample rate and number 
+        of channels) rather than making a new one.
+
+        Returns
+        -------
+        bool
+            True if an existing stream was found
+        """
+        existing = PsychtoolboxSpeakerDevice.streams.get(self.index, None)
+        # forget streams which have since been closed
+        if existing is not None and not isinstance(existing['stream'].status, dict):
+            del PsychtoolboxSpeakerDevice.streams[self.index]
+            existing = None
+        if existing is None:
+            return False
+        
+        self.stream = existing['stream']
+        self.sampleRateHz = existing['sampleRateHz']
+        self.channels = existing['channels']
+
+        return True
+
+    def createStream(self, channels=None):
+        """
+        Create the psychtoolbox audio stream, if this device doesn't have one already.
+
+        Parameters
+        ----------
+        channels : int, optional
+            Number of output channels to open the stream with. If None, will use the maximum 
+            number of channels the device supports. Ignored if the device already has a stream, 
+            in which case `channels` will be the number of channels the stream was created with.
+        """
+        if self.stream is not None and isinstance(self.stream.status, dict):
+            return
+        self.stream = None
+        # if physical device already has a stream, use it rather than making a new one
+        if self._useExistingStream():
+            return
+        # get psychtoolbox
+        ptb = systemtools.importPsychtoolbox('psychtoolbox.audio')
+        # can't open more channels than the device has
+        maxChannels = int(self.profile['NrOutputChannels'])
+        if channels is None:
+            channels = maxChannels
+        channels = min(int(channels), maxChannels)
 
         # try to connect using profile at various sample rates
         for sampleRateHz in (
@@ -236,15 +301,13 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                             mode=1+8,
                             device_id=self.profile['DeviceIndex'],
                             freq=sampleRateHz,
-                            channels=self.profile['NrOutputChannels'],
-                            latency_class=[self.latencyClass],
+                            channels=channels,
+                            latency_class=self.latencyClass,
                             buffer_size=None
                         )
                 # if it worked, set own parameters
-                self.index = self.profile['DeviceIndex']
-                self.name = self.profile['DeviceName']
                 self.sampleRateHz = sampleRateHz
-                self.channels = self.profile['NrOutputChannels']
+                self.channels = channels
                 # ...and log/print the stderr from psychtoolbox (only if successful!)
                 logs = errBuff.getvalue() + outBuff.getvalue()
                 for line in logs.split("\n"):
@@ -262,16 +325,30 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                 "Failed to setup a PsychToolBox audio stream for device %(DeviceName)s "
                 "(%(DeviceIndex)s)." % self.profile
             )
+        # store stream so other objects for the same physical device can use it
+        PsychtoolboxSpeakerDevice.streams[self.index] = {
+            'stream': self.stream,
+            'sampleRateHz': self.sampleRateHz,
+            'channels': self.channels,
+        }
 
         logging.info(
             f"Created stream for speaker device: {self.profile['DeviceName']} "
-            f"({self.profile['DeviceIndex']})"
+            f"({self.profile['DeviceIndex']}) with {self.channels} channels at "
+            f"{self.sampleRateHz}Hz"
         )
     
-    def open(self):
+    def open(self, channels=None):
         """
         Open the audio stream for this speaker so that sound can be played to it.
+
+        Parameters
+        ----------
+        channels : int, optional
+            Number of output channels to create the stream with, if it doesn't exist yet. If None, 
+            will use the maximum number of channels the device supports.
         """
+        self.createStream(channels=channels)
         if not self.isOpen:
             self.stream.start(0, 0, 1)
     
@@ -287,6 +364,9 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         """
         Is this speaker "open", i.e. is it active and ready for a Sound to play tracks on it
         """
+        # stream isn't created until it's needed
+        if self.stream is None:
+            return False
         # sometimes a closed stream will have an integer for status
         if not isinstance(self.stream.status, dict):
             return False

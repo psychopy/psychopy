@@ -1,242 +1,136 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Class for storing and working with movie file metadata.
+"""Class for storing movie file metadata.
 """
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ["MovieMetadata", "NULL_MOVIE_METADATA"]
+__all__ = [
+    'MovieMetadata',
+    'NULL_MOVIE_METADATA',
+]
 
 
 class MovieMetadata:
-    """Class for storing metadata and other information associated with a movie.
+    """Class for storing metadata about a movie file.
 
-    Some fields may not be populated if the video format or decoder cannot
-    determine them from the stream.
+    This class is used to store metadata about a movie file. This includes
+    information about the video and audio tracks in the movie. Metadata is
+    extracted from the movie file when the movie reader is opened.
+
+    This class is not intended to be used directly by users. It is used
+    internally by the `MovieFileReader` class to store metadata about the movie
+    file being read.
 
     Parameters
     ----------
-    mediaPath : str
-        Path to the file that has been loaded or is presently being played.
-        This may be a file path or URI to the location of the media.
-    title : str
-        Title of the clip stored in the metadata.
-    duration : float
-        Total length of the loaded movie clip in seconds.
+    filename : str
+        The name (or path) of the movie file to extract metadata from.
     size : tuple
-        Width and height of the source video frame in pixels.
-    frameRate : float or tuple
-        Frame rate of the movie in Hertz (Hz). If a tuple is specified, the
-        format should be `(numerator, denominator)`.
-    movieLib : str or None
-        Library used to obtain this metadata. Almost always will be the same
-        value as `MovieStim.movieLib` if this metadata has been retrieved using
-        that class.
-    userData : dict or None
-        Optional mapping for storing user defined data.
-
-    Examples
-    --------
-    Accessing metadata via the `MovieStim` class::
-
-        myMovie = MovieStim(win, '/path/to/my/movie.mpeg')
-        clipDuration = myMovie.metadata.duration
-
-    Check if metadata is valid::
-
-        metadataValid = myMovie.metadata is not NULL_MOVIE_METADATA
-
+        The size of the movie in pixels (width, height).
+    frameRate : float
+        The frame rate of the movie in frames per second.
+    duration : float
+        The duration of the movie in seconds.
+    colorFormat : str
+        The color format of the movie (e.g. 'rgba', etc.).
+    audioTrack : AudioMetadata or None
+        The audio track metadata.
+    
     """
-    __slots__ = [
-        '_mediaPath',
-        '_title',
-        '_duration',
-        '_size',
-        '_frameRate',
-        '_frameInterval',
-        '_pixelFormat',
-        '_movieLib',
-        '_userData'
-    ]
-
-    def __init__(self,
-                 mediaPath=u"",
-                 title=u"",
-                 duration=-1,
-                 size=(-1, -1),
-                 frameRate=-1,
-                 pixelFormat='unknown',
-                 movieLib=u"",
-                 userData=None):
-
-        self.mediaPath = mediaPath
-        self.title = title
-        self.duration = duration
-        self.frameRate = frameRate
-        self.size = size
-        self.pixelFormat = pixelFormat
-        self.movieLib = movieLib
-        self.userData = userData
-
-    def __repr__(self):
-        return (f"MovieMetadata(mediaPath={repr(self.mediaPath)}, "
-                f"title={repr(self.title)}, "
-                f"duration={self.duration}, "
-                f"size={self.size}, "
-                f"frameRate={self.frameRate}, "
-                f"pixelFormat={self.pixelFormat}, "
-                f"movieLib={repr(self.movieLib)}, "
-                f"userData={repr(self.userData)})")
-
-    def compare(self, metadata):
-        """Get a list of attribute names that differ between this and another
-        metadata object.
-
-        Returns
-        -------
-        list of str
-
-        """
-        if not isinstance(metadata, MovieMetadata):
-            raise TypeError(
-                'Value for `metadata` must have type `MovieMetadata`.')
-
-        return []
-
-    @property
-    def mediaPath(self):
-        """Path to the video (`str`). May be either a path to a file on the
-        local machine, URI, or camera enumeration. An empty string indicates
-        this field is uninitialized.
-        """
-        return self._mediaPath
-
-    @mediaPath.setter
-    def mediaPath(self, value):
-        self._mediaPath = str(value)
-
-    @property
-    def title(self):
-        """Title of the video (`str`). An empty string indicates this field is
-        not initialized.
-        """
-        return self._title
-
-    @title.setter
-    def title(self, value):
-        self._title = str(value)
-
-    @property
-    def duration(self):
-        """Total length of the loaded movie clip in seconds (`float`). A value
-        of `-1` indicates that this value is uninitialized.
-        """
-        return self._duration
-
-    @duration.setter
-    def duration(self, value):
-        if value is None:
-            value = 0.0
-
-        self._duration = float(value)
-
-    @property
-    def frameRate(self):
-        """Framerate of the video (`float` or `tuple`). A value of `-1`
-        indicates that this field is not initialized.
-        """
-        return self._frameRate
-
-    @frameRate.setter
-    def frameRate(self, value):
-        if isinstance(value, (tuple, list,)):
-            self._frameRate = value[0] / float(value[1])
-        else:
-            self._frameRate = float(value)
-
-        # compute the frame interval from the frame rate
+    __slots__ = (
+        '_filename', '_size', '_frameRate', '_duration', '_frameInterval',
+        '_colorFormat', '_audioTrack')
+    
+    def __init__(self, filename, size, frameRate, duration, colorFormat, 
+                 audioTrack=None):
+        self._filename = filename
+        self._size = size
+        self._frameRate = frameRate
+        self._duration = duration
         self._frameInterval = 1.0 / self._frameRate
 
+        if isinstance(colorFormat, bytes):
+            colorFormat = colorFormat.decode('utf-8')
+        self._colorFormat = colorFormat
+
+        # audio track metadata
+        self._audioTrack = audioTrack
+
+    def __repr__(self):
+        return (
+            f"MovieMetadata(filename={self.filename}, "
+            f"size={self.size}, "
+            f"frameRate={self.frameRate}, "
+            f"duration={self.duration})")
+        
+    def __str__(self):
+        return (
+            f"MovieMetadata(filename={self.filename}, "
+            f"size={self.size}, "
+            f"frameRate={self.frameRate}, "
+            f"duration={self.duration})")
+
     @property
-    def frameInterval(self):
-        """Frame interval in seconds (`float`). This is the amount of time the
-        frame is to remain onscreen given the framerate. This value is computed
-        after the `frameRate` attribute is set.
+    def filename(self):
+        """The name (path) of the movie file (`str`).
+
         """
-        return self._frameInterval
+        return self._filename
 
     @property
     def size(self):
-        """Source video size (w, h) in pixels (`tuple`). This value is
-        uninitialized if `(-1, -1)` is returned.
+        """The size of the movie in pixels (`tuple`).
+
         """
         return self._size
 
-    @size.setter
-    def size(self, value):
-        # format checking
-        if not hasattr(value, '__len__'):
-            raise TypeError('Value for `size` must be iterable.')
+    @property
+    def frameRate(self):
+        """The frame rate of the movie in frames per second (`float`).
 
-        if not len(value) == 2:
-            raise ValueError(
-                'Invalid length for value `size`, must have length of 2.')
+        """
+        return self._frameRate
+    
+    @property
+    def frameInterval(self):
+        """The interval between frames in the movie in seconds (`float`).
 
-        if not all([isinstance(i, int) for i in value]):
-            raise TypeError('Elements of `size` must all have type `int`.')
+        """
+        return self._frameInterval
+    
+    @property
+    def duration(self):
+        """The duration of the movie in seconds (`float`).
 
-        self._size = tuple(value)
+        """
+        return self._duration
 
     @property
-    def movieLib(self):
-        """Movie library used to get this metadata (`str`). An empty string
-        indicates this field is not initialized.
+    def colorFormat(self):
+        """The color format of the movie (`str`).
+
         """
-        return self._movieLib
-
-    @movieLib.setter
-    def movieLib(self, value):
-        self._movieLib = str(value)
-
+        return self._colorFormat
+    
     @property
-    def pixelFormat(self):
-        """Video pixel format (`str`). An empty string indicates this field is
-        not initialized.
+    def audioTrack(self):
+        """The audio track metadata (`AudioMetadata` or `None`).
+
         """
-        return self._pixelFormat
-
-    @pixelFormat.setter
-    def pixelFormat(self, value):
-        self._pixelFormat = str(value)
-
-    @property
-    def userData(self):
-        """Optional mapping for storing user defined data (`dict` or `None`). If
-        set to `None`, an empty dictionary will be initialized and set as this
-        value.
-        """
-        return self._userData
-
-    @userData.setter
-    def userData(self, value):
-        if value is None:
-            self._userData = {}
-            return
-
-        if not isinstance(value, dict):
-            raise TypeError(
-                'Value for `userData` must be type `dict` or `None`.')
-
-        self._userData = value
+        return self._audioTrack
 
 
 # Null movie metadata object, return a reference to this object instead of
 # `None` when no metadata is present.
-NULL_MOVIE_METADATA = MovieMetadata()
-
-
-if __name__ == "__main__":
-    pass
+NULL_MOVIE_METADATA = MovieMetadata(
+    filename=u'', 
+    size=(-1, -1),
+    frameRate=-1,
+    duration=-1.0, 
+    colorFormat=u'unknown', 
+    audioTrack=None
+)

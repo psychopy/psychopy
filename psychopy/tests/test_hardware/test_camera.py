@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from psychopy import core, session, visual
+from psychopy import clock, core, session, visual
 from psychopy.hardware import DeviceManager
 from psychopy.hardware.camera import (
     CAMERA_LIB_OPENCV, CAMERA_LIB_PYAV, PREFERED_CAMERA_LIB, Camera,
@@ -298,7 +298,7 @@ class TestCameraRecording:
         self._stubAudioTrack(monkeypatch, duration=0.5)
         # stop the recording well before it is due to start, so that no frame
         # can make it in
-        self.cam.record(when=60.0)
+        self.cam.record(when=clock.getTime() + 60.0)
         self.cam.stop()
 
         errors = []
@@ -440,10 +440,9 @@ SCHEDULE_DELAY = 1.0
 class TestCameraScheduledRecording:
     """Schedule the start and stop of a recording with `when`.
 
-    Note that `when` is an offset from the moment of the call, not an absolute
-    clock time: both `record()` and `stop()` compute their target as
-    `when + self._getTime()`. The docstrings on both describe it as an absolute
-    time, which is not what either does.
+    `when` is an absolute time on the clock `psychopy.clock.getTime()` reads,
+    as for `Sound.play()`, so each of these schedules `SCHEDULE_DELAY` ahead of
+    the time of the call.
 
     """
     def setup_method(self):
@@ -476,7 +475,7 @@ class TestCameraScheduledRecording:
 
         self.cam.open()
 
-        self.cam.record(when=SCHEDULE_DELAY)
+        self.cam.record(when=clock.getTime() + SCHEDULE_DELAY)
 
         # halfway to the requested start nothing should have been recorded yet
         self._pumpFor(SCHEDULE_DELAY * 0.5)
@@ -546,15 +545,15 @@ class TestCameraScheduledRecording:
         assert not self.cam.isStopping, (
             "Reported a pending stop before one was scheduled.")
 
-        self.cam.stop(when=SCHEDULE_DELAY)
+        self.cam.stop(when=clock.getTime() + SCHEDULE_DELAY)
 
         # the recording carries on, but now with an end in sight
         assert self.cam.isStopping, (
-            "No pending stop reported after `stop(when={})`.".format(
+            "No pending stop reported after a stop scheduled {}s ahead.".format(
                 SCHEDULE_DELAY))
         assert self.cam.isRecording, (
-            "Recording ended when `stop(when={})` was called rather than at "
-            "the scheduled time.".format(SCHEDULE_DELAY))
+            "Recording ended when a stop scheduled {}s ahead was requested "
+            "rather than at the scheduled time.".format(SCHEDULE_DELAY))
 
         # keep polling past the scheduled stop
         self._pumpFor(SCHEDULE_DELAY + 0.3)
@@ -637,7 +636,7 @@ class TestCameraScheduledRecording:
         self.cam.record()
         self._pumpFor(0.5)
 
-        self.cam.stop(when=SCHEDULE_DELAY)
+        self.cam.stop(when=clock.getTime() + SCHEDULE_DELAY)
 
         # let the scheduled time pass without polling the camera at all
         core.wait(SCHEDULE_DELAY + 0.2)

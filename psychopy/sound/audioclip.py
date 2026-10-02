@@ -110,7 +110,9 @@ class AudioClip:
         # samples should be a 2D array where columns represent channels
         self._samples = np.atleast_2d(
             np.asarray(samples, dtype=np.float32, order='C'))
-        self._samples.clip(-1, 1)  # force values to be clipped
+        # clip to keep samples in range, `np.clip` returns a copy so the
+        # caller's array is never modified
+        self._samples = np.clip(self._samples, -1., 1.)
 
         # set the sample rate of the clip
         self._sampleRateHz = int(sampleRateHz)
@@ -663,7 +665,7 @@ class AudioClip:
 
         # multiply and clip range
         arrview *= float(factor)
-        arrview.clip(-1, 1)
+        np.clip(arrview, -1., 1., out=arrview)
 
     def resample(self, targetSampleRateHz, resampleType='default', 
             equalEnergy=False, copy=False):
@@ -1023,7 +1025,8 @@ class AudioClip:
     @samples.setter
     def samples(self, value):
         self._samples = np.asarray(value, dtype=float)  # convert to array
-        self._samples.clip(-1., 1.)  # do clipping to keep samples in range
+        # do clipping to keep samples in range
+        self._samples = np.clip(self._samples, -1., 1.)
 
         # recompute duration after updating samples
         self._duration = len(self._samples) / float(self._sampleRateHz)

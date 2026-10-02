@@ -26,17 +26,22 @@ OFFSET = 20          # requested onset, in samples, inside the first block
 N = 10 * BLOCK       # long enough that the sound never ends during the test
 NBLOCKS = 4
 NOW = 5.0            # the backend's (frozen) time.monotonic() during a test
+# The (frozen) `psychopy.clock.getTime()` during a test, which `when` is given
+# in. Far from NOW, so that mixing up the two clocks can't go unnoticed.
+CLOCK_NOW = 1000.0
 
 
 @pytest.fixture(autouse=True)
 def headless(monkeypatch):
-    """No audio device, a private stream registry and a frozen backend clock."""
+    """No audio device, a private stream registry and frozen backend clocks."""
     monkeypatch.setattr(bsd, "travisCI", True)
     monkeypatch.setattr(bsd, "streams", bsd._StreamsDict())
     # SoundDeviceSound requires a speaker of the backend resolved from prefs
     monkeypatch.setattr(bsd.SpeakerDevice, "backend", "sounddevice")
     # stub only the backend's reference to the time module, not time itself
     monkeypatch.setattr(bsd, "time", types.SimpleNamespace(monotonic=lambda: NOW))
+    # likewise its reference to `psychopy.clock`, which `when` is converted from
+    monkeypatch.setattr(bsd, "clock", types.SimpleNamespace(getTime=lambda: CLOCK_NOW))
 
 
 def _ramp(n):
@@ -44,11 +49,12 @@ def _ramp(n):
     return ((np.arange(n) + 1) / n).reshape(n, 1)
 
 
-def _new_sound(value, hamming=False, **kwargs):
+def _new_sound(value, hamming=False, speaker=None, **kwargs):
     """A real SoundDeviceSound playing ``value``, no device opened."""
+    if speaker is None:
+        speaker = SoundDeviceSpeakerDevice(name="test speaker")
     return SoundDeviceSound(
-        value, blockSize=BLOCK,
-        speaker=SoundDeviceSpeakerDevice(name="test speaker"),
+        value, blockSize=BLOCK, speaker=speaker,
         hamming=hamming, autoLog=False, **kwargs)
 
 
@@ -83,7 +89,7 @@ def _nblocksFor(nsamples):
 @pytest.mark.parametrize("offset", [0, 1, 13, OFFSET, BLOCK - 1])
 def test_onset_lands_on_exact_sample(offset):
     sound = _make_sound()
-    sound.play(when=offset / SR, log=False)
+    sound.play(when=CLOCK_NOW + offset / SR, log=False)
     out = _render(sound)
     # onset is at the requested sample, not quantised to the block boundary
     assert int(np.flatnonzero(out)[0]) == offset
@@ -94,7 +100,7 @@ def test_first_partial_block_is_gapless_and_not_truncated():
     """The partial first block must not be mistaken for end-of-stream, and the
     time cursor must advance by the samples produced (no dropped samples)."""
     sound = _make_sound()
-    sound.play(when=OFFSET / SR, log=False)
+    sound.play(when=CLOCK_NOW + OFFSET / SR, log=False)
     out = _render(sound)
     played = out[OFFSET:]                       # everything after the onset
     assert np.allclose(played, _ramp(N)[:len(played), 0])  # contiguous, no gap
@@ -107,12 +113,23 @@ def test_full_sound_reconstructed_through_eos():
     sample once the onset offset pushes the time cursor off the sample grid)."""
     n = 5 * BLOCK
     sound = _make_sound(n)
-    sound.play(when=OFFSET / SR, log=False)
+    sound.play(when=CLOCK_NOW + OFFSET / SR, log=False)
     out = _render(sound, nblocks=_nblocksFor(OFFSET + n))
 
     assert np.allclose(out[OFFSET:OFFSET + n], _ramp(n)[:, 0])  # every sample
     assert np.allclose(out[OFFSET + n:], 0.0)                   # and no more
     assert sound not in sound.stream.sounds                     # removed at EOS
+
+
+@pytest.mark.parametrize("when", [0.0, CLOCK_NOW - 1.0, CLOCK_NOW])
+def test_when_already_passed_starts_immediately(when):
+    """``when`` is an absolute time, so a time which has already passed
+    (including 0) starts playback at the very next sample rather than being
+    taken as a delay."""
+    sound = _make_sound()
+    sound.play(when=when, log=False)
+    out = _render(sound)
+    assert out[0] != 0.0
 
 
 class _FakeWindow:
@@ -173,7 +190,7 @@ def test_dac_jitter_after_onset_leaves_no_gap(onset, jitter):
     later block (normal PortAudio jitter) must not re-gate the sound and write
     silence into the middle of it."""
     sound = _make_sound()
-    sound.play(when=onset / SR, log=False)
+    sound.play(when=CLOCK_NOW + onset / SR, log=False)
     out = _render(sound, jitter={1: jitter})
     played = out[onset:]
     assert np.allclose(played, _ramp(N)[:len(played), 0])  # contiguous, no gap
@@ -232,7 +249,7 @@ def test_hanning_window_independent_of_onset_phase(onset):
     assert expected[0] < _ramp(n)[0, 0]  # the window was applied
 
     sound = _make_sound(n, hamming=True)
-    sound.play(when=onset / SR, log=False)
+    sound.play(when=CLOCK_NOW + onset / SR, log=False)
     out = _render(sound, nblocks=_nblocksFor(onset + n))
     assert np.allclose(out[onset:onset + n], expected)
 
@@ -257,7 +274,7 @@ def test_loops_play_back_to_back(n):
     loops = 2
     nPlayed = (loops + 1) * n
     sound = _make_sound(n, loops=loops)
-    sound.play(when=OFFSET / SR, log=False)
+    sound.play(when=CLOCK_NOW + OFFSET / SR, log=False)
     out = _render(sound, nblocks=_nblocksFor(OFFSET + nPlayed))
     assert np.allclose(out[OFFSET:OFFSET + nPlayed],
                        np.tile(_ramp(n)[:, 0], loops + 1))
@@ -429,3 +446,97 @@ def test_set_sound_without_hamming_drops_window():
     sound.play(log=False)
     out = _render(sound, nblocks=_nblocksFor(n))
     assert np.allclose(out[:n], _ramp(n)[:, 0])
+
+
+# --------------------------------------------------------------------------
+# Speakers and their streams
+#
+
+def _speaker(name, **kwargs):
+    return SoundDeviceSpeakerDevice(name=name, **kwargs)
+
+
+def _blockOut(sound):
+    """One block of every channel of the sound's stream."""
+    stream = sound.stream
+    tp = types.SimpleNamespace(currentTime=NOW, inputBufferAdcTime=0.0,
+                               outputBufferDacTime=NOW)
+    toSpk = np.zeros((BLOCK, stream.channels), dtype="float32")
+    stream._callback(toSpk, BLOCK, tp, 0)
+    return toSpk
+
+
+def test_sounds_on_a_speaker_share_its_stream():
+    """Every sound on a speaker plays through the one stream, whatever its
+    channels and block size, since a hardware device takes only one."""
+    speaker = _speaker("speaker A")
+    mono = _new_sound(_ramp(N), sampleRate=SR, speaker=speaker)
+    stereo = _new_sound(np.hstack([_ramp(N), _ramp(N)]), sampleRate=SR,
+                        speaker=speaker)
+    smallBlocks = SoundDeviceSound(
+        _ramp(N), sampleRate=SR, blockSize=16, speaker=speaker,
+        hamming=False, autoLog=False)
+    assert mono.stream is stereo.stream is smallBlocks.stream
+    assert len(bsd.streams) == 1
+
+
+def test_speakers_get_streams_of_their_own():
+    a = _new_sound(_ramp(N), sampleRate=SR, speaker=_speaker("speaker A"))
+    b = _new_sound(_ramp(N), sampleRate=SR, speaker=_speaker("speaker B"))
+    assert a.stream is not b.stream
+    assert a.streamLabel == bsd.getDeviceStreamLabel("speaker A")
+    assert b.streamLabel == bsd.getDeviceStreamLabel("speaker B")
+
+
+@pytest.mark.parametrize("rate", [22050, 48000])
+def test_sound_resampled_to_its_speakers_rate(rate):
+    """A sound made at another rate is resampled to the stream's on load,
+    keeping its duration, as the ``ptb`` backend does."""
+    n = rate // 10  # 0.1 s
+    sound = _new_sound(np.zeros((n, 1)) + 0.5, sampleRate=rate)
+    assert sound.stream.sampleRate == SR
+    assert sound.sampleRate == SR
+    assert sound.duration == pytest.approx(0.1, abs=1 / SR)
+    assert len(sound.sndArr) == pytest.approx(SR // 10, abs=1)
+
+
+def test_sound_at_another_rate_rejected_without_resampling():
+    speaker = _speaker("test speaker", resample=False)
+    with pytest.raises(bsd.SoundFormatError):
+        _new_sound(_ramp(N), sampleRate=22050, speaker=speaker)
+
+
+def test_file_at_another_rate(tmp_path):
+    """A file at another rate is resampled when loaded up front, but can't be
+    streamed from disk (which reads it as it plays) to the speaker."""
+    path = str(tmp_path / "ramp22k.wav")
+    sf.write(path, _ramp(M)[:, 0].astype("float32"), 22050, subtype="FLOAT")
+
+    loaded = _new_sound(path, preBuffer=-1)
+    assert loaded.sampleRate == SR
+    assert loaded.duration == pytest.approx(M / 22050, abs=1 / SR)
+
+    with pytest.raises(bsd.SoundFormatError):
+        _new_sound(path, preBuffer=0)
+
+
+def test_mono_sound_plays_on_every_channel():
+    sound = _make_sound()
+    assert sound.stream.channels == 2
+    sound.play(log=False)
+    out = _blockOut(sound)
+    assert np.allclose(out[:, 0], _ramp(N)[:BLOCK, 0])
+    assert np.allclose(out[:, 1], out[:, 0])
+
+
+def test_stereo_sound_mixed_down_on_a_mono_stream():
+    """A stereo sound on a mono device plays as a mix of its channels."""
+    label = bsd.getDeviceStreamLabel("mono speaker")
+    bsd.streams[label] = bsd._SoundStream(SR, 1, BLOCK, device="mono speaker")
+    left, right = _ramp(N), np.zeros((N, 1)) + 0.25
+    sound = _new_sound(np.hstack([left, right]), sampleRate=SR,
+                       speaker=_speaker("mono speaker"))
+    assert sound.stream is bsd.streams[label]
+    sound.play(log=False)
+    out = _blockOut(sound)
+    assert np.allclose(out[:, 0], (left[:BLOCK, 0] + right[:BLOCK, 0]) / 2)

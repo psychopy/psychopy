@@ -321,6 +321,34 @@ def test_audioclip_rms():
     assert isinstance(rmsResultMono, np.float32)
 
 
+
+@pytest.mark.audioclip
+def test_audioclip_clipping():
+    """Test that samples are clipped to the range -1 to 1 when the clip is
+    created, when samples are set, and after applying gain.
+    """
+    outOfRange = np.array([[-2.0, 2.0], [-0.5, 0.5], [1.5, -1.5]])
+    expected = np.array([[-1.0, 1.0], [-0.5, 0.5], [1.0, -1.0]])
+
+    # clipped on creation, caller's array left untouched
+    inputArray = outOfRange.astype(np.float32)
+    audioClip = AudioClip(inputArray, sampleRateHz=SAMPLE_RATE_48kHz)
+    assert np.allclose(audioClip.samples, expected)
+    assert np.allclose(inputArray, outOfRange)
+
+    # clipped when set through the property
+    audioClip.samples = outOfRange
+    assert np.allclose(audioClip.samples, expected)
+
+    # clipped after gain, for all channels and a single channel
+    audioClip = AudioClip(
+        np.array([[0.4, 0.4], [-0.4, -0.4]]), sampleRateHz=SAMPLE_RATE_48kHz)
+    audioClip.gain(4.0, channel=0)
+    assert np.allclose(audioClip.samples, [[1.0, 0.4], [-1.0, -0.4]])
+    audioClip.gain(4.0)
+    assert np.allclose(audioClip.samples, [[1.0, 1.0], [-1.0, -1.0]])
+
+
 if __name__ == "__main__":
     # runs if this script is directly executed
     test_audioclip_create()
@@ -328,4 +356,5 @@ if __name__ == "__main__":
     test_audioclip_attrib()
     test_audioclip_concat()
     test_audioclip_file()
+    test_audioclip_clipping()
     test_audioclip_rms()
