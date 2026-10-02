@@ -284,13 +284,52 @@ class SoundPTB(_SoundBase):
             self.track.fill_buffer(samples)
         else:
             self.track = audio.Slave(
-                self.stream.handle, 
+                self.stream.handle,
                 data=samples,
                 volume=self.volume,
                 mode=1
             )
+        # plays to the end of the buffer, see `_trimSamples`
+        self._playEnd = None
         # seek to start
         self.seek(0)
+
+    def _toStreamSamples(self, samples):
+        """Map samples to the channels of the speaker's stream, as
+        `_setSndFromClip` does a whole clip."""
+        clip = AudioClip(samples, sampleRateHz=self.sampleRate)
+        if self.speaker.channels > 1:
+            clip = clip.asStereo()
+        else:
+            clip = clip.asMono()
+        samples = clip.samples
+        if self.speaker.channels > samples.shape[1]:
+            samples = np.pad(
+                samples, ((0, 0), (0, self.speaker.channels - samples.shape[1])))
+
+        return samples
+
+    def _writeSamples(self, start, samples):
+        # Also written into PTB's buffer, which was made at full length by
+        # `_allocateSamples`. Writing it a block at a time like this holds the
+        # GIL for a millisecond or so a block, where filling it in one go
+        # holds it for ~0.15 ms per second of audio, holding up drawing.
+        nWritten = _SoundBase._writeSamples(self, start, samples)
+        track = self.track
+        if nWritten and track is not None:
+            block = self._toStreamSamples(self.sndArr[start:start + nWritten])
+            audio.PsychPortAudio(
+                'RefillBuffer', track.handle, 0,
+                np.ascontiguousarray(block, dtype=np.float32), start)
+
+        return nWritten
+
+    def _trimSamples(self, nSamples):
+        _SoundBase._trimSamples(self, nSamples)
+        self.clip = AudioClip(self.sndArr, sampleRateHz=self.sampleRate)
+        # PTB's buffer keeps its length, so stop playback where the sound ends
+        self._playEnd = self.duration
+        self.seek(self.t)
 
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If True, ValueError"""
@@ -411,7 +450,8 @@ class SoundPTB(_SoundBase):
         if self.clip is not None:
             t = min(t, self.clip.duration - 2.0 / self.speaker.sampleRateHz)
         audio.PsychPortAudio(
-            'SetLoop', track.handle, max(0.0, t), None, 1)
+            'SetLoop', track.handle, max(0.0, t),
+            getattr(self, '_playEnd', None), 1)
 
         if wasPlaying:
             track.start(repetitions=self._repetitions)
