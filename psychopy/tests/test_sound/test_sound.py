@@ -122,6 +122,57 @@ class TestSounds:
                 # doesn't need to *actually* play, just check that it doesn't error
                 snd.stop()
 
+    def test_arrayCopiedOnce(self):
+        """
+        Test that a Sound made from an array keeps a copy of its own, so that
+        changing the array afterwards doesn't change the sound, and that it
+        makes only the one copy on the way (a long sound runs to hundreds of
+        megabytes, so each copy counts)
+        """
+        import tracemalloc
+
+        samples = numpy.random.default_rng(0).uniform(
+            -0.5, 0.5, (48000 * 10, 2)).astype(numpy.float32)
+        snd = sound.Sound(value=numpy.zeros((128, 2), numpy.float32))
+
+        tracemalloc.start()
+        try:
+            snd.setSound(samples)
+            peak = tracemalloc.get_traced_memory()[1]
+        finally:
+            tracemalloc.stop()
+
+        assert not numpy.shares_memory(snd.sndArr, samples)
+        numpy.testing.assert_array_equal(snd.sndArr, samples)
+        samples[:] = 0
+        assert numpy.any(snd.sndArr)  # still has its own copy
+        # that copy, plus a little for everything else
+        assert peak < 1.5 * samples.nbytes
+
+    def test_fileReadAsFloat32(self):
+        """
+        Test that a sound file is read straight to the 32-bit float samples a
+        Sound keeps, rather than to 64-bit and then copied over
+        """
+        import tracemalloc
+        import soundfile
+
+        path = Path(TESTS_DATA_PATH) / "Electronic_Chime-KevanGC-495939803.wav"
+        expected, _ = soundfile.read(str(path), dtype='float32')
+        snd = sound.Sound(value=numpy.zeros((128, 2), numpy.float32))
+
+        tracemalloc.start()
+        try:
+            snd.setSound(str(path))
+            peak = tracemalloc.get_traced_memory()[1]
+        finally:
+            tracemalloc.stop()
+
+        assert snd.sndArr.dtype == numpy.float32
+        numpy.testing.assert_array_equal(
+            snd.sndArr, expected.reshape(len(expected), -1))
+        assert peak < 1.5 * expected.nbytes
+
     def test_volume(self):
         """
         Test that Sound can handle setting/getting its volume
