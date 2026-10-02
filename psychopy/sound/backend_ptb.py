@@ -161,10 +161,14 @@ class SoundPTB(_SoundBase):
         self.hamming = hamming
         self._hammingWindow = None  # will be created during setSound
         self.win = syncToWin
+        # set before `setSound`, which seeks to the start of the new sound
+        self._isPlaying = False  # set `True` after `play()` is called
+        # whether `play()` carries on from where the sound was paused
+        self._resumeOnPlay = False
+        self._repetitions = None  # as last passed to the track by `play()`
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
-        self._isPlaying = False  # set `True` after `play()` is called
         self._isFinished = False
         self.status = NOT_STARTED
 
@@ -254,10 +258,6 @@ class SoundPTB(_SoundBase):
     def _setSndFromClip(self, clip: AudioClip):
         # store clip
         self.clip = clip
-        # resample the clip if needed and allowed
-        if self.speaker.resample:
-            if clip.sampleRateHz != self.speaker.sampleRateHz:
-                clip.resample(targetSampleRateHz=self.speaker.sampleRateHz)
         # work out stop time
         if self.stopTime == -1:
             self.duration = clip.samples.shape[0] / clip.sampleRateHz
@@ -266,19 +266,70 @@ class SoundPTB(_SoundBase):
             clip = clip.asStereo()
         else:
             clip = clip.asMono()
+        # if the speaker has no stream yet, create one with as many channels as the clip
+        self.speaker.open(channels=clip.channels)
+        # resample the clip if needed and allowed
+        if self.speaker.resample:
+            if clip.sampleRateHz != self.speaker.sampleRateHz:
+                clip.resample(targetSampleRateHz=self.speaker.sampleRateHz)
+        # if the stream was already created with more channels, pad with silent channels
+        samples = clip.samples
+        if self.speaker.channels > samples.shape[1]:
+            samples = np.pad(samples, ((0, 0), (0, self.speaker.channels - samples.shape[1])))
         # create/update track
         if  self.track:
             self.track.stop()
-            self.track.fill_buffer(clip.samples)
+            # so the seek below doesn't start the new sound playing
+            self._isPlaying = False
+            self.track.fill_buffer(samples)
         else:
             self.track = audio.Slave(
-                self.stream.handle, 
-                data=clip.samples,
+                self.stream.handle,
+                data=samples,
                 volume=self.volume,
                 mode=1
             )
+        # plays to the end of the buffer, see `_trimSamples`
+        self._playEnd = None
         # seek to start
         self.seek(0)
+
+    def _toStreamSamples(self, samples):
+        """Map samples to the channels of the speaker's stream, as
+        `_setSndFromClip` does a whole clip."""
+        clip = AudioClip(samples, sampleRateHz=self.sampleRate)
+        if self.speaker.channels > 1:
+            clip = clip.asStereo()
+        else:
+            clip = clip.asMono()
+        samples = clip.samples
+        if self.speaker.channels > samples.shape[1]:
+            samples = np.pad(
+                samples, ((0, 0), (0, self.speaker.channels - samples.shape[1])))
+
+        return samples
+
+    def _writeSamples(self, start, samples):
+        # Also written into PTB's buffer, which was made at full length by
+        # `_allocateSamples`. Writing it a block at a time like this holds the
+        # GIL for a millisecond or so a block, where filling it in one go
+        # holds it for ~0.15 ms per second of audio, holding up drawing.
+        nWritten = _SoundBase._writeSamples(self, start, samples)
+        track = self.track
+        if nWritten and track is not None:
+            block = self._toStreamSamples(self.sndArr[start:start + nWritten])
+            audio.PsychPortAudio(
+                'RefillBuffer', track.handle, 0,
+                np.ascontiguousarray(block, dtype=np.float32), start)
+
+        return nWritten
+
+    def _trimSamples(self, nSamples):
+        _SoundBase._trimSamples(self, nSamples)
+        self.clip = AudioClip(self.sndArr, sampleRateHz=self.sampleRate)
+        # PTB's buffer keeps its length, so stop playback where the sound ends
+        self._playEnd = self.duration
+        self.seek(self.t)
 
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If True, ValueError"""
@@ -311,8 +362,16 @@ class SoundPTB(_SoundBase):
         Calling this after the sound has finished playing will restart the
         sound.
 
+        `when` is when to start playback: an absolute time in seconds on the
+        clock `psychopy.clock.getTime()` reads, or a `psychopy.visual.Window`
+        to start on its next flip. If `None`, playback starts on the next flip of
+        the window given as `syncToWin`, or immediately without one. A time
+        which has already passed starts playback immediately.
+
         """
-        if self._checkPlaybackFinished():
+        # A paused track looks the same as a finished one to PTB, so only check
+        # for the end when not about to carry on from a pause.
+        if not self._resumeOnPlay and self._checkPlaybackFinished():
             self.stop(reset=True)
 
         if loops is not None and self.loops != loops:
@@ -328,7 +387,10 @@ class SoundPTB(_SoundBase):
             when = self.win.getFutureFlipTime(clock='ptb')
         else:
             logTime = None
-        self.track.start(repetitions=loops, when=when)
+        self._repetitions = loops
+        self.track.start(
+            repetitions=loops, when=when, resume=int(self._resumeOnPlay))
+        self._resumeOnPlay = False
         self._isPlaying = True
         self._isFinished = False
         # time.sleep(0.)
@@ -340,6 +402,7 @@ class SoundPTB(_SoundBase):
         """
         if self._isPlaying:
             self.stop(reset=False, log=False)
+            self._resumeOnPlay = True
             if log and self.autoLog:
                 logging.exp(u"Sound %s paused" % (self.name), obj=self)
 
@@ -350,7 +413,9 @@ class SoundPTB(_SoundBase):
         if not self._isPlaying:
             return
 
-        self.track.stop()
+        # track is a weak reference, so may already be gone (e.g. during interpreter shutdown)
+        if self.track is not None:
+            self.track.stop()
         self._isPlaying = False
 
         if reset:
@@ -359,11 +424,39 @@ class SoundPTB(_SoundBase):
             logging.exp(u"Sound %s stopped" % (self.name), obj=self)
 
     def seek(self, t):
+        """Move playback to `t` seconds into the sound, carrying on playing
+        from there if the sound is playing."""
         self.t = t
         self.frameN = int(round(t * self.sampleRate))
         if self.sndFile and not self.sndFile.closed:
             self.sndFile.seek(self.frameN)
         self._isFinished = t >= self.duration
+
+        track = self.track
+        if track is None:
+            return
+
+        # play from `t` next, rather than from wherever it was paused
+        self._resumeOnPlay = False
+
+        wasPlaying = self._isPlaying
+        if wasPlaying:
+            track.stop()
+
+        # PTB can only start a track from the start of its loop range, so move
+        # that to `t` (refilling the buffer resets it to the whole sound).
+        # Seeking to the end leaves a sample or two to play, since the range
+        # can't be empty, and lets the sound finish as normal.
+        if self.clip is not None:
+            t = min(t, self.clip.duration - 2.0 / self.speaker.sampleRateHz)
+        audio.PsychPortAudio(
+            'SetLoop', track.handle, max(0.0, t),
+            getattr(self, '_playEnd', None), 1)
+
+        if wasPlaying:
+            track.start(repetitions=self._repetitions)
+            # it finishes (and ends as usual) once what's left has played
+            self._isFinished = False
 
     def _EOS(self, reset=True, log=True):
         """Function called on End Of Stream

@@ -33,6 +33,49 @@ from Quartz import CACurrentMediaTime
 from psychopy import logging
 from psychopy.clock import getTime as _getRawTime
 
+# Offset between the `CACurrentMediaTime()` clock DisplayLink callbacks are
+# timestamped in and the raw clock PsychoPy is using, see `_getClockOffset`.
+_clockOffset = None
+
+
+def _getClockOffset(nSamples=51):
+    """Offset to add to a `CACurrentMediaTime()` timestamp to put it on the
+    clock :func:`psychopy.clock.getTime` reads.
+
+    Mach time and PsychToolbox's `GetSecs` are both ultimately derived from the
+    same monotonic hardware counter on macOS, so this is a constant, but we
+    measure it rather than assume the two are numerically identical. Being
+    constant, it's measured once and cached: re-measuring it per call would add
+    the time taken to read the two clocks (and whatever the scheduler adds to
+    that, a few microseconds now and then) to every timestamp converted with
+    it, so two conversions of the *same* timestamp wouldn't agree. Callers
+    compare converted timestamps against each other, e.g. holding a movie
+    scheduled with `play(when=win)` until the flip it was scheduled for, where
+    a few microseconds of disagreement reads as the flip having been and gone.
+
+    Parameters
+    ----------
+    nSamples : int
+        Number of pairs of clock reads to take when measuring. Each pair
+        over-estimates the offset by however long elapsed between its two
+        reads, so the smallest of them is the closest to the truth.
+
+    Returns
+    -------
+    float
+        Offset in seconds, to be added to a `CACurrentMediaTime()` timestamp.
+
+    """
+    global _clockOffset
+
+    if _clockOffset is None:
+        # the media clock is read first in each pair, so every sample is
+        # biased *up* by the time between the two reads
+        _clockOffset = min(
+            _getRawTime() - CACurrentMediaTime() for _ in range(nSamples))
+
+    return _clockOffset
+
 
 class RefreshEventHandlerMacOS(AppKit.NSObject):
     """Callback handler for macOS display link refresh events.
@@ -184,15 +227,12 @@ class DisplayLinkMacOS:
             return None
 
         # `lastTargetTimestamp` is in the `CACurrentMediaTime()` clock
-        # domain. Convert it to whichever raw clock PsychoPy is using (mach
-        # time and PsychToolbox's GetSecs are both ultimately derived from
-        # the same monotonic hardware counter on macOS, but we measure the
-        # offset live rather than assume they're numerically identical).
-        sampleMediaTime = CACurrentMediaTime()
-        samplePsychopyTime = _getRawTime()
-
-        return self._refreshHandler.lastTargetTimestamp + (
-            samplePsychopyTime - sampleMediaTime)
+        # domain, so put it on whichever raw clock PsychoPy is using. The
+        # offset between the two is measured once and cached, so that
+        # repeated calls between refreshes return the same timestamp rather
+        # than one which creeps by the jitter of measuring it (see
+        # `_getClockOffset`).
+        return self._refreshHandler.lastTargetTimestamp + _getClockOffset()
 
     def flip(self, swapBuffers):
         """Flip the window, then hold until the display refreshes as reported
