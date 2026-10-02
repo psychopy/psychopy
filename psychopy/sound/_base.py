@@ -493,10 +493,12 @@ class _SoundBase(AttributeGetSetMixin):
             self.sndArr = numpy.zeros(
                 shape=(self.blockSize, self.channels))
 
-        # create audio clip
+        # Create audio clip. `sndArr` is the sound's own array by now, so the
+        # clip shares it rather than making a second copy of it.
         clip = AudioClip(
             samples=self.sndArr,
-            sampleRateHz=self.sampleRate
+            sampleRateHz=self.sampleRate,
+            copy=False
         )
         # set from clip
         self._setSndFromClip(clip)

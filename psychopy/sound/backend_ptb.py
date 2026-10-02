@@ -326,7 +326,8 @@ class SoundPTB(_SoundBase):
 
     def _trimSamples(self, nSamples):
         _SoundBase._trimSamples(self, nSamples)
-        self.clip = AudioClip(self.sndArr, sampleRateHz=self.sampleRate)
+        self.clip = AudioClip(
+            self.sndArr, sampleRateHz=self.sampleRate, copy=False)
         # PTB's buffer keeps its length, so stop playback where the sound ends
         self._playEnd = self.duration
         self.seek(self.t)
