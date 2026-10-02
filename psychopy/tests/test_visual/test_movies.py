@@ -2040,13 +2040,21 @@ class TestMovieStimGPUColorConversion:
                                     fullRange):
         """What the shader converts YUV to RGB with matches `swscale`."""
         import av
+        from av.video.reformatter import Colorspace
 
         rng = np.random.default_rng(1)
         planes = rng.integers(16, 236, (3, 32, 32), dtype=np.uint8)
         frame = av.VideoFrame.from_ndarray(planes, format='yuv444p')
-        expected = frame.to_ndarray(
-            format='rgb24', src_colorspace=colorMatrix,
-            src_color_range='JPEG' if fullRange else 'MPEG')
+        if colorMatrix in Colorspace.__members__:
+            expected = frame.to_ndarray(
+                format='rgb24', src_colorspace=colorMatrix,
+                src_color_range='JPEG' if fullRange else 'MPEG')
+        else:
+            # PyAV before 18 has no name for BT.2020, but goes by a frame
+            # tagged with it
+            frame.colorspace = movies.frame._SWSCALE_TO_AVCOL_SPC[colorMatrix]
+            frame.color_range = 2 if fullRange else 1  # JPEG or MPEG
+            expected = frame.to_ndarray(format='rgb24')
 
         matrix, offset = movies._yuvToRGBUniforms(colorMatrix, fullRange)
         yuv = np.moveaxis(planes, 0, -1) / 255.0
@@ -2054,6 +2062,38 @@ class TestMovieStimGPUColorConversion:
         rgb = np.round(np.clip(rgb, 0.0, 1.0) * 255.0)
 
         assert np.abs(rgb - expected).max() <= 1
+
+    @pytest.mark.parametrize('colorRange', [1, 2])  # MPEG, JPEG
+    @pytest.mark.parametrize('colorspace', [9, 10])  # BT2020_NCL, BT2020_CL
+    def test_BT2020FramesConvertedToRGB(self, win, movieLib, colorspace,
+                                        colorRange):
+        """Frames tagged BT.2020 which are converted to RGB as they're decoded
+        (as 10-bit ones are) are converted with BT.2020, whichever PyAV
+        version names it or not."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav converts frames with their colour matrix')
+
+        import av
+
+        rng = np.random.default_rng(1)
+        planes = rng.integers(16, 236, (3, 32, 32), dtype=np.uint8)
+
+        def taggedFrame(tag):
+            frame = av.VideoFrame.from_ndarray(planes, format='yuv444p')
+            frame.colorspace, frame.color_range = tag, colorRange
+            return frame
+
+        # what `swscale` converts BT2020_NCL to, which BT2020_CL is too
+        expected = taggedFrame(9).to_ndarray(format='rgba')
+
+        reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
+        reader.setOutputPixelFormat('rgba')
+        reader.open()
+        try:
+            converted = reader._convertFrameToRGB(taggedFrame(colorspace))
+            assert np.array_equal(converted.memview, expected)
+        finally:
+            reader.close()
 
     def test_framesUploadedAsYUV(self, win, movieLib):
         """With `pyav`, frames are kept as YUV and drawn from one texture per
