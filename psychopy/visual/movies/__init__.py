@@ -25,7 +25,6 @@ from collections import deque
 from fractions import Fraction
 from pathlib import Path
 
-import tempfile
 import time
 
 from psychopy import layout, prefs
@@ -74,6 +73,16 @@ PYAV_SEEK_BACKOFF = 0.5  # seconds
 # Placed in the `pyav` decode-ahead queue where the movie ends. When looping,
 # frames from the start of the next pass are queued after it.
 _PYAV_END_OF_STREAM = object()
+
+# Samples (per channel) of a movie's audio track resampled at a time as it is
+# decoded into memory. Resampling each decoded frame on its own is slower, a
+# long track having tens of thousands of them, and resampling the whole track
+# at once is slower still, besides needing a second copy of it in memory.
+AUDIO_DECODE_BLOCK = 1 << 20
+
+# Length in samples of the silence a movie's audio track starts out as, which
+# opens the speaker so that the track can be decoded at the rate it plays at.
+AUDIO_TRACK_PLACEHOLDER_SAMPLES = 128
 
 # Largest denominator considered when working out how display refreshes line
 # up with movie frames, see `_frameSampleOffset`. Large enough for the common
@@ -3569,7 +3578,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # audio playback configuration
         self._audioConfig = audioConfig if audioConfig is not None else {}
-        self._audioTempFile = None  # audio extracted from the movie
+        # what `_audioTrack` was loaded from, see `_getAudioSource`
+        self._audioTrackSource = None
         self._audioSamples = []  # audio samples from the movie 
         self._audioTrack = None  # audio track information from the movie metadata
         self._audioReader = None  # audio reader object
@@ -3774,13 +3784,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         logging.debug(
             "Opening movie file: {}".format(self._filename))
 
-        # Extact the audio track so we can read samples from it. This needs to
-        # be done before the movie is opened by the player to avoid file access
-        # issues. The audio track is extracted to a temporary file which is
-        # deleted when the movie is closed.
+        # Load the audio track to play alongside the video. This needs to be
+        # done before the movie is opened by the player to avoid file access
+        # issues. The track is decoded into memory, or kept from before if
+        # this is the same movie being reloaded, as by `stop()`.
         disableAudio = False
         if not self._noAudio and not self._decoderPlaysAudio:
-            self._loadAudioTrack()  # extract and load the audio track
+            self._loadAudioTrack()  # decode and load the audio track
             disableAudio = True  # playing through our libs, so disable in ffpyplayer
 
         if self._noAudio and self._movieLib == 'vlc':
@@ -3862,163 +3872,223 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._noAudio or self._decoderPlaysAudio:
             return
 
-    def _extractAudioTrack(self):
-        """Extract the audio track from the movie file.
+    def _getAudioSource(self):
+        """Identify the audio track loading this movie would give (`tuple`).
 
-        This function extracts the audio track from the movie file and writes
-        it to a temporary WAV file using `PyAV`. The temporary file is used to
-        play the audio track in sync with the video frames.
-
-        The output is controlled by the `audioConfig` mapping passed to the
-        class constructor, which may specify:
-
-        * `'codec'` - PCM codec to encode the WAV file with (default
-          `'pcm_s16le'`).
-        * `'fps'` - sample rate of the extracted audio in Hz (default
-          `44100`).
-        * `'nbytes'` - sample width in bytes. Only used to select a codec when
-          `'codec'` has been left at its default (default `2`, i.e. 16-bit).
-
-        If the movie has no audio track, no file is written and
-        `_audioTempFile` is left as `None`.
+        This goes by the movie file as it is on disk now, and the settings the
+        track is loaded with. See `_loadAudioTrack`, which uses a track already
+        loaded with the same identity rather than loading it again.
 
         """
-        t0 = time.time()
-        logging.debug("Extracting audio track from movie file: {}".format(
-            self._filename))
+        try:
+            fileStat = os.stat(self._filename)
+            fileState = (fileStat.st_mtime_ns, fileStat.st_size)
+        except OSError:
+            fileState = None
 
+        return (os.path.abspath(self._filename), fileState,
+                self._audioConfig.get('fps'), self._audioDevice)
+
+    @staticmethod
+    def _getTrackSampleRate(track):
+        """Sample rate in Hz that a `Sound` plays at, and that sounds at any
+        other rate are resampled to when loaded (`int`).
+
+        """
+        # `sounddevice` plays sounds through streams of its own...
+        rate = getattr(getattr(track, 'stream', None), 'sampleRate', None)
+        if not rate:
+            # ...where `ptb` plays them through the speaker's, opened by now
+            rate = getattr(getattr(track, 'speaker', None), 'sampleRateHz', None)
+
+        return int(rate or track.sampleRate)
+
+    @staticmethod
+    def _decodeAudioTrack(container, audioStream, sampleRate):
+        """Decode an audio track into memory.
+
+        Parameters
+        ----------
+        container : av.container.InputContainer
+            Movie file the track is in.
+        audioStream : av.audio.stream.AudioStream
+            Track to decode.
+        sampleRate : int
+            Sample rate in Hz to resample the track to.
+
+        Returns
+        -------
+        ndarray
+            Samples as 32-bit floats, shaped `(samples, channels)`, keeping the
+            channel layout of the track.
+
+        """
         import av
         from av.audio.resampler import AudioResampler
 
-        audioConfig = {
-            'codec': 'pcm_s16le', 
-            'fps': 44100, 
-            'nbytes': 2}
-        audioConfig.update(self._audioConfig)  # update with any user-provided config options
-
-        # `nbytes` picks the sample width when the caller hasn't asked for a
-        # specific codec, preserving the behaviour of the previous
-        # (`moviepy` based) implementation
-        codecName = audioConfig['codec']
-        if codecName == 'pcm_s16le':
-            codecName = {
-                1: 'pcm_u8',
-                2: 'pcm_s16le',
-                4: 'pcm_s32le'}.get(int(audioConfig['nbytes']), codecName)
-
-        sampleRate = int(audioConfig['fps'])
-
-        inContainer = outContainer = None
+        # not fatal if the codec doesn't support decoding with threads
         try:
-            inContainer = av.open(self._filename)
+            audioStream.thread_type = 'AUTO'
+        except Exception:
+            pass
 
+        layout = audioStream.layout.name
+        nChannels = len(audioStream.layout.channels)
+
+        # Room for the whole track going by its duration, with a little to
+        # spare in case that's out. It's grown if it turns out to need more.
+        if audioStream.duration is not None:
+            duration = float(audioStream.duration * audioStream.time_base)
+        elif container.duration is not None:
+            duration = container.duration / av.time_base
+        else:
+            duration = 60.0
+        out = np.empty(int((duration + 1.0) * sampleRate) * nChannels,
+                       dtype=np.float32)
+        nOut = 0
+
+        def store(frames):
+            """Copy resampled frames (packed 32-bit float) into `out`."""
+            nonlocal out, nOut
+            for resampled in frames:
+                n = resampled.samples * nChannels
+                if nOut + n > len(out):
+                    grown = np.empty(max(nOut + n, 2 * len(out)), np.float32)
+                    grown[:nOut] = out[:nOut]
+                    out = grown
+                out[nOut:nOut + n] = np.frombuffer(
+                    resampled.planes[0], np.float32, n)
+                nOut += n
+
+        # Decoded samples are gathered into blocks of 32-bit float planar
+        # samples, which most decoders produce anyway, and each block is
+        # resampled as it fills. See `AUDIO_DECODE_BLOCK`.
+        resampler = AudioResampler(format='flt', layout=layout, rate=sampleRate)
+        block = np.empty((nChannels, AUDIO_DECODE_BLOCK), np.float32)
+        nBlock = 0
+        blockRate = None  # rate decoded at, taken from the first frame
+        toPlanar = None  # for frames in any other form
+
+        def resampleBlock():
+            nonlocal nBlock
+            if not nBlock:
+                return
+            blockFrame = av.AudioFrame.from_ndarray(
+                block[:, :nBlock], format='fltp', layout=layout)
+            blockFrame.sample_rate = blockRate
+            store(resampler.resample(blockFrame))
+            nBlock = 0
+
+        def addToBlock(frames):
+            nonlocal block, nBlock
+            for frame in frames:
+                n = frame.samples
+                if nBlock + n > block.shape[1]:
+                    resampleBlock()
+                    if n > block.shape[1]:
+                        block = np.empty((nChannels, n), np.float32)
+                for channel, plane in enumerate(frame.planes):
+                    block[channel, nBlock:nBlock + n] = np.frombuffer(
+                        plane, np.float32, n)
+                nBlock += n
+
+        for frame in container.decode(audioStream):
+            if blockRate is None:
+                blockRate = frame.sample_rate
+
+            if frame.format.name == 'fltp' and frame.layout.name == layout \
+                    and frame.sample_rate == blockRate:
+                addToBlock((frame,))
+                continue
+
+            if toPlanar is None:
+                toPlanar = AudioResampler(
+                    format='fltp', layout=layout, rate=blockRate)
+            addToBlock(toPlanar.resample(frame))
+
+        if toPlanar is not None:
+            addToBlock(toPlanar.resample(None))  # flush
+        resampleBlock()
+        store(resampler.resample(None))  # flush
+
+        return out[:nOut].reshape(-1, nChannels)
+
+    def _loadAudioTrack(self):
+        """Load the movie's audio track into a `Sound` for playback.
+
+        The track is decoded into memory at the sample rate of the speaker it
+        plays on (or `audioConfig['fps']`, if given), so that it needn't be
+        resampled again to be played. The `'codec'` and `'nbytes'` that
+        `audioConfig` used to take no longer apply, since the track is no
+        longer written to a file on the way.
+
+        A track already loaded from the same file is used again as it is,
+        rather than being decoded again, as when `stop()` reloads the movie.
+
+        """
+        source = self._getAudioSource()
+
+        if self._audioTrack is not None:
+            if hasattr(self._audioTrack, 'stop'):
+                self._audioTrack.stop()
+
+            if source == self._audioTrackSource:
+                logging.debug(
+                    "Using the audio track already loaded from: {}".format(
+                        self._filename))
+                if hasattr(self._audioTrack, 'seek'):
+                    self._audioTrack.seek(0.0)
+                return
+
+            self._audioTrack = None
+            self._audioTrackSource = None
+
+        t0 = time.time()
+        logging.debug("Loading audio track from movie file: {}".format(
+            self._filename))
+
+        import av
+        import psychopy.sound as _sound
+
+        with av.open(self._filename) as container:
             audioStream = next(
-                (s for s in inContainer.streams if s.type == 'audio'), None)
+                (s for s in container.streams if s.type == 'audio'), None)
 
             if audioStream is None:
-                # Nothing to extract. Leave `_audioTempFile` as `None` so
-                # `_loadAudioTrack` knows to skip creating a `Sound` object.
                 logging.warning(
                     "Movie file has no audio track, no audio will be played "
                     "for: {}".format(self._filename))
-                self._audioTempFile = None
                 return
 
-            # decode the audio track using multiple threads where possible
-            try:
-                audioStream.thread_type = 'AUTO'
-            except Exception:
-                pass  # not fatal if the codec doesn't support it
+            # Open the speaker with a moment of silence first, to find out the
+            # rate it plays at. A sound at any other rate is resampled to fit
+            # as it is loaded, which takes seconds for a long track, where
+            # decoding to the right rate in the first place costs next to
+            # nothing extra.
+            speakerKwargs = {}
+            if self._audioDevice is not None:
+                speakerKwargs['speaker'] = self._audioDevice
+            nChannels = len(audioStream.layout.channels)
+            track = _sound.Sound(
+                np.zeros((AUDIO_TRACK_PLACEHOLDER_SAMPLES, nChannels),
+                         dtype=np.float32),
+                **speakerKwargs)
 
-            # Create a temporary file where the audio track will be written to.
-            # The file will be deleted when the movie is closed. The handle is
-            # closed straight away since PyAV writes to the path itself.
-            self._audioTempFile = tempfile.NamedTemporaryFile(
-                suffix='.wav',
-                delete=False)
-            self._audioTempFile.close()
+            sampleRate = int(
+                self._audioConfig.get('fps') or self._getTrackSampleRate(track))
+            samples = self._decodeAudioTrack(container, audioStream, sampleRate)
 
-            # keep the channel layout of the source track
-            layout = audioStream.layout.name
+        track.sampleRate = sampleRate
+        track.setSound(samples, log=False)
+        track.volume = self._volume  # set the volume to the current level
 
-            outContainer = av.open(
-                self._audioTempFile.name, mode='w', format='wav')
-            outStream = outContainer.add_stream(
-                codecName, rate=sampleRate, layout=layout)
-
-            # Resample to whatever the chosen PCM encoder expects. Taking the
-            # format from the output stream keeps this correct for any of the
-            # PCM codecs above without needing a separate lookup.
-            resampler = AudioResampler(
-                format=outStream.format.name,
-                layout=layout,
-                rate=sampleRate)
-
-            def _encode(frames):
-                """Mux a batch of resampled frames into the output file."""
-                for resampledFrame in frames:
-                    # let the encoder assign timestamps, the source ones are
-                    # in the input stream's time base
-                    resampledFrame.pts = None
-                    for packet in outStream.encode(resampledFrame):
-                        outContainer.mux(packet)
-
-            for frame in inContainer.decode(audio=0):
-                _encode(resampler.resample(frame))
-
-            _encode(resampler.resample(None))  # flush the resampler
-
-            for packet in outStream.encode(None):  # flush the encoder
-                outContainer.mux(packet)
-        finally:
-            if outContainer is not None:
-                outContainer.close()
-            if inContainer is not None:
-                inContainer.close()
-
-        audioSize = os.path.getsize(self._audioTempFile.name)
+        self._audioTrack = track
+        self._audioTrackSource = source
 
         logging.debug(
-            "Audio track written to temporary file: {} ({} bytes)".format(
-                self._audioTempFile.name, audioSize))
+            "Audio track loaded at {} Hz in {:.2f} seconds".format(
+                sampleRate, time.time() - t0))
 
-        logging.debug(
-            "Audio track extraction completed in {:.2f} seconds".format(
-                time.time() - t0))
-
-    def _loadAudioTrack(self):
-        """Load the extracted audio track into a Sound object for playback.
-        """
-        # check if we have an audio track already loaded
-        if self._audioTrack is not None:
-            logging.debug(
-                "Audio track already loaded, stopping existing track before " \
-                "loading new one.")
-            if not hasattr(self._audioTrack, 'stop'):
-                logging.error("Audio track does not appear to be valid.")
-            else:
-                self._audioTrack.stop()
-
-            self._audioTrack = None
-
-        self._extractAudioTrack()  # extract the audio track to a temporary file
-
-        if self._audioTempFile is None:
-            # movie has no audio track, nothing to load
-            return
-
-        import psychopy.sound as _sound
-        logging.debug(
-            "Loading audio track from temporary file: {}".format(
-                self._audioTempFile.name))
-        # play on the requested speaker, or the default one if none was given
-        speakerKwargs = {}
-        if self._audioDevice is not None:
-            speakerKwargs['speaker'] = self._audioDevice
-        self._audioTrack = _sound.Sound(
-            self._audioTempFile.name, **speakerKwargs)
-        self._audioTrack.volume = self._volume  # set the volume to the current level
-        
     def _restartAudioTrack(self):
         """Play the extracted audio track again from the start, as when the
         movie loops.
@@ -4044,8 +4114,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def _cleanupAudioTrack(self):
         """Clean up the audio track.
 
-        This function stops the audio track if it is playing and deletes the
-        temporary file where the audio track was stored.
+        This function stops the audio track if it is playing and releases it.
 
         """
         if self._audioTrack is not None:
@@ -4053,17 +4122,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self._audioTrack.stop()
             self._audioTrack = None
 
-        if self._audioTempFile is not None:
-            try:
-                os.remove(self._audioTempFile.name)
-                logging.debug(
-                    "Deleted temporary audio file: {}".format(
-                        self._audioTempFile.name))
-            except Exception as e:
-                logging.error(
-                    "Error deleting temporary audio file: {}. Error: {}".format(
-                        self._audioTempFile.name, e))
-            self._audioTempFile = None
+        self._audioTrackSource = None
 
     def load(self, filename):
         """Load a movie file from disk (alias of `setMovie`).
@@ -4785,7 +4844,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             logging.debug("Stopping movie: {}".format(self._filename))
 
         self._player.close()  # close the player
-        self._cleanupAudioTrack()  # clean up the audio track
+
+        # Stop the audio but keep the track, which reloading the movie below
+        # uses again rather than decoding it from the file all over again
+        if self._audioTrack is not None and hasattr(self._audioTrack, 'stop'):
+            self._audioTrack.stop()
 
         self.loadMovie(self._filename)  # reload the movie
         
