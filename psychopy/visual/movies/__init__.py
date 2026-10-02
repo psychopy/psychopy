@@ -84,6 +84,10 @@ AUDIO_DECODE_BLOCK = 1 << 20
 # opens the speaker so that the track can be decoded at the rate it plays at.
 AUDIO_TRACK_PLACEHOLDER_SAMPLES = 128
 
+# How much longer than the movie file says its audio track is to make room for,
+# since it can come out a little longer once decoded. See `_AudioTrackLoader`.
+AUDIO_TRACK_DURATION_MARGIN = 0.5  # seconds
+
 # Largest denominator considered when working out how display refreshes line
 # up with movie frames, see `_frameSampleOffset`. Large enough for the common
 # pairings (e.g. 25 FPS at 60 Hz is 5/12, 30 FPS at 144 Hz is 5/24), and small
@@ -465,6 +469,94 @@ class _ScheduledTime:
             return self._t - clock.getLastResetTime()
 
         return self._t - logging.defaultClock.getLastResetTime()
+
+
+# Audio tracks being decoded in the background, which are stopped on exit so
+# that PyAV isn't left decoding while the interpreter shuts down
+_audioTrackLoaders = set()
+
+
+class _AudioTrackLoader:
+    """Decodes a movie's audio track into a `Sound` on a background thread.
+
+    The `Sound` is given its full length of silence up front (see
+    `Sound._allocateSamples`) and the track is written into it a block at a
+    time as it decodes, which doesn't hold up drawing on the main thread.
+    Samples past the end of that are kept here instead, as is the whole track
+    if `nAllocated` is zero, for `MovieStim._finishAudioLoad` to hand over in
+    one go.
+
+    Parameters
+    ----------
+    container : av.container.InputContainer
+        Movie file to decode from, which this takes over and closes once done.
+    audioStream : av.audio.stream.AudioStream
+        Track to decode.
+    track : psychopy.sound.Sound
+        Sound to decode into.
+    sampleRate : int
+        Sample rate in Hz to decode to.
+    layout : str
+        Channel layout to decode to.
+    nAllocated : int
+        Number of samples `track` was given by `_allocateSamples`, or zero if
+        it wasn't.
+
+    """
+    def __init__(self, container, audioStream, track, sampleRate, layout,
+                 nAllocated):
+        self.track = track
+        self.sampleRate = sampleRate
+        self.nAllocated = nAllocated
+        self.nSamples = 0  # decoded so far
+        self.overflow = []  # samples decoded past `nAllocated`
+        self.error = None  # raised while decoding, to be raised again later
+        self.tStart = time.time()
+
+        self._cancel = threading.Event()
+        self._thread = threading.Thread(
+            target=self._run, args=(container, audioStream, layout),
+            name='AudioTrackLoader', daemon=True)
+        _audioTrackLoaders.add(self)
+        self._thread.start()
+
+    @property
+    def isDone(self):
+        """`True` once decoding has finished, failed or been cancelled."""
+        return not self._thread.is_alive()
+
+    def wait(self, timeout=None):
+        """Wait for decoding to finish. Returns `isDone`."""
+        self._thread.join(timeout)
+
+        return self.isDone
+
+    def cancel(self):
+        """Stop decoding, waiting for it to stop (within a frame or so)."""
+        self._cancel.set()
+        if not self.wait(defaultTimeout):
+            logging.warning(
+                "Audio track decoding did not stop within {} seconds.".format(
+                    defaultTimeout))
+
+    def _run(self, container, audioStream, layout):
+        try:
+            with container:
+                MovieStim._decodeAudioTrack(
+                    container, audioStream, self.sampleRate, layout=layout,
+                    onBlock=self._onBlock, cancel=self._cancel)
+        except BaseException as err:
+            self.error = err  # for the thread waiting on this
+        finally:
+            _audioTrackLoaders.discard(self)
+
+    def _onBlock(self, start, samples):
+        nWritten = 0
+        if start < self.nAllocated:
+            nWritten = self.track._writeSamples(start, samples)
+        if nWritten < len(samples):
+            self.overflow.append(samples[nWritten:].copy())
+        self.nSamples = start + len(samples)
 
 
 class MovieFileReader:
@@ -3414,6 +3506,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         the movie is done. Default is `False`.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
+    loadAudioInBackground : bool
+        Decode the movie's audio track in the background, rather than waiting
+        for it to load along with the movie. For a long movie that takes a
+        second or so, which loading the movie then doesn't wait for. If `play()`
+        is called before the track has loaded, it waits for it, so leave time
+        between loading and playing the movie (check `isAudioReady`), or the
+        wait lands in the drawing loop instead. Default is `False`.
 
     Notes
     -----
@@ -3459,6 +3558,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  autoStart=True,
                  audioDevice=None,
                  audioConfig=None,
+                 loadAudioInBackground=False,
                  **kwargs):
 
         # what local vars are defined (these are the init params) for use
@@ -3580,6 +3680,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._audioConfig = audioConfig if audioConfig is not None else {}
         # what `_audioTrack` was loaded from, see `_getAudioSource`
         self._audioTrackSource = None
+        # decodes `_audioTrack` in the background, until it's done
+        self._audioLoader = None
+        # whether loading the movie leaves `_audioLoader` decoding the track
+        # rather than waiting for it, see `_loadAudioTrack`
+        self._loadAudioInBackground = bool(loadAudioInBackground)
         self._audioSamples = []  # audio samples from the movie 
         self._audioTrack = None  # audio track information from the movie metadata
         self._audioReader = None  # audio reader object
@@ -3786,8 +3891,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # Load the audio track to play alongside the video. This needs to be
         # done before the movie is opened by the player to avoid file access
-        # issues. The track is decoded into memory, or kept from before if
-        # this is the same movie being reloaded, as by `stop()`.
+        # issues. The track is decoded into memory (in the background if
+        # `loadAudioInBackground`), or kept from before if this is the same
+        # movie being reloaded, as by `stop()`.
         disableAudio = False
         if not self._noAudio and not self._decoderPlaysAudio:
             self._loadAudioTrack()  # decode and load the audio track
@@ -3904,8 +4010,32 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         return int(rate or track.sampleRate)
 
     @staticmethod
-    def _decodeAudioTrack(container, audioStream, sampleRate):
-        """Decode an audio track into memory.
+    def _getTrackChannels(track):
+        """Number of channels a movie's audio track is decoded to for a `Sound`
+        to play (`int`), which is stereo unless its speaker is mono. A track
+        with more channels is mixed down to these."""
+        channels = getattr(getattr(track, 'speaker', None), 'channels', None)
+
+        return 1 if channels == 1 else 2
+
+    @staticmethod
+    def _getAudioDuration(container, audioStream):
+        """Duration in seconds of an audio track going by the movie file's
+        metadata (`float`), or `None` if it doesn't say."""
+        if audioStream.duration is not None and \
+                audioStream.time_base is not None:
+            return float(audioStream.duration * audioStream.time_base)
+
+        if container.duration is not None:
+            import av
+            return container.duration / av.time_base
+
+        return None
+
+    @staticmethod
+    def _decodeAudioTrack(container, audioStream, sampleRate, layout=None,
+                          onBlock=None, cancel=None):
+        """Decode an audio track.
 
         Parameters
         ----------
@@ -3915,15 +4045,27 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Track to decode.
         sampleRate : int
             Sample rate in Hz to resample the track to.
+        layout : str or None
+            Channel layout to mix the track to (e.g. `'stereo'`), or `None` to
+            keep its own.
+        onBlock : callable or None
+            Called as `onBlock(start, samples)` with each block of samples as
+            it is decoded, `start` being the index in the track of the first
+            of them. `samples` is only valid for the duration of the call. If
+            `None`, the whole track is returned as one array instead.
+        cancel : threading.Event or None
+            Decoding stops once this is set, returning `None`.
 
         Returns
         -------
-        ndarray
-            Samples as 32-bit floats, shaped `(samples, channels)`, keeping the
-            channel layout of the track.
+        ndarray, int or None
+            Without `onBlock`, the samples as 32-bit floats shaped
+            `(samples, channels)`. With it, the number of samples decoded.
+            `None` if cancelled.
 
         """
         import av
+        from av.audio.layout import AudioLayout
         from av.audio.resampler import AudioResampler
 
         # not fatal if the codec doesn't support decoding with threads
@@ -3932,39 +4074,47 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         except Exception:
             pass
 
-        layout = audioStream.layout.name
-        nChannels = len(audioStream.layout.channels)
+        trackLayout = audioStream.layout.name
+        trackChannels = len(audioStream.layout.channels)
+        if layout is None:
+            layout = trackLayout
+        nChannels = len(AudioLayout(layout).channels)
 
-        # Room for the whole track going by its duration, with a little to
-        # spare in case that's out. It's grown if it turns out to need more.
-        if audioStream.duration is not None:
-            duration = float(audioStream.duration * audioStream.time_base)
-        elif container.duration is not None:
-            duration = container.duration / av.time_base
-        else:
-            duration = 60.0
-        out = np.empty(int((duration + 1.0) * sampleRate) * nChannels,
-                       dtype=np.float32)
+        returnSamples = onBlock is None
+        if returnSamples:
+            # Room for the whole track going by its duration, with a little to
+            # spare in case that's out. It's grown if it turns out to need more.
+            duration = MovieStim._getAudioDuration(container, audioStream)
+            out = np.empty(
+                int(((duration or 60.0) + 1.0) * sampleRate) * nChannels,
+                dtype=np.float32)
+
+            def onBlock(start, samples):
+                nonlocal out
+                begin, end = start * nChannels, (start + len(samples)) * nChannels
+                if end > len(out):
+                    grown = np.empty(max(end, 2 * len(out)), np.float32)
+                    grown[:begin] = out[:begin]
+                    out = grown
+                out[begin:end] = samples.reshape(-1)
+
         nOut = 0
 
-        def store(frames):
-            """Copy resampled frames (packed 32-bit float) into `out`."""
-            nonlocal out, nOut
+        def emit(frames):
+            """Hand on resampled frames (packed 32-bit float)."""
+            nonlocal nOut
             for resampled in frames:
-                n = resampled.samples * nChannels
-                if nOut + n > len(out):
-                    grown = np.empty(max(nOut + n, 2 * len(out)), np.float32)
-                    grown[:nOut] = out[:nOut]
-                    out = grown
-                out[nOut:nOut + n] = np.frombuffer(
-                    resampled.planes[0], np.float32, n)
+                n = resampled.samples
+                onBlock(nOut, np.frombuffer(
+                    resampled.planes[0], np.float32, n * nChannels).reshape(
+                        n, nChannels))
                 nOut += n
 
         # Decoded samples are gathered into blocks of 32-bit float planar
         # samples, which most decoders produce anyway, and each block is
         # resampled as it fills. See `AUDIO_DECODE_BLOCK`.
         resampler = AudioResampler(format='flt', layout=layout, rate=sampleRate)
-        block = np.empty((nChannels, AUDIO_DECODE_BLOCK), np.float32)
+        block = np.empty((trackChannels, AUDIO_DECODE_BLOCK), np.float32)
         nBlock = 0
         blockRate = None  # rate decoded at, taken from the first frame
         toPlanar = None  # for frames in any other form
@@ -3974,9 +4124,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             if not nBlock:
                 return
             blockFrame = av.AudioFrame.from_ndarray(
-                block[:, :nBlock], format='fltp', layout=layout)
+                block[:, :nBlock], format='fltp', layout=trackLayout)
             blockFrame.sample_rate = blockRate
-            store(resampler.resample(blockFrame))
+            emit(resampler.resample(blockFrame))
             nBlock = 0
 
         def addToBlock(frames):
@@ -3986,44 +4136,57 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 if nBlock + n > block.shape[1]:
                     resampleBlock()
                     if n > block.shape[1]:
-                        block = np.empty((nChannels, n), np.float32)
+                        block = np.empty((trackChannels, n), np.float32)
                 for channel, plane in enumerate(frame.planes):
                     block[channel, nBlock:nBlock + n] = np.frombuffer(
                         plane, np.float32, n)
                 nBlock += n
 
         for frame in container.decode(audioStream):
+            if cancel is not None and cancel.is_set():
+                return None
+
             if blockRate is None:
                 blockRate = frame.sample_rate
 
-            if frame.format.name == 'fltp' and frame.layout.name == layout \
+            if frame.format.name == 'fltp' and frame.layout.name == trackLayout \
                     and frame.sample_rate == blockRate:
                 addToBlock((frame,))
                 continue
 
             if toPlanar is None:
                 toPlanar = AudioResampler(
-                    format='fltp', layout=layout, rate=blockRate)
+                    format='fltp', layout=trackLayout, rate=blockRate)
             addToBlock(toPlanar.resample(frame))
 
         if toPlanar is not None:
             addToBlock(toPlanar.resample(None))  # flush
         resampleBlock()
-        store(resampler.resample(None))  # flush
+        emit(resampler.resample(None))  # flush
 
-        return out[:nOut].reshape(-1, nChannels)
+        if returnSamples:
+            return out[:nOut * nChannels].reshape(-1, nChannels)
+
+        return nOut
 
     def _loadAudioTrack(self):
         """Load the movie's audio track into a `Sound` for playback.
 
-        The track is decoded into memory at the sample rate of the speaker it
-        plays on (or `audioConfig['fps']`, if given), so that it needn't be
-        resampled again to be played. The `'codec'` and `'nbytes'` that
-        `audioConfig` used to take no longer apply, since the track is no
-        longer written to a file on the way.
+        The `Sound` is made here, which opens the speaker, and the track is
+        decoded into it on a background thread (see `_AudioTrackLoader`). This
+        waits for it to finish unless `loadAudioInBackground` was set, in which
+        case `play()` waits for it if it hasn't finished by then, see
+        `_finishAudioLoad`.
 
-        A track already loaded from the same file is used again as it is,
-        rather than being decoded again, as when `stop()` reloads the movie.
+        The track is decoded at the sample rate of the speaker it plays on (or
+        `audioConfig['fps']`, if given), and in stereo unless the speaker is
+        mono, so that it needn't be converted again to be played. The
+        `'codec'` and `'nbytes'` that `audioConfig` used to take no longer
+        apply, since the track is no longer written to a file on the way.
+
+        A track already loaded (or loading) from the same file is used again
+        as it is, rather than being decoded again, as when `stop()` reloads the
+        movie.
 
         """
         source = self._getAudioSource()
@@ -4040,17 +4203,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                     self._audioTrack.seek(0.0)
                 return
 
-            self._audioTrack = None
-            self._audioTrackSource = None
+            self._cleanupAudioTrack()
 
-        t0 = time.time()
         logging.debug("Loading audio track from movie file: {}".format(
             self._filename))
 
         import av
         import psychopy.sound as _sound
 
-        with av.open(self._filename) as container:
+        container = av.open(self._filename)
+        try:
             audioStream = next(
                 (s for s in container.streams if s.type == 'audio'), None)
 
@@ -4058,6 +4220,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 logging.warning(
                     "Movie file has no audio track, no audio will be played "
                     "for: {}".format(self._filename))
+                container.close()
                 return
 
             # Open the speaker with a moment of silence first, to find out the
@@ -4068,26 +4231,108 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             speakerKwargs = {}
             if self._audioDevice is not None:
                 speakerKwargs['speaker'] = self._audioDevice
-            nChannels = len(audioStream.layout.channels)
             track = _sound.Sound(
-                np.zeros((AUDIO_TRACK_PLACEHOLDER_SAMPLES, nChannels),
-                         dtype=np.float32),
+                np.zeros((AUDIO_TRACK_PLACEHOLDER_SAMPLES, 2), dtype=np.float32),
                 **speakerKwargs)
+            track.volume = self._volume  # set the volume to the current level
 
-            sampleRate = int(
-                self._audioConfig.get('fps') or self._getTrackSampleRate(track))
-            samples = self._decodeAudioTrack(container, audioStream, sampleRate)
+            playbackRate = self._getTrackSampleRate(track)
+            sampleRate = int(self._audioConfig.get('fps') or playbackRate)
+            nChannels = self._getTrackChannels(track)
 
-        track.sampleRate = sampleRate
-        track.setSound(samples, log=False)
-        track.volume = self._volume  # set the volume to the current level
+            # Give the sound its full length of silence now, which the track is
+            # written into a block at a time as it decodes. That needs to know
+            # how long the track is, and for it to be at the rate the sound
+            # plays at. Otherwise it's handed over in one go once decoded.
+            nAllocated = 0
+            duration = self._getAudioDuration(container, audioStream)
+            if duration is not None and sampleRate == playbackRate:
+                nAllocated = int(
+                    (duration + AUDIO_TRACK_DURATION_MARGIN) * sampleRate)
+                track.sampleRate = sampleRate
+                track._allocateSamples(nAllocated, nChannels)
+
+            loader = _AudioTrackLoader(
+                container, audioStream, track, sampleRate,
+                'mono' if nChannels == 1 else 'stereo', nAllocated)
+        except BaseException:
+            container.close()
+            raise
 
         self._audioTrack = track
         self._audioTrackSource = source
+        self._audioLoader = loader
+
+        if not self._loadAudioInBackground:
+            # wait for it here, raising any error decoding it ran into
+            loader.wait()
+            self._finishAudioLoad()
+
+    def _finishAudioLoad(self, wait=True):
+        """Finish loading the audio track once it has decoded, see
+        `_loadAudioTrack`.
+
+        Parameters
+        ----------
+        wait : bool
+            Wait for the track to decode if it hasn't yet.
+
+        Returns
+        -------
+        bool
+            `True` if the track has loaded (or there is none), or `False` if it
+            is still decoding and `wait` is `False`.
+
+        """
+        loader = self._audioLoader
+        if loader is None:
+            return True
+
+        if not loader.isDone:
+            if not wait:
+                return False
+
+            t0 = time.time()
+            loader.wait()
+            waited = time.time() - t0
+            # only worth a warning if it held playback up by a refresh or more
+            logFunc = logging.warning \
+                if waited > (self.win.monitorFramePeriod or 1 / 60.) \
+                else logging.debug
+            logFunc(
+                "Movie {} was played before its audio track had loaded, so "
+                "waited {:.3f} seconds for it. Leave more time between loading "
+                "a movie and playing it to avoid this, or check "
+                "`isAudioReady`.".format(self._filename, waited))
+
+        self._audioLoader = None
+        track = loader.track
+
+        if loader.error is not None:
+            self._cleanupAudioTrack()
+            raise loader.error
+
+        if not loader.nSamples:
+            logging.warning(
+                "No audio could be decoded from the audio track of: {}".format(
+                    self._filename))
+            self._cleanupAudioTrack()
+        elif loader.overflow:
+            # The track turned out longer than the movie file said, or couldn't
+            # be written a block at a time, so is handed over in one go. This
+            # holds up drawing for a moment if the track is long.
+            samples = np.concatenate(
+                [track.sndArr[:loader.nAllocated]] + loader.overflow)
+            track.sampleRate = loader.sampleRate
+            track.setSound(samples, log=False)
+        elif loader.nAllocated:
+            track._trimSamples(loader.nSamples)
 
         logging.debug(
             "Audio track loaded at {} Hz in {:.2f} seconds".format(
-                sampleRate, time.time() - t0))
+                loader.sampleRate, time.time() - loader.tStart))
+
+        return True
 
     def _restartAudioTrack(self):
         """Play the extracted audio track again from the start, as when the
@@ -4114,9 +4359,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def _cleanupAudioTrack(self):
         """Clean up the audio track.
 
-        This function stops the audio track if it is playing and releases it.
+        This function stops the audio track if it is playing and releases it,
+        stopping it decoding first if it still is.
 
         """
+        if self._audioLoader is not None:
+            self._audioLoader.cancel()
+            self._audioLoader = None
+
         if self._audioTrack is not None:
             if hasattr(self._audioTrack, 'stop'):
                 self._audioTrack.stop()
@@ -4674,7 +4924,23 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             return False
 
         return self._player.isSeeking
-    
+
+    @property
+    def isAudioReady(self):
+        """`True` once the movie's audio track has loaded (`bool`).
+
+        With `loadAudioInBackground=True`, the audio track is decoded in the
+        background after the movie loads, so that loading doesn't wait for it,
+        and `play()` waits for it if it hasn't finished. For a long movie this
+        can take a second or so, so check this to leave time for it before
+        playing. Always `True` otherwise, as it is for a movie without an
+        audio track, or with audio disabled.
+
+        Raises any error decoding the audio track ran into.
+
+        """
+        return self._finishAudioLoad(wait=False)
+
     @property
     def movieTime(self):
         """Current movie time in seconds (`float`). This is the time since the
@@ -4701,6 +4967,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         Notes
         -----
+        * With `loadAudioInBackground=True`, the audio track is decoded in the
+          background after the movie loads. If it hasn't finished, this waits
+          for it first, delaying playback. Check `isAudioReady` to leave time
+          for it.
         * When the decoder plays the audio itself (`ffpyplayer` and `vlc`), it
           is started on the first `draw()` at or after `when`, so the audio
           onset is only as precise as the drawing loop.
@@ -4711,6 +4981,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         
         if self._playbackStatus == PLAYING:
            return  # nop
+
+        # With `loadAudioInBackground`, the audio track may still be decoding,
+        # so wait for it if it hasn't finished. This comes before working out
+        # when to start, so that playback still starts on the next flip after.
+        self._finishAudioLoad()
 
         # The movie clock runs on `core.getTime()`, which is
         # `psychopy.clock.getTime()` less `monotonicClock`'s last reset time.
@@ -5210,9 +5485,17 @@ def _closeAllMovieReaders():
         movieReader._freePlayer()
 
 
+def _cancelAudioTrackLoaders():
+    """Stop any audio tracks still decoding in the background, so that PyAV
+    isn't left decoding while the interpreter shuts down."""
+    for loader in list(_audioTrackLoaders):
+        loader.cancel()
+
+
 # try an close any players on exit
 import atexit
 atexit.register(_closeAllMovieReaders)   # call this when the program exits
+atexit.register(_cancelAudioTrackLoaders)
     
     
 if __name__ == "__main__":
