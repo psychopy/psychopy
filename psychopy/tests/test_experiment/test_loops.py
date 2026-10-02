@@ -30,7 +30,8 @@ class TestLoops:
         filenames = [
             'testLoopsBlocks',
             'testStaircase',
-            'test_current_loop_attr'
+            'test_current_loop_attr',
+            'testConditionsNamespace'
         ]
         # Run each experiment to get data
         cls.cases = {}
