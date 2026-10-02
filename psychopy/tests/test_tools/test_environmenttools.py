@@ -8,14 +8,16 @@ globalExec2 = 2
 
 
 def testGetFromNames():
+    # since Python 3.13, each locals() call returns a fresh snapshot, so keep a reference
+    localNamespace = locals()
     # locals set via normal code
     localVal1 = 1
     localVal2 = 2
     assert et.getFromNames(['localVal1', 'localVal2'], locals()) == [1, 2]
     # locals set via exec
-    exec("localExec1 = 1")
-    exec("localExec2 = 2")
-    assert et.getFromNames(['localExec1', 'localExec2'], locals()) == [1, 2]
+    exec("localExec1 = 1", globals(), localNamespace)
+    exec("localExec2 = 2", globals(), localNamespace)
+    assert et.getFromNames(['localExec1', 'localExec2'], localNamespace) == [1, 2]
     # globals set via normal code
     global globalVal1
     global globalVal2
@@ -41,12 +43,14 @@ def testGetFromNames():
 
 
 def testSetExecEnvironment():
+    # since Python 3.13, each locals() call returns a fresh snapshot, so keep a reference
+    localNamespace = locals()
     # globals
     exec = et.setExecEnvironment(globals())
     exec("execEnvGlobalTest = 1")
     assert globals()['execEnvGlobalTest'] == 1
 
     # locals
-    exec = et.setExecEnvironment(locals())
+    exec = et.setExecEnvironment(localNamespace)
     exec("execLocalTest = 1")
-    assert locals()['execLocalTest'] == 1
+    assert localNamespace['execLocalTest'] == 1
