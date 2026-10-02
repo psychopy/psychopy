@@ -1291,3 +1291,204 @@ class TestMovieStimFrameTiming:
 
             assert freedOn
             assert threading.main_thread() not in freedOn
+
+
+# --------------------------------------------------------------------------
+# Audio track
+#
+
+def _readAudioTrackProperties(filename):
+    """Sample rate and duration in seconds of the first audio track in a movie,
+    or `None` if it has none."""
+    import av
+
+    with av.open(str(filename)) as container:
+        audioStream = next(
+            (s for s in container.streams if s.type == 'audio'), None)
+        if audioStream is None:
+            return None
+
+        return (audioStream.codec_context.sample_rate,
+                float(audioStream.duration * audioStream.time_base))
+
+
+MOVIE_AUDIO = _readAudioTrackProperties(MOVIE_PATH)
+
+needsMovieAudio = pytest.mark.skipif(
+    MOVIE_AUDIO is None, reason='test movie has no audio track')
+
+
+class _SoundStandIn(_AudioTrackStandIn):
+    """Stands in for `psychopy.sound.Sound`, as made for a movie's audio
+    track, on a speaker playing at `SPEAKER_RATE`.
+
+    This records what the track is loaded with instead of opening an audio
+    device, which test machines often lack.
+
+    """
+    SPEAKER_RATE = 48000
+
+    made = []  # every one made, in order
+
+    def __init__(self, value, **kwargs):
+        super().__init__()
+        self.speaker = type('Speaker', (), {'sampleRateHz': self.SPEAKER_RATE})
+        self.sampleRate = self.SPEAKER_RATE
+        self.loaded = np.asarray(value)
+        _SoundStandIn.made.append(self)
+
+    def setSound(self, value, log=True):
+        self.loaded = value
+
+    def stop(self, **kwargs):
+        self.calls.append(('stop', None))
+
+
+@pytest.fixture
+def soundStandIn(monkeypatch):
+    """Make `MovieStim` load audio tracks into `_SoundStandIn`s."""
+    import psychopy.sound
+
+    _SoundStandIn.made = []
+    monkeypatch.setattr(psychopy.sound, 'Sound', _SoundStandIn)
+
+    return _SoundStandIn
+
+
+@needsMovieAudio
+class TestMovieStimAudioTrack:
+    """Tests for decoding a movie's audio track for playback alongside it."""
+
+    @pytest.mark.parametrize('sampleRate', [None, 48000, 22050])
+    def test_decodeAudioTrack(self, win, movieLib, sampleRate):
+        """The track decodes to the rate asked for, matching what resampling
+        it a decoded frame at a time gives."""
+        import av
+        from av.audio.resampler import AudioResampler
+
+        sourceRate, duration = MOVIE_AUDIO
+        sampleRate = sampleRate or sourceRate
+
+        with av.open(str(MOVIE_PATH)) as container:
+            audioStream = container.streams.audio[0]
+            samples = visual.MovieStim._decodeAudioTrack(
+                container, audioStream, sampleRate)
+
+        with av.open(str(MOVIE_PATH)) as container:
+            audioStream = container.streams.audio[0]
+            resampler = AudioResampler(
+                format='flt', layout=audioStream.layout.name, rate=sampleRate)
+            expected = [
+                resampled.to_ndarray()
+                for frame in container.decode(audioStream)
+                for resampled in resampler.resample(frame)]
+            expected += [r.to_ndarray() for r in resampler.resample(None)]
+            expected = np.concatenate(expected, axis=1).reshape(
+                -1, len(audioStream.layout.channels))
+
+        assert samples.dtype == np.float32
+        assert samples.shape == expected.shape
+        assert len(samples) / sampleRate == pytest.approx(duration, abs=0.05)
+        np.testing.assert_allclose(samples, expected, atol=1e-6)
+
+    def test_decodeAudioTrackConvertsSampleFormat(self, win, movieLib,
+                                                  tmp_path):
+        """Tracks decoded to something other than 32-bit float planar, here
+        16-bit mono, are converted on the way."""
+        import av
+        import soundfile
+        from av.audio.resampler import AudioResampler
+
+        sourceRate, sampleRate = 32000, 44100
+        t = np.arange(2 * sourceRate) / sourceRate
+        tone = (0.5 * np.sin(2 * np.pi * 440.0 * t)).astype(np.float32)
+        trackPath = tmp_path / 'tone.wav'
+        soundfile.write(str(trackPath), tone, sourceRate, subtype='PCM_16')
+
+        with av.open(str(trackPath)) as container:
+            audioStream = container.streams.audio[0]
+            samples = visual.MovieStim._decodeAudioTrack(
+                container, audioStream, sampleRate)
+
+        with av.open(str(trackPath)) as container:
+            resampler = AudioResampler(format='flt', layout='mono',
+                                       rate=sampleRate)
+            expected = [
+                resampled.to_ndarray()
+                for frame in container.decode(audio=0)
+                for resampled in resampler.resample(frame)]
+            expected += [r.to_ndarray() for r in resampler.resample(None)]
+            expected = np.concatenate(expected, axis=1).reshape(-1, 1)
+
+        assert samples.shape == expected.shape
+        assert len(samples) == pytest.approx(2 * sampleRate, abs=64)
+        np.testing.assert_allclose(samples, expected, atol=1e-4)
+
+    def test_audioTrackDecodedAtSpeakerRate(self, win, movieLib,
+                                            soundStandIn):
+        """The track is loaded at the rate its speaker plays at, rather than
+        one it would have to be resampled from again to be played."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            track = mov._audioTrack
+            assert soundStandIn.made == [track]
+            assert track.sampleRate == soundStandIn.SPEAKER_RATE
+
+            samples = track.loaded
+            assert samples.dtype == np.float32
+            assert samples.shape[1] == 2
+            assert len(samples) / soundStandIn.SPEAKER_RATE == \
+                pytest.approx(MOVIE_AUDIO[1], abs=0.05)
+
+    def test_stopKeepsAudioTrack(self, win, movieLib, soundStandIn):
+        """`stop()` reloads the movie, but keeps its audio track (back at the
+        start) rather than decoding it all over again."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            track = mov._audioTrack
+            mov.play()
+            _drawFrames(win, mov)
+
+            del track.calls[:]
+            mov.stop()
+
+            assert mov._audioTrack is track
+            assert soundStandIn.made == [track]
+            assert track.calls[0] == ('stop', None)
+            assert ('seek', 0.0) in track.calls
+
+    def test_audioTrackReloadedWhenMovieChanges(self, win, movieLib,
+                                                soundStandIn, tmp_path):
+        """A track is only kept for the file it came from, as it is on disk.
+        Changing the file, or loading another, decodes the track again."""
+        import os
+        import shutil
+
+        moviePath = tmp_path / MOVIE_PATH.name
+        shutil.copyfile(MOVIE_PATH, moviePath)
+
+        with movieStim(win, movieLib, filename=moviePath, noAudio=False) as mov:
+            if mov._decoderPlaysAudio:
+                pytest.skip('{} plays the audio itself'.format(movieLib))
+
+            first = mov._audioTrack
+
+            # the file is replaced on disk with a newer version
+            stat = os.stat(moviePath)
+            os.utime(moviePath, ns=(stat.st_atime_ns,
+                                    stat.st_mtime_ns + 1_000_000_000))
+            mov.stop()
+
+            second = mov._audioTrack
+            assert second is not first
+            assert soundStandIn.made == [first, second]
+            assert ('stop', None) in first.calls
+
+            # and another movie altogether
+            mov.loadMovie(str(MOVIE_PATH))
+            assert mov._audioTrack is not second
+            assert len(soundStandIn.made) == 3
