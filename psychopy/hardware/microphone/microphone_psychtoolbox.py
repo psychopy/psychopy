@@ -32,6 +32,7 @@ import threading
 _hasPTB = True
 try:
     import psychtoolbox.audio as audio
+    from psychtoolbox import GetSecs
 except ImportError as err:
     logging.warning(
         "The 'psychtoolbox' library cannot be loaded but is required for audio "
@@ -1065,14 +1066,19 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         return self._absRecStartTime
     
     def _getTime(self):
-        """Get the current system time in seconds (`float`).
+        """Get the current time in the timebase used by the audio stream
+        (`float`).
 
-        This is used internally to timestamp recordings. It is not guaranteed to
-        be the same time base as the one used by the audio stream, so absolute
-        times returned by the stream should be used when possible.
+        This is used internally to timestamp recordings. Psychtoolbox reports
+        stream times (e.g. the capture start time from `get_audio_data()`) in
+        the `GetSecs` timebase, so we must use the same clock here. Using the
+        system clock (e.g. `time.time()`) instead would make requested
+        recording start times appear to be far in the future of any sample
+        block, and no audio data would ever reach attached `Microphone`
+        clients.
 
         """
-        return time.time()
+        return GetSecs()
     
     def _pollWithLock(self):
         """Call `poll` with the polling lock acquired. This is used internally to
