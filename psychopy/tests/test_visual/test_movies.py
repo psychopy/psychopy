@@ -1161,14 +1161,18 @@ class TestMovieStimScheduling:
 # Frame timing
 #
 
+# backends which decode frames ahead of playback on a thread of their own
+DECODE_AHEAD_BACKENDS = ('pyav', 'opencv')
+
+
 def _queuedFrameCount(reader):
-    """Number of frames the `pyav` decode thread has decoded ahead."""
-    with reader._pyavCondition:
-        return reader._queuedPyAVFrameCount()
+    """Number of frames the decode thread has decoded ahead."""
+    with reader._decoderCondition:
+        return reader._queuedFrameCount()
 
 
 def _waitForQueuedFrames(reader, count, timeout=5.0):
-    """Wait for the `pyav` decode thread to have `count` frames decoded ahead,
+    """Wait for the decode thread to have `count` frames decoded ahead,
     returning how many it has when done waiting."""
     deadline = time.time() + timeout
     while _queuedFrameCount(reader) != count and time.time() < deadline:
@@ -1250,13 +1254,13 @@ class TestMovieStimFrameTiming:
         """`getFrame(deferDecoding=True)` leaves the decode thread be until
         `decodeAhead()`, so that it can't compete with copying the frame to
         the GPU. Otherwise it replaces the frames taken straight away."""
-        if movieLib != 'pyav':
-            pytest.skip('only pyav decodes ahead on a thread of its own')
+        if movieLib not in DECODE_AHEAD_BACKENDS:
+            pytest.skip('{} does not decode ahead'.format(movieLib))
 
         reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
         reader.open()
         try:
-            full = reader._pyavQueueDepth
+            full = reader._decodeQueueDepth
             assert _waitForQueuedFrames(reader, full) == full
 
             assert reader.getFrame(
@@ -1275,12 +1279,38 @@ class TestMovieStimFrameTiming:
         finally:
             reader.close()
 
+    def test_decodedOffDrawingThread(self, win, movieLib, monkeypatch):
+        """Frames are decoded (and converted) on the decode thread as the
+        movie plays, never on the thread drawing it, where it would hold up
+        the drawing."""
+        if movieLib not in DECODE_AHEAD_BACKENDS:
+            pytest.skip('{} does not decode ahead'.format(movieLib))
+
+        decodedOn = set()
+        decodeNextFrame = movies.MovieFileReader._decodeNextFrame
+
+        def recording(reader):
+            decodedOn.add(threading.current_thread())
+            return decodeNextFrame(reader)
+
+        monkeypatch.setattr(
+            movies.MovieFileReader, '_decodeNextFrame', recording)
+
+        with movieStim(win, movieLib) as mov:
+            mov.play()
+            _drawFrames(win, mov, count=20, interval=0.01)
+            mov.seek(SAMPLE_LATE)
+            _drawFrames(win, mov, count=5, interval=0.01)
+
+        assert decodedOn
+        assert threading.main_thread() not in decodedOn
+
     def test_framesFreedOffDrawingThread(self, win, movieLib):
         """Frames are freed by the decode thread rather than the one drawing
         them, where freeing a large frame can take long enough to miss a
         flip."""
-        if movieLib != 'pyav':
-            pytest.skip('only pyav decodes ahead on a thread of its own')
+        if movieLib not in DECODE_AHEAD_BACKENDS:
+            pytest.skip('{} does not decode ahead'.format(movieLib))
 
         freedOn = []
 
@@ -1831,9 +1861,7 @@ class TestMovieStimDownscaling:
             reader.seek(SAMPLE_EARLY)
             img = reader.getFrame(SAMPLE_EARLY)[0]
             assert img.size == (MOVIE_SIZE[0], 10)
-            if movieLib == 'pyav':
-                assert reader._pyavQueueDepth == \
-                    movies.PYAV_DECODE_AHEAD_MAX_FRAMES
+            assert reader._decodeQueueDepth == movies.DECODE_AHEAD_MAX_FRAMES
         finally:
             reader.close()
 
@@ -1908,6 +1936,47 @@ def _movieRegion(win, size, inset=2):
 
     return np.s_[y0 + inset:y0 + size[1] - inset,
                  x0 + inset:x0 + size[0] - inset]
+
+
+def _readTexture(textureId, width, height):
+    """Read an RGBA texture back from the GPU, its first row first."""
+    import psychopy.tools.pygletgl as GL
+
+    data = (GL.GLubyte * (width * height * 4))()
+    GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
+    GL.glGetTexImage(
+        GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+    return np.frombuffer(data, np.uint8).reshape(height, width, 4).copy()
+
+
+def _glState():
+    """The parts of the GL state converting a frame on the GPU changes."""
+    import ctypes
+    import psychopy.tools.pygletgl as GL
+
+    state = {}
+    for name in ('GL_FRAMEBUFFER_BINDING', 'GL_CURRENT_PROGRAM',
+                 'GL_ACTIVE_TEXTURE', 'GL_CLIENT_ACTIVE_TEXTURE',
+                 'GL_MATRIX_MODE', 'GL_TEXTURE_BINDING_2D',
+                 'GL_PIXEL_UNPACK_BUFFER_BINDING', 'GL_UNPACK_ALIGNMENT',
+                 'GL_UNPACK_ROW_LENGTH', 'GL_BLEND_SRC', 'GL_BLEND_DST'):
+        value = GL.GLint()
+        GL.glGetIntegerv(getattr(GL, name), ctypes.byref(value))
+        state[name] = value.value
+    viewport = (GL.GLint * 4)()
+    GL.glGetIntegerv(GL.GL_VIEWPORT, viewport)
+    state['GL_VIEWPORT'] = tuple(viewport)
+    for name in ('GL_BLEND', 'GL_SCISSOR_TEST', 'GL_DEPTH_TEST',
+                 'GL_STENCIL_TEST', 'GL_TEXTURE_2D'):
+        state[name] = bool(GL.glIsEnabled(getattr(GL, name)))
+    for name in ('GL_PROJECTION_MATRIX', 'GL_MODELVIEW_MATRIX'):
+        matrix = (GL.GLfloat * 16)()
+        GL.glGetFloatv(getattr(GL, name), matrix)
+        state[name] = tuple(matrix)
+
+    return state
 
 
 class _TaggedFrame:
@@ -2105,3 +2174,114 @@ class TestMovieStimGPUColorConversion:
             assert not isinstance(
                 mov._recentFrameImage, movies._YUVFrameAdapter)
             mov.draw()
+
+    @pytest.mark.parametrize('gpu', [True, False])
+    def test_frameTextureHoldsRGBAFrame(self, win, movieLib, tmp_path, gpu):
+        """`frameTexture` holds the frame as RGBA however frames are converted
+        to RGB, top row first, as frames decoded as RGBA always have been."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+        import av
+
+        size = (64, 48)
+        path = _writeTaggedMovie(tmp_path / 'tagged.mkv', size=size)
+        with av.open(str(path)) as container:
+            frame = next(container.decode(video=0))
+            expected = frame.to_ndarray(format='rgba', src_colorspace='ITU709')
+
+        with movieStim(win, movieLib, filename=path, units='pix', size=size,
+                       gpuColorConversion=gpu) as mov:
+            assert (mov._planeTextureIds is not None) == gpu
+            texture = _readTexture(mov.frameTexture, *size)
+
+        difference = np.abs(texture.astype(int) - expected)
+        assert difference[..., :3].max() <= 3
+        assert np.all(texture[..., 3] == 255)
+
+    def test_frameTextureKeptAsFramesChange(self, win, movieLib):
+        """The texture `frameTexture` gives stays the same as the movie plays,
+        with each frame converted into it, so that it can be held on to."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+
+        with movieStim(win, movieLib, size=(64, 64), units='pix') as mov:
+            textureId = mov.frameTexture.value
+            first = _readTexture(mov.frameTexture, 64, 64)
+
+            mov.play()
+            _drawFrames(win, mov, count=10, interval=0.02)
+
+            assert mov.frameTexture.value == textureId
+            assert np.any(_readTexture(mov.frameTexture, 64, 64) != first)
+
+    @pytest.mark.parametrize('useFBO', [False, True])
+    def test_conversionLeavesGLStateAlone(self, movieLib, useFBO):
+        """Converting a frame into `frameTexture` puts back everything about
+        the GL state it changes, including the framebuffer bound, which with
+        `useFBO=True` is the window's own."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+
+        fboWin = visual.Window(
+            [128, 128], winType='pyglet', allowGUI=False, autoLog=False,
+            useFBO=useFBO)
+        try:
+            with movieStim(fboWin, movieLib) as mov:
+                assert mov._planeTextureIds is not None
+                before = _glState()
+                mov._pixelTransfer(forceRefresh=True)  # converts it again
+                assert _glState() == before
+                if useFBO:
+                    assert before['GL_FRAMEBUFFER_BINDING'] != 0
+
+                # and draws the same as converting it as it's decoded
+                drawnGPU, _ = _drawToBackBuffer(fboWin, mov)
+            with movieStim(fboWin, movieLib, gpuColorConversion=False) as mov:
+                drawnCPU, _ = _drawToBackBuffer(fboWin, mov)
+        finally:
+            fboWin.close()
+
+        assert np.abs(drawnGPU - drawnCPU).mean() < 3.0
+
+
+class TestMovieStimFrameTexture:
+    """Tests for keeping `frameTexture` up to date."""
+
+    @staticmethod
+    def _frameTexture(mov):
+        return _readTexture(mov.frameTexture, mov._vidWidth, mov._vidHeight)
+
+    def test_updateVideoFrameUpdatesFrameTexture(self, win, movieLib):
+        """`updateVideoFrame()` keeps `frameTexture` up to date without the
+        movie being drawn."""
+        with movieStim(win, movieLib) as mov:
+            first = self._frameTexture(mov)
+            mov.play()
+
+            for _ in range(15):
+                win.flip()  # without drawing the movie
+                time.sleep(0.02)
+                assert mov.updateVideoFrame()
+
+            assert mov.pts > 0.0
+            assert np.any(self._frameTexture(mov) != first)
+
+    @pytest.mark.parametrize('started', [False, True])
+    def test_seekWhilePausedUpdatesFrameTexture(self, win, movieLib, started):
+        """Seeking while paused (or before playing) shows the frame sought to,
+        and puts it in `frameTexture`, rather than waiting for playback to
+        start."""
+        with movieStim(win, movieLib) as mov:
+            if started:
+                mov.play()
+                _drawFrames(win, mov)
+                mov.pause()
+
+            before = self._frameTexture(mov)
+            mov.seek(SAMPLE_LATE)
+            after = self._frameTexture(mov)
+            assert np.any(after != before)
+
+            # drawn as it is, and staying put while paused
+            _drawFrames(win, mov, count=3, interval=0.02)
+            np.testing.assert_array_equal(self._frameTexture(mov), after)
