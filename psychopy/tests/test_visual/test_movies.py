@@ -10,7 +10,9 @@ and extracting an audio track needs a working output device which test machines
 often lack.
 
 """
+import threading
 import time
+import weakref
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -18,7 +20,7 @@ import numpy as np
 import pytest
 
 from psychopy import visual, prefs, core, logging
-from psychopy.visual.movies import MovieFileReader
+from psychopy.visual.movies import MovieFileReader, _frameSampleOffset
 from .. import utils
 
 
@@ -892,9 +894,9 @@ class TestMovieStimPlayback:
 # frames before it, short enough not to slow the suite down.
 SCHEDULE_DELAY = 0.25
 
-# The movie clock is worked out from `core.getTime()` when the movie is drawn,
-# so it should match the wall time since the start to well within a frame.
-# This is a frame of slack for a loaded machine.
+# The movie clock is worked out from the time of the flip each frame is drawn
+# for, so it should match the time between flips to well within a frame. This
+# is a frame of slack for a loaded machine.
 SCHEDULE_TOL = MOVIE_FRAME_INTERVAL
 
 
@@ -905,25 +907,31 @@ def _absTime(t):
     return t + core.monotonicClock.getLastResetTime()
 
 
+def _nextFlip(win):
+    """Time of the window's next flip on the clock `core.getTime()` reads,
+    which is the time the movie clock is read at when the movie is drawn."""
+    return win.getFutureFlipTime(clock=core.monotonicClock)
+
+
 def _drawUntil(win, mov, t):
     """Draw the movie until `core.getTime()` reaches `t`.
 
     Returns
     -------
     float
-        The time the movie was last drawn (just before `draw()` was called).
+        The time of the flip the movie was last drawn for, on the clock
+        `core.getTime()` reads.
 
     """
-    tDrawn = core.getTime()
-    while tDrawn < t:
+    while core.getTime() < t:
         mov.draw()
         win.flip()
-        tDrawn = core.getTime()
 
+    tFlip = _nextFlip(win)
     mov.draw()  # once more at or after `t`
     win.flip()
 
-    return tDrawn
+    return tFlip
 
 
 class _AudioTrackStandIn:
@@ -1011,10 +1019,11 @@ class TestMovieStimScheduling:
 
     def test_playWhenInThePastStartsNow(self, win, movieLib):
         """A start time which has already gone by starts playback straight
-        away, rather than jumping ahead to where the movie would be by now."""
+        away (from the next flip), rather than jumping ahead to where the movie
+        would be by now."""
         with movieStim(win, movieLib) as mov:
-            tPlay = core.getTime()
-            mov.play(when=_absTime(tPlay - 10.0))
+            tPlay = _nextFlip(win)
+            mov.play(when=_absTime(core.getTime() - 10.0))
 
             tDrawn = _drawUntil(win, mov, tPlay + SCHEDULE_DELAY)
             assert mov.movieTime == pytest.approx(
@@ -1032,7 +1041,7 @@ class TestMovieStimScheduling:
             _drawFrames(win, mov)
             assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
 
-            tPlay = core.getTime()
+            tPlay = _nextFlip(win)
             mov.play()
             tDrawn = _drawUntil(win, mov, tPlay + SCHEDULE_DELAY)
             assert mov.movieTime == pytest.approx(
@@ -1133,3 +1142,152 @@ class TestMovieStimScheduling:
             assert tFlip == pytest.approx(
                 win.getFutureFlipTime(clock=None), abs=1e-3)
             assert tFlip > core.getTime()
+
+
+# --------------------------------------------------------------------------
+# Frame timing
+#
+
+def _queuedFrameCount(reader):
+    """Number of frames the `pyav` decode thread has decoded ahead."""
+    with reader._pyavCondition:
+        return reader._queuedPyAVFrameCount()
+
+
+def _waitForQueuedFrames(reader, count, timeout=5.0):
+    """Wait for the `pyav` decode thread to have `count` frames decoded ahead,
+    returning how many it has when done waiting."""
+    deadline = time.time() + timeout
+    while _queuedFrameCount(reader) != count and time.time() < deadline:
+        time.sleep(0.01)
+
+    return _queuedFrameCount(reader)
+
+
+class TestMovieStimFrameTiming:
+    """Tests for which frame is shown on which flip, and for keeping the work
+    of decoding out of the way of drawing."""
+
+    @pytest.mark.parametrize('framePeriod, frameInterval, expected', [
+        (1 / 60, 1 / 60, 1 / 120),  # same rate, half a frame
+        (1 / 60, 1 / 30, 1 / 120),  # 2 refreshes a frame, a quarter frame
+        (1 / 60, 1 / 24, 1 / 240),  # 2.5 refreshes a frame, a tenth
+        (1 / 60, 1 / 120, 1 / 240),  # 2 frames a refresh, half a frame
+        (1 / 60, 1.0, 1 / 120),  # never more than half a refresh
+        (1 / 59.96, 1 / 60, 1 / 120),  # measured rates count as 60 Hz
+        (0.0, 1 / 60, 0.0),  # unknown refresh rate
+        (None, 1 / 60, 0.0),
+        (1 / 60, -1.0, 0.0)])  # unknown frame rate
+    def test_frameSampleOffset(self, win, movieLib, framePeriod,
+                               frameInterval, expected):
+        """Frames are chosen from as far past the movie clock as keeps it
+        clear of frame boundaries, given how flips line up with frames."""
+        assert _frameSampleOffset(framePeriod, frameInterval) == \
+            pytest.approx(expected)
+
+    def test_playShowsFirstFrameOnNextFlip(self, win, movieLib):
+        """The movie clock starts from the next flip, so the first frame is
+        the one shown on it, and the clock reads the time between flips."""
+        with movieStim(win, movieLib) as mov:
+            win.flip()
+            tStart = _nextFlip(win)
+
+            mov.play()
+            mov.draw()
+            assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
+            assert mov.pts == pytest.approx(0.0, abs=1e-6)
+
+            win.flip()
+            tNext = _nextFlip(win)
+            mov.draw()
+            assert mov.movieTime == pytest.approx(tNext - tStart, abs=1e-3)
+
+    def test_framesAdvanceOncePerRefresh(self, win, movieLib, monkeypatch):
+        """With the display refreshing once per movie frame, each refresh
+        shows the next frame even when the flips jitter a little.
+
+        Playback starting on a flip puts every later flip right at the start
+        of a frame here, where the movie used to judder, repeating one frame
+        and skipping the next as the jitter tipped it either way.
+
+        """
+        rng = np.random.default_rng(0)
+        tFlip = [core.getTime() + 10.0]  # flips stood in for, see below
+
+        # a display refreshing at the movie frame rate, with ~1 ms of jitter
+        monkeypatch.setattr(win, 'monitorFramePeriod', MOVIE_FRAME_INTERVAL)
+        monkeypatch.setattr(
+            win, 'getFutureFlipTime',
+            lambda targetTime=0, clock=None: tFlip[0])
+
+        with movieStim(win, movieLib) as mov:
+            mov.play()
+
+            shown = []
+            for _ in range(60):
+                assert mov.updateVideoFrame()
+                shown.append(int(round(mov.pts / MOVIE_FRAME_INTERVAL)))
+                tFlip[0] = tFlip[0] + MOVIE_FRAME_INTERVAL + \
+                    rng.uniform(-1e-3, 1e-3)
+
+        assert shown[0] == 0
+        assert np.all(np.diff(shown) == 1), shown
+
+    def test_deferredDecodingWaitsForDecodeAhead(self, win, movieLib):
+        """`getFrame(deferDecoding=True)` leaves the decode thread be until
+        `decodeAhead()`, so that it can't compete with copying the frame to
+        the GPU. Otherwise it replaces the frames taken straight away."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav decodes ahead on a thread of its own')
+
+        reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
+        reader.open()
+        try:
+            full = reader._pyavQueueDepth
+            assert _waitForQueuedFrames(reader, full) == full
+
+            assert reader.getFrame(
+                3.5 * MOVIE_FRAME_INTERVAL, deferDecoding=True) is not None
+            left = _queuedFrameCount(reader)
+            assert left < full
+
+            time.sleep(0.2)
+            assert _queuedFrameCount(reader) == left  # left be
+
+            reader.decodeAhead()
+            assert _waitForQueuedFrames(reader, full) == full
+
+            assert reader.getFrame(6.5 * MOVIE_FRAME_INTERVAL) is not None
+            assert _waitForQueuedFrames(reader, full) == full
+        finally:
+            reader.close()
+
+    def test_framesFreedOffDrawingThread(self, win, movieLib):
+        """Frames are freed by the decode thread rather than the one drawing
+        them, where freeing a large frame can take long enough to miss a
+        flip."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav decodes ahead on a thread of its own')
+
+        freedOn = []
+
+        def watch(frameImage):
+            weakref.finalize(
+                frameImage.memview,
+                lambda: freedOn.append(threading.current_thread()))
+
+        with movieStim(win, movieLib) as mov:
+            mov.play()
+
+            lastPts = None
+            for _ in range(40):
+                _drawFrames(win, mov, count=1, interval=0.02)
+                if mov.pts != lastPts:
+                    lastPts = mov.pts
+                    watch(mov._recentFrameImage)
+
+            # let the decode thread get round to the last frames handed to it
+            _drawFrames(win, mov, count=3, interval=0.05)
+
+            assert freedOn
+            assert threading.main_thread() not in freedOn
