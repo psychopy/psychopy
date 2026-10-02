@@ -10,6 +10,7 @@ and extracting an audio track needs a working output device which test machines
 often lack.
 
 """
+import math
 import threading
 import time
 import weakref
@@ -335,8 +336,10 @@ class TestMovieStimDecoding:
         """A frame is decoded when the movie is loaded, before playback."""
         with movieStim(win, movieLib) as mov:
             frame = np.asarray(mov._recentFrame)
-            # four bytes per pixel, RGBA
-            assert frame.size == MOVIE_SIZE[0] * MOVIE_SIZE[1] * 4
+            # four bytes per pixel, RGBA, at the size the frame came out at
+            # (see `TestMovieStimDownscaling`)
+            width, height = mov._recentFrameSize
+            assert frame.size == width * height * 4
             assert frame.dtype == np.uint8
             # a real frame, not a blank buffer
             assert frame.std() > 1.0
@@ -1703,3 +1706,115 @@ class TestMovieStimAudioTrack:
             assert track.sampleRate == 22050
             np.testing.assert_array_equal(
                 track.loaded, _decodeMovieAudio(22050))
+
+
+# --------------------------------------------------------------------------
+# Scaling frames down as they're decoded
+#
+
+def _drawUntilFrameSize(win, mov, size, maxFrames=60):
+    """Play the movie until it shows a frame of `size`, returning whether it
+    got to one (frames decoded ahead before a size change keep the old size).
+    """
+    mov.play()
+    for _ in range(maxFrames):
+        mov.draw()
+        win.flip()
+        if tuple(mov._recentFrameSize) == tuple(size):
+            return True
+
+    return False
+
+
+class TestMovieStimDownscaling:
+    """Tests for decoding frames at the size the movie is drawn at."""
+
+    def test_framesDecodedAtDrawnSize(self, win, movieLib):
+        """Frames come out at the size the movie is drawn at, from the very
+        first, and the texture they're uploaded to is that size too."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav scales frames as it decodes them')
+
+        drawnSize = (MOVIE_SIZE[0] // 4, MOVIE_SIZE[1] // 4)
+        with movieStim(win, movieLib, size=drawnSize, units='pix') as mov:
+            assert mov._player.outputFrameSize == drawnSize
+            assert tuple(mov._recentFrameSize) == drawnSize
+            assert (mov._vidWidth, mov._vidHeight) == drawnSize
+            assert mov._recentFrame.size == drawnSize[0] * drawnSize[1] * 4
+
+            # and still draws to the size asked for
+            assert _drawnSize(win, mov) == pytest.approx(drawnSize, abs=1)
+
+    def test_downscaleFramesOff(self, win, movieLib):
+        """`downscaleFrames=False` keeps frames at the movie's own size."""
+        with movieStim(win, movieLib, size=(32, 32), units='pix',
+                       downscaleFrames=False) as mov:
+            assert mov._player.outputFrameSize is None
+            assert tuple(mov._recentFrameSize) == MOVIE_SIZE
+            assert (mov._vidWidth, mov._vidHeight) == MOVIE_SIZE
+
+    def test_framesNeverScaledUp(self, win, movieLib):
+        """A movie drawn larger than its own size is decoded at its own size
+        (in each dimension), rather than scaled up for nothing."""
+        with movieStim(win, movieLib, units='pix',
+                       size=(MOVIE_SIZE[0] * 2, MOVIE_SIZE[1] // 2)) as mov:
+            expected = MOVIE_SIZE if movieLib != 'pyav' else \
+                (MOVIE_SIZE[0], MOVIE_SIZE[1] // 2)
+            assert tuple(mov._recentFrameSize) == expected
+
+    def test_sizeChangeFollowedByFrames(self, win, movieLib):
+        """Changing the size the movie is drawn at changes the size frames are
+        decoded at, and the texture follows them."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav scales frames as it decodes them')
+
+        with movieStim(win, movieLib, size=(64, 64), units='pix') as mov:
+            mov.size = (40, 30)
+            assert mov._player.outputFrameSize == (40, 30)
+
+            assert _drawUntilFrameSize(win, mov, (40, 30))
+            assert (mov._vidWidth, mov._vidHeight) == (40, 30)
+
+    def test_sizeFromMovieAspect(self, win, movieLib):
+        """With one dimension left to the movie's aspect ratio, frames come
+        out at the size that works out to once the movie is open."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav scales frames as it decodes them')
+
+        width = MOVIE_SIZE[0] // 2
+        height = int(math.ceil(width * MOVIE_SIZE[1] / MOVIE_SIZE[0]))
+        with movieStim(win, movieLib, size=(width, None), units='pix') as mov:
+            assert mov._player.outputFrameSize == (width, height)
+            assert _drawUntilFrameSize(win, mov, (width, height))
+
+    def test_interpolateChoosesFilter(self, win, movieLib):
+        """Frames are scaled down with a box filter, or nearest neighbour when
+        not interpolating, as the GPU would."""
+        with movieStim(win, movieLib, size=(64, 64), units='pix') as mov:
+            assert mov._player._outputFrameFormat[1] == 'AREA'
+
+            mov.interpolate = False
+            assert mov._player._outputFrameFormat[1] == 'POINT'
+
+    def test_readerOutputFrameSize(self, win, movieLib):
+        """`MovieFileReader.setOutputFrameSize` sets the size frames are
+        decoded at from then on, never larger than their own, and makes room
+        to decode more of them ahead."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav scales frames as it decodes them')
+
+        reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
+        reader.setOutputFrameSize((50.2, 40.0))
+        reader.open()
+        try:
+            assert reader.outputFrameSize == (51, 40)  # whole pixels, rounded up
+            first = reader._getFrameFromStore(0.0)[0]
+            assert first.size == (51, 40)
+
+            reader.setOutputFrameSize((MOVIE_SIZE[0] * 2, 10))
+            reader.seek(SAMPLE_EARLY)
+            img = reader.getFrame(SAMPLE_EARLY)[0]
+            assert img.size == (MOVIE_SIZE[0], 10)
+            assert reader._pyavQueueDepth == movies.PYAV_DECODE_AHEAD_MAX_FRAMES
+        finally:
+            reader.close()
