@@ -1728,7 +1728,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     def _createFrameTexture(self, width, height):
         """Make the RGBA texture frames are drawn from, `_textureId`, which is
-        what `frameTexture` gives."""
+        what `frameTexture` gives.
+        
+        Parameters
+        ----------
+        width, height : int
+            The size of the texture in pixels.
+        
+        """
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glGenTextures(1, ctypes.byref(self._textureId))
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
