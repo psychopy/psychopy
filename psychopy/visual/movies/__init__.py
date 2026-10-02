@@ -17,6 +17,7 @@ __all__ = [
 
 import ctypes
 import functools
+import math
 import os.path
 import sys
 import threading
@@ -436,6 +437,15 @@ class _RGBFrameAdapter:
     def get_pixel_format(self):
         return FRAME_PIXEL_FORMAT
 
+    @property
+    def size(self):
+        """Size `(w, h)` of the frame in pixels (`tuple`), or `None` if the
+        frame is raw bytes, which are always the movie's own size."""
+        if isinstance(self._data, np.ndarray) and self._data.ndim == 3:
+            return self._data.shape[1], self._data.shape[0]
+
+        return None
+
 
 class _ScheduledTime:
     """A fixed absolute time, to pass as `when` to `Sound.play()`.
@@ -722,6 +732,12 @@ class MovieFileReader:
         # of their own to report
         self._muted = False
 
+        # Size frames are scaled down to as they're decoded, or `None` for their
+        # own, and the `swscale` filter to do it with. Kept as one tuple so
+        # that the decode thread reads a consistent pair. See
+        # `setOutputFrameSize`.
+        self._outputFrameFormat = (None, 'AREA')
+
         # set by `seek()` and cleared once the decoder delivers a frame for the
         # new position, see the `isSeeking` property
         self._seeking = False
@@ -775,6 +791,49 @@ class MovieFileReader:
 
         """
         return self._srcFrameSize
+
+    @property
+    def outputFrameSize(self):
+        """Size `(w, h)` in pixels that frames are scaled down to as they are
+        decoded, or `None` to keep their own size (`tuple` or `None`). See
+        `setOutputFrameSize`."""
+        return self._outputFrameFormat[0]
+
+    def setOutputFrameSize(self, size, interpolation='AREA'):
+        """Set the size frames are scaled down to as they are decoded.
+
+        Scaling a frame down to the size it will be drawn at, as part of
+        converting it to RGBA, costs little more than the conversion alone,
+        and makes the frame that much less to copy to the GPU: ~2 MB rather
+        than ~33 MB for a 4K movie drawn at 800x600. The result looks better
+        too, since the GPU's bilinear filtering samples only a few of the
+        source pixels when shrinking a texture by much.
+
+        Frames are never scaled up, nor is their own size changed in either
+        dimension beyond `size`. Frames already decoded keep the size they
+        were decoded at. Only `pyav` scales frames, the other backends always
+        give them at their own size.
+
+        Parameters
+        ----------
+        size : ArrayLike or None
+            Largest size `(w, h)` in pixels to give frames at, or `None` to
+            keep their own size.
+        interpolation : str
+            `swscale` filter to scale frames with, such as `'AREA'` (box
+            filter, the default) or `'POINT'` (nearest neighbour).
+
+        """
+        if size is not None:
+            size = tuple(max(1, int(math.ceil(abs(val)))) for val in size)
+
+        self._outputFrameFormat = (size, interpolation)
+
+        if self._decoderLib == 'pyav' and self._srcFrameSize[0] > 0:
+            # as many frames as fit in the budget at the new size
+            with self._pyavCondition:
+                self._pyavQueueDepth = self._getPyAVQueueDepth()
+                self._pyavCondition.notify_all()
 
     @property
     def frameInterval(self):
@@ -1261,12 +1320,23 @@ class MovieFileReader:
         # start instead would empty the decoder, which with frame threading
         # then takes several frames' worth of decoding to produce one again
         # (~50 ms at 4K), and playback would start by waiting on that.
-        frameBytes = width * height * FRAME_BYTES_PER_PIXEL
-        self._pyavQueueDepth = min(
+        self._pyavQueueDepth = self._getPyAVQueueDepth()
+        self._startPyAVDecoder()
+
+    def _getPyAVQueueDepth(self):
+        """Number of frames for the `pyav` decode thread to decode ahead
+        (`int`), as many as fit in `PYAV_DECODE_AHEAD_BYTES` at the size they
+        are decoded at."""
+        width, height = self._srcFrameSize
+        outputSize = self._outputFrameFormat[0]
+        if outputSize is not None:
+            width, height = min(width, outputSize[0]), min(height, outputSize[1])
+        frameBytes = max(1, width * height * FRAME_BYTES_PER_PIXEL)
+
+        return min(
             max(PYAV_DECODE_AHEAD_BYTES // frameBytes,
                 PYAV_DECODE_AHEAD_MIN_FRAMES),
             PYAV_DECODE_AHEAD_MAX_FRAMES)
-        self._startPyAVDecoder()
 
     def _seekPyAV(self, reqPTS):
         """PyAV specific seek routine.
@@ -1561,6 +1631,17 @@ class MovieFileReader:
         """
         if isinstance(frame, _RGBFrameAdapter):
             return frame  # already converted
+
+        # Scaled down in the same `swscale` pass as the conversion, which costs
+        # little more than the conversion alone, see `setOutputFrameSize`
+        outputSize, interpolation = self._outputFrameFormat
+        if outputSize is not None:
+            width = min(outputSize[0], frame.width)
+            height = min(outputSize[1], frame.height)
+            if (width, height) != (frame.width, frame.height):
+                return _RGBFrameAdapter(frame.to_ndarray(
+                    format=FRAME_PIXEL_FORMAT, width=width, height=height,
+                    interpolation=interpolation))
 
         return _RGBFrameAdapter(frame.to_ndarray(format=FRAME_PIXEL_FORMAT))
 
@@ -3513,6 +3594,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         is called before the track has loaded, it waits for it, so leave time
         between loading and playing the movie (check `isAudioReady`), or the
         wait lands in the drawing loop instead. Default is `False`.
+    downscaleFrames : bool
+        Scale frames down to the size the movie is drawn at as they are
+        decoded, if smaller than the movie's own. This is much less to copy to
+        the GPU for each frame (a 4K frame drawn at 800x600 goes from ~33 MB to
+        ~2 MB), and looks better than leaving the GPU to shrink it. Frames are
+        scaled with a box filter, or nearest neighbour if `interpolate` is
+        `False`. Only the `pyav` backend scales frames. Default is `True`.
 
     Notes
     -----
@@ -3559,6 +3647,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  audioDevice=None,
                  audioConfig=None,
                  loadAudioInBackground=False,
+                 downscaleFrames=True,
                  **kwargs):
 
         # what local vars are defined (these are the init params) for use
@@ -3613,6 +3702,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # identity is what tells us whether there is anything new to upload.
         self._recentFrameImage = None
         self._recentFrameAddr = None
+        # size `(w, h)` of `_recentFrame` in pixels, see `_setRecentFrame`
+        self._recentFrameSize = None
         self._frameNeedsUpload = False
         self._autoStart = autoStart
         self._isLoaded = False
@@ -3685,6 +3776,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # whether loading the movie leaves `_audioLoader` decoding the track
         # rather than waiting for it, see `_loadAudioTrack`
         self._loadAudioInBackground = bool(loadAudioInBackground)
+
+        # Whether frames are scaled down to the size they're drawn at as they
+        # are decoded, and the size and filter the decoder was last given for
+        # it, see `_updateOutputFrameSize`
+        self._downscaleFrames = bool(downscaleFrames)
+        self._outputFrameFormat = None
         self._audioSamples = []  # audio samples from the movie 
         self._audioTrack = None  # audio track information from the movie metadata
         self._audioReader = None  # audio reader object
@@ -3736,6 +3833,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             value[1] = (self.frameSize[1] / self.frameSize[0]) * value[0]
         # set as normal
         BaseVisualStim.size.fset(self, value)
+        # frames are decoded at the size they're drawn at
+        self._updateOutputFrameSize()
             
     @property
     def filename(self):
@@ -3824,6 +3923,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def interpolate(self, value):
         self._interpolate = bool(value)
         self._texFilterNeedsUpdate = True  # update the texture filter on the next draw call
+        # and frames scaled down as they're decoded use the matching filter
+        self._updateOutputFrameSize()
 
     @staticmethod
     def getBackend():
@@ -3924,6 +4025,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             decoderLib=self._movieLib,
             decoderOpts=self._decoderOpts)
         
+        # Frames are decoded at the size they're drawn at. Where that doesn't
+        # depend on the movie's own size, the decoder is told before it starts,
+        # so that even the first frames come out at it.
+        self._outputFrameFormat = None
+        requestedSizePix = self._getRequestedSizePix()
+        if requestedSizePix is not None:
+            self._updateOutputFrameSize(requestedSizePix)
+
         # Open the player, this will get metadata about the movie and start
         # decoding frames in the background.
         
@@ -3933,12 +4042,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             "Movie file opened in {:.2f} seconds".format(
                 time.time() - t0))
 
-        # Setup the OpenGL buffers for the movie frames. The sizes of the 
-        # buffers are determined by the size of the movie frames obtained from
-        # the player.
-
-        self._freeTextureBuffers()  # free buffers (if any) before creating a new one
-        self._setupTextureBuffers()
+        # Free the OpenGL buffers for the last movie's frames, if any. Those for
+        # this one are made at the size of its frames as they're uploaded, see
+        # `_pixelTransfer`.
+        self._freeTextureBuffers()
 
         # update size in case frame size has changed
         self.size = self._requestedSize
@@ -3956,13 +4063,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # display first frame of video
         frameData = self._player._getFrameFromStore(0.0)
         if frameData is not None:
-            frameImage = frameData[0]
-            videoBuffer = frameImage.to_memoryview()[0].memview
-            videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-            self._recentFrame = videoFrameArray # most recent frame
-            self._recentFrameAddr = videoFrameArray.ctypes.data
-            self._recentFrameImage = frameImage
+            self._setRecentFrame(frameData[0])
             self._pixelTransfer(forceRefresh=True)  # copy the first frame to the texture
+        else:
+            # at the movie's own size until it has a frame to show
+            self._setupTextureBuffers()
 
     def _setupAudioStream(self):
         """Setup the audio stream for the movie.
@@ -4476,11 +4581,72 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     # Drawing and rendering
     #
 
+    def _getRequestedSizePix(self):
+        """Size `(w, h)` in pixels the movie was asked to be drawn at, or
+        `None` if that depends on the movie's own size (`ndarray` or `None`).
+        """
+        value = self._requestedSize
+        if isinstance(value, (int, float)):
+            value = (value, value)
+        if value is None or any(val is None for val in value):
+            return None
+
+        return layout.Size(value, units=self.units, win=self.win).pix
+
+    def _updateOutputFrameSize(self, sizePix=None):
+        """Tell the decoder the size the movie is drawn at, for it to scale
+        frames down to as it decodes them, if that has changed. See
+        `downscaleFrames` and `MovieFileReader.setOutputFrameSize`.
+
+        Parameters
+        ----------
+        sizePix : ArrayLike or None
+            Size `(w, h)` in pixels the movie is drawn at, or `None` to go by
+            `size`.
+
+        """
+        player = getattr(self, '_player', None)
+        if player is None:
+            return
+
+        outputSize = None
+        if self._downscaleFrames:
+            if sizePix is None:
+                sizePix = self._size.pix
+            outputSize = tuple(
+                max(1, int(math.ceil(abs(val)))) for val in sizePix)
+
+        # nearest neighbour when not interpolating, as the GPU does
+        outputFormat = (outputSize, 'AREA' if self._interpolate else 'POINT')
+        if outputFormat != self._outputFrameFormat:
+            self._outputFrameFormat = outputFormat
+            player.setOutputFrameSize(*outputFormat)
+
+    def _setRecentFrame(self, frameImage):
+        """Make `frameImage` the frame to upload, and show from now on."""
+        # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
+        videoBuffer = frameImage.to_memoryview()[0].memview
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+        self._recentFrame = videoFrameArray # most recent frame
+        # cached here since `ndarray.ctypes` builds a new helper object
+        # on every access, and the pixel transfer runs every draw
+        self._recentFrameAddr = videoFrameArray.ctypes.data
+        self._recentFrameImage = frameImage
+        # frames scaled down as they're decoded give their size, and any others
+        # are the movie's own size
+        self._recentFrameSize = getattr(frameImage, 'size', None) or \
+            tuple(self._player.getMetadata().size)
+        self._frameNeedsUpload = True
+
     @property
     def frameTexture(self):
         """Texture ID for the current video frame (`GLuint`). You can use this
         as a video texture. However, you must periodically call
         `updateVideoFrame` to keep this up to date.
+
+        The texture is the size of the frames given to it, which with
+        `downscaleFrames` is the size the movie is drawn at (if smaller than
+        its own), and is replaced with a new one if that changes.
 
         """
         return self._textureId
@@ -4546,15 +4712,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # frame rate most calls land on the frame already on the GPU. Only
             # rewrap and flag for upload when the frame really has changed.
             if frameImage is not self._recentFrameImage or pts != self._pts:
-                # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
-                videoBuffer = frameImage.to_memoryview()[0].memview
-                videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-                self._recentFrame = videoFrameArray # most recent frame
-                # cached here since `ndarray.ctypes` builds a new helper object
-                # on every access, and the pixel transfer runs every draw
-                self._recentFrameAddr = videoFrameArray.ctypes.data
-                self._recentFrameImage = frameImage
-                self._frameNeedsUpload = True
+                self._setRecentFrame(frameImage)
         else:
             self._recentFrame = None
             self._recentFrameAddr = None
@@ -4575,8 +4733,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._recentFrame = None
         self._recentFrameImage = None
         self._recentFrameAddr = None
+        self._recentFrameSize = None
         self._frameNeedsUpload = False
 
+        self._deleteTextureObjects()
+
+    def _deleteTextureObjects(self):
+        """Delete the texture and pixel buffer, if made."""
         try:
             # delete buffers and textures if previously created
             if self._pixbuffId.value > 0:
@@ -4591,22 +4754,34 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         except Exception:  # can happen when unloading or shutting down
             pass
 
-    def _setupTextureBuffers(self):
+        self._vidWidth = self._vidHeight = 0
+        self._nBufferBytes = 0
+
+    def _setupTextureBuffers(self, width=None, height=None):
         """Setup texture buffers which hold frame data. This creates a 2D
         RGBA texture and pixel buffer. The pixel buffer serves as the store for
         texture color data. Each frame, the pixel buffer memory is mapped and
         frame data is copied over to the GPU from the decoder.
 
-        This is called every time a video file is loaded. The 
-        `_freeTextureBuffers` method is called in this routine prior to creating
-        new buffers, so it's safe to call this right after loading a new movie 
-        without having to `_freeTextureBuffers` first.
+        This is called with the size of the frames being uploaded whenever it
+        changes, see `_pixelTransfer`. Any texture and pixel buffer made before
+        are deleted first.
+
+        Parameters
+        ----------
+        width, height : int or None
+            Size of the frames in pixels, or `None` for the movie's own size.
 
         """
-        # Get the size of the movie frame and compute the buffer size. These
-        # are fixed for the life of the buffers, so they are cached here rather
-        # than recomputed on every pixel transfer.
-        vidWidth, vidHeight = self._player.getMetadata().size
+        if width is None or height is None:
+            width, height = self._player.getMetadata().size
+
+        self._deleteTextureObjects()
+
+        # Compute the buffer size. These are fixed for the life of the
+        # buffers, so they are cached here rather than recomputed on every
+        # pixel transfer.
+        vidWidth, vidHeight = int(width), int(height)
         nBufferBytes = vidWidth * vidHeight * FRAME_BYTES_PER_PIXEL
         self._vidWidth = vidWidth
         self._vidHeight = vidHeight
@@ -4685,6 +4860,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # re-uploading would burn a whole-frame copy and a texture transfer
             # per draw to no effect.
             return
+
+        # The texture follows the size of the frames, which changes when the
+        # movie comes to be drawn at another size, see `downscaleFrames`
+        if tuple(self._recentFrameSize) != (self._vidWidth, self._vidHeight):
+            self._setupTextureBuffers(*self._recentFrameSize)
 
         # frame size and buffer size are cached by `_setupTextureBuffers`
         vidWidth, vidHeight = self._vidWidth, self._vidHeight
