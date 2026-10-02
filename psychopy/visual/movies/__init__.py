@@ -230,6 +230,153 @@ def _frameSampleOffset(framePeriod, frameInterval):
     return min(frameInterval / (2 * cadence.denominator), framePeriod / 2.0)
 
 
+# Pixel formats of decoded frames which are uploaded as their planes and
+# converted to RGB by a shader as they're drawn (see `gpuColorConversion`):
+# 8-bit planar YUV, with any chroma subsampling. Others are converted to RGBA
+# by `swscale` as they're decoded.
+_YUV_PLANAR_FORMATS = frozenset((
+    'yuv420p', 'yuvj420p', 'yuv422p', 'yuvj422p', 'yuv444p', 'yuvj444p',
+    'yuv440p', 'yuvj440p', 'yuv411p', 'yuv410p'))
+
+# `swscale` names of the colour matrices YUV is encoded with, by the value of
+# FFmpeg's `AVColorSpace` a frame is tagged with
+_AVCOL_SPC_TO_SWSCALE = {
+    1: 'ITU709',  # BT709
+    4: 'FCC',
+    5: 'ITU601',  # BT470BG
+    6: 'ITU601',  # SMPTE170M
+    7: 'SMPTE240M',
+    9: 'BT2020',  # BT2020_NCL
+    10: 'BT2020'}  # BT2020_CL, which a matrix can only approximate
+
+# Luma coefficients (Kr, Kb) of each colour matrix, see `_yuvToRGBUniforms`
+_COLOR_MATRIX_KR_KB = {
+    'ITU601': (0.299, 0.114),
+    'ITU709': (0.2126, 0.0722),
+    'SMPTE240M': (0.212, 0.087),
+    'BT2020': (0.2627, 0.0593),
+    'FCC': (0.30, 0.11)}
+
+
+def _frameColorMatrix(frame):
+    """Colour matrix a decoded video frame's YUV is encoded with, by its
+    `swscale` name (`str`).
+
+    This goes by what the frame is tagged with. An untagged frame is taken to
+    be BT.709 if it is HD or larger and BT.601 otherwise, as video players
+    take it to be.
+
+    """
+    colorMatrix = _AVCOL_SPC_TO_SWSCALE.get(int(frame.colorspace))
+    if colorMatrix is None:
+        large = frame.width >= 1280 or frame.height >= 720
+        colorMatrix = 'ITU709' if large else 'ITU601'
+
+    return colorMatrix
+
+
+def _isYUVFormat(formatName):
+    """Whether a pixel format holds YUV (rather than RGB or grey) samples."""
+    return 'yuv' in formatName or formatName.startswith(('nv', 'p01', 'p21'))
+
+
+@functools.lru_cache(maxsize=16)
+def _yuvToRGBUniforms(colorMatrix, fullRange):
+    """Matrix and offset converting YUV to RGB, for the shader frames are drawn
+    with (see `_YUV_TO_RGB_FRAGMENT_SHADER`).
+
+    These match what `swscale` does. Sampling an 8-bit plane gives its code
+    value over 255 (`t`), and the RGB is `matrix @ (t - offset)`.
+
+    Parameters
+    ----------
+    colorMatrix : str
+        `swscale` name of the colour matrix, see `_frameColorMatrix`.
+    fullRange : bool
+        Whether the samples are full range (0 to 255) rather than limited
+        (16 to 235 for luma, 16 to 240 for chroma).
+
+    Returns
+    -------
+    tuple
+        The matrix as 9 floats in row order, and the offset as 3 floats.
+
+    """
+    kr, kb = _COLOR_MATRIX_KR_KB[colorMatrix]
+    kg = 1.0 - kr - kb
+    matrix = np.array([
+        [1.0, 0.0, 2.0 * (1.0 - kr)],
+        [1.0, -2.0 * kb * (1.0 - kb) / kg, -2.0 * kr * (1.0 - kr) / kg],
+        [1.0, 2.0 * (1.0 - kb), 0.0]])
+
+    if fullRange:
+        scale = np.array([1.0, 1.0, 1.0])
+        offset = np.array([0.0, 128.0, 128.0]) / 255.0
+    else:
+        scale = np.array([255.0 / 219.0, 255.0 / 224.0, 255.0 / 224.0])
+        offset = np.array([16.0, 128.0, 128.0]) / 255.0
+
+    return tuple((matrix * scale).ravel()), tuple(offset)
+
+
+# Converts a frame's YUV planes to RGB as it's drawn, the planes being bound to
+# texture units 0 to 2. This runs with the fixed-function vertex pipeline, as
+# the rest of `MovieStim`'s drawing does, from which it takes the texture
+# coordinates and the colour (which carries the opacity).
+_YUV_TO_RGB_FRAGMENT_SHADER = """
+#version 120
+uniform sampler2D uPlaneY;
+uniform sampler2D uPlaneU;
+uniform sampler2D uPlaneV;
+uniform mat3 uYUVToRGB;
+uniform vec3 uYUVOffset;
+
+void main() {
+    vec2 texCoord = gl_TexCoord[0].st;
+    vec3 yuv = vec3(
+        texture2D(uPlaneY, texCoord).r,
+        texture2D(uPlaneU, texCoord).r,
+        texture2D(uPlaneV, texCoord).r);
+    vec3 rgb = clamp(uYUVToRGB * (yuv - uYUVOffset), 0.0, 1.0);
+    gl_FragColor = vec4(rgb, 1.0) * gl_Color;
+}
+"""
+
+
+def _getYUVToRGBProgram(win):
+    """The shader program frames uploaded as YUV are drawn with on a window,
+    made the first time it's needed (`tuple`).
+
+    Returns
+    -------
+    tuple or None
+        The program handle and a mapping of its uniform locations by name, or
+        `None` if the program couldn't be made, in which case frames are
+        converted to RGBA as they're decoded instead.
+
+    """
+    if not hasattr(win, '_movieYUVToRGBProgram'):
+        from psychopy.visual import shaders
+
+        try:
+            program = shaders.compileProgram(
+                fragmentSource=_YUV_TO_RGB_FRAGMENT_SHADER)
+        except Exception as err:
+            logging.warning(
+                "Couldn't make the shader movies are converted to RGB with as "
+                "they're drawn, so they'll be converted as they're decoded "
+                "instead: {}".format(err))
+            win._movieYUVToRGBProgram = None
+        else:
+            uniforms = {
+                name: GL.glGetUniformLocation(program, name.encode())
+                for name in ('uPlaneY', 'uPlaneU', 'uPlaneV', 'uYUVToRGB',
+                             'uYUVOffset')}
+            win._movieYUVToRGBProgram = (program, uniforms)
+
+    return win._movieYUVToRGBProgram
+
+
 # OpenCV's nearest equivalents of the `swscale` filters frames are scaled down
 # with, see `_resizeFrameOpenCV`
 _OPENCV_INTERPOLATION = {
@@ -507,6 +654,41 @@ class _RGBFrameAdapter:
             return self._data.shape[1], self._data.shape[0]
 
         return None
+
+
+class _YUVFrameAdapter:
+    """A decoded frame kept as its planar YUV samples, to be uploaded as they
+    are and converted to RGB by a shader as it's drawn.
+
+    Parameters
+    ----------
+    frame : av.VideoFrame
+        The frame, in one of `_YUV_PLANAR_FORMATS`. This holds on to it, so
+        that its planes can be uploaded straight from where they were decoded.
+
+    """
+    __slots__ = ['_frame', 'planes', 'size', 'colorMatrix', 'fullRange']
+
+    def __init__(self, frame):
+        self._frame = frame
+        #: Each plane (Y, U then V) as `(samples, width, height, rowLength)`,
+        #: `samples` being a flat array of `rowLength` bytes per row
+        self.planes = tuple(
+            (np.frombuffer(plane, np.uint8), plane.width, plane.height,
+             plane.line_size)
+            for plane in frame.planes[:3])
+        #: Size `(w, h)` of the frame in pixels
+        self.size = (frame.width, frame.height)
+        #: `swscale` name of the colour matrix, see `_frameColorMatrix`
+        self.colorMatrix = _frameColorMatrix(frame)
+        #: Whether the samples are full range, see `_yuvToRGBUniforms`
+        self.fullRange = int(frame.color_range) == 2 or \
+            frame.format.name.startswith('yuvj')
+
+    @property
+    def nbytes(self):
+        """Bytes of samples the frame's planes hold (`int`)."""
+        return sum(samples.nbytes for samples, _, _, _ in self.planes)
 
 
 class _ScheduledTime:
@@ -795,10 +977,11 @@ class MovieFileReader:
         self._muted = False
 
         # Size frames are scaled down to as they're decoded, or `None` for their
-        # own, and the `swscale` filter to do it with. Kept as one tuple so
-        # that the decode thread reads a consistent pair. See
-        # `setOutputFrameSize`.
-        self._outputFrameFormat = (None, 'AREA')
+        # own, the `swscale` filter to do it with, and whether to keep frames
+        # which are planar YUV as such. Kept as one tuple so that the decode
+        # thread reads a consistent set. See `setOutputFrameSize` and
+        # `setOutputPixelFormat`.
+        self._outputFrameFormat = (None, 'AREA', False)
 
         # set by `seek()` and cleared once the decoder delivers a frame for the
         # new position, see the `isSeeking` property
@@ -891,13 +1074,46 @@ class MovieFileReader:
         if size is not None:
             size = tuple(max(1, int(math.ceil(abs(val)))) for val in size)
 
-        self._outputFrameFormat = (size, interpolation)
+        self._outputFrameFormat = (
+            size, interpolation, self._outputFrameFormat[2])
 
         if self._decoderLib == 'pyav' and self._srcFrameSize[0] > 0:
             # as many frames as fit in the budget at the new size
             with self._pyavCondition:
                 self._pyavQueueDepth = self._getPyAVQueueDepth()
                 self._pyavCondition.notify_all()
+
+    @property
+    def outputPixelFormat(self):
+        """Pixel format frames are given in, `'rgba'` or `'yuv'` (`str`). See
+        `setOutputPixelFormat`."""
+        return 'yuv' if self._outputFrameFormat[2] else 'rgba'
+
+    def setOutputPixelFormat(self, pixelFormat):
+        """Set the pixel format frames are given in.
+
+        With `'yuv'`, frames decoded as planar YUV (as most are) are kept as
+        such, as `_YUVFrameAdapter`, for the caller to convert to RGB itself
+        (`MovieStim` does so in a shader as it draws them). That saves
+        converting them as they're decoded, and leaves less than half as much
+        to copy to the GPU. Frames in any other format are given as RGBA
+        regardless, as they are with `'rgba'` (the default). Frames already
+        decoded keep the format they were decoded in. Only `pyav` gives frames
+        as YUV.
+
+        Parameters
+        ----------
+        pixelFormat : str
+            `'rgba'` or `'yuv'`.
+
+        """
+        if pixelFormat not in ('rgba', 'yuv'):
+            raise ValueError(
+                "Invalid pixel format {!r}, expected 'rgba' or 'yuv'.".format(
+                    pixelFormat))
+
+        size, interpolation, _ = self._outputFrameFormat
+        self._outputFrameFormat = (size, interpolation, pixelFormat == 'yuv')
 
     @property
     def frameInterval(self):
@@ -1693,21 +1909,41 @@ class MovieFileReader:
             interface to downstream code.
 
         """
-        if isinstance(frame, _RGBFrameAdapter):
+        if isinstance(frame, (_RGBFrameAdapter, _YUVFrameAdapter)):
             return frame  # already converted
+
+        outputSize, interpolation, keepYUV = self._outputFrameFormat
+        width, height = frame.width, frame.height
+        if outputSize is not None:
+            width = min(outputSize[0], width)
+            height = min(outputSize[1], height)
+        scaled = (width, height) != (frame.width, frame.height)
+
+        formatName = frame.format.name
+        if keepYUV and formatName in _YUV_PLANAR_FORMATS:
+            # Left as YUV for the shader it's drawn with to convert, see
+            # `setOutputPixelFormat`. Scaling it down if need be is the only
+            # work there is to do here.
+            if scaled:
+                frame = frame.reformat(
+                    width=width, height=height, interpolation=interpolation)
+            return _YUVFrameAdapter(frame)
+
+        # Converted with the colour matrix the frame is encoded with. PyAV goes
+        # by what the frame is tagged with, but takes an untagged frame to be
+        # BT.601 whatever its size, where players take HD to be BT.709.
+        convertOpts = {}
+        if _isYUVFormat(formatName):
+            convertOpts['src_colorspace'] = _frameColorMatrix(frame)
 
         # Scaled down in the same `swscale` pass as the conversion, which costs
         # little more than the conversion alone, see `setOutputFrameSize`
-        outputSize, interpolation = self._outputFrameFormat
-        if outputSize is not None:
-            width = min(outputSize[0], frame.width)
-            height = min(outputSize[1], frame.height)
-            if (width, height) != (frame.width, frame.height):
-                return _RGBFrameAdapter(frame.to_ndarray(
-                    format=FRAME_PIXEL_FORMAT, width=width, height=height,
-                    interpolation=interpolation))
+        if scaled:
+            convertOpts.update(
+                width=width, height=height, interpolation=interpolation)
 
-        return _RGBFrameAdapter(frame.to_ndarray(format=FRAME_PIXEL_FORMAT))
+        return _RGBFrameAdapter(
+            frame.to_ndarray(format=FRAME_PIXEL_FORMAT, **convertOpts))
 
     def _getFramePyAV(self, reqPTS=0.0, blocking=True, deferDecoding=False):
         """Get a frame from the movie file using PyAV.
@@ -1997,7 +2233,7 @@ class MovieFileReader:
 
         # Scaled down before converting, which then has fewer pixels to do,
         # see `setOutputFrameSize`
-        outputSize, interpolation = self._outputFrameFormat
+        outputSize, interpolation, _ = self._outputFrameFormat
         if outputSize is not None:
             height, width = frame.shape[:2]
             size = (min(outputSize[0], width), min(outputSize[1], height))
@@ -3675,6 +3911,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         scaled with a box filter, or nearest neighbour if `interpolate` is
         `False`. Only the `pyav` and `opencv` backends scale frames. Default
         is `True`.
+    gpuColorConversion : bool
+        Upload frames in the YUV they're decoded in, and convert them to RGB in
+        a shader as they're drawn, rather than converting them as they're
+        decoded. That saves the conversion, and leaves less than half as much
+        to copy to the GPU for each frame. Either way, colours are converted
+        with the colour matrix the movie is encoded with. Only the `pyav`
+        backend does this, and only for movies in 8-bit planar YUV (as most
+        are), others being converted as they're decoded. `frameTexture` isn't
+        available with this on. Default is `True`.
 
     Notes
     -----
@@ -3722,6 +3967,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  audioConfig=None,
                  loadAudioInBackground=False,
                  downscaleFrames=True,
+                 gpuColorConversion=True,
                  **kwargs):
 
         # what local vars are defined (these are the init params) for use
@@ -3776,8 +4022,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # identity is what tells us whether there is anything new to upload.
         self._recentFrameImage = None
         self._recentFrameAddr = None
-        # size `(w, h)` of `_recentFrame` in pixels, see `_setRecentFrame`
+        # size `(w, h)` of `_recentFrame` in pixels, and how it's laid out to
+        # upload (see `_setRecentFrame`)
         self._recentFrameSize = None
+        self._recentFrameLayout = None
         self._frameNeedsUpload = False
         self._autoStart = autoStart
         self._isLoaded = False
@@ -3856,6 +4104,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # it, see `_updateOutputFrameSize`
         self._downscaleFrames = bool(downscaleFrames)
         self._outputFrameFormat = None
+
+        # whether frames are uploaded as YUV for a shader to convert, see
+        # `_useGPUColorConversion`
+        self._gpuColorConversion = bool(gpuColorConversion)
         self._audioSamples = []  # audio samples from the movie 
         self._audioTrack = None  # audio track information from the movie metadata
         self._audioReader = None  # audio reader object
@@ -3868,8 +4120,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
         self._textureId = GL.GLuint(0)
+        # textures for the Y, U and V planes of frames uploaded as YUV, see
+        # `_setupPlaneTextures`
+        self._planeTextureIds = None
         self._vidWidth = self._vidHeight = 0  # set by `_setupTextureBuffers`
         self._nBufferBytes = 0
+        # What the textures are for, as `_recentFrameLayout` describes frames,
+        # and the colour matrix and range of the YUV last uploaded to them
+        self._textureLayout = None
+        self._textureColor = None
 
         # load a file if provided, otherwise the user must call `setMovie()`
         self._filename = pathToString(filename)
@@ -4106,6 +4365,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         requestedSizePix = self._getRequestedSizePix()
         if requestedSizePix is not None:
             self._updateOutputFrameSize(requestedSizePix)
+
+        # and in YUV, if they're to be converted to RGB as they're drawn
+        self._player.setOutputPixelFormat(
+            'yuv' if self._useGPUColorConversion() else 'rgba')
 
         # Open the player, this will get metadata about the movie and start
         # decoding frames in the background.
@@ -4696,20 +4959,42 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._outputFrameFormat = outputFormat
             player.setOutputFrameSize(*outputFormat)
 
+    def _useGPUColorConversion(self):
+        """Whether frames are to be uploaded as YUV and converted to RGB by a
+        shader as they're drawn (`bool`), see `gpuColorConversion`."""
+        if not self._gpuColorConversion:
+            return False
+
+        # the shader is made for the window's context
+        self._selectWindow(self.win)
+
+        return _getYUVToRGBProgram(self.win) is not None
+
     def _setRecentFrame(self, frameImage):
         """Make `frameImage` the frame to upload, and show from now on."""
-        # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
-        videoBuffer = frameImage.to_memoryview()[0].memview
-        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-        self._recentFrame = videoFrameArray # most recent frame
-        # cached here since `ndarray.ctypes` builds a new helper object
-        # on every access, and the pixel transfer runs every draw
-        self._recentFrameAddr = videoFrameArray.ctypes.data
         self._recentFrameImage = frameImage
         # frames scaled down as they're decoded give their size, and any others
         # are the movie's own size
         self._recentFrameSize = getattr(frameImage, 'size', None) or \
             tuple(self._player.getMetadata().size)
+
+        if isinstance(frameImage, _YUVFrameAdapter):
+            # uploaded as its planes, see `_uploadPlanes`
+            self._recentFrame = frameImage.planes[0][0]  # the luma, to look at
+            self._recentFrameAddr = None
+            self._recentFrameLayout = ('yuv', tuple(
+                (width, height, rowLength)
+                for _, width, height, rowLength in frameImage.planes))
+        else:
+            # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
+            videoBuffer = frameImage.to_memoryview()[0].memview
+            videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+            self._recentFrame = videoFrameArray # most recent frame
+            # cached here since `ndarray.ctypes` builds a new helper object
+            # on every access, and the pixel transfer runs every draw
+            self._recentFrameAddr = videoFrameArray.ctypes.data
+            self._recentFrameLayout = ('rgba',) + tuple(self._recentFrameSize)
+
         self._frameNeedsUpload = True
 
     @property
@@ -4722,7 +5007,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         `downscaleFrames` is the size the movie is drawn at (if smaller than
         its own), and is replaced with a new one if that changes.
 
+        This isn't available while frames are uploaded as YUV, see
+        `gpuColorConversion`.
+
         """
+        if self._planeTextureIds is not None:
+            logging.warning(
+                "`MovieStim.frameTexture` isn't available while frames are "
+                "uploaded as YUV. Set `gpuColorConversion=False` to use it.")
+
         return self._textureId
     
     def updateVideoFrame(self, blocking=None):
@@ -4808,6 +5101,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._recentFrameImage = None
         self._recentFrameAddr = None
         self._recentFrameSize = None
+        self._recentFrameLayout = None
         self._frameNeedsUpload = False
 
         self._deleteTextureObjects()
@@ -4824,12 +5118,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             if self._textureId.value > 0:
                 GL.glDeleteTextures(1, self._textureId)
                 self._textureId = GL.GLuint()
-            
+
+            if self._planeTextureIds is not None:
+                GL.glDeleteTextures(
+                    len(self._planeTextureIds), self._planeTextureIds)
+
         except Exception:  # can happen when unloading or shutting down
             pass
 
+        self._planeTextureIds = None
         self._vidWidth = self._vidHeight = 0
         self._nBufferBytes = 0
+        self._textureLayout = None
 
     def _setupTextureBuffers(self, width=None, height=None):
         """Setup texture buffers which hold frame data. This creates a 2D
@@ -4908,6 +5208,56 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         GL.glFlush()  # make sure all buffers are ready
 
+        self._textureLayout = ('rgba', vidWidth, vidHeight)
+
+    def _setupPlaneTextures(self, planes):
+        """Make the textures and pixel buffer for frames uploaded as YUV, one
+        single channel texture for each plane, which a shader converts to RGB
+        as they're drawn (see `_drawRectangle`). Any made before are deleted
+        first.
+
+        Parameters
+        ----------
+        planes : tuple
+            The size `(width, height, rowLength)` of each plane in pixels, as
+            `_recentFrameLayout` gives them.
+
+        """
+        self._deleteTextureObjects()
+
+        # one pixel buffer for all the planes, each row as long as decoded
+        nBufferBytes = sum(rowLength * height for _, height, rowLength in planes)
+        GL.glGenBuffers(1, ctypes.byref(self._pixbuffId))
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
+        GL.glBufferData(
+            GL.GL_PIXEL_UNPACK_BUFFER, nBufferBytes, None, GL.GL_STREAM_DRAW)
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+        texFilter = GL.GL_LINEAR if self._interpolate else GL.GL_NEAREST
+        textureIds = (GL.GLuint * len(planes))()
+        GL.glGenTextures(len(planes), textureIds)
+        for textureId, (width, height, _) in zip(textureIds, planes):
+            GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
+            GL.glTexImage2D(
+                GL.GL_TEXTURE_2D, 0, GL.GL_LUMINANCE8, width, height, 0,
+                GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, None)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, texFilter)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, texFilter)
+            # to the edge rather than the border colour, which would otherwise
+            # tint the edges of the picture through the chroma
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        self._planeTextureIds = textureIds
+        self._vidWidth, self._vidHeight = planes[0][0], planes[0][1]
+        self._nBufferBytes = nBufferBytes
+        self._textureLayout = ('yuv', tuple(planes))
+
     def _pixelTransfer(self, forceRefresh=False):
         """Copy pixel data from video frame to texture.
 
@@ -4935,10 +5285,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # per draw to no effect.
             return
 
-        # The texture follows the size of the frames, which changes when the
-        # movie comes to be drawn at another size, see `downscaleFrames`
-        if tuple(self._recentFrameSize) != (self._vidWidth, self._vidHeight):
-            self._setupTextureBuffers(*self._recentFrameSize)
+        # The textures follow the size and format of the frames, which change
+        # when the movie comes to be drawn at another size (see
+        # `downscaleFrames`), or decoded in another format
+        if self._recentFrameLayout != self._textureLayout:
+            if self._recentFrameLayout[0] == 'yuv':
+                self._setupPlaneTextures(self._recentFrameLayout[1])
+            else:
+                self._setupTextureBuffers(*self._recentFrameLayout[1:])
+
+        if self._recentFrameLayout[0] == 'yuv':
+            self._uploadPlanes()
+            return
 
         # frame size and buffer size are cached by `_setupTextureBuffers`
         vidWidth, vidHeight = self._vidWidth, self._vidHeight
@@ -5003,13 +5361,69 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         self._frameNeedsUpload = False  # texture now matches `_recentFrame`
 
+    def _uploadPlanes(self):
+        """Copy the planes of a frame decoded as YUV to their textures, see
+        `_setupPlaneTextures`."""
+        frameImage = self._recentFrameImage
+        planes = frameImage.planes
+
+        for samples, _, height, rowLength in planes:
+            if samples.nbytes < rowLength * height:
+                logging.error(
+                    "Movie frame plane is smaller than its size says, "
+                    "skipping the pixel transfer.")
+                self._frameNeedsUpload = False
+                return
+
+        # all the planes into the pixel buffer in one go, as with RGBA frames
+        # (see `_pixelTransfer`), their rows as long as they were decoded
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
+        GL.glBufferData(
+            GL.GL_PIXEL_UNPACK_BUFFER, self._nBufferBytes, None,
+            GL.GL_STREAM_DRAW)
+        bufferAddr = ctypes.cast(
+            GL.glMapBuffer(GL.GL_PIXEL_UNPACK_BUFFER, GL.GL_WRITE_ONLY),
+            ctypes.c_void_p).value
+
+        offsets = []
+        offset = 0
+        for samples, _, height, rowLength in planes:
+            nBytes = rowLength * height
+            ctypes.memmove(bufferAddr + offset, samples.ctypes.data, nBytes)
+            offsets.append(offset)
+            offset += nBytes
+
+        GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
+
+        # and from there to each plane's texture, the row length telling GL to
+        # skip any padding at the end of each row
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        for textureId, offset, (_, width, height, rowLength) in zip(
+                self._planeTextureIds, offsets, planes):
+            GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, rowLength)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
+            GL.glTexSubImage2D(
+                GL.GL_TEXTURE_2D, 0, 0, 0, width, height,
+                GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, ctypes.c_void_p(offset))
+
+        # back to the defaults, which other stimuli upload with
+        GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        self._textureColor = (frameImage.colorMatrix, frameImage.fullRange)
+        self._frameNeedsUpload = False  # textures now match `_recentFrame`
+
     def _updateTexFilter(self):
         """Apply the texture filtering mode for the `interpolate` setting.
 
-        The texture must be bound before calling this. This is done as part of
-        drawing rather than of the pixel transfer so that a change to
-        `interpolate` takes effect on the next draw, whether or not a new frame
-        has been uploaded since.
+        The texture must be bound before calling this, and it's called for each
+        texture the frame is drawn from. This is done as part of drawing rather
+        than of the pixel transfer so that a change to `interpolate` takes
+        effect on the next draw, whether or not a new frame has been uploaded
+        since.
 
         """
         if self._interpolate:
@@ -5021,8 +5435,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, texFilter)
         GL.glTexParameteri(
             GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, texFilter)
-
-        self._texFilterNeedsUpdate = False
 
     def _drawRectangle(self):
         """Draw the video frame to the window.
@@ -5055,11 +5467,35 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
 
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        # Frames uploaded as YUV are drawn from their planes, which a shader
+        # converts to RGB, see `gpuColorConversion`
+        yuvProgram = None
+        if self._planeTextureIds is not None:
+            yuvProgram = _getYUVToRGBProgram(self.win)
 
-        if self._texFilterNeedsUpdate:
-            self._updateTexFilter()
+        if yuvProgram is not None:
+            for unit, textureId in enumerate(self._planeTextureIds):
+                GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
+                if self._texFilterNeedsUpdate:
+                    self._updateTexFilter()
+
+            program, uniforms = yuvProgram
+            GL.glUseProgram(program)
+            for unit, name in enumerate(('uPlaneY', 'uPlaneU', 'uPlaneV')):
+                GL.glUniform1i(uniforms[name], unit)
+            matrix, offset = _yuvToRGBUniforms(*self._textureColor)
+            GL.glUniformMatrix3fv(
+                uniforms['uYUVToRGB'], 1, GL.GL_TRUE, (GL.GLfloat * 9)(*matrix))
+            GL.glUniform3f(uniforms['uYUVOffset'], *offset)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+        else:
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+            if self._texFilterNeedsUpdate:
+                self._updateTexFilter()
+
+        self._texFilterNeedsUpdate = False
 
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
 
@@ -5069,6 +5505,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glPopClientAttrib()
         GL.glPopAttrib()
         GL.glPopMatrix()
+
+        if yuvProgram is not None:
+            GL.glUseProgram(0)
+            for unit in reversed(range(len(self._planeTextureIds))):
+                GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
