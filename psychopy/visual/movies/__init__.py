@@ -82,6 +82,15 @@ AUDIO_TRACK_DURATION_MARGIN = 0.5  # seconds
 # enough that a refresh rate measured as 59.96 Hz still counts as 60.
 FRAME_CADENCE_MAX_DENOMINATOR = 24
 
+# How far past its scheduled start time the movie clock can be read before
+# playback is taken to have started, see `_updateMoviePos`. Two reads of the
+# time of the *same* flip should agree exactly, and do where it's extrapolated
+# from the last flip, but a backend reporting the display system's own
+# prediction (see `Window.getFutureFlipTime`) can carry a little noise from
+# converting it between clocks. Small enough to be a rounding error against a
+# refresh, large enough to swallow that noise.
+FLIP_TIME_TOLERANCE = 1e-4  # seconds
+
 # Set the backend to use for movie decoding
 backend = PREFERRED_VIDEO_LIB  # initial value 
 
@@ -1410,8 +1419,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         #     return
 
         if self._playbackStatus == PLAYING:
-            if now < self._lastFrameAbsTime:
-                # Playback is scheduled to start later, see `play(when=...)`.
+            if now < self._lastFrameAbsTime + FLIP_TIME_TOLERANCE:
+                # Playback is scheduled to start later, see `play(when=...)`,
+                # or this is the flip it was scheduled for and the two reads of
+                # that flip's time differ only by the noise of reading it.
                 # Hold the current position until then, leaving the start time
                 # where the movie clock will run from.
                 return
@@ -1421,9 +1432,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
             # check if were at the end of the movie
             if self._movieTime < self.duration:
-                # determine the current movie time
+                # determine the current movie time, which can only go forwards
+                # (the clock the flip times come from can step back a little
+                # if the backend stops predicting them for us mid-playback)
                 self._movieTime = min(
-                    self._movieTime + (now - self._lastFrameAbsTime), 
+                    self._movieTime + max(0.0, now - self._lastFrameAbsTime),
                     self.duration)
             else:
                 if self._loop:
