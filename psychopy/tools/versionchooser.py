@@ -33,8 +33,10 @@ _remoteVersionsCache = []
 versionMap = OrderedDict({
     Version('2.7'): (Version("0.0"), Version("2020.2.0")),
     Version('3.6'): (Version("1.9"), Version("2022.1.0")),
-    Version('3.8'): (Version("2022.1.0"), None),
+    Version('3.8'): (Version("2022.1.0"), Version("2025.2.0")),
     Version('3.10'): (Version("2023.2.0"), None),
+    Version('3.11'): (Version("2026.2.0"), None),
+    Version('3.14'): (Version("2027.1.0"), None)
 })
 # fill out intermediate versions
 for n in range(13):
