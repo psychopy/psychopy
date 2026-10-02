@@ -29,6 +29,7 @@ __all__ = [
     'systemProfilerMacOS',
     'getInstalledDevices',
     'isPsychopyInFocus',
+    'isXWayland',
     'describePsychtoolboxImportError',
     'importPsychtoolbox'
 ]
@@ -87,6 +88,79 @@ def isVM_CI():
         return 'travis'
     elif ("{}".format(os.environ.get('CONDA')).lower() == 'true'):
         return 'conda'
+
+# ------------------------------------------------------------------------------
+# Detect Xwayland (X11 apps running under a Wayland compositor)
+#
+
+_isXWaylandDefault = None  # cached result for the default display
+
+
+def isXWayland(xDisplay=None):
+    """Check if the X server is Xwayland, i.e. the X11 compatibility server
+    that runs X11 applications under a Wayland compositor.
+
+    The display is Xwayland if the server has the `XWAYLAND` extension, which
+    Xwayland 23.1 and later provide. Under Xwayland the compositor, not the X
+    server, controls the display, so the hardware gamma table can't be changed.
+
+    Parameters
+    ----------
+    xDisplay : ctypes pointer or None
+        X display connection (a `Display*`) to check. If `None`, a connection
+        to the display named by the `DISPLAY` environment variable is opened
+        and the result is cached.
+
+    Returns
+    -------
+    bool
+        `True` if the X server is Xwayland. Always `False` on platforms other
+        than Linux or if the X server can't be reached.
+
+    """
+    global _isXWaylandDefault
+    if not sys.platform.startswith('linux'):
+        return False
+    if xDisplay is None and _isXWaylandDefault is not None:
+        return _isXWaylandDefault
+
+    import ctypes
+    import ctypes.util
+
+    libName = ctypes.util.find_library('X11')
+    if libName is None:
+        return False
+    try:
+        x11 = ctypes.CDLL(libName)
+    except OSError:
+        return False
+
+    x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+    x11.XOpenDisplay.restype = ctypes.c_void_p
+    x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+    x11.XQueryExtension.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p] + [ctypes.POINTER(ctypes.c_int)] * 3
+    x11.XQueryExtension.restype = ctypes.c_int
+
+    display = xDisplay
+    if display is None:
+        display = x11.XOpenDisplay(None)
+        if not display:
+            return False
+
+    opcode, event, error = ctypes.c_int(), ctypes.c_int(), ctypes.c_int()
+    try:
+        found = bool(x11.XQueryExtension(
+            display, b'XWAYLAND',
+            ctypes.byref(opcode), ctypes.byref(event), ctypes.byref(error)))
+    finally:
+        if xDisplay is None:
+            x11.XCloseDisplay(display)
+
+    if xDisplay is None:
+        _isXWaylandDefault = found
+
+    return found
 
 # ------------------------------------------------------------------------------
 # Psychtoolbox

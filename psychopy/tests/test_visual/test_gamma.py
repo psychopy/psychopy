@@ -1,7 +1,19 @@
 from psychopy import visual, monitors
+import ctypes
 import numpy
+import pytest
 
 from psychopy.tests import skip_under_vm
+from psychopy.visual.backends.pygletbackend import PygletBackend
+import psychopy.tools.pygletgl as GL
+
+
+def _skipWithoutHardwareGamma(win):
+    """Skip a test of the hardware gamma table if the display can't change
+    it, e.g. under Wayland."""
+    if not win.backend.hardwareGammaSupported:
+        win.close()
+        pytest.skip("Hardware gamma table can't be changed on this display")
 
 
 @skip_under_vm(reason="Cannot test gamma in a virtual machine")
@@ -98,6 +110,7 @@ def test_setGammaRamp():
     testGamma = 2.2
 
     win = visual.Window([600,600], autoLog=False)
+    _skipWithoutHardwareGamma(win)
     desiredRamp = numpy.tile(
         visual.gamma.createLinearRamp(
             rampSize=win.backend.getGammaRampSize(),
@@ -134,6 +147,7 @@ def test_gammaSetGetMatch():
     for _ in range(n_repeats):
 
         win = visual.Window([600, 600], autoLog=False)
+        _skipWithoutHardwareGamma(win)
 
         for _ in range(5):
             win.flip()
@@ -146,6 +160,98 @@ def test_gammaSetGetMatch():
             assert numpy.all(currGammaTable == startGammaTable)
 
         win.close()
+
+
+@pytest.fixture
+def noHardwareGamma(monkeypatch):
+    """Make the backend report that the hardware gamma table can't be
+    changed, as under Wayland."""
+    monkeypatch.setattr(
+        PygletBackend, 'hardwareGammaSupported', property(lambda self: False))
+
+
+def _getCenterPixel(win):
+    """Get the RGB value of the center pixel of the window, as displayed.
+
+    Software gamma is applied when the framebuffer is drawn to the window, so
+    the pixel is read from the window's back buffer at the end of the flip,
+    after that has been done but before the buffers are swapped. The front
+    buffer can't be used: reading it gives back nothing on the software
+    renderer (llvmpipe) the test suite runs on in CI.
+    """
+    pixel = []
+
+    def grabPixel():
+        type(win)._afterFBOrender(win)
+        # the default framebuffer is bound at this point, whether or not an FBO
+        # is used for the frame itself
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        GL.glReadBuffer(GL.GL_BACK)
+        w, h = (int(dim) for dim in win.frameBufferSize)
+        buffer = numpy.empty((h, w, 4), dtype=numpy.uint8)
+        GL.glReadPixels(
+            0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
+            buffer.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
+        pixel.append(buffer[h // 2, w // 2, :3].astype(float))
+
+    win.color = 0  # mid grey, 0.5 in 0:1
+    win._afterFBOrender = grabPixel
+    try:
+        for _ in range(3):
+            win.flip()
+    finally:
+        del win._afterFBOrender
+
+    return pixel[-1]
+
+
+def test_softwareGamma(noHardwareGamma):
+    """gamma is applied in software if the hardware gamma table can't be
+    changed"""
+    win = visual.Window([128, 128], gamma=2.0, autoLog=False)
+    assert win.useSoftwareGamma
+    assert win.useFBO  # enabled for software gamma
+    assert win.useNativeGamma == False
+    pixel = _getCenterPixel(win)
+    win.close()
+
+    assert numpy.allclose(pixel, 255 * 0.5 ** (1 / 2.0), atol=2)
+
+
+def test_softwareGammaPerChannel(noHardwareGamma):
+    """separate software gamma values for red, green and blue"""
+    gamma = [1.0, 2.0, 0.5]
+    win = visual.Window([128, 128], gamma=gamma, useFBO=True, autoLog=False)
+    assert win.useSoftwareGamma
+    pixel = _getCenterPixel(win)
+    win.close()
+
+    assert numpy.allclose(pixel, 255 * 0.5 ** (1 / numpy.array(gamma)), atol=2)
+
+
+def test_softwareGammaRamp(noHardwareGamma):
+    """a gamma ramp (look-up table) is applied in software, with values
+    between its entries interpolated"""
+    win = visual.Window([128, 128], gamma=1.0, autoLog=False)
+    assert win.useSoftwareGamma
+    # 0.5 falls between the middle two entries of an even sized table
+    win.gammaRamp = numpy.linspace(0.0, 1.0, 256) ** 2
+    pixel = _getCenterPixel(win)
+    win.close()
+
+    assert numpy.allclose(pixel, 255 * 0.5 ** 2, atol=2)
+
+
+def test_noSoftwareGammaByDefault(noHardwareGamma):
+    """no gamma is applied, and no FBO enabled for it, if it isn't set"""
+    win = visual.Window([128, 128], autoLog=False)
+    assert win.useNativeGamma
+    assert not win.useSoftwareGamma
+    assert not win.useFBO
+    pixel = _getCenterPixel(win)
+    win.close()
+
+    assert numpy.allclose(pixel, 255 * 0.5, atol=2)
 
 
 if __name__=='__main__':

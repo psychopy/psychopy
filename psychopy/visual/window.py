@@ -391,7 +391,11 @@ class Window():
         gammaErrorPolicy: str
             If `raise`, an error is raised if the gamma table is unable to be
             retrieved or set. If `warn`, a warning is raised instead. If
-            `ignore`, neither an error nor a warning are raised.
+            `ignore`, neither an error nor a warning are raised. Where the
+            hardware gamma table can't be changed at all (e.g. under Wayland),
+            gamma is applied in software instead, when the framebuffer is drawn
+            to the window, which enables `useFBO`. The policy then only applies
+            if shaders or framebuffer objects aren't supported.
         bpc : array_like or int
             Bits per color (BPC) for the back buffer as a tuple to specify
             bit depths for each color channel separately (red, green, blue), or
@@ -458,6 +462,14 @@ class Window():
         self.winHandle = None
         self.useFBO = useFBO
         self.useRetina = useRetina and sys.platform == 'darwin'
+
+        # gamma applied when rendering the FBO to the window, used when the
+        # hardware gamma table can't be set (e.g. under Wayland)
+        self.useSoftwareGamma = False
+        self._softwareGammaMode = 0  # 0: none, 1: power function, 2: LUT
+        self._softwareInvGamma = (1.0, 1.0, 1.0)
+        self._softwareGammaLUT = None  # 1D texture holding the LUT
+        self._softwareGammaLUTSize = 0
 
         if gammaErrorPolicy not in ['raise', 'warn', 'ignore']:
             raise ValueError('Unexpected `gammaErrorPolicy`')
@@ -3774,7 +3786,11 @@ class Window():
                    "instead")
             raise DeprecationWarning(msg)
 
-        self.backend.gamma = self.__dict__['gamma']
+        gammaMethod = self._getGammaMethod()
+        if gammaMethod == 'hardware':
+            self.backend.gamma = self.__dict__['gamma']
+        elif gammaMethod == 'software':
+            self._setSoftwareGamma(gamma=self.__dict__['gamma'])
 
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -3788,10 +3804,124 @@ class Window():
         """Sets the hardware CLUT using a specified 3xN array of floats ranging
         between 0.0 and 1.0.
 
-        Array must have a number of rows equal to 2 ^ max(bpc).
+        Array must have a number of rows equal to 2 ^ max(bpc). If gamma is
+        applied in software (see :py:attr:`useSoftwareGamma`), the ramp can have
+        any number of rows, and values between them are interpolated.
 
         """
-        self.backend.gammaRamp = newRamp
+        gammaMethod = self._getGammaMethod()
+        if gammaMethod == 'hardware':
+            self.backend.gammaRamp = newRamp
+        elif gammaMethod == 'software':
+            self._setSoftwareGamma(gammaRamp=newRamp)
+
+    def _getGammaMethod(self):
+        """Get how gamma is applied for this window, switching to software
+        gamma if the hardware gamma table can't be changed.
+
+        Software gamma is applied when the framebuffer object (FBO) is drawn to
+        the window, so `useFBO` is enabled if needed.
+
+        Returns
+        -------
+        str or None
+            `'hardware'` if the hardware gamma table is used, `'software'` if
+            gamma is applied in software, or `None` if gamma can't be applied at
+            all. In that case the `gammaErrorPolicy` has been applied.
+
+        """
+        if self.useSoftwareGamma:
+            return 'software'
+        if self.backend.hardwareGammaSupported:
+            return 'hardware'
+
+        if self._haveShaders and not self.useFBO:
+            # not set yet during init, but `_setupFrameBuffer` uses it for size
+            if self.viewport is None:
+                self.viewport = self.scissor = \
+                    (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
+            self.useFBO = self._setupFrameBuffer()
+            if self.useFBO:
+                logging.info(
+                    "Enabled the framebuffer object (FBO) to apply gamma in "
+                    "software")
+
+        if not (self._haveShaders and self.useFBO):
+            msg = ("The hardware gamma table can't be changed on this display "
+                   "(e.g. under Wayland), and applying gamma in software "
+                   "requires shaders and framebuffer objects (FBO), which "
+                   "aren't supported.")
+            if self.gammaErrorPolicy == 'raise':
+                raise OSError(msg)
+            elif self.gammaErrorPolicy == 'warn':
+                logging.warning(
+                    msg + " Proceeding without gamma changes.")
+            return None
+
+        logging.info(
+            "The hardware gamma table can't be changed on this display (e.g. "
+            "under Wayland), applying gamma in software instead")
+        self.useSoftwareGamma = True
+
+        return 'software'
+
+    def _setSoftwareGamma(self, gamma=None, gammaRamp=None):
+        """Set the gamma applied in software, when the framebuffer object is
+        drawn to the window.
+
+        Parameters
+        ----------
+        gamma : float, ArrayLike or None
+            Gamma as a single value or one value for each of red, green and
+            blue. Values are raised to the power of `1 / gamma`, like the
+            hardware gamma ramp :py:attr:`gamma` creates.
+        gammaRamp : ArrayLike or None
+            Look-up table as a 3xN (or Nx3) array, or N array for all color
+            channels, of values between 0 and 1. Used instead of `gamma` if
+            given.
+
+        """
+        if gammaRamp is not None:
+            gammaRamp = numpy.asarray(gammaRamp, dtype=numpy.float32)
+            if gammaRamp.ndim == 1:
+                gammaRamp = numpy.tile(gammaRamp, (3, 1))
+            elif gammaRamp.shape[0] != 3 and gammaRamp.shape[1] == 3:
+                gammaRamp = gammaRamp.T
+            if gammaRamp.ndim != 2 or gammaRamp.shape[0] != 3 or \
+                    gammaRamp.shape[1] < 2:
+                raise ValueError(
+                    "Gamma ramp must be a 3xN, Nx3 or N array with N >= 2, got "
+                    "shape {}.".format(gammaRamp.shape))
+
+            # one RGB texel per entry of the table
+            lut = numpy.ascontiguousarray(gammaRamp.T)
+            if self._softwareGammaLUT is None:
+                self._softwareGammaLUT = GL.GLuint()
+                GL.glGenTextures(1, ctypes.byref(self._softwareGammaLUT))
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glBindTexture(GL.GL_TEXTURE_1D, self._softwareGammaLUT)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_1D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_1D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_1D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE)
+            GL.glTexImage1D(
+                GL.GL_TEXTURE_1D, 0, GL.GL_RGB32F, lut.shape[0], 0,
+                GL.GL_RGB, GL.GL_FLOAT, lut.ctypes)
+            GL.glBindTexture(GL.GL_TEXTURE_1D, 0)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+
+            self._softwareGammaLUTSize = lut.shape[0]
+            self._softwareGammaMode = 2
+        elif gamma is not None:
+            gamma = numpy.array(gamma, dtype=float).flatten()
+            if gamma.size == 1:
+                gamma = numpy.tile(gamma, 3)
+            self._softwareInvGamma = tuple(float(g) for g in 1.0 / gamma)
+            self._softwareGammaMode = 0 if numpy.all(gamma == 1.0) else 1
+        else:
+            self._softwareGammaMode = 0
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
@@ -3953,6 +4083,13 @@ class Window():
             
         self._progFBOtoFrame = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragFBOtoFrame)
+        # the software gamma LUT is on texture unit 1, since samplers of
+        # different types can't share the unit of the frame texture
+        gltools.useProgram(self._progFBOtoFrame)
+        gltools.setUniformValue(
+            self._progFBOtoFrame, b'uGammaLUT', 1, unifType='int',
+            ignoreNotDefined=True)
+        gltools.useProgram(None)
         self._shaders = {}
         self._shaders['signedColor'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColor)
@@ -4437,7 +4574,27 @@ class Window():
     def _prepareFBOrender(self):
         gltools.useProgram(self._progFBOtoFrame)
 
+        # software gamma, the shader leaves colors unchanged if the mode is 0
+        gltools.setUniformValue(
+            self._progFBOtoFrame, b'uGammaMode', self._softwareGammaMode,
+            unifType='int', ignoreNotDefined=True)
+        if self._softwareGammaMode == 1:
+            gltools.setUniformValue(
+                self._progFBOtoFrame, b'uInvGamma', self._softwareInvGamma,
+                ignoreNotDefined=True)
+        elif self._softwareGammaMode == 2:
+            gltools.setUniformValue(
+                self._progFBOtoFrame, b'uGammaLUTSize',
+                float(self._softwareGammaLUTSize), ignoreNotDefined=True)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glBindTexture(GL.GL_TEXTURE_1D, self._softwareGammaLUT)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+
     def _finishFBOrender(self):
+        if self._softwareGammaMode == 2:
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glBindTexture(GL.GL_TEXTURE_1D, 0)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
         gltools.useProgram(None)
 
     def _afterFBOrender(self):
