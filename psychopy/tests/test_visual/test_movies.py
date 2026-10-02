@@ -1726,14 +1726,18 @@ def _drawUntilFrameSize(win, mov, size, maxFrames=60):
     return False
 
 
+# backends which scale frames down as they decode them
+SCALING_BACKENDS = ('pyav', 'opencv')
+
+
 class TestMovieStimDownscaling:
     """Tests for decoding frames at the size the movie is drawn at."""
 
     def test_framesDecodedAtDrawnSize(self, win, movieLib):
         """Frames come out at the size the movie is drawn at, from the very
         first, and the texture they're uploaded to is that size too."""
-        if movieLib != 'pyav':
-            pytest.skip('only pyav scales frames as it decodes them')
+        if movieLib not in SCALING_BACKENDS:
+            pytest.skip('{} does not scale frames'.format(movieLib))
 
         drawnSize = (MOVIE_SIZE[0] // 4, MOVIE_SIZE[1] // 4)
         with movieStim(win, movieLib, size=drawnSize, units='pix') as mov:
@@ -1758,15 +1762,15 @@ class TestMovieStimDownscaling:
         (in each dimension), rather than scaled up for nothing."""
         with movieStim(win, movieLib, units='pix',
                        size=(MOVIE_SIZE[0] * 2, MOVIE_SIZE[1] // 2)) as mov:
-            expected = MOVIE_SIZE if movieLib != 'pyav' else \
+            expected = MOVIE_SIZE if movieLib not in SCALING_BACKENDS else \
                 (MOVIE_SIZE[0], MOVIE_SIZE[1] // 2)
             assert tuple(mov._recentFrameSize) == expected
 
     def test_sizeChangeFollowedByFrames(self, win, movieLib):
         """Changing the size the movie is drawn at changes the size frames are
         decoded at, and the texture follows them."""
-        if movieLib != 'pyav':
-            pytest.skip('only pyav scales frames as it decodes them')
+        if movieLib not in SCALING_BACKENDS:
+            pytest.skip('{} does not scale frames'.format(movieLib))
 
         with movieStim(win, movieLib, size=(64, 64), units='pix') as mov:
             mov.size = (40, 30)
@@ -1778,8 +1782,8 @@ class TestMovieStimDownscaling:
     def test_sizeFromMovieAspect(self, win, movieLib):
         """With one dimension left to the movie's aspect ratio, frames come
         out at the size that works out to once the movie is open."""
-        if movieLib != 'pyav':
-            pytest.skip('only pyav scales frames as it decodes them')
+        if movieLib not in SCALING_BACKENDS:
+            pytest.skip('{} does not scale frames'.format(movieLib))
 
         width = MOVIE_SIZE[0] // 2
         height = int(math.ceil(width * MOVIE_SIZE[1] / MOVIE_SIZE[0]))
@@ -1800,8 +1804,8 @@ class TestMovieStimDownscaling:
         """`MovieFileReader.setOutputFrameSize` sets the size frames are
         decoded at from then on, never larger than their own, and makes room
         to decode more of them ahead."""
-        if movieLib != 'pyav':
-            pytest.skip('only pyav scales frames as it decodes them')
+        if movieLib not in SCALING_BACKENDS:
+            pytest.skip('{} does not scale frames'.format(movieLib))
 
         reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
         reader.setOutputFrameSize((50.2, 40.0))
@@ -1815,6 +1819,34 @@ class TestMovieStimDownscaling:
             reader.seek(SAMPLE_EARLY)
             img = reader.getFrame(SAMPLE_EARLY)[0]
             assert img.size == (MOVIE_SIZE[0], 10)
-            assert reader._pyavQueueDepth == movies.PYAV_DECODE_AHEAD_MAX_FRAMES
+            if movieLib == 'pyav':
+                assert reader._pyavQueueDepth == \
+                    movies.PYAV_DECODE_AHEAD_MAX_FRAMES
         finally:
             reader.close()
+
+    @pytest.mark.parametrize('size', [
+        (64, 48),  # divides exactly, done in one go
+        (100, 77),  # doesn't, so halved first
+        (351, 288),  # by less than half
+        (1, 1)])
+    def test_resizeFrameOpenCV(self, win, movieLib, size):
+        """OpenCV frames are box filtered down to the size asked for, coming
+        out close to doing it in one go (which is slow for large reductions),
+        or nearest neighbour for `'POINT'`."""
+        cv2 = pytest.importorskip('cv2')
+        if movieLib != 'opencv':
+            pytest.skip('only needs to run the once')
+
+        frame = np.random.default_rng(0).integers(
+            0, 256, (288, 352, 3), dtype=np.uint8)
+        frame = cv2.GaussianBlur(frame, (0, 0), 3)  # some structure to keep
+
+        scaled = movies._resizeFrameOpenCV(frame, size)
+        assert (scaled.shape[1], scaled.shape[0]) == size
+        oneGo = cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
+        assert np.abs(scaled.astype(int) - oneGo).mean() < 2.0
+
+        nearest = movies._resizeFrameOpenCV(frame, size, 'POINT')
+        np.testing.assert_array_equal(
+            nearest, cv2.resize(frame, size, interpolation=cv2.INTER_NEAREST))
