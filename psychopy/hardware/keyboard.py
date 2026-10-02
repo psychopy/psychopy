@@ -683,6 +683,18 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
         else:
             # if backend is event, just add as str with current time
+            # dispatchMessages reads this backend with
+            # event.getKeys(timeStamped=True), so `message` is a
+            # `[name, timestamp]` pair rather than a bare key name. Unpack it
+            # here: KeyPress.name feeds the `value` field that getKeys()
+            # matches against keyList/ignoreKeys, so handing it the whole list
+            # made every keypress unfilterable (and .name a list, breaking the
+            # `key == 'q'` comparisons the class documents). The timestamp half
+            # is unused here — the event backend's rt has always come from this
+            # device's own clock, which is not the same origin as event's
+            # clock, so switching to it would change existing timings.
+            if isinstance(message, (list, tuple)) and len(message) == 2:
+                message = message[0]
             rt = self.clock.getTime()
             response = KeyPress(code=None, tDown=rt, name=message)
             response.rt = rt
