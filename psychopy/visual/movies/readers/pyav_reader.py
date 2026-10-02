@@ -18,7 +18,8 @@ from psychopy import logging
 from ..exceptions import MovieFileFormatError
 from ..frame import (
     FRAME_PIXEL_FORMAT, _RGBFrameAdapter, _YUVFrameAdapter,
-    _YUV_PLANAR_FORMATS, _frameColorMatrix, _isYUVFormat)
+    _YUV_PLANAR_FORMATS, _SWSCALE_TO_AVCOL_SPC, _frameColorMatrix,
+    _isYUVFormat)
 from ._base import MovieFileReader, defaultTimeout
 
 
@@ -39,6 +40,8 @@ class PyAVMovieFileReader(MovieFileReader):
         self._container = None  # av.container.InputContainer
         self._videoStream = None  # av video stream being decoded
         self._packetIterator = None  # generator yielding decoded video frames
+        # `swscale` colour matrices PyAV has a name for, set on open
+        self._namedColorMatrices = frozenset()
 
     def _open(self):
         """Open a movie reader using PyAV.
@@ -59,6 +62,9 @@ class PyAVMovieFileReader(MovieFileReader):
             raise ImportError(
                 'The `av` (PyAV) library is required to read movie files with '
                 '`decoderLib=pyav`. Install it with `pip install av`.')
+
+        from av.video.reformatter import Colorspace
+        self._namedColorMatrices = frozenset(Colorspace.__members__)
 
         logging.info("Opening movie file: {}".format(self._filename))
 
@@ -192,7 +198,13 @@ class PyAVMovieFileReader(MovieFileReader):
         # BT.601 whatever its size, where players take HD to be BT.709.
         convertOpts = {}
         if _isYUVFormat(formatName):
-            convertOpts['src_colorspace'] = _frameColorMatrix(frame)
+            colorMatrix = _frameColorMatrix(frame)
+            if colorMatrix in self._namedColorMatrices:
+                convertOpts['src_colorspace'] = colorMatrix
+            else:
+                # PyAV before 18 has no name for BT.2020, so the frame is
+                # (re)tagged with it instead, which PyAV then goes by
+                frame.colorspace = _SWSCALE_TO_AVCOL_SPC[colorMatrix]
 
         # Scaled down in the same `swscale` pass as the conversion, which costs
         # little more than the conversion alone, see `setOutputFrameSize`
