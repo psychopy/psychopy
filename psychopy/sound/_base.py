@@ -501,8 +501,64 @@ class _SoundBase(AttributeGetSetMixin):
         # set from clip
         self._setSndFromClip(clip)
 
+    def _allocateSamples(self, nSamples, channels):
+        """Make the sound `nSamples` samples of silence, to be filled in a
+        block at a time with `_writeSamples` and cut to its final length with
+        `_trimSamples`.
+
+        This is for sounds too long to hand over in one go without holding up
+        drawing, such as a movie's audio track decoded on another thread. The
+        sound must already be at the sample rate it plays at (`sampleRate`),
+        since it can't be resampled a block at a time.
+
+        Parameters
+        ----------
+        nSamples : int
+            Length of the sound in samples, at least as long as it will be.
+        channels : int
+            Number of channels the samples written will have.
+
+        """
+        self._setSndFromArray(
+            numpy.zeros((int(nSamples), int(channels)), dtype=numpy.float32),
+            copy=False)
+
+    def _writeSamples(self, start, samples):
+        """Write samples into a sound made by `_allocateSamples`.
+
+        This may be called from a thread other than the one the sound is used
+        from, but not while the sound is playing.
+
+        Parameters
+        ----------
+        start : int
+            Index of the sample to write the first of `samples` to.
+        samples : ndarray
+            32-bit float samples shaped `(samples, channels)`.
+
+        Returns
+        -------
+        int
+            Number of samples written, which is fewer than given where they
+            run past the end of the sound.
+
+        """
+        nWritten = max(0, min(len(samples), len(self.sndArr) - start))
+        self.sndArr[start:start + nWritten] = samples[:nWritten]
+
+        return nWritten
+
+    def _trimSamples(self, nSamples):
+        """Cut a sound made by `_allocateSamples` to the length it turned out
+        to be, `nSamples`.
+
+        """
+        self.sndArr = self.sndArr[:nSamples]
+        self._nSamples = len(self.sndArr)
+        self.duration = self._nSamples / float(self.sampleRate)
+
     def _setSndFromClip(self, clip: AudioClip):
-        """Set current sound from an AudioClip object. 
+        """Set current sound from an AudioClip object.
         
         All other setSound methods eventually lead to this - they just transform 
         the given sound (be it an array, file, note, etc.) to an AudioClip first.
