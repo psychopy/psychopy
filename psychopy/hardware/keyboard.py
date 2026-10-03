@@ -684,6 +684,13 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         else:
             # if backend is event, just add as str with current time
             rt = self.clock.getTime()
+            # `event.getKeys(timeStamped=True)` returns [keyName, timestamp] pairs and
+            # `dispatchMessages` passes one whole pair in as `message`. Storing that pair as
+            # the name left `.name`/`.value` as a list, so the `keyList`/`ignoreKeys` filters
+            # (which test `resp.value in ...`) never matched and every press was silently
+            # dropped. Take the name from the pair; the timestamp is unused here, as before.
+            if isinstance(message, (list, tuple)):
+                message = message[0]
             response = KeyPress(code=None, tDown=rt, name=message)
             response.rt = rt
 
