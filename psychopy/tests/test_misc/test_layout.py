@@ -47,3 +47,41 @@ class TestVector:
                     f"Vector of {obj._requested} in {obj._requestedUnits} should return {ans[space]} in {space} units, "
                     f"but instead returned {val}"
                 )
+
+
+class TestVertices:
+    def test_setas_inverts_getas(self):
+        """
+        Vertices.setas should undo exactly what Vertices.getas does, so that
+        setas(getas(x)) recovers x. This only shows up as a difference from
+        the identity transform when the object has a non-zero position and/or
+        a non-unit size, which is the case for almost any real stimulus (e.g.
+        a TextBox2 that isn't centred at (0, 0) with size (1, 1), whose
+        speechPoint tail is placed via setas).
+        """
+        size = layout.Size([200, 100], 'pix')
+        pos = layout.Position([300, 0], 'pix')
+        base = numpy.array([
+            [0.5, -0.5],
+            [-0.5, -0.5],
+            [-0.5, 0.5],
+            [0.5, 0.5],
+        ])
+        # Known absolute pixel positions for `base` scaled by `size` and
+        # offset by `pos` (default anchor is centre, so no extra adjustment)
+        expectedAbs = numpy.array([
+            [400, -50],
+            [200, -50],
+            [200, 50],
+            [400, 50],
+        ])
+
+        verts = layout.Vertices(base.copy(), size=size, pos=pos, units='pix')
+        absPix = verts.getas('pix')
+        numpy.testing.assert_allclose(absPix, expectedAbs)
+
+        # Feeding those same absolute coordinates back through setas should
+        # recover the original, normalised base vertices
+        verts2 = layout.Vertices(base.copy(), size=size, pos=pos, units='pix')
+        verts2.setas(absPix, 'pix')
+        numpy.testing.assert_allclose(verts2.base, base)

@@ -827,18 +827,19 @@ class Vertices:
             raise ValueError(
                 u"Cannot not calculate absolute positions of vertices without "
                 u"a size attribute")
-        value /= getattr(self.size, units)
-        # Account for flip
-        value *= self._flip
-        # Account for anchor
-        value -= self.anchorAdjust * getattr(self.size, units)
         # Account for pos
         if self.pos is None:
             raise ValueError(
                 u"Cannot not calculate absolute positions of vertices without "
                 u"a pos attribute")
-
+        # Undo pos (this is the last step getas applies, so undo it first)
         value -= getattr(self.pos, units)
+        # Undo anchor
+        value -= self.anchorAdjust * getattr(self.size, units)
+        # Undo flip
+        value *= self._flip
+        # Undo size
+        value /= getattr(self.size, units)
         self.base = value  # apply
 
     @property
