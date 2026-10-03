@@ -291,7 +291,7 @@ class Vector:
     def __copy__(self):
         return self.__deepcopy__()
 
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo=None):
         return self.__class__(self._requested, self._requestedUnits, self.win)
 
     @property

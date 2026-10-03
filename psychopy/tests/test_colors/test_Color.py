@@ -1,3 +1,5 @@
+import copy
+
 from psychopy import colors, visual, event, logging
 
 
@@ -39,3 +41,13 @@ def test_readable():
         # while not event.getKeys():
         #     text.draw()
         #     win.flip()
+
+
+def test_deepcopy():
+    """
+    Check that a Color can be deep copied, as well as shallow copied.
+    """
+    col = colors.Color((1, 0, 0), space="rgb")
+    for dupe in (col.copy(), copy.copy(col), copy.deepcopy(col)):
+        assert dupe is not col
+        assert dupe == col
