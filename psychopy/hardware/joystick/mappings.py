@@ -10,6 +10,8 @@
 
 __all__ = ['getAvailableInputSchemes', 'getInputScheme']
 
+import copy
+
 from psychopy import logging
 
 inputMappings = {}  # mappings are stored here
@@ -280,7 +282,10 @@ def getInputScheme(name, backend=None):
             "'{}', using generic configuration.".format(name, backend))
         backend = 'generic'
 
-    return inputMapping[backend]
+    # NB: a deep copy, not the stored mapping itself. Returning the shared
+    # object let a caller renaming one input mutate the mapping table for every
+    # joystick created afterwards, process-wide.
+    return copy.deepcopy(inputMapping[backend])
 
 
 if __name__ == "__main__":
