@@ -167,6 +167,10 @@ class KeyPress(BaseResponse):
         return self.name != other
 
 
+# alias KeyResponse against old name
+KeyResponse = KeyPress
+
+
 def getKeyboards():
     """Get info about the available keyboards.
 
@@ -188,13 +192,13 @@ def getKeyboards():
 
 
 class Keyboard(AttributeGetSetMixin):
-    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None, muteOutsidePsychopy=False):
         if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
             self.device = DeviceManager.addDevice(
                 deviceClass="psychopy.hardware.keyboard.KeyboardDevice", deviceName=deviceName,
                 backend=backend, device=device, bufferSize=bufferSize, waitForStart=waitForStart,
-                clock=clock
+                clock=clock, muteOutsidePsychopy=muteOutsidePsychopy
             )
         else:
             # otherwise, use the existing device
