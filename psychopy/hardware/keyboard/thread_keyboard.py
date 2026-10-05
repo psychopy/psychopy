@@ -145,27 +145,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         if self.muteOutsidePsychopy:
             # use pyglet if muting outside of PsychoPy, as it's more reliable but is tied to win
             import pyglet
-            # for each window...
+            # attach each window
             for win in pyglet.app.windows:
-                # bind key presses
-                @win.event
-                def on_key_press(symbol, modifier):
-                    # convert keycode to a string
-                    key = pyglet.window.key.symbol_string(
-                        symbol
-                    ).lower()
-                    # trigger callback
-                    if not self.isPressed(key, dispatch=False):
-                        self.onPress(key)
-                # bind key releases
-                @win.event
-                def on_key_release(symbol, modifier):
-                    # convert keycode to a string
-                    key = pyglet.window.key.symbol_string(
-                        symbol
-                    ).lower()
-                    # trigger callback
-                    self.onRelease(key)
+                self.attachWindow(win)
         else:
             # use pynput if collecting outside PsychoPy, as it's not tied to win
             try:
@@ -192,6 +174,40 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             self.backend.start()
         # enable onPress and onRelease callbacks
         self.started = True
+
+    def attachWindow(self, win):
+        """
+        Listen to keypresses from a given PsychoPy (or pyglet) window
+
+        Parameters
+        ----------
+        win : psychopy.visual.window.Window or pyglet.app.window.Window
+            Window to listen for keypresses on
+        """
+        import pyglet
+        from psychopy.visual.window import Window
+        # if given a PsychoPy window, get underlying pyglet window
+        if isinstance(win, Window):
+            win = win.backend.winHandle
+        # bind key presses
+        @win.event
+        def on_key_press(symbol, modifier):
+            # convert keycode to a string
+            key = pyglet.window.key.symbol_string(
+                symbol
+            ).lower()
+            # trigger callback
+            if not self.isPressed(key, dispatch=False):
+                self.onPress(key)
+        # bind key releases
+        @win.event
+        def on_key_release(symbol, modifier):
+            # convert keycode to a string
+            key = pyglet.window.key.symbol_string(
+                symbol
+            ).lower()
+            # trigger callback
+            self.onRelease(key)
 
     def stop(self):
         """
