@@ -624,9 +624,18 @@ class Keyboard(AttributeGetSetMixin):
             True if pressed, False if not. Will be a single value if given a 
             single key, or a list of bools if given a list of keys.
         """
-        return self.device.getState(
-            keys=keys
-        )
+        if isinstance(keys, str):
+            # if given a single key, return a single bool
+            return self.device.getState(
+                key=keys
+            )
+        else:
+            # if given multiple keys, return multiple bools
+            return [
+                self.device.getState(
+                    key=key
+                ) for key in keys
+            ]
 
     def waitKeys(
         self, 
