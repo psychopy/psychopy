@@ -1301,9 +1301,9 @@ class SettingsComponent:
         if inits['mgMove'].val == "CONTINUOUS":
             inits['mgMove'].val = "$"
         if inits['useLegacyKeyboard']:
-            inits['keyboardBackend'].val = "$None"
-        else:
             inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
+        else:
+            inits['keyboardBackend'].val = "$None"
 
         # Make ioConfig dict
         code = (
