@@ -204,7 +204,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         else:
             return "pynput"
 
-    def setBackend(self, value):
+    def setBackend(self, backend):
         """
         DEPRECATED
 
