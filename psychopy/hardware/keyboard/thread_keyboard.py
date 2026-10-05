@@ -10,9 +10,11 @@ import time
 
 class KeyResponse(BaseResponse):
     fields = ["t", "value", "duration"]
-    def __init__(self, t, value, device=None):
+    def __init__(self, code, tDown, name=None, device=None):
+        # use name as value if given, otherwise use code
+        value = name if name is not None else code
         # initialize as usual
-        BaseResponse.__init__(self, t=t, value=value, device=device)
+        BaseResponse.__init__(self, t=tDown, value=value, device=device)
         # start off pressed (not released)
         self.duration = None
 
@@ -20,17 +22,33 @@ class KeyResponse(BaseResponse):
     def name(self):
         return self.value
 
+    @name.setter
+    def name(self, value):
+        self.value = value
+
     @property
     def code(self):
         return self.value
+
+    @code.setter
+    def code(self, value):
+        self.value = value
 
     @property
     def tDown(self):
         return self.t
 
+    @tDown.setter
+    def tDown(self, value):
+        self.t = value
+
     @property
     def rt(self):
         return self.t
+
+    @rt.setter
+    def rt(self, value):
+        self.t = value
 
     def __eq__(self, other):
         if isinstance(other, KeyResponse):
@@ -234,8 +252,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
     def parseMessage(self, message):
         return KeyResponse(
-            t=message['t'] - self.clock._timeAtLastReset,
-            value=message['value'],
+            code=message['value'],
+            tDown=message['t'] - self.clock._timeAtLastReset,
             device=self
         )
 

@@ -160,6 +160,22 @@ class KeyPress(BaseResponse):
             value = self.code
         BaseResponse.__init__(self, t=tDown, value=value)
 
+    @property
+    def t(self):
+        return self.tDown
+
+    @t.setter
+    def t(self, value):
+        self.tDown = value
+
+    @property
+    def value(self):
+        return self.name
+
+    @value.setter
+    def value(self, value):
+        self.name = value
+
     def __eq__(self, other):
         return self.name == other
 
