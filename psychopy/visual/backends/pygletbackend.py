@@ -24,7 +24,8 @@ from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tools import systemtools
-from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
+from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize, \
+    hardwareGammaSupported
 from .. import globalVars
 from ._base import BaseBackend
 
@@ -592,6 +593,13 @@ class PygletBackend(BaseBackend):
             xDisplay=self.xDisplay,
             gammaErrorPolicy=self._gammaErrorPolicy
         )
+
+    @property
+    def hardwareGammaSupported(self):
+        """`True` if the hardware gamma table of the display can be changed
+        (`bool`). `False` under Wayland (Xwayland).
+        """
+        return hardwareGammaSupported(self.screenID, self.xDisplay)
 
     def getGammaRamp(self):
         return getGammaRamp(self.screenID, self.xDisplay,
