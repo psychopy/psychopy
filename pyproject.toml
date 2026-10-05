@@ -33,7 +33,7 @@ dependencies = [
     # package is another project). 2.5.7 added `PYGLFW_LIBRARY_VARIANT`, which
     # `psychopy/__init__.py` uses to select the X11 build on Linux
     "glfw>=2.5.7",
-    "pillow>=9.4.0",
+    "pillow>=12.3.0",
     "pyqt6",
     "pandas>=1.5.3",
     "questplus>=2023.1",

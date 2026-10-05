@@ -2146,7 +2146,7 @@ requires-dist = [
     { name = "packaging", specifier = ">=24.0" },
     { name = "pandas", specifier = ">=1.5.3" },
     { name = "phidget22", marker = "extra == 'suggested'" },
-    { name = "pillow", specifier = ">=9.4.0" },
+    { name = "pillow", specifier = ">=12.3.0" },
     { name = "polib", marker = "extra == 'building'" },
     { name = "psutil" },
     { name = "psychopy-sphinx-theme", marker = "extra == 'docs'" },
