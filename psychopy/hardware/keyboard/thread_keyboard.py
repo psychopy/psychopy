@@ -107,15 +107,33 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         else:
             self.clock = core.Clock()
         # setup buffer
+        self.buffer = deque(maxlen=bufferSize)
         self.bufferSize = bufferSize
-        self.buffer = deque(maxlen=self.bufferSize)
         # store mute preference
         self.muteOutsidePsychopy = muteOutsidePsychopy
         # start listening for keypresses (unless told not to)
         self.started = False
         if not waitForStart:
             self.start()
-        
+
+    @property
+    def bufferSize(self):
+        return self._bufferSize
+
+    @bufferSize.setter
+    def bufferSize(self, value):
+        # store value
+        self._bufferSize = value
+        # create a new buffer
+        buffer = deque(maxlen=value)
+        # scoop up any lost events
+        while self.buffer:
+            buffer.append(
+                self.buffer.popleft()
+            )
+        # reassign buffer
+        self.buffer = buffer
+
     def start(self):
         """
         Start asynchronously listening for keypresses
@@ -221,8 +239,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         synchronous dispatchMessages function to convert these into KeyPress objects and allow 
         control over when messages appear. 
         """
-        # iterate through events in buffer...
-        for evt in self.buffer:
+        # iterate through and drain events in buffer...
+        while self.buffer:
+            evt = self.buffer.popleft()
             # for presses, create a new KeyResponse
             if evt['event'] == "press":
                 # skip if already pressed
@@ -246,8 +265,6 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                         continue
                     # apply duration
                     resp.duration = evt['t'] - self.clock._timeAtLastReset - resp.t
-        # clear buffer (recreate with current buffer size, in case it's changed)
-        self.buffer = deque(maxlen=self.bufferSize)
 
     @staticmethod
     def pynput2str(obj):
@@ -424,16 +441,17 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         # simple clear if no event type specified
         if eventType is None:
             # clear buffer
-            self.buffer = deque(maxlen=self.bufferSize)
+            self.buffer.clear()
         else:
             # create intermediate buffer for spared events
             buffer = deque(maxlen=self.bufferSize)
             # add only non matching events
-            for evt in self.buffer:
+            while self.buffer:
+                evt = self.buffer.popleft()
                 if evt['event'] != eventType:
                     buffer.append(evt)
-            # replace buffer
-            self.buffer = buffer
+            # restore buffer
+            self.buffer.extendleft(reversed(buffer))
 
     def waitKeys(
         self, 
