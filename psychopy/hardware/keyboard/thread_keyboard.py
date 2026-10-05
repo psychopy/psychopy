@@ -342,7 +342,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
     def parseMessage(self, message):
         return KeyResponse(
             code=message['value'],
-            tDown=message['t'] - self.clock._timeAtLastReset,
+            tDown=message['t'] - self.clock._epochTimeAtLastReset,
             device=self
         )
 
