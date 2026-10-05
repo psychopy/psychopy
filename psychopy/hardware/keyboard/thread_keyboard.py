@@ -552,7 +552,7 @@ class Keyboard(AttributeGetSetMixin):
             backend=None
         ):
         # create a KeyboardDevice if one doesn't already exist
-        if "defaultKeyboard" in DeviceManager.devices:
+        if "defaultKeyboard" not in DeviceManager.devices:
             self.device = DeviceManager.addDevice(
                 deviceClass="psychopy.hardware.keyboard.KeyboardDevice", 
                 deviceName="defaultKeyboard",
