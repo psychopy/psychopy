@@ -6,6 +6,7 @@ from psychopy.tools.attributetools import AttributeGetSetMixin
 from collections import deque
 import sys
 import time
+import enum
 
 
 class KeyResponse(BaseResponse):
@@ -250,6 +251,79 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         # clear buffer (recreate with current buffer size, in case it's changed)
         self.buffer = deque(maxlen=self.bufferSize)
 
+    @staticmethod
+    def pynput2str(obj):
+        """
+        Convert a pynput.KeyCode object or pynput.Key enumeration to a key string (as returned by 
+        pyglet)
+
+        Parameters
+        ----------
+        obj : pynput.KeyCode or pynput.Key
+            Object to convert
+
+        Returns
+        -------
+        str
+            Associated key string, or the original object if unavailable
+        """
+        # pynput special keys (Key.space etc.) are Enum members wrapping a KeyCode
+        if isinstance(obj, enum.Enum):
+            obj = obj.value
+        if hasattr(obj, "vk"):
+            # if we have a pynput object with a native keycode, convert it to a string
+            key = KeyboardDevice.native2str(obj.vk)
+            # if found, store key string
+            if key is not None:
+                obj = key
+            elif hasattr(obj, "char") and obj.char is not None:
+                # if not found (e.g. character keys), use char
+                obj = obj.char.lower()
+                # on Mac, we may need to substitute modified keys
+                if sys.platform == 'darwin':
+                    from pyglet.libs.darwin.quartzkey import charmap
+                    if obj.upper() in charmap:
+                        from pyglet.window.key import symbol_string
+                        obj = symbol_string(
+                            charmap[obj.upper()]
+                        ).lower()
+        # warn if we failed to find character
+        if not isinstance(obj, str):
+            logging.warn(
+                f"Failed to find associated key name for pynput keyboard event: {obj}"
+            )
+
+        return obj
+
+    @staticmethod
+    def native2str(vk):
+        """
+        Convert native keycodes (as returned by pynput) into key strings (as returned by pyglet)
+
+        Parameters
+        ----------
+        vk : int
+            Native keycode
+        
+        Returns
+        -------
+        str
+            Corresponding (pyglet) key name for the given keycode
+        """
+        # choose the appropriate key mapping for this OS
+        if sys.platform == 'darwin':
+            from pyglet.libs.darwin.quartzkey import keymap
+        elif sys.platform == 'win32':
+            from pyglet.libs.win32.winkey import keymap
+        else:
+            keymap = {}
+        # if vk is mapped, return the mapping
+        from pyglet.window.key import symbol_string
+        if vk in keymap:
+            return symbol_string(
+                keymap[vk]
+            ).lower()
+
     def parseMessage(self, message):
         return KeyResponse(
             code=message['value'],
@@ -406,6 +480,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         # do nothing if not started
         if not self.started:
             return
+        # convert to string if needed
+        if not isinstance(key, str):
+            key = self.pynput2str(key)
         # store in buffer
         self.buffer.append({
             'event': "press",
@@ -425,6 +502,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         # do nothing if not started
         if not self.started:
             return
+        # convert to string if needed
+        if not isinstance(key, str):
+            key = self.pynput2str(key)
         ## store in buffer
         self.buffer.append({
             'event': "release",
