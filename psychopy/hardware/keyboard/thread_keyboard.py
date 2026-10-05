@@ -193,7 +193,6 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         # all Keyboards are the same device
         return isinstance(other, (KeyboardDevice, dict))
 
-    @classmethod
     def getBackend(self):
         """
         DEPRECATED
@@ -205,7 +204,6 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         else:
             return "pynput"
 
-    @classmethod
     def setBackend(self, value):
         """
         DEPRECATED
