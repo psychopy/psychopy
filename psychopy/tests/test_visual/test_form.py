@@ -307,8 +307,8 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                 survey.draw()
                 # Compare screenshot
                 filename = f"TestForm_scrolling_nq{nItems}_s{case}.png"
-                self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
                 self.win.flip()
 
     def test_set_scroll_speed(self):

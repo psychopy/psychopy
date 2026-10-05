@@ -28,7 +28,7 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 import numpy
 import pyglet
 pyglet.options['debug_gl'] = False
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 try:
     # check if the lib can be loaded

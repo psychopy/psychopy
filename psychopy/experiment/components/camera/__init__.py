@@ -163,7 +163,10 @@ class CameraComponent(BaseDeviceComponent):
             "    win=win,\n"
             "    device=%(deviceLabel)s,\n"
             "    mic=%(micDeviceLabel)s,\n"
-            ")"
+            ")\n"
+            "# switch on %(name)s now, so it's streaming (e.g. for a live view)\n"
+            "# before recording starts and recording doesn't wait on it opening\n"
+            "%(name)s.open()\n"
         )
         buff.writeIndentedLines(code % inits)
         if self.params['saveFile']:

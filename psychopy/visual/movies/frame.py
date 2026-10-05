@@ -1,258 +1,166 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Class for video frames.
+"""Decoded movie frames, as movie readers hand them to `MovieStim`.
 """
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ["MovieFrame", "NULL_MOVIE_FRAME_INFO", "MOVIE_FRAME_NOT_READY"]
+__all__ = [
+    'FRAME_PIXEL_FORMAT',
+    'FRAME_BYTES_PER_PIXEL',
+]
+
+import numpy as np
+
+# Pixel format every decoder backend delivers frames in, and the number of bytes
+# per pixel it uses. Frames are packed RGBA rather than RGB even though the
+# movie has no use for the alpha channel, since many drivers have no native
+# three-byte texture format and convert RGB uploads on the way to the GPU.
+FRAME_PIXEL_FORMAT = 'rgba'
+FRAME_BYTES_PER_PIXEL = 4
+
+# Pixel formats of decoded frames which are uploaded as their planes and
+# converted to RGB by a shader as they are (see `gpuColorConversion`):
+# 8-bit planar YUV, with any chroma subsampling. Others are converted to RGBA
+# by `swscale` as they're decoded.
+_YUV_PLANAR_FORMATS = frozenset((
+    'yuv420p', 'yuvj420p', 'yuv422p', 'yuvj422p', 'yuv444p', 'yuvj444p',
+    'yuv440p', 'yuvj440p', 'yuv411p', 'yuv410p'))
+
+# `swscale` names of the colour matrices YUV is encoded with, by the value of
+# FFmpeg's `AVColorSpace` a frame is tagged with
+_AVCOL_SPC_TO_SWSCALE = {
+    1: 'ITU709',  # BT709
+    4: 'FCC',
+    5: 'ITU601',  # BT470BG
+    6: 'ITU601',  # SMPTE170M
+    7: 'SMPTE240M',
+    9: 'BT2020',  # BT2020_NCL
+    10: 'BT2020'}  # BT2020_CL, which a matrix can only approximate
+
+# `AVColorSpace` to tag a frame with for `swscale` to convert it with each
+# colour matrix, for PyAV versions with no name for one (BT.2020 before 18)
+_SWSCALE_TO_AVCOL_SPC = {
+    'ITU709': 1,
+    'FCC': 4,
+    'ITU601': 5,
+    'SMPTE240M': 7,
+    'BT2020': 9}  # BT2020_NCL, `swscale` refuses BT2020_CL
+
+# Luma coefficients (Kr, Kb) of each colour matrix, see `_yuvToRGBUniforms`
+_COLOR_MATRIX_KR_KB = {
+    'ITU601': (0.299, 0.114),
+    'ITU709': (0.2126, 0.0722),
+    'SMPTE240M': (0.212, 0.087),
+    'BT2020': (0.2627, 0.0593),
+    'FCC': (0.30, 0.11)}
 
 
-MOVIE_FRAME_NOT_READY = object()
+def _frameColorMatrix(frame):
+    """Colour matrix a decoded video frame's YUV is encoded with, by its
+    `swscale` name (`str`).
+
+    This goes by what the frame is tagged with. An untagged frame is taken to
+    be BT.709 if it is HD or larger and BT.601 otherwise, as video players
+    take it to be.
+
+    """
+    colorMatrix = _AVCOL_SPC_TO_SWSCALE.get(int(frame.colorspace))
+    if colorMatrix is None:
+        large = frame.width >= 1280 or frame.height >= 720
+        colorMatrix = 'ITU709' if large else 'ITU601'
+
+    return colorMatrix
 
 
-class MovieFrame:
-    """Class containing data of a single movie frame.
+def _isYUVFormat(formatName):
+    """Whether a pixel format holds YUV (rather than RGB or grey) samples."""
+    return 'yuv' in formatName or formatName.startswith(('nv', 'p01', 'p21'))
+
+
+class _RGBFrameAdapter:
+    """Lightweight adapter exposing an `ffpyplayer`-like interface around raw
+    RGBA frame bytes obtained from other decoder backends (currently
+    `PyAV`, `OpenCV` and `VLC`).
+
+    Higher level code (`MovieFileReader`, `MovieStim`) was originally written
+    around `ffpyplayer`'s `Image` objects, which expose `.to_memoryview()`
+    (returning a list whose first element has a `.memview` attribute) and
+    `.get_pixel_format()`. Wrapping decoded frames from other backends in
+    this adapter lets that code stay backend-agnostic instead of branching
+    on `decoderLib` throughout.
 
     Parameters
     ----------
-    frameIndex : int
-        The index for this frame in the movie.
-    absTime : float
-        Absolute time in seconds in movie time which the frame is to appear
-        on-screen.
-    displayTime : float
-        Time in seconds the frame is intended to remain on screen after
-        `absTime`. Usually equal to the frame period.
-    size : ArrayLike
-        Width and height of the source video frame in pixels. This is needed to
-        correctly interpret `colorData`.
-    colorFormat : str
-        Color format identifier. This is used to ensure the correct format for
-        the destination texture buffer that will contain `colorData`. Default is
-        `'rgb8'` for 8-bit RGB.
-    colorData : ArrayLike or None
-        Movie frame color pixel data as an array. Set as `None` if no image data
-        is available.
-    audioChannels : int
-        Number of audio channels present in `audioSamples` (`int`). Use `1` for
-        mono and `2` for stereo. This is used to correctly format the data
-        contained in `audioSamples` to pass to the desired audio sink.
-    audioSamples : ArrayLike or None
-        Audio samples as an array. Set as `None` if audio data is unavailable.
-    metadata : MovieMetadata
-        Metadata of the stream at the time this movie frame was obtained.
-    movieLib : str or None
-        Movie library used to obtain this frame (e.g., `'ffpyplayer'`).
-    userData : dict or None
-        Optional mapping for storing user defined data.
+    rgbData : bytes or numpy.ndarray
+        Raw RGBA pixel data, row-major, 4 bytes per pixel (see
+        `FRAME_PIXEL_FORMAT`). An array is kept
+        as-is (made contiguous first if needed) rather than converted to
+        `bytes`, which would cost a whole-frame copy per decoded frame for no
+        benefit; everything downstream reads this through the buffer protocol.
 
     """
-    __slots__ = [
-        "_metadata",
-        "_frameIndex",
-        "_absTime",
-        "_displayTime",
-        "_size",
-        "_colorFormat",
-        "_colorData",
-        "_audioSamples",
-        "_audioChannels",
-        "_movieLib",
-        "_userData",
-        '_keepAlive'
-    ]
+    __slots__ = ['_data']
 
-    def __init__(self,
-                 frameIndex=-1,
-                 absTime=-1.0,
-                 displayTime=0.0,
-                 size=(-1, -1),
-                 colorFormat='rgb8',
-                 colorData=None,
-                 audioChannels=2,
-                 audioSamples=None,
-                 metadata=None,
-                 movieLib=u"",
-                 userData=None,
-                 keepAlive=None):
+    def __init__(self, rgbData):
+        if isinstance(rgbData, np.ndarray):
+            rgbData = np.ascontiguousarray(rgbData)
 
-        self.frameIndex = frameIndex
-        self.absTime = absTime
-        self.displayTime = displayTime
-        self.size = size
-        self.colorFormat = colorFormat
-        self.colorData = colorData
-        self.audioSamples = audioSamples
-        self.audioChannels = audioChannels
-        self._metadata = metadata
-        self.movieLib = movieLib
-        self.userData = userData
-        self._keepAlive = keepAlive
+        self._data = rgbData
 
-    def __repr__(self):
-        return (f"MovieFrame(frameIndex={self.frameIndex}, "
-                f"absTime={self.absTime}, "
-                f"displayTime={self.displayTime}, "
-                f"size={self.size}, "
-                f"colorData={repr(self.colorData)}, "
-                f"colorFormat={repr(self.colorFormat)}, "
-                f"audioChannels={self.audioChannels}, "
-                f"audioSamples={repr(self.audioSamples)}, "
-                f"metadata={repr(self._metadata)}, "
-                f"movieLib={repr(self.movieLib)}, "
-                f"userData={repr(self.userData)})")
+    def to_memoryview(self):
+        return [self]
 
     @property
-    def frameIndex(self):
-        """The index for this frame in the movie (`int`). A value of `-1`
-        indicates that this value is uninitialized.
-        """
-        return self._frameIndex
+    def memview(self):
+        return self._data
 
-    @frameIndex.setter
-    def frameIndex(self, val):
-        self._frameIndex = int(val)
-
-    @property
-    def absTime(self):
-        """Absolute time in seconds in movie time which the frame is to appear
-        on-screen (`float`). A value of -1.0 indicates that this value is not
-        valid.
-        """
-        return self._absTime
-
-    @absTime.setter
-    def absTime(self, val):
-        self._absTime = float(val)
-
-    @property
-    def displayTime(self):
-        """Time in seconds the frame is intended to remain on screen after
-        `absTime` (`float`). Usually equal to the frame period.
-        """
-        return self._displayTime
-
-    @displayTime.setter
-    def displayTime(self, val):
-        self._displayTime = float(val)
+    def get_pixel_format(self):
+        return FRAME_PIXEL_FORMAT
 
     @property
     def size(self):
-        """Source video size (frame size) (w, h) in pixels (`tuple`). This value
-        is uninitialized if `(-1, -1)` is returned.
-        """
-        return self._size
+        """Size `(w, h)` of the frame in pixels (`tuple`), or `None` if the
+        frame is raw bytes, which are always the movie's own size."""
+        if isinstance(self._data, np.ndarray) and self._data.ndim == 3:
+            return self._data.shape[1], self._data.shape[0]
 
-    @size.setter
-    def size(self, value):
-        # format checking
-        if not hasattr(value, '__len__'):
-            raise TypeError('Value for `size` must be iterable.')
+        return None
 
-        if not len(value) == 2:
-            raise ValueError(
-                'Invalid length for value `size`, must have length of 2.')
 
-        if not all([isinstance(i, int) for i in value]):
-            raise TypeError('Elements of `size` must all have type `int`.')
+class _YUVFrameAdapter:
+    """A decoded frame kept as its planar YUV samples, to be uploaded as they
+    are and converted to RGB by a shader on the GPU.
 
-        self._size = tuple(value)
+    Parameters
+    ----------
+    frame : av.VideoFrame
+        The frame, in one of `_YUV_PLANAR_FORMATS`. This holds on to it, so
+        that its planes can be uploaded straight from where they were decoded.
 
-    @property
-    def colorFormat(self):
-        """Color format of the frame color data (`str`). Default is `'rgb8'`.
-        """
-        return self._colorFormat
+    """
+    __slots__ = ['_frame', 'planes', 'size', 'colorMatrix', 'fullRange']
 
-    @colorFormat.setter
-    def colorFormat(self, value):
-        self._colorFormat = str(value)
-
-    @property
-    def colorData(self):
-        """Movie frame color data as an array (`ArrayLike` or `None`). The
-        format of this array is contingent on the `movieLib` in use.
-        """
-        return self._colorData
-
-    @colorData.setter
-    def colorData(self, val):
-        self._colorData = val
+    def __init__(self, frame):
+        self._frame = frame
+        #: Each plane (Y, U then V) as `(samples, width, height, rowLength)`,
+        #: `samples` being a flat array of `rowLength` bytes per row
+        self.planes = tuple(
+            (np.frombuffer(plane, np.uint8), plane.width, plane.height,
+             plane.line_size)
+            for plane in frame.planes[:3])
+        #: Size `(w, h)` of the frame in pixels
+        self.size = (frame.width, frame.height)
+        #: `swscale` name of the colour matrix, see `_frameColorMatrix`
+        self.colorMatrix = _frameColorMatrix(frame)
+        #: Whether the samples are full range, see `_yuvToRGBUniforms`
+        self.fullRange = int(frame.color_range) == 2 or \
+            frame.format.name.startswith('yuvj')
 
     @property
-    def audioSamples(self):
-        """Audio data as an array (`ArrayLike` or `None`). The format of this
-        array is contingent on the `movieLib` in use.
-        """
-        return self._audioSamples
-
-    @audioSamples.setter
-    def audioSamples(self, val):
-        self._audioSamples = val
-
-    @property
-    def audioChannels(self):
-        """Number of audio channels present in `audioSamples` (`int`). Use
-        `1` for mono and `2` for stereo. This is used to correctly format the
-        data contained in `audioSamples` to get past to the desired audio
-        sink.
-        """
-        return self._audioChannels
-
-    @audioChannels.setter
-    def audioChannels(self, val):
-        self._audioChannels = int(val)
-
-    @property
-    def metadata(self):
-        """Movie library used to get this metadata (`str`). An empty string
-        indicates this field is not initialized.
-        """
-        return self._metadata
-
-    @metadata.setter
-    def metadata(self, value):
-        self._metadata = value
-
-    @property
-    def movieLib(self):
-        """Movie library used to get this metadata (`str`). An empty string
-        indicates this field is not initialized.
-        """
-        return self._movieLib
-
-    @movieLib.setter
-    def movieLib(self, value):
-        self._movieLib = str(value)
-
-    @property
-    def userData(self):
-        """Optional mapping for storing user defined data (`dict` or `None`). If
-        set to `None`, an empty dictionary will be initialized and set as this
-        value.
-        """
-        return self._userData
-
-    @userData.setter
-    def userData(self, value):
-        if value is None:
-            self._userData = {}
-            return
-
-        if not isinstance(value, dict):
-            raise TypeError(
-                'Value for `userData` must be type `dict` or `None`.')
-
-        self._userData = value
-
-
-# used to represent an empty frame
-NULL_MOVIE_FRAME_INFO = MovieFrame()
-
-
-if __name__ == "__main__":
-    pass
+    def nbytes(self):
+        """Bytes of samples the frame's planes hold (`int`)."""
+        return sum(samples.nbytes for samples, _, _, _ in self.planes)

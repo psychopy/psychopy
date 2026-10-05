@@ -17,7 +17,7 @@ from psychopy.layout import Size
 
 pyglet.options['debug_gl'] = False
 import ctypes
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 import numpy
 from fractions import Fraction
@@ -31,7 +31,7 @@ from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
 )
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 
 class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
@@ -281,7 +281,12 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         if hasattr(self.image, 'colorTexture'):
             if hasattr(self.image, 'update'):
                 self.image.update()
-            self._texID = self.image.colorTexture
+            # A source with no texture yet (e.g. a camera which hasn't been
+            # opened) has nothing to show, and binding `None` would raise.
+            texID = self.image.colorTexture
+            if texID is None:
+                return
+            self._texID = texID
 
         if win.USE_LEGACY_GL:
             self._drawLegacyGL(win)
@@ -333,7 +338,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         loc = uniforms[b'uModelViewMatrix']
         if loc != -1:
             GL.glUniformMatrix4fv(
-                loc, 1, GL.GL_TRUE, self._asMatrixPtr(win._viewMatrix))
+                loc, 1, GL.GL_TRUE, self._asMatrixPtr(win._getPixViewMatrix()))
 
         # draw the image
         gt.drawClientArrays({

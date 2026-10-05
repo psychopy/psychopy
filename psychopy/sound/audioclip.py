@@ -104,13 +104,33 @@ class AudioClip:
         common samples rates.
     userData : dict or None
         Optional user data to associated with the audio clip.
+    copy : bool
+        Whether the clip keeps a copy of `samples`, which it needs to unless
+        nothing else has a reference to them. Pass `False` for an array made
+        just for this clip, which is then used as it is (if already 32-bit
+        float, contiguous and in range), saving a copy that for a long clip
+        takes hundreds of megabytes.
 
     """
-    def __init__(self, samples, sampleRateHz=SAMPLE_RATE_48kHz, userData=None):
-        # samples should be a 2D array where columns represent channels
-        self._samples = np.atleast_2d(
-            np.asarray(samples, dtype=np.float32, order='C'))
-        self._samples.clip(-1, 1)  # force values to be clipped
+    def __init__(self, samples, sampleRateHz=SAMPLE_RATE_48kHz, userData=None,
+                 copy=True):
+        # samples should be a 2D array where columns represent channels. This
+        # makes an array of our own unless they are already 32-bit float and
+        # contiguous, in which case `asarray` hands back the very same object.
+        asArray = np.asarray(samples, dtype=np.float32, order='C')
+        converted = asArray is not samples
+        self._samples = np.atleast_2d(asArray)
+
+        # Clip to keep samples in range. `np.clip` returns a copy, so the
+        # caller's array is never modified -- but samples already in range
+        # need no clipping, and then a copy is only made if one is needed:
+        # for a long clip (a movie's audio track, say) it is hundreds of
+        # megabytes and the time to make it.
+        if self._samples.size and (
+                self._samples.min() < -1. or self._samples.max() > 1.):
+            self._samples = np.clip(self._samples, -1., 1.)
+        elif copy and not converted:
+            self._samples = self._samples.copy()
 
         # set the sample rate of the clip
         self._sampleRateHz = int(sampleRateHz)
@@ -663,7 +683,7 @@ class AudioClip:
 
         # multiply and clip range
         arrview *= float(factor)
-        arrview.clip(-1, 1)
+        np.clip(arrview, -1., 1., out=arrview)
 
     def resample(self, targetSampleRateHz, resampleType='default', 
             equalEnergy=False, copy=False):
@@ -1023,7 +1043,8 @@ class AudioClip:
     @samples.setter
     def samples(self, value):
         self._samples = np.asarray(value, dtype=float)  # convert to array
-        self._samples.clip(-1., 1.)  # do clipping to keep samples in range
+        # do clipping to keep samples in range
+        self._samples = np.clip(self._samples, -1., 1.)
 
         # recompute duration after updating samples
         self._duration = len(self._samples) / float(self._sampleRateHz)

@@ -887,8 +887,12 @@ class DeviceManager:
             Number of screens
         """
         import pyglet
-        # get screens
-        display = pyglet.canvas.Display()
+        # get screens (`pyglet.canvas` was renamed `pyglet.display` in 2.1)
+        if pyglet.version < '2.1':
+            import pyglet.canvas as pyglet_display
+        else:
+            import pyglet.display as pyglet_display
+        display = pyglet_display.Display()
         allScrs = display.get_screens()
 
         return len(allScrs)

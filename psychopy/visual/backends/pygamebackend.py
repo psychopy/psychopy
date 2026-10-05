@@ -24,7 +24,7 @@ from psychopy.tools.attributetools import attributeSetter
 
 try:
     import pyglet
-    GL = pyglet.gl
+    import psychopy.tools.pygletgl as GL
 except ImportError:
     import OpenGL
     GL = OpenGL

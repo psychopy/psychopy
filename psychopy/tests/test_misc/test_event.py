@@ -14,6 +14,7 @@ except Exception:
 import pytest
 import copy
 import threading
+import time
 import numpy as np
 from psychopy.tests import skip_under_vm
 
@@ -34,7 +35,9 @@ class DelayedFakeKeys(threading.Thread):
         self.delay = delay
 
     def run(self):
-        core.wait(self.delay)
+        # don't use `core.wait()`, it dispatches window events which must only
+        # be done on the main thread
+        time.sleep(self.delay)
         [event._onPygletKey(key, modifiers=self.modifiers, emulated=True)
          for key in self.keys]
 
@@ -50,7 +53,9 @@ class DelayedAddFakeKeysToBuffer(threading.Thread):
         self.delay = delay
 
     def run(self):
-        core.wait(self.delay)
+        # don't use `core.wait()`, it dispatches window events which must only
+        # be done on the main thread
+        time.sleep(self.delay)
         fake_events = [(key, self.modifiers, -1) for key in self.keys]
         event._keyBuffer.extend(fake_events)
 
@@ -265,8 +270,15 @@ class _baseTest():
         if not s.contains(m.getPos()):
             pytest.skip()  # or can't test
 
+        prevButtons = event.mouseButtons
         event.mouseButtons = [1, 1, 1]
-        assert m.isPressedIn(s)
+        try:
+            assert m.isPressedIn(s)
+        finally:
+            # the buttons would otherwise stay held down for the rest of the
+            # session, so anything which reads the mouse (e.g. Slider.draw)
+            # would respond to a click
+            event.mouseButtons = prevButtons
 
     # obsolete?
     # m._pix2windowUnits()

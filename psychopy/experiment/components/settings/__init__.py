@@ -1964,6 +1964,8 @@ class SettingsComponent:
             "    win.flip()\n"
             "# return console logger level to WARNING\n"
             "logging.console.setLevel(logging.WARNING)\n"
+            "# save data\n"
+            "saveData(thisExp)\n"
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# run any 'at exit' functions\n"

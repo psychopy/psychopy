@@ -423,7 +423,6 @@ class Experiment:
                 "        win=win,\n"
                 "        globalClock=%(clockFormat)s\n"
                 "    )\n"
-                "    saveData(thisExp=thisExp)\n"
                 "    quit(thisExp=thisExp, win=win)\n"
             )
             script.writeIndentedLines(code % self.settings.params)

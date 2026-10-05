@@ -3,7 +3,7 @@ from . import ImageStim
 from .. import constants
 from ..tools import gltools as gt, mathtools as mt, viewtools as vt
 import numpy as np
-import pyglet.gl as GL
+import psychopy.tools.pygletgl as GL
 import psychopy.colors as colors
 
 from ..tools.attributetools import attributeSetter, setAttribute

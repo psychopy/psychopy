@@ -13,3 +13,7 @@ class TestButton(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin
         # Pixel which is the fill color
         self.fillPoint = (3, 3)
         self.fillUsed = True
+
+    @classmethod
+    def teardown_class(self):
+        self.win.close()

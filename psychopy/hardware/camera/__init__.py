@@ -74,6 +74,7 @@ from psychopy.sound.audioclip import AudioClip
 from psychopy.sound.microphone import Microphone
 from psychopy.hardware.microphone import MicrophoneDevice
 import psychopy.logging as logging
+import psychopy.clock as clock
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -2808,6 +2809,12 @@ class PyAVCameraDevice(CameraDevice):
         CAMERA_API_VIDEO4LINUX2: 'video4linux2'
     }
 
+    # Seconds to wait before reading again when the camera has no frame ready.
+    # Some inputs, such as AVFoundation on macOS, report that straight away
+    # with `EAGAIN` rather than blocking until a frame arrives, so without a
+    # pause the reader would spin between frames.
+    _noFrameRetryDelay = 0.002
+
     def __init__(self,
                  device,
                  frameSize=None,
@@ -3379,7 +3386,17 @@ class PyAVCameraDevice(CameraDevice):
         """
         import av
 
+        # How many errors in a row to put up with before giving up on the
+        # stream. A camera can hand over the odd corrupt packet, such as a
+        # truncated MJPEG frame when the USB bus is busy, which isn't a reason
+        # to stop reading; one which never recovers is.
+        maxConsecutiveErrors = 30
+        nConsecutiveErrors = 0
+
         while not self._stopReaderEvent.is_set():
+            # The iterator is a generator, so any error raised out of it
+            # finishes it. Start a new one from the next packet after each
+            # error rather than reading on from one which has ended.
             try:
                 frame = next(self._frameIterator)
             except StopIteration:
@@ -3390,12 +3407,29 @@ class PyAVCameraDevice(CameraDevice):
             except (av.error.ExitError, av.error.TimeoutError):
                 # the read timed out, loop back around to check whether we have
                 # been asked to stop
+                self._frameIterator = self._container.decode(video=0)
+                continue
+            except av.error.BlockingIOError:
+                # No frame is ready yet (`EAGAIN`). That says nothing about the
+                # health of the stream, so it isn't counted as an error; wait
+                # for the camera to catch up, waking early if asked to stop.
+                self._stopReaderEvent.wait(self._noFrameRetryDelay)
+                self._frameIterator = self._container.decode(video=0)
                 continue
             except av.FFmpegError as err:
-                logging.error(
-                    "Error reading from camera '{}': {}".format(
+                nConsecutiveErrors += 1
+                if nConsecutiveErrors >= maxConsecutiveErrors:
+                    logging.error(
+                        "Error reading from camera '{}': {}".format(
+                            self._device, err))
+                    break
+                logging.warning(
+                    "Skipping bad packet from camera '{}': {}".format(
                         self._device, err))
-                break
+                self._frameIterator = self._container.decode(video=0)
+                continue
+
+            nConsecutiveErrors = 0
 
             if self._pausedEvent.is_set():
                 del frame  # discard, but keep reading so the camera drains
@@ -4816,7 +4850,7 @@ class Camera:
     frameSize : tuple or None
         Size (width, height) of the camera stream frames to record. If `None`,
         the camera's default frame size will be used. 
-    cameraLib : str
+    cameraLib : str or None
         Interface library (backend) to use for accessing the camera, one of
         `'ffpyplayer'`, `'pyav'` or `'opencv'`. The first two use FFmpeg
         underneath but bind to it differently; `'pyav'` is the one to use on
@@ -4824,8 +4858,9 @@ class Camera:
         talks to the platform's capture API through OpenCV instead, which is
         worth reaching for when neither FFmpeg binding can be installed or when
         the experiment is using OpenCV for computer vision work anyway; note
-        that it gives less control over how the video is encoded. If `None`, the
-        default library recommended by the PsychoPy developers will be used.
+        that it gives less control over how the video is encoded. If `None`
+        (the default), the preferred library is used, as named by
+        `camera.backend` (`PREFERED_CAMERA_LIB` unless it has been changed).
         Switching camera libraries could help resolve issues with camera
         compatibility. More camera libraries may be installed via extension
         packages.
@@ -4943,7 +4978,7 @@ class Camera:
         trials.close()  # the camera is released once the last client leaves
 
     """
-    def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
+    def __init__(self, device=0, mic=None, cameraLib=None,
                  frameRate=None, frameSize=None, bufferSecs=4, win=None,
                  name='cam', keepFrames=5, usageMode='video'):
         # add attributes for setters
@@ -4959,6 +4994,9 @@ class Camera:
              '_size': None,
              '_cameraLib': u''})
         
+        # the library asked for, or `None` if it was left to us; the device this
+        # camera ends up reading has the final say, see `_resolveCaptureDevice()`
+        self._cameraLibRequested = cameraLib
         if cameraLib is None:
             cameraLib = backend
 
@@ -5243,6 +5281,22 @@ class Camera:
         return self._isRecording
     
     @property
+    def isStopping(self):
+        """`True` if a scheduled stop is pending (`bool`).
+
+        This is the window between a call to `stop(when=...)` and the moment
+        that stop takes effect. The recording is still running and frames are
+        still going into it, but it has been told when to end.
+
+        An immediate `stop()` never shows up here, since it takes effect as it
+        is called. This goes back to `False` once the recording has been closed
+        off, at which point `isRecording` is `False` too.
+
+        """
+        return self._recordingRequested and \
+            self._tRecordingStopRequested is not None
+
+    @property
     def isStarted(self):
         """`True` if the stream has started (`bool`). This status is given after
         `open()` has been called on this object.
@@ -5290,14 +5344,15 @@ class Camera:
     _getCamerasCache = {}
 
     @staticmethod
-    def getCameras(cameraLib=CAMERA_LIB_FFPYPLAYER):
+    def getCameras(cameraLib=None):
         """Get information about installed cameras on this system.
 
         Parameters
         ----------
-        cameraLib : str
+        cameraLib : str or None
             Capture library the cameras are to be opened with, either
-            `'ffpyplayer'` or `'pyav'`.
+            `'ffpyplayer'` or `'pyav'`. If `None`, the preferred library is
+            used, as named by `camera.backend`.
 
         Returns
         -------
@@ -5310,14 +5365,15 @@ class Camera:
             cameraLib=cameraLib)
 
     @staticmethod
-    def getAvailableDevices(cameraLib=CAMERA_LIB_FFPYPLAYER):
+    def getAvailableDevices(cameraLib=None):
         """Get a list of available camera devices on this system.
 
         Parameters
         ----------
-        cameraLib : str
+        cameraLib : str or None
             Capture library the cameras are to be opened with, either
-            `'ffpyplayer'` or `'pyav'`.
+            `'ffpyplayer'` or `'pyav'`. If `None`, the preferred library is
+            used, as named by `camera.backend`.
 
         Returns
         -------
@@ -5329,7 +5385,7 @@ class Camera:
         return getCameraDeviceClass(cameraLib).getAvailableDevices()
 
     @staticmethod
-    def getCameraDescriptions(collapse=False, cameraLib=CAMERA_LIB_FFPYPLAYER):
+    def getCameraDescriptions(collapse=False, cameraLib=None):
         """Get a mapping or list of camera descriptions.
 
         Camera descriptions are a compact way of representing camera settings
@@ -5351,9 +5407,10 @@ class Camera:
             Return camera information as string descriptions instead of
             `CameraInfo` objects. This provides a more compact way of
             representing camera formats in a (reasonably) human-readable format.
-        cameraLib : str
+        cameraLib : str or None
             Capture library the cameras are to be opened with, either
-            `'ffpyplayer'` or `'pyav'`.
+            `'ffpyplayer'` or `'pyav'`. If `None`, the preferred library is
+            used, as named by `camera.backend`.
 
         Returns
         -------
@@ -5526,8 +5583,9 @@ class Camera:
 
         # handle device
         self._capture = None
-        if isinstance(device, CameraDevice):
-            # if given a device object, use it
+        if isinstance(device, BaseCameraDevice):
+            # if given a device object, use it, whichever library it captures
+            # with (`CameraDevice` names only the FFPyPlayer one)
             self._capture = device
         elif device is None:
             # if given None, get the first available device
@@ -5591,6 +5649,34 @@ class Camera:
                 bufferSecs=bufferSecs,
             )
 
+        # None of the branches above found or created a device, so say which
+        # camera couldn't be resolved rather than failing on `.info` below.
+        if self._capture is None:
+            knownDevices = [
+                profile['deviceName']
+                for profile in cameraDeviceClass.getAvailableDevices()]
+            raise CameraNotFoundError(
+                "Could not find a camera matching `device={}`. Cameras "
+                "available through `{}` are: {}".format(
+                    repr(device),
+                    cameraLib,
+                    ', '.join(repr(name) for name in knownDevices)
+                    if knownDevices else '(none found)'))
+
+        # Frames have to be converted and written by the library which captured
+        # them. A device handed over, or found in DeviceManager by name, may
+        # capture with a different one from this camera's, so go with the
+        # device's; only worth a warning if a different one was asked for.
+        deviceLib = self._capture.captureLib
+        if deviceLib and deviceLib != self._cameraLib:
+            logFunc = logging.warning \
+                if self._cameraLibRequested is not None else logging.debug
+            logFunc(
+                "Camera device '{}' captures with '{}' rather than '{}', so "
+                "reading it with '{}'.".format(
+                    self._capture.name, deviceLib, self._cameraLib, deviceLib))
+            self._cameraLib = deviceLib
+
         # get info from device
         self._cameraInfo = self._capture.info
 
@@ -5616,18 +5702,21 @@ class Camera:
         # `close()` releases the capture device, so look it up again if this is
         # a reopen. Doing so here rather than holding on to the closed device
         # means a device shared through `DeviceManager` is picked up in
-        # whatever state it is now in. This comes before the movie file writer
-        # is opened, as the writer needs the frame size the device reports.
+        # whatever state it is now in.
         if self._capture is None:
             self._resolveCaptureDevice()
+
+        # The device may be one which an earlier client closed, so open it
+        # before the movie file writer, which needs the frame size the device
+        # only reports while open. Frames don't reach this client until it is
+        # bound below, so none are missed by opening the writer after.
+        if not self._capture.isOpen:
+            self._capture.open()
 
         # CV mode never writes frames to disk, so opening a writer for it would
         # only create a temporary file and an encoder nothing ever reaches.
         if self._usageMode == CAMERA_MODE_VIDEO:
             self._openMovieFileWriter()
-
-        if not self._capture.isOpen:
-            self._capture.open()
 
         # register this client with the camera device
         self._capture.bind(self)        
@@ -5655,6 +5744,29 @@ class Camera:
 
         """
         return time.monotonic()  # timebase of the stream
+
+    def _whenToLocalTime(self, when):
+        """Convert a `when` argument to a time on the camera's own clock.
+
+        Parameters
+        ----------
+        when : float, `psychopy.visual.Window` or None
+            Absolute time in seconds, on the clock `psychopy.clock.getTime()`
+            reads. A window stands for its next flip, and `None` for now.
+
+        Returns
+        -------
+        float
+            The same moment on the clock `_getTime()` reads.
+
+        """
+        now = self._getTime()
+        if when is None:
+            return now
+        if hasattr(when, 'getFutureFlipTime'):
+            return now + when.getFutureFlipTime(clock='now')
+
+        return now + float(when) - clock.getTime()
 
     def record(self, clearLastRecording=True, waitForStart=False, when=None):
         """Start recording frames.
@@ -5690,11 +5802,18 @@ class Camera:
             ensure the microphone is actually recording valid samples. In some 
             cases this will result in a delay of up to 1 second before the
             recording starts.
-        when : float or None
-            Absolute time in seconds to start recording. If `None`, recording
-            will start immediately. If a time is specified, the recording will
-            start at the specified time. This is useful for synchronizing the
-            recording with other devices or events.
+        when : float, `psychopy.visual.Window` or None
+            Time to start the recording, as an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads, the same as `when` for
+            `Sound.play()`. If a `psychopy.visual.Window` is passed, recording
+            starts at its next flip. If `None`, or a time which has already
+            passed, recording starts immediately. This is useful for
+            synchronizing the recording with other devices or events.
+
+            Frames which arrive before the requested start time are not part
+            of the recording. They are left out of `frameCount` and out of the
+            saved file, and the recording clock (`recordingTime`) runs from the
+            deferred start rather than from the call.
 
         """
         if self.isNotStarted:
@@ -5743,13 +5862,16 @@ class Camera:
             self._openMovieFileWriter()
 
         # start camera recording
-        self._tRecordingStartRequested = \
-            self._getTime() if when is None else when + self._getTime()
+        self._tRecordingStartRequested = self._whenToLocalTime(when)
 
         # start microphone recording
         if self._usageMode == CAMERA_MODE_VIDEO:
             if self.mic is not None:
-                self.mic.record(when=self._tRecordingStartRequested)
+                # The device works from the requested start above, since this
+                # camera is bound to it as a client, but is told the same time
+                # as an absolute one too.
+                self.mic.record(when=clock.getTime() + (
+                    self._tRecordingStartRequested - self._getTime()))
             else:
                 self._audioReady = True  # no audio stream to wait on
         else:
@@ -5809,39 +5931,95 @@ class Camera:
     def stop(self, when=None):
         """Stop recording frames and audio (if available).
 
+        A scheduled stop applies to both tracks, so the video ends as close to
+        the same moment as the audio as the camera's frame rate allows. The
+        recording runs on until the first frame captured at or after the stop
+        time, which is left out of it, so the footage ends within one frame
+        interval of the requested time.
+
+        Keep calling `update()` (or drawing a stimulus which polls the camera)
+        until the stop time has passed. The recording closes itself off on the
+        frame which crosses the stop time, and `update()` closes it off on the
+        clock if the camera stops delivering frames first, so a camera nobody
+        is polling will not stop when asked. Calling `save()` before then ends
+        the recording early and warns.
+
         Parameters
         ----------
-        when : float or None
-            Absolute time in seconds to stop recording. If `None`, recording
-            will stop immediately. If a time is specified, the recording will
-            stop at the specified time. This is useful for synchronizing the
-            recording with other devices or events.
+        when : float, `psychopy.visual.Window` or None
+            Time to stop the recording, as an absolute time in seconds on the
+            clock `psychopy.clock.getTime()` reads, the same as `when` for
+            `record()`. If a `psychopy.visual.Window` is passed, recording
+            stops at its next flip. If `None`, or a time which has already
+            passed, recording stops immediately. This is useful for
+            synchronizing the end of the recording with other devices or
+            events.
 
         """
         # poll any remaining frames and stop
         # self.update()
 
         # stop the camera stream
-        self._absVideoRecStopTime = self._getTime() if when is None else when + self._getTime()
+        self._absVideoRecStopTime = self._whenToLocalTime(when)
 
-        # Close the gate first so that frames still in flight on the polling
-        # thread are not written to a file which is about to be closed. Setting
-        # the stop time also tells microphone backends which stream into our
-        # buffer to stop adding to it.
+        # Setting the stop time tells microphone backends which stream into our
+        # buffer to stop adding to it, and gates the frames `_onNewFrames()`
+        # takes in, so both tracks end at the same moment.
         self._tRecordingStopRequested = self._absVideoRecStopTime
-        self._recordingRequested = False
-        self._videoRecordingStarted = False
-        self._isRecording = False
 
         # stop audio recording if we have a microphone
         if self.hasMic:
             # the microphone calls its scheduled stop time `stopTime`
             self.mic.stop(stopTime=self._absVideoRecStopTime)
 
-        self._audioReady = self._videoReady = False  # reset camera ready flags
+        # A stop scheduled for the future leaves the recording running until a
+        # frame captured at or after that time comes through `_onNewFrames()`,
+        # so that the video track ends alongside the audio track rather than
+        # when this was called. An immediate stop is torn down here and now.
+        if self._absVideoRecStopTime <= self._getTime():
+            self._finaliseRecordingStop()
 
-        self._closeMovieFileWriter()
-            
+    def _finaliseRecordingStop(self):
+        """Close a recording off once its stop time has arrived.
+
+        This ends the recording and closes the movie file writer, leaving the
+        footage ready for `save()`. It is safe to call more than once, and on
+        a camera which is not recording, so whichever of `_onNewFrames()`,
+        `update()`, `stop()` or `close()` gets there first can finish the
+        recording off.
+
+        This runs on the polling thread as well as the main one, hence the
+        lock. Recording is closed off before the writer goes away, so frames
+        still in flight are dropped rather than written to a file which is
+        about to be closed.
+
+        """
+        with self._movieWriterLock:
+            self._recordingRequested = False
+            self._videoRecordingStarted = False
+            self._isRecording = False
+            self._audioReady = self._videoReady = False
+
+            self._closeMovieFileWriter()
+
+    def _checkScheduledStop(self):
+        """Finish a scheduled stop whose time has passed without a frame.
+
+        A stop scheduled by `stop(when=...)` is normally completed by the
+        frame which crosses it, so that the recording ends on real captured
+        footage. A camera which stops delivering frames before then would
+        otherwise leave the recording open indefinitely, so this closes it off
+        on the clock instead.
+
+        """
+        stopTime = self._tRecordingStopRequested
+
+        if stopTime is None or not self._recordingRequested:
+            return  # nothing scheduled, or already finished
+
+        if self._getTime() >= stopTime:
+            self._finaliseRecordingStop()
+
     def close(self):
         """Close the camera.
 
@@ -5892,84 +6070,37 @@ class Camera:
 
         Returns
         -------
-        str
-            Path to the output file with merged audio and video tracks.
-        
-        """
-        import subprocess as sp
+        str or None
+            Path to the output file with merged audio and video tracks, or
+            `None` if they could not be merged. Why not is logged as an error,
+            and the track files are left for the caller to save some other way.
 
-        # check if the video and audio track files exist
-        if not os.path.exists(videoTrackFile):
-            raise FileNotFoundError(
-                "Video track file `{}` does not exist.".format(videoTrackFile))
-        if not os.path.exists(audioTrackFile):
-            raise FileNotFoundError(
-                "Audio track file `{}` does not exist.".format(audioTrackFile))
-        
+        """
         # check if the output file already exists
         if os.path.exists(filename):
             logging.warning(
                 "Output file `{}` already exists, it will be overwritten.".format(filename))
             os.remove(filename)
 
-        # build the command to merge audio and video tracks
-        cmd = [
-            'ffmpeg', 
-            '-loglevel', 'error',  # suppress output except errors
-            '-nostdin',  # do not read from stdin
-            '-y',  # overwrite output file if it exists
-            '-i', videoTrackFile,  # input video track
-            '-i', audioTrackFile,  # input audio track
-            '-c:v', 'copy',  # copy video codec
-            '-c:a', 'aac',  # use AAC for audio codec
-            '-strict', 'experimental',  # allow experimental codecs
-            '-threads', 'auto',  # use all available threads
-            '-shortest'  # stop when the shortest input ends
-        ]
-        # add output file
-        cmd.append(filename)
-
-        # apply any writer options if provided
+        # `addAudioToMovie()` copies the video stream across and transcodes the
+        # audio to AAC, ending at the shorter of the two tracks
+        ffmpegOpts = {
+            'strict': 'experimental',  # allow experimental codecs
+            'threads': 'auto'}  # use all available threads
         if writerOpts is not None:
-            for key, value in writerOpts.items():
-                if isinstance(value, str):
-                    cmd.append('-' + key)
-                    cmd.append(value)
-                elif isinstance(value, bool) and value:
-                    cmd.append('-' + key)
-                elif isinstance(value, (int, float)):
-                    cmd.append('-' + key)
-                    cmd.append(str(value))
+            ffmpegOpts.update(writerOpts)
 
-        logging.debug(
-            "Merging audio and video tracks with command: {}".format(' '.join(cmd))
-        )
-
-        # run the command to merge audio and video tracks
         try:
-            proc = sp.Popen(
-                cmd, 
-                stdout=sp.PIPE, 
-                stderr=sp.PIPE, 
-                stdin=sp.DEVNULL if hasattr(sp, 'DEVNULL') else None,
-                universal_newlines=True,  # use text mode for output
-                text=True
-            )
-            proc.wait()  # wait for the process to finish
-            if proc.returncode != 0:
-                logging.error(
-                    "FFMPEG returned non-zero exit code {} for command: {}".format(
-                        proc.returncode, cmd
-                    )
-                )
-            # wait for the process to finish
-        except sp.CalledProcessError as e:
+            mt.addAudioToMovie(
+                filename, videoTrackFile, audioTrackFile, useThreads=False,
+                writerOpts=ffmpegOpts)
+        except (OSError, RuntimeError) as err:
+            # `OSError` covers a missing track or FFMPEG not being installed,
+            # `RuntimeError` FFMPEG failing, with what it had to say about it
             logging.error(
-                "Failed to merge audio and video tracks: {}".format(e))
+                "Could not merge the audio and video tracks into `{}`: "
+                "{}".format(filename, err))
             return None
-        
-        logging.info(
-            "Merged audio and video tracks into `{}`".format(filename))
 
         return filename
     
@@ -6088,11 +6219,20 @@ class Camera:
             to a separate file with the same name as `filename`, but with a
             `.wav` extension. This is useful if you want to process the audio
             track separately, or merge it with the video later on as the process
-            is computationally expensive and memory consuming. Default is 
-            `True`.
+            is computationally expensive and memory consuming. If the tracks
+            can't be merged, the reason is logged and they are saved as if
+            `mergeAudio=False`. Default is `True`.
         writerOpts : dict or None
             Options to pass to the movie writer. If `None`, default options
             will be used.
+
+        Returns
+        -------
+        str or None
+            Path to the saved video, or `None` if nothing was saved: either
+            there was no unsaved recording, or no video frames were captured
+            during it (which is logged as an error, and any audio track saved
+            to a `.wav` file named after `filename`).
 
         """
         # stop if still recording
@@ -6126,18 +6266,30 @@ class Camera:
 
         # check if we have a temp movie file
         videoTrackFile = self._tempVideoFile
-        
-        # write the temporary audio track to file if we have one
+
         tStart = time.time()  # start time for the operation
         # this is `None` if there is no microphone or nothing was captured, and
         # has already had any pre-recording samples trimmed off it
         audioTrack = self._getRecordedAudio()
 
-        if audioTrack is not None:
-            logging.debug(
-                "Saving audio track to file `{}`...".format(filename))
+        # No frames may have reached the recording, if the camera stopped
+        # streaming before it started for instance, and some writers don't
+        # create their file until the first frame arrives. There is no video to
+        # save then, so say so rather than fail on the missing track, and keep
+        # whatever audio there is.
+        hasVideo = self._frameCount > 0 and videoTrackFile is not None and \
+            os.path.isfile(videoTrackFile)
 
-            if mergeAudio:
+        savedFile = None
+        if not hasVideo:
+            logging.error(
+                "No video frames were captured during the recording, so no "
+                "video was saved to `{}`.".format(filename))
+            if audioTrack is not None:
+                self._saveAudioTrackFor(audioTrack, filename)
+        else:
+            merged = False
+            if audioTrack is not None and mergeAudio:
                 logging.debug("Merging audio track with video track...")
                 # save it to a temp file
                 import tempfile
@@ -6145,57 +6297,74 @@ class Camera:
                     suffix='.wav', delete=False)
                 audioTrackFile = tempAudioFile.name
                 tempAudioFile.close()  # close the file so we can use it later
-                audioTrack.save(audioTrackFile)
+                try:
+                    audioTrack.save(audioTrackFile)
+                    # merge audio and video tracks using FFMPEG
+                    merged = self._mergeAudioVideoTracks(
+                        videoTrackFile,
+                        audioTrackFile,
+                        filename,
+                        writerOpts=writerOpts) is not None
+                finally:
+                    os.remove(audioTrackFile)  # remove the temp file
 
-                # merge audio and video tracks using FFMPEG
-                self._mergeAudioVideoTracks(
-                    videoTrackFile, 
-                    audioTrackFile, 
-                    filename, 
-                    writerOpts=writerOpts)
-                
-                os.remove(audioTrackFile)  # remove the temp file
+                if not merged:
+                    # the reason has been logged, don't lose the recording too
+                    logging.warning(
+                        "Saving the video and audio tracks of the recording to "
+                        "separate files instead.")
 
-            else:
-                tAudioStart = time.time()  # start time for audio saving
-                # just save the audio file seperatley
-                # check if the filename has an extension
-                if '.' not in filename:
-                    audioTrackFile = filename + '.wav'
-                else:
-                    # if it has an extension, use the same name but with .wav
-                    # extension
-                    rootName, _ = os.path.splitext(filename)
-                    audioTrackFile = rootName + '.wav' 
-
-                audioTrack.save(audioTrackFile)
-
-                logging.info(
-                    "Saved recorded audio track to `{}` (took {:.6f} seconds)".format(
-                        audioTrackFile, time.time() - tAudioStart))
-
-                # just copy the video from the temp file to the final file
+            if not merged:
+                # just copy the video from the temp file to the final file, with
+                # the audio (if any) saved alongside it
                 import shutil
                 shutil.copyfile(videoTrackFile, filename)
+                if audioTrack is not None:
+                    self._saveAudioTrackFor(audioTrack, filename)
 
-        else:
-            # just copy the video file to the destination
-            import shutil
-            shutil.copyfile(videoTrackFile, filename)
+            logging.info(
+                "Saved recorded video to `{}` (took {:.6f} seconds)".format(
+                    filename, time.time() - tStart))
+            savedFile = filename
 
-        os.remove(videoTrackFile)  # remove the temp file
+        if videoTrackFile is not None and os.path.isfile(videoTrackFile):
+            os.remove(videoTrackFile)  # remove the temp file
 
-        logging.info(
-            "Saved recorded video to `{}` (took {:.6f} seconds)".format(
-                filename, time.time() - tStart))
-        
         self._frameStore.clear()  # clear the frame store
-        # mark that there's no longer unsaved footage
+        # mark that there's no longer unsaved footage, since what could be
+        # saved has been
         self._unsaved = False
 
-        self._lastVideoFile = filename  # store the last video file saved
+        self._lastVideoFile = savedFile  # store the last video file saved
 
         return self._lastVideoFile
+
+    def _saveAudioTrackFor(self, audioTrack, filename):
+        """Save a recording's audio track to its own file beside its video.
+
+        Parameters
+        ----------
+        audioTrack : AudioClip
+            Audio track of the recording.
+        filename : str
+            File the recording's video is (or would have been) saved to. The
+            audio is saved under the same name, with a `.wav` extension.
+
+        Returns
+        -------
+        str
+            Path to the saved audio file.
+
+        """
+        tAudioStart = time.time()  # start time for audio saving
+        audioTrackFile = os.path.splitext(filename)[0] + '.wav'
+        audioTrack.save(audioTrackFile)
+
+        logging.info(
+            "Saved recorded audio track to `{}` (took {:.6f} seconds)".format(
+                audioTrackFile, time.time() - tAudioStart))
+
+        return audioTrackFile
 
     def _upload(self):
         """Upload video file to an online repository. Not implemented locally,
@@ -6416,12 +6585,26 @@ class Camera:
         if not self._recordingRequested and not liveView:
             return  # not recording, nothing to do with these
 
+        # A stop scheduled by `stop(when=...)` ends the recording on the first
+        # frame captured at or after that time, so that the video track runs up
+        # to the same moment as the audio track rather than stopping when
+        # `stop()` was called. `None` means no stop has been asked for.
+        stopTime = self._tRecordingStopRequested
+        reachedScheduledStop = False
+
         for colorData, frameIndex, pts, absTime in frames:
             # Whether this frame belongs to a recording, as opposed to one only
             # passing through for the live view. Frames captured before the
-            # recording was asked to start are not part of it.
+            # recording was asked to start, or at or after a scheduled stop,
+            # are not part of it.
             inRecording = (self._recordingRequested and
                            absTime >= self._tRecordingStartRequested)
+
+            if inRecording and stopTime is not None and absTime >= stopTime:
+                # the recording ends just before this frame, which goes on to
+                # the live view (if any) but not into the recording
+                inRecording = False
+                reachedScheduledStop = True
 
             if not inRecording and not liveView:
                 continue
@@ -6468,7 +6651,13 @@ class Camera:
                 # `frameCount` counts the current recording, so frames shown
                 # only in the live view are left out of it
                 self._frameCount += 1  # increment the frame count
-        
+
+        # The footage now runs up to the scheduled stop, so close the recording
+        # off. This happens after the loop so that any remaining frames in this
+        # batch still reach the live view.
+        if reachedScheduledStop:
+            self._finaliseRecordingStop()
+
     def update(self):
         """Acquire the newest data from the camera and audio streams.
 
@@ -6499,10 +6688,14 @@ class Camera:
             return
 
         # force the device interface to poll to ensure most recent frame
-        self._capture._poll() 
+        self._capture._poll()
+        # Frames retrieved by that poll have been handled by now, so a stop
+        # scheduled for a time which has since passed can be closed off. Does
+        # nothing unless a stop is pending and its moment has come.
+        self._checkScheduledStop()
         # transfer most recent frames to the GPU if we have a window
-        self._pixelTransfer()  
-                
+        self._pixelTransfer()
+
     def poll(self):
         """Poll the camera for new frames.
         
@@ -6672,7 +6865,7 @@ class Camera:
         This is used to free up any texture buffers used by the camera. This
         is called when the camera is closed or when the window is closed.
         """
-        import pyglet.gl as GL  # needed for OpenGL texture management
+        import psychopy.tools.pygletgl as GL  # needed for OpenGL texture management
 
         try:
             # delete buffers and textures if previously created
@@ -6706,7 +6899,7 @@ class Camera:
 
         self._freeTextureBuffers()  # free any existing buffers
 
-        import pyglet.gl as GL
+        import psychopy.tools.pygletgl as GL
 
         # Get the size of the camera frame and compute the buffer size. Both
         # are cached so that `_pixelTransfer` works from the dimensions the
@@ -6766,7 +6959,7 @@ class Camera:
         The video texture must be bound before calling this.
 
         """
-        import pyglet.gl as GL
+        import psychopy.tools.pygletgl as GL
 
         if self._interpolate:
             texFilter = GL.GL_LINEAR
@@ -6793,7 +6986,7 @@ class Camera:
         if self._lastFrame is None:
             return  # no frame to upload
 
-        import pyglet.gl as GL
+        import psychopy.tools.pygletgl as GL
 
         if self._texBufferSizeBytes is None or self._textureId is None or \
                 self._textureId.value == 0:
@@ -7136,6 +7329,95 @@ DeviceManager.registerClassAlias("camera", "psychopy.hardware.camera.Camera")
 # Functions
 #
 
+# AVFoundation values used by the MacOS camera enumeration below. Spelled out
+# here so the constants can be referenced without importing `AVFoundation` on
+# platforms which don't have it.
+AVF_MEDIA_TYPE_VIDEO = u'vide'
+AVF_AUTHORIZATION_RESTRICTED = 1
+AVF_AUTHORIZATION_DENIED = 2
+
+# Names of the `AVCaptureDeviceType` constants to discover cameras under, with
+# the MacOS version each was introduced in. Which of these AVFoundation defines
+# depends on the MacOS version, and `pyobjc` resolves them against the framework
+# at the moment they're accessed, so they're looked up by name and any which
+# aren't there are skipped. Note that on MacOS 14+ `AVCaptureDeviceTypeExternal`
+# and `AVCaptureDeviceTypeExternalUnknown` are two names for the same value, so
+# the list is deduplicated before use.
+AVF_CAMERA_DEVICE_TYPES = (
+    'AVCaptureDeviceTypeBuiltInWideAngleCamera',  # built-in cameras, 10.15+
+    'AVCaptureDeviceTypeExternal',                # USB cameras, 14.0+
+    'AVCaptureDeviceTypeExternalUnknown',         # USB cameras, 10.15 - 14.0
+    'AVCaptureDeviceTypeContinuityCamera',        # iPhone as a webcam, 14.0+
+    'AVCaptureDeviceTypeDeskViewCamera',          # Desk View camera, 13.0+
+)
+
+
+def _getAVCaptureDevicesMacOS():
+    """Get the video capture devices AVFoundation knows about on MacOS.
+
+    Don't call this function directly unless testing, use
+    `_getCameraInfoMacOS()` instead.
+
+    Cameras are discovered with `AVCaptureDeviceDiscoverySession` where it's
+    available (MacOS 10.15 onwards). `AVCaptureDevice.devices()` was deprecated
+    in favour of it in 10.15, and while that call does still report USB and
+    built-in cameras, it doesn't report Continuity Cameras (an iPhone used as a
+    webcam) or the Desk View camera, which are only reachable by asking the
+    discovery session for those device types.
+
+    The deprecated call is still used afterwards, to cover MacOS 10.14 and
+    earlier where there is no discovery session, and to top up the results on
+    newer systems, since the discovery session only returns the device types it
+    was asked for. Devices found both ways are deduplicated by their unique ID.
+
+    Returns
+    -------
+    list
+        List of `AVCaptureDevice` objects for the video capture devices found.
+
+    """
+    import AVFoundation as avf  # only works on MacOS
+
+    foundDevices = []
+    seenDeviceIDs = set()  # a camera can be discovered under more than one type
+
+    # The device types to search for, minus any this version of MacOS (or of
+    # `pyobjc`) doesn't define, and minus the duplicates that leaves behind.
+    deviceTypes = []
+    for typeName in AVF_CAMERA_DEVICE_TYPES:
+        deviceType = getattr(avf, typeName, None)
+        if deviceType is not None and deviceType not in deviceTypes:
+            deviceTypes.append(deviceType)
+
+    # `AVCaptureDeviceDiscoverySession` is MacOS 10.15+, and `pyobjc` raises
+    # `AttributeError` for a class the running system doesn't have, so fall
+    # through to the deprecated enumeration below on older systems.
+    discoverySessionClass = getattr(
+        avf, 'AVCaptureDeviceDiscoverySession', None)
+
+    if discoverySessionClass is not None and deviceTypes:
+        discoverySession = discoverySessionClass.\
+            discoverySessionWithDeviceTypes_mediaType_position_(
+                deviceTypes,
+                AVF_MEDIA_TYPE_VIDEO,
+                avf.AVCaptureDevicePositionUnspecified)
+
+        for device in discoverySession.devices():
+            seenDeviceIDs.add(device.uniqueID())
+            foundDevices.append(device)
+
+    # Fall back on the deprecated enumeration for anything the discovery session
+    # missed, and for MacOS 10.14 and earlier where there was no discovery
+    # session at all. `devices()` returns audio devices too, which the caller
+    # filters out by media type.
+    for device in avf.AVCaptureDevice.devices():
+        if device.uniqueID() in seenDeviceIDs:
+            continue
+        foundDevices.append(device)
+
+    return foundDevices
+
+
 def _getCameraInfoMacOS(cameraLib=CAMERA_LIB_FFPYPLAYER):
     """Get a list of capabilities associated with a camera attached to the 
     system.
@@ -7167,15 +7449,29 @@ def _getCameraInfoMacOS(cameraLib=CAMERA_LIB_FFPYPLAYER):
     import AVFoundation as avf  # only works on MacOS
     import CoreMedia as cm
 
+    # Warn early if the app has been refused camera access, since the discovery
+    # session then comes back empty and the cause is otherwise invisible. Camera
+    # access is only gated from MacOS 10.14 onwards, and the call to check it
+    # only exists from then too, so skip this on anything older.
+    if hasattr(avf.AVCaptureDevice, 'authorizationStatusForMediaType_'):
+        authStatus = avf.AVCaptureDevice.authorizationStatusForMediaType_(
+            AVF_MEDIA_TYPE_VIDEO)
+        if authStatus in (AVF_AUTHORIZATION_DENIED, AVF_AUTHORIZATION_RESTRICTED):
+            logging.warning(
+                "This application has not been granted access to the camera, "
+                "so no cameras can be found. Grant access under System Settings "
+                "> Privacy & Security > Camera.")
+
     # get a list of capture devices
-    allDevices = avf.AVCaptureDevice.devices()
+    allDevices = _getAVCaptureDevicesMacOS()
 
     # get video devices
     videoDevices = {}
     devIdx = 0
     for device in allDevices:
         devFormats = device.formats()
-        if devFormats[0].mediaType() != 'vide':  # not a video device
+        # not a video device, or one which reports no formats at all
+        if not devFormats or devFormats[0].mediaType() != AVF_MEDIA_TYPE_VIDEO:
             continue
 
         # camera details

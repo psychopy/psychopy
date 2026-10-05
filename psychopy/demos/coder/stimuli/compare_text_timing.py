@@ -13,7 +13,7 @@ import random
 from psychopy import visual, core, event
 from psychopy.visual import textbox
 from psychopy.iohub.util import NumPyRingBuffer
-import pyglet.gl as gl
+import psychopy.tools.pygletgl as gl
 
 # Variables to control text string length etc.
 text_length=160

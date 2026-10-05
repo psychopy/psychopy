@@ -114,7 +114,9 @@ class HammingWindow:
             sound block, or 1.0 if no windowing is needed.
 
         """
-        startSample = int(t*self.sampleRate)
+        # round (not truncate): t may sit fractionally off the sample grid,
+        # e.g. 127.99999 samples, which int() would put a sample early
+        startSample = int(round(t*self.sampleRate))
         if startSample < self.winSamples:
             # we're in beginning hanning window (start of sound)
             # 2 options:
@@ -244,8 +246,8 @@ class _SoundBase(AttributeGetSetMixin):
                     self._setSndFromFile(self.fileName)
 
         elif isinstance(value, (list, numpy.ndarray,)):
-            # create a sound from the input array/list
-            self._setSndFromArray(numpy.array(value))
+            # create a sound from the input array/list (which this copies)
+            self._setSndFromArray(value)
         elif isinstance(value, AudioClip):  # from an audio clip object
             # check if we should resample the audio clip to match the device
             if self.sampleRate is None:
@@ -333,15 +335,17 @@ class _SoundBase(AttributeGetSetMixin):
         ----------
         thisFreq : float
             Frequency in Hz.
-        secs : float
-            Duration of the sound in seconds. If negative, the sound will loop
-            indefinitely (until stopped).
+        secs : float or None
+            Duration of the sound in seconds (0.5 if None). If negative, the
+            sound will loop indefinitely (until stopped).
         hamming : bool
             Whether to apply a Hanning window to the sound to reduce 'click' onset
             and offset. Not applied to sounds from files.
         
         """
         # note freq -> array -> sound
+        if secs is None:
+            secs = 0.5  # default tone length
         if secs < 0:
             # want infinite duration - create 1 sec sound and loop it
             secs = 10.0
@@ -357,8 +361,8 @@ class _SoundBase(AttributeGetSetMixin):
 
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
-            
-        self._setSndFromArray(outArr)
+
+        self._setSndFromArray(outArr, copy=False)  # made just for this
 
     def _channelCheck(self, sndArr):
         """Checks whether stream has fewer channels than data. If so, raises 
@@ -407,20 +411,22 @@ class _SoundBase(AttributeGetSetMixin):
 
         fileDuration = float(len(f)) / f.samplerate  # needed for duration?
 
-        # process start time
+        # process start time. t is the time within the snippet, so it starts
+        # at 0 whatever the startTime (when streaming, seek() adds the start
+        # frame back on to find the position in the file)
         if self.startTime and self.startTime > 0:
-            startFrame = self.startTime * self.sampleRate
-            self.sndFile.seek(int(startFrame))
-            self.t = self.startTime
+            startTime = self.startTime
+            self.sndFile.seek(int(round(startTime * self.sampleRate)))
         else:
-            self.t = 0
+            startTime = 0
+        self.t = 0
 
         # process stop time
         if self.stopTime and self.stopTime > 0:
-            requestedDur = self.stopTime - self.t
-            self.duration = min(requestedDur, fileDuration)
+            stopTime = min(self.stopTime, fileDuration)
         else:
-            self.duration = fileDuration - self.t
+            stopTime = fileDuration
+        self.duration = max(0.0, stopTime - startTime)
 
         # can now calculate duration in frames
         self.durationFrames = int(round(self.duration * self.sampleRate))
@@ -430,27 +436,41 @@ class _SoundBase(AttributeGetSetMixin):
             # no buffer - stream from disk on each call to nextBlock
             return
         elif self.preBuffer == -1:
-            # full pre-buffer. Load requested duration to memory
+            # full pre-buffer. Load requested duration to memory, as the 32-bit
+            # float samples are kept in (rather than the default 64-bit)
             sndArr = self.sndFile.read(
-                frames=int(self.sampleRate * self.duration))
+                frames=self.durationFrames, dtype='float32')
             self.sndFile.close()
-            self._setSndFromArray(sndArr)
+            self._setSndFromArray(sndArr, copy=False)  # read just for this
         
         self._channelCheck(self.sndArr)
             
-    def _setSndFromArray(self, thisArray):
+    def _setSndFromArray(self, thisArray, copy=True):
         """Set sound from a numpy array.
-        
+
         Parameters
         ----------
-        thisArray : numpy.ndarray
+        thisArray : ArrayLike
             A 1D or 2D array of sound data, where rows are samples and columns
             are channels. Values should be floats in the range -1.0 to 1.0.
+        copy : bool
+            Whether the sound keeps a copy of `thisArray`, which it needs to
+            unless nothing else has a reference to it. Pass `False` for an
+            array made just for this sound, which is then used as it is (if
+            already 32-bit float), saving a copy that for a long sound takes
+            hundreds of megabytes.
 
         """
-        self.sndArr = numpy.asarray(thisArray).astype('float32')
-        if thisArray.ndim == 1:
-            self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
+        # Kept as 32-bit float in rows of samples, which `AudioClip` takes as
+        # it is. This is the only copy made on the way.
+        if copy:
+            self.sndArr = numpy.array(thisArray, dtype=numpy.float32, order='C')
+        else:
+            self.sndArr = numpy.asarray(
+                thisArray, dtype=numpy.float32, order='C')
+        if self.sndArr.ndim == 1:
+            # make 2D for broadcasting, without reshaping an array passed in
+            self.sndArr = self.sndArr.reshape(-1, 1)
 
         # is this stereo?
         if self.stereo == -1:  # auto stereo. Try to detect
@@ -462,7 +482,7 @@ class _SoundBase(AttributeGetSetMixin):
                 raise IOError("Couldn't determine whether array is "
                               "stereo. Shape={}".format(self.sndArr.shape))
         # store details about array
-        self._nSamples = thisArray.shape[0]
+        self._nSamples = self.sndArr.shape[0]
         self.sourceType = "array"
 
         # catch when array is empty
@@ -473,16 +493,74 @@ class _SoundBase(AttributeGetSetMixin):
             self.sndArr = numpy.zeros(
                 shape=(self.blockSize, self.channels))
 
-        # create audio clip
+        # Create audio clip. `sndArr` is the sound's own array by now, so the
+        # clip shares it rather than making a second copy of it.
         clip = AudioClip(
             samples=self.sndArr,
-            sampleRateHz=self.sampleRate
+            sampleRateHz=self.sampleRate,
+            copy=False
         )
         # set from clip
         self._setSndFromClip(clip)
 
+    def _allocateSamples(self, nSamples, channels):
+        """Make the sound `nSamples` samples of silence, to be filled in a
+        block at a time with `_writeSamples` and cut to its final length with
+        `_trimSamples`.
+
+        This is for sounds too long to hand over in one go without holding up
+        drawing, such as a movie's audio track decoded on another thread. The
+        sound must already be at the sample rate it plays at (`sampleRate`),
+        since it can't be resampled a block at a time.
+
+        Parameters
+        ----------
+        nSamples : int
+            Length of the sound in samples, at least as long as it will be.
+        channels : int
+            Number of channels the samples written will have.
+
+        """
+        self._setSndFromArray(
+            numpy.zeros((int(nSamples), int(channels)), dtype=numpy.float32),
+            copy=False)
+
+    def _writeSamples(self, start, samples):
+        """Write samples into a sound made by `_allocateSamples`.
+
+        This may be called from a thread other than the one the sound is used
+        from, but not while the sound is playing.
+
+        Parameters
+        ----------
+        start : int
+            Index of the sample to write the first of `samples` to.
+        samples : ndarray
+            32-bit float samples shaped `(samples, channels)`.
+
+        Returns
+        -------
+        int
+            Number of samples written, which is fewer than given where they
+            run past the end of the sound.
+
+        """
+        nWritten = max(0, min(len(samples), len(self.sndArr) - start))
+        self.sndArr[start:start + nWritten] = samples[:nWritten]
+
+        return nWritten
+
+    def _trimSamples(self, nSamples):
+        """Cut a sound made by `_allocateSamples` to the length it turned out
+        to be, `nSamples`.
+
+        """
+        self.sndArr = self.sndArr[:nSamples]
+        self._nSamples = len(self.sndArr)
+        self.duration = self._nSamples / float(self.sampleRate)
+
     def _setSndFromClip(self, clip: AudioClip):
-        """Set current sound from an AudioClip object. 
+        """Set current sound from an AudioClip object.
         
         All other setSound methods eventually lead to this - they just transform 
         the given sound (be it an array, file, note, etc.) to an AudioClip first.
