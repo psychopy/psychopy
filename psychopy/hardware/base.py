@@ -306,7 +306,7 @@ class BaseResponseDevice(BaseDevice):
                 # if True, execute callback
                 return callback['func'](*callback['args'], **callback['kwargs'])
 
-    def receiveMessage(self, message):
+    def receiveMessage(self, message, muteOutsidePsychopy=None):
         """
         Method called when a parsed message is received. Includes code to send to any listeners and store the response.
 
@@ -320,9 +320,12 @@ class BaseResponseDevice(BaseDevice):
         bool
             True if completed successfully
         """
+        # get default for muting outside PsychoPy
+        if muteOutsidePsychopy is None:
+            muteOutsidePsychopy = self.muteOutsidePsychopy
         # disregard any messages sent while the PsychoPy window wasn't in focus (for security)
         from psychopy.tools.systemtools import isRegisteredApp
-        if self.muteOutsidePsychopy and not isRegisteredApp():
+        if muteOutsidePsychopy and not isRegisteredApp():
             return
         # make sure response is of the correct class
         assert isinstance(message, self.responseClass), (

@@ -271,7 +271,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     continue
                 # otherwise add new press
                 self.receiveMessage(
-                    self.parseMessage(evt)
+                    self.parseMessage(evt),
+                    # pyglet is already muted outside PsychoPy, so don't waste time on PID checks
+                    muteOutsidePsychopy=False
                 )
             # for releases, add a release time to the last press
             if evt['event'] == "release":
