@@ -442,6 +442,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         if eventType is None:
             # clear buffer
             self.buffer.clear()
+            # clear dispatched responses
+            self.responses = []
         else:
             # create intermediate buffer for spared events
             buffer = deque(maxlen=self.bufferSize)
@@ -452,6 +454,14 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     buffer.append(evt)
             # restore buffer
             self.buffer.extendleft(reversed(buffer))
+            # clear dispatched responses
+            if eventType == "release":
+                # if only clearing releases, mark every press as unreleased
+                for resp in self.responses:
+                    resp.duration = None
+            else:
+                # if clearing presses, releases are meaningless, so delete all
+                self.responses = []
 
     def waitKeys(
         self, 
