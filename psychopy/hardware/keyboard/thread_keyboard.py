@@ -283,7 +283,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     if resp.value != evt['value']:
                         continue
                     # apply duration
-                    resp.duration = evt['t'] - self.clock._timeAtLastReset - resp.t
+                    resp.duration = evt['t'] - self.clock._epochTimeAtLastReset - resp.t
 
     @staticmethod
     def pynput2str(obj):
