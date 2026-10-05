@@ -199,6 +199,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         """
         # disable onPress and onRelease callbacks
         self.started = False
+        # stop the thread if possible
+        if hasattr(self, "backend"):
+            self.backend.stop()
 
     def close(self):
         self.stop()
