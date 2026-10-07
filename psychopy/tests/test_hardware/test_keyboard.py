@@ -237,5 +237,33 @@ class TestEventKeyboard(_TestBaseKeyboard, _MillikeyMixin):
     def setup_method(self):
         self.kb = keyboard.KeyboardDevice(backend="event", muteOutsidePsychopy=False)
 
+    def testKeyNameIsNotATimestampedPair(self):
+        """
+        Test that the event backend's `[keyName, timestamp]` pairs are unpacked into a plain
+        key name, so the `keyList`/`ignoreKeys` filters still match.
+        """
+        # `psychopy.event` is only imported when psychtoolbox is absent, so the event branch
+        # of `getKeys` is only reachable in that configuration.
+        if keyboard.havePTB:
+            pytest.skip("the event backend is only importable without psychtoolbox")
+        previous = keyboard.KeyboardDevice._backend
+        keyboard.KeyboardDevice._backend = 'event'
+        try:
+            resp = self.kb.parseMessage(["f", 1234.5])
+            assert resp.name == "f"
+            assert resp.value == "f"
+            assert resp == "f"
+            # a bare string is the other shape callers pass, and must be unaffected
+            assert self.kb.parseMessage("f").name == "f"
+            # the filters test `resp.value in keyList`, which a list-valued name defeated
+            self.kb.clearEvents()
+            self.kb.receiveMessage(resp)
+            assert len(self.kb.getKeys(keyList=["f"], waitRelease=False, clear=True)) == 1
+            self.kb.receiveMessage(self.kb.parseMessage(["q", 1235.0]))
+            assert len(self.kb.getKeys(keyList=["f"], waitRelease=False, clear=True)) == 0
+            self.kb.clearEvents()
+        finally:
+            keyboard.KeyboardDevice._backend = previous
+
     def teardown_method(self):
         self.kb.getKeys(clear=True)
