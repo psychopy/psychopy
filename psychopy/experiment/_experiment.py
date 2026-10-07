@@ -1306,7 +1306,7 @@ class Experiment:
         for child in settings:
             if child.attrib['name'] == "runMode":
                 # get value
-                return int(child.attrib['val'])
+                return child.attrib['val'] == "True" or int(child.attrib['val'])
 
         return 1
 
