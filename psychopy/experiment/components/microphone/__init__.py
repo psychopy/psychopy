@@ -405,9 +405,12 @@ class MicrophoneComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # Stop the recording
-            self.writeStopTestCodeJS(buff)
+            # Microphone.pause() only acts while the microphone status is STARTED,
+            # so defer marking it FINISHED until after the recording is paused.
+            self.writeStopTestCodeJS(buff, updateStatus=False)
             code = (
                     "%(name)s.pause();\n"
+                    "%(name)s.status = PsychoJS.Status.FINISHED;\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
