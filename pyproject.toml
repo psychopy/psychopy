@@ -42,14 +42,13 @@ dependencies = [
     # for core stimuli
     "soundfile",
     "sounddevice",
-    "psychtoolbox; python_version < \"3.14\"",
     "imageio",
     "imageio-ffmpeg",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
     "zope.interface==7.2",  # needed for gevent on macos
-    "gevent; python_version < \"3.14\"",
+    "gevent",
     "gevent==25.5.1; platform_system==\"Darwin\"",
     "MeshPy",
     "psutil",
@@ -78,7 +77,7 @@ dependencies = [
     # movie backends
     "av",  # PyAV, also used to extract movie audio tracks
     "ffpyplayer; python_version < \"3.14\"",
-    "opencv-python; python_version < \"3.14\"",
+    "opencv-python",
     # platform specific
     "python-vlc >= 3.0.21203",
     "pypiwin32; platform_system == \"Windows\"",
@@ -127,6 +126,7 @@ suggested = [
     "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",
+    "psychtoolbox",
 ]
 legacy = [
     "pyo>=1.0.3",
