@@ -160,11 +160,31 @@ class KeyPress(BaseResponse):
             value = self.code
         BaseResponse.__init__(self, t=tDown, value=value)
 
+    @property
+    def t(self):
+        return self.tDown
+
+    @t.setter
+    def t(self, value):
+        self.tDown = value
+
+    @property
+    def value(self):
+        return self.name
+
+    @value.setter
+    def value(self, value):
+        self.name = value
+
     def __eq__(self, other):
         return self.name == other
 
     def __ne__(self, other):
         return self.name != other
+
+
+# alias KeyResponse against old name
+KeyResponse = KeyPress
 
 
 def getKeyboards():
@@ -188,13 +208,13 @@ def getKeyboards():
 
 
 class Keyboard(AttributeGetSetMixin):
-    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None, muteOutsidePsychopy=False):
         if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
             self.device = DeviceManager.addDevice(
                 deviceClass="psychopy.hardware.keyboard.KeyboardDevice", deviceName=deviceName,
                 backend=backend, device=device, bufferSize=bufferSize, waitForStart=waitForStart,
-                clock=clock
+                clock=clock, muteOutsidePsychopy=muteOutsidePsychopy
             )
         else:
             # otherwise, use the existing device

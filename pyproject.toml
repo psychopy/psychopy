@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.10, <3.13"
+requires-python = ">=3.10, <3.15"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -42,17 +42,14 @@ dependencies = [
     # for core stimuli
     "soundfile",
     "sounddevice",
-    "psychtoolbox",
-    # first with an Apple Silicon wheel, earlier ones build from source there
-    # without the PortAudio and libusb libraries they need
-    "psychtoolbox>=3.0.22.2; platform_system == \"Darwin\" and platform_machine == \"arm64\"",
     "imageio",
     "imageio-ffmpeg",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
     "zope.interface==7.2",  # needed for gevent on macos
-    "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
+    "gevent",
+    "gevent==25.5.1; platform_system==\"Darwin\"",
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
@@ -76,9 +73,10 @@ dependencies = [
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
+    "pynput; platform_system != \"Linux\"",
     # movie backends
     "av",  # PyAV, also used to extract movie audio tracks
-    "ffpyplayer",
+    "ffpyplayer; python_version < \"3.14\"",
     "opencv-python",
     # platform specific
     "python-vlc >= 3.0.21203",
@@ -128,6 +126,7 @@ suggested = [
     "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",
+    "psychtoolbox",
 ]
 legacy = [
     "pyo>=1.0.3",

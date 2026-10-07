@@ -605,6 +605,11 @@ class Window():
         global GL
         GL = self.backend.GL
 
+        # if there's a keyboard, attach keypresses from this window to it
+        from psychopy.hardware.keyboard import KeyboardDevice
+        if hasattr(KeyboardDevice._instance, "attachWindow"):
+            KeyboardDevice._instance.attachWindow(self.backend.winHandle)
+
         # check whether shaders are supported
         # also will need to check for ARB_float extension,
         # but that should be done after context is created
