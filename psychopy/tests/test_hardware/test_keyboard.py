@@ -1,4 +1,5 @@
 import sys
+from contextlib import contextmanager
 from psychopy.hardware import keyboard
 import pytest
 import time
@@ -239,3 +240,94 @@ class TestEventKeyboard(_TestBaseKeyboard, _MillikeyMixin):
 
     def teardown_method(self):
         self.kb.getKeys(clear=True)
+
+    @staticmethod
+    @contextmanager
+    def _eventBackend():
+        """
+        Force the keyboard backend to 'event' for the duration of the block.
+
+        `KeyboardDevice._backend` is a class-level singleton and `setBackend()`
+        refuses to change it once a backend has been chosen, so whichever
+        backend a test class constructs first wins for the whole session. The
+        tests below are specifically about the event backend's message parsing,
+        so they set it explicitly and restore the previous value afterwards.
+        """
+        previous = keyboard.KeyboardDevice._backend
+        keyboard.KeyboardDevice._backend = 'event'
+        try:
+            yield
+        finally:
+            keyboard.KeyboardDevice._backend = previous
+
+    @staticmethod
+    def _freshEventKb():
+        """
+        Return a fresh event-backed KeyboardDevice.
+
+        `getKeys(clear=True)` only drops the responses it *wanted*, so a press
+        excluded by a `keyList` stays in that device's buffer and turns up in
+        the next call. Each assertion therefore gets its own device rather than
+        inheriting the previous call's leftovers.
+        """
+        return keyboard.KeyboardDevice(backend="event",
+                                       muteOutsidePsychopy=False)
+
+    def testEventBackendReportsKeyName(self):
+        """
+        Test that the event backend reports the key name as a string, so that
+        keyList/ignoreKeys filtering works.
+
+        `dispatchMessages` reads this backend with
+        `event.getKeys(timeStamped=True)`, which returns `[name, timestamp]`
+        pairs. If that pair is stored as the key name then `KeyPress.value`
+        is a list, which never compares equal to anything in `keyList`, so
+        `getKeys(keyList=[...])` silently returns nothing at all (#7810).
+        """
+        from psychopy import event
+        with self._eventBackend():
+            event.clearEvents(eventType='keyboard')
+            # the raw event is a [name, timestamp] pair, not a bare name:
+            # this is the exact shape dispatchMessages hands to parseMessage
+            event._onPygletKey('f', 0, emulated=True)
+            raw = event.getKeys(modifiers=False, timeStamped=True)
+            assert len(raw) == 1
+            assert len(raw[0]) == 2
+            assert raw[0][0] == 'f'
+            # put that same press back so the real dispatch path is exercised
+            event._onPygletKey('f', 0, emulated=True)
+
+            keys = self._freshEventKb().getKeys(keyList=["f"],
+                                                waitRelease=False)
+
+            assert len(keys) == 1, (
+                "keyList filtering must match the pressed key on the event "
+                f"backend; got {keys}"
+            )
+            assert keys[0].name == "f"
+            assert keys[0].value == "f"
+            # the class documents `key == 'q'`, which needs a str, not a list
+            assert keys[0] == "f"
+
+    def testEventBackendKeyListExcludesOtherKeys(self):
+        """
+        Test that keyList still excludes keys that were not pressed.
+
+        Guards the fix for #7810 against over-matching once the key name is
+        unpacked from the [name, timestamp] pair.
+        """
+        from psychopy import event
+        with self._eventBackend():
+            event.clearEvents(eventType='keyboard')
+
+            event._onPygletKey('f', 0, emulated=True)
+            assert self._freshEventKb().getKeys(
+                keyList=["z"], waitRelease=False) == []
+
+            event._onPygletKey('f', 0, emulated=True)
+            assert len(self._freshEventKb().getKeys(
+                keyList=["a", "f"], waitRelease=False)) == 1
+
+            event._onPygletKey('f', 0, emulated=True)
+            assert self._freshEventKb().getKeys(
+                ignoreKeys=["f"], waitRelease=False) == []
