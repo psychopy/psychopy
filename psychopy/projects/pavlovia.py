@@ -32,7 +32,12 @@ from ..tools.apptools import SortTerm
 try:
     import git  # must import psychopy constants before this (custom git path)
     haveGit = True
-except ImportError:
+except ImportError as err:
+    logging.error(
+        f"Failed to import git, which is what PsychoPy uses to sync to Pavlovia. Syncing to "
+        f"Pavlovia this session is therefore unlikely to work. Original error:\n"
+        f"{err}"
+    )
     haveGit = False
 # message to show when git is needed and not installed (format with action that failed)
 noGitMsg = _translate(
