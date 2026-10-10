@@ -636,9 +636,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     self.receiveMessage(kpress)
         else:
             global event
-            name = event.getKeys(modifiers=False, timeStamped=True)
-            if len(name):
-                thisKey = self.parseMessage(name[0])
+            keys = event.getKeys(modifiers=False, timeStamped=True)
+            for key in keys:
+                thisKey = self.parseMessage(key)
                 if thisKey is not None:
                     self.receiveMessage(thisKey)
 
@@ -702,9 +702,26 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     response = KeyPress(code=message.char, tDown=message.time, name=message.key)
 
         else:
-            # if backend is event, just add as str with current time
-            rt = self.clock.getTime()
-            response = KeyPress(code=None, tDown=rt, name=message)
+            # if backend is event, unpack key name and timestamp
+            if isinstance(message, (list, tuple)):
+                key_name = message[0]
+                t = message[1] if len(message) > 1 else None
+            else:
+                key_name = message
+                t = None
+
+            if t is not None:
+                tDown = t
+                timeBaseDiff = (
+                    self.clock.getLastResetTime()
+                    - logging.defaultClock.getLastResetTime()
+                )
+                rt = t - timeBaseDiff
+            else:
+                rt = self.clock.getTime()
+                tDown = logging.defaultClock.getTime()
+
+            response = KeyPress(code=None, tDown=tDown, name=key_name)
             response.rt = rt
 
         return response
