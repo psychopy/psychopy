@@ -7,6 +7,7 @@
 
 from pathlib import Path
 from psychopy import prefs
+from psychopy.experiment import py2js
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
 
@@ -278,9 +279,18 @@ class CodeComponent(BaseComponent):
     def writePreCodeJS(self, buff):
         if len(str(self.params['Before JS Experiment'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'Before JS Experiment')
-            if self.params['Before Experiment']:
-                buff.writeIndentedLines("// Run 'Before Experiment' code from %(name)s" % self.params)
-            buff.writeIndentedLines(str(self.params['Before JS Experiment']) + '\n')
+            # define code
+            code = (
+                "// Run 'Before Experiment' code from %(name)s\n"
+                "%(Before JS Experiment)s\n"
+            ) % self.params
+            # make sure variables are declared
+            for varname in py2js.findUndeclaredVariables(code, allUndeclaredVariables=self.exp.namespace.all):
+                buff.writeIndentedLines(
+                    f"var {varname};"
+                )
+            # write code
+            buff.writeIndentedLines(code)
 
     def writeInitCode(self, buff):
         if len(str(self.params['Begin Experiment'])) and not self.params['disabled']:
