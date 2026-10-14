@@ -50,7 +50,7 @@ jobs:
       
       - name: Generate draft release notes
         run: |
-          uv run 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(env.TAG, '.0') && '--filter release' || '' }}
+          uv run --no-project 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(env.TAG, '.0') && '--filter release' || '' }}
 
       - name: Upload release notes
         uses: actions/upload-artifact@v4
