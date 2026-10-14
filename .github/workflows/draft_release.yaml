@@ -1,0 +1,51 @@
+name: Create a draft release for a tag
+
+# will run in root folder devops/devops/
+# and we will create the following (which will persist until next run):
+# - ./versions_upload/python #executable
+# - psychopy #repo
+# - devops #repo
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+
+  create_draft_release:
+
+    runs-on: [
+      ubuntu-latest
+    ]
+
+    steps:
+      - name: Checkout psychopy
+        uses: actions/checkout@v6
+        with:
+          repository: psychopy/psychopy
+          path: psychopy
+          fetch-depth: 0
+      
+      - name: Install UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          activate-environment: true
+      
+      - name: Install requirements
+        run: |
+          uv pip install requests
+      
+      - name: Generate draft release notes
+        run: |
+          uv run 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(github.ref_name, '.0') && '--filter release' || '' }}
+      
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          draft: true
+          body_path: psychopy/building/.outputs/release_notes.md
