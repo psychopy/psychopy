@@ -182,6 +182,9 @@ for categ in prs:
     # skip docs
     if categ == "Documentation":
         continue
+    # skip if there's no entries
+    if all(len(prs[categ][repo]) == 0 for repo in prs[categ]):
+        continue
     # category title
     notes += (
         f"## {categ}\n"
