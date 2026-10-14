@@ -1951,7 +1951,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # which `_drawRectangle` sets up for itself.
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
-        # rows of 4-byte pixels are always 4-byte aligned
+        # rows of 4-byte pixels are always 4-byte aligned, kept to this upload
+        # so that other stimuli upload with whatever they set themselves
+        GL.glPushClientAttrib(GL.GL_CLIENT_PIXEL_STORE_BIT)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
 
         # copy the PBO to the texture, the format matching the texture's own
@@ -1962,6 +1964,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_RGBA,
             GL.GL_UNSIGNED_BYTE,
             0)  # point to the presently bound buffer
+        GL.glPopClientAttrib()
 
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
@@ -2006,6 +2009,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # and from there to each plane's texture, the row length telling GL to
         # skip any padding at the end of each row
         GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glPushClientAttrib(GL.GL_CLIENT_PIXEL_STORE_BIT)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         for textureId, offset, (_, width, height, rowLength) in zip(
                 self._planeTextureIds, offsets, planes):
@@ -2015,9 +2019,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 GL.GL_TEXTURE_2D, 0, 0, 0, width, height,
                 GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, ctypes.c_void_p(offset))
 
-        # back to the defaults, which other stimuli upload with
-        GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
+        # back to whatever other stimuli had set to upload with
+        GL.glPopClientAttrib()
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
