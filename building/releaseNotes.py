@@ -89,12 +89,33 @@ repos = {
 }
 # dict to store prs in
 prs = {
-    'Highlights': { name: [] for name in repos },
     'Improvements': { name: [] for name in repos },
     'Fixes': { name: [] for name in repos },
     'Breaking Changes': { name: [] for name in repos },
-    'Hidden': { name: [] for name in repos },
+    'Documentation': { name: [] for name in repos },
     'Other': { name: [] for name in repos },
+}
+# map commit tags to release notes categories
+categories = {
+    # conventional commits
+    'fix': "Fixes",
+    'refactor': "Breaking Changes",
+    'feat': "Improvements",
+    'docs': "Documentation",
+    'test': None,
+    'chore': None,
+    # legacy
+    'RF': "Breaking Changes",
+    'NF': "Improvements",
+    'ENH': "Improvements",
+    'BF': "Fixes",
+    'FF': None,
+    'DOC': None,
+    'DOCS': None,
+    'TEST': None,
+    'TESTS': None,
+    'SYS': None,
+    'PKG': None,
 }
 # get last release
 last = cacheget(
@@ -122,33 +143,44 @@ for repo in repos:
         # ignore PRs from bots
         if pr['user']['type'] == "Bot":
             continue
+        # parse title according to conventional commits spec
+        pr['parts'] = re.match(
+            pattern=r"^(?:(?P<tag>\w+)(?:\((?P<scope>[\w-]+)\))?(?P<breaking>!)?:\s*)?(?P<message>.+)$",
+            string=pr['title']
+        )
+        # skip anything with regression scope
+        if pr['parts'].group("scope") == "reg":
+            continue
+        # skip anything whose categ is hidden (e.g. sys admin stuff)
+        if pr['parts'].group("tag") and categories.get(pr['parts'].group("tag"), None) is None:
+            continue
         # if filtering for a specific target branch, get PR details
         if args.filter is not None:
             resp = cacheget(pr['pull_request']['url'])
             # if PR wasn't to target branch, ignore it
             if not resp['base']['ref'] == args.filter:
                 continue
-        # sort PR titles
-        if pr['title'].startswith("RF:") or re.match(r"^\w*?\!\:", pr['title']):
+        # sort into appropriate category
+        if pr['parts'].group("breaking"):
+            # breaking change takes priority
             prs['Breaking Changes'][repo].append(pr)
-        elif pr['title'].startswith("NF:"):
-            prs['Highlights'][repo].append(pr)
-        elif pr['title'].startswith("ENH:"):
-            prs['Improvements'][repo].append(pr)
-        elif pr['title'].startswith("BF:"):
-            prs['Fixes'][repo].append(pr)
-        elif any(
-            pr['title'].startswith(f"{tag}:") for tag in ["FF", "DOC", "DOCS", "TEST", "TESTS", "SYS", "PKG"]
-        ):
-            prs['Hidden'][repo].append(pr)
+        elif repo == "psychopy/psychopy-docs":
+            # all PRs to psychopy-docs are Documentation
+            prs["Documentation"][repo].append(pr)
+        elif pr['parts'].group("tag") not in categories:
+            # grab any with unrecognised tags
+            prs["Other"][repo].append(pr)
         else:
-            prs['Other'][repo].append(pr)
+            # anything else goes by category as normal
+            prs[
+                categories[pr['parts'].group("tag")]
+            ][repo].append(pr)
 # construct notes
 notes = ""
 # for each category...
 for categ in prs:
-    # skip hidden
-    if categ == "Hidden":
+    # skip docs
+    if categ == "Documentation":
         continue
     # category title
     notes += (
@@ -156,9 +188,6 @@ for categ in prs:
         f"\n"
     )
     for repo in repos:
-        # skip docs
-        if repo == "psychopy/psychopy-docs":
-            continue
         # skip if there's no PRs
         if not len(prs[categ][repo]):
             continue
@@ -169,17 +198,9 @@ for categ in prs:
         )
         # add PRs
         for pr in prs[categ][repo]:
-            # remove leading tag
-            pr['title'] = re.sub(
-                pattern=r"^[\w\!]*?\:\s*?", 
-                string=pr['title'],
-                repl=""
-            )
-            # remove trailing spaces
-            pr['title'] = pr['title'].strip()
             # write
             notes += (
-                f"* {pr['title']} by {pr['user']['login']} in {repo}#{pr['number']}\n"
+                f"* {pr['parts'].group("message")} by {pr['user']['login']} in {repo}#{pr['number']}\n"
             )
         # add a newline after PRs
         notes += "\n"
@@ -189,7 +210,7 @@ authors = {}
 for categ in prs:
     for repo in repos:
         # skip docs
-        if repo == "psychopy/psychopy-docs":
+        if categ == "Documentation":
             continue
         # for each PR...
         for pr in prs[categ][repo]:
@@ -225,8 +246,8 @@ notes += "\n"
 
 # get documentation authors
 docs = set()
-for categ in prs:
-    for pr in prs[categ].get('psychopy/psychopy-docs', []):
+for repo in prs['Documentation']:
+    for pr in prs['Documentation'][repo]:
         docs.add(
             f"@{pr['user']['login']}"
         )
