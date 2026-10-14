@@ -300,7 +300,10 @@ class QuestObject():
         self.pdf = self.pdf/num.sum(self.pdf)
         i2 = num.arange(-self.dim,self.dim+1)
         self.x2 = i2*self.grain
-        self.p2 = self.delta*self.gamma+(1-self.delta)*(1-(1-self.gamma)*num.exp(-10**(self.beta*self.x2)))
+        # 10**(beta*x2) overflows to inf at the far end of the range, which is
+        # fine as exp(-inf) is 0
+        with num.errstate(over='ignore'):
+            self.p2 = self.delta*self.gamma+(1-self.delta)*(1-(1-self.gamma)*num.exp(-10**(self.beta*self.x2)))
         if self.p2[0] >= self.pThreshold or self.p2[-1] <= self.pThreshold:
             raise RuntimeError('psychometric function range [%.2f %.2f] omits %.2f threshold'%(self.p2[0],self.p2[-1],self.pThreshold)) # XXX
         if len(getinf(self.p2)[0]):
@@ -309,7 +312,8 @@ class QuestObject():
         if len(index) < 2:
             raise RuntimeError('psychometric function has only %g strictly monotonic points'%len(index))
         self.xThreshold = num.interp([self.pThreshold],self.p2[index],self.x2[index])[0]
-        self.p2 = self.delta*self.gamma+(1-self.delta)*(1-(1-self.gamma)*num.exp(-10**(self.beta*(self.x2+self.xThreshold))))
+        with num.errstate(over='ignore'):
+            self.p2 = self.delta*self.gamma+(1-self.delta)*(1-(1-self.gamma)*num.exp(-10**(self.beta*(self.x2+self.xThreshold))))
         if len(getinf(self.p2)[0]):
             raise RuntimeError('psychometric function p2 is not finite')
         self.s2 = num.array( ((1-self.p2)[::-1], self.p2[::-1]) )
