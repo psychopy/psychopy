@@ -108,8 +108,11 @@ class FitWeibull(_baseFunctionFit):
     def _eval(xx, alpha, beta):
         global _chance
         xx = np.asarray(xx)
-        yy = _chance + (1.0 - _chance) * (1 -
-                                          np.exp(-(xx/alpha)**beta))
+        # curve_fit can try a negative alpha, which gives NaN (the function is
+        # undefined there) and steers the fit away, so don't warn about it
+        with np.errstate(invalid='ignore'):
+            yy = _chance + (1.0 - _chance) * (1 -
+                                              np.exp(-(xx/alpha)**beta))
         return yy
 
     @staticmethod
