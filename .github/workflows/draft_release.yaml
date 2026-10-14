@@ -10,6 +10,11 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the release to regenerate notes for
+        required: true
 
 permissions:
   contents: write
@@ -21,6 +26,10 @@ jobs:
     runs-on: [
       ubuntu-latest
     ]
+
+    env:
+      # tag to make a release for (from manual input if given, otherwise the pushed tag)
+      TAG: ${{ inputs.tag || github.ref_name }}
 
     steps:
       - name: Checkout psychopy
@@ -41,11 +50,32 @@ jobs:
       
       - name: Generate draft release notes
         run: |
-          uv run 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(github.ref_name, '.0') && '--filter release' || '' }}
-      
+          uv run 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(env.TAG, '.0') && '--filter release' || '' }}
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-${{ env.TAG }}
+          path: psychopy/building/.outputs/release_notes.md
+          retention-days: 14
+
+      - name: Check for existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # gh release view also finds draft releases
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create draft release
+        if: steps.existing.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }}
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.TAG }}
           draft: true
           body_path: psychopy/building/.outputs/release_notes.md
