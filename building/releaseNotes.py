@@ -4,9 +4,14 @@ from pathlib import Path
 import json
 from datetime import datetime
 from copy import deepcopy
+import argparse
 
+
+# make sure we have a folder to store the output in
+outputDir = Path(__file__).parent / ".outputs"
+outputDir.mkdir(parents=True, exist_ok=True)
 # setup file to cache responses from GitHub
-cachefile = Path(__file__).parent / "_release_notes_cache.json"
+cachefile = outputDir / "_release_notes_cache.json"
 # load cache if there is one
 if cachefile.is_file():
     cache = json.loads(
@@ -15,6 +20,23 @@ if cachefile.is_file():
 else:
     cache = {}
 
+# parse call args
+parser = argparse.ArgumentParser(
+    prog="PsychoPy release notes generator",
+    description="Run this script to generate a first draft of release notes from PR's since the last release"
+)
+parser.add_argument(
+    "--filter",
+    help="Filter for a target branch",
+    nargs="?",
+    choices=[
+        None,
+        "dev",
+        "release"
+    ],
+    default=None
+)
+args = parser.parse_args()
 
 def cacheget(url):
     """
@@ -33,7 +55,7 @@ def cacheget(url):
     # make request
     resp = requests.get(url).json()
     # rate limit?
-    if resp.get("status", None) == "422":
+    if resp.get("status", None) == "422" or "API rate limit exceeded" in resp.get("message", ""):
         raise ConnectionError(
             "You've hit GitHub API's rate limit, try again in about an hour"
         )
@@ -89,6 +111,12 @@ for repo in repos:
         # ignore PRs from bots
         if pr['user']['type'] == "Bot":
             continue
+        # if filtering for a specific target branch, get PR details
+        if args.filter is not None:
+            resp = cacheget(pr['pull_request']['url'])
+            # if PR wasn't to target branch, ignore it
+            if not resp['base']['ref'] == args.filter:
+                continue
         # sort PR titles
         if pr['title'].startswith("RF:") or re.match(r"^\w*?\!\:", pr['title']):
             prs['Breaking Changes'][repo].append(pr)
@@ -200,7 +228,7 @@ notes += (
 )
 
 # save
-file = Path(__file__).parent / "release_notes.md"
+file = outputDir / "release_notes.md"
 file.write_text(
     notes
 )
