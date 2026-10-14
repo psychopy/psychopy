@@ -219,7 +219,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             },
             # escaped
             {
-                'text': "This contains \*escaped\* text",
+                'text': "This contains \\*escaped\\* text",
                 'syntax': "md",
                 'languageStyle': "LTR",
                 'screenshot': "escaped"
@@ -233,14 +233,14 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             },
             # one with everything
             {
-                'text': "This text contains ***bold italic***, **bold**, *italic*, \*escaped\*, and [color=red]colorful[/color] text.",
+                'text': "This text contains ***bold italic***, **bold**, *italic*, \\*escaped\\*, and [color=red]colorful[/color] text.",
                 'syntax': "md",
                 'languageStyle': "LTR",
                 'screenshot': "all"
             },
             # one with everything (raw md)
             {
-                'text': "This text contains no formatting, but looks like it contains ***bold italic***, **bold**, *italic*, \*escaped\*, and [color=red]colorful[/color] text.",
+                'text': "This text contains no formatting, but looks like it contains ***bold italic***, **bold**, *italic*, \\*escaped\\*, and [color=red]colorful[/color] text.",
                 'syntax': "raw",
                 'languageStyle': "LTR",
                 'screenshot': "md"
