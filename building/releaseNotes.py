@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from copy import deepcopy
 import argparse
+import os
 
 
 # make sure we have a folder to store the output in
@@ -21,22 +22,32 @@ else:
     cache = {}
 
 # parse call args
-parser = argparse.ArgumentParser(
+argparser = argparse.ArgumentParser(
     prog="PsychoPy release notes generator",
     description="Run this script to generate a first draft of release notes from PR's since the last release"
 )
-parser.add_argument(
+argparser.add_argument(
     "--filter",
     help="Filter for a target branch",
-    nargs="?",
     choices=[
-        None,
         "dev",
         "release"
     ],
     default=None
 )
-args = parser.parse_args()
+argparser.add_argument(
+    "--token",
+    help=(
+        "GitHub personal access token, used to avoid rate limiting. If not given, will use the "
+        "GITHUB_TOKEN environment variable (if set)"
+    ),
+    default=os.environ.get("GITHUB_TOKEN", None)
+)
+args = argparser.parse_args()
+# setup headers for requests (authenticating if we have a token)
+headers = {}
+if args.token:
+    headers['Authorization'] = f"Bearer {args.token}"
 
 def cacheget(url):
     """
@@ -53,7 +64,7 @@ def cacheget(url):
     # print request
     print("REQUEST", url)
     # make request
-    resp = requests.get(url).json()
+    resp = requests.get(url, headers=headers).json()
     # rate limit?
     if resp.get("status", None) == "422" or "API rate limit exceeded" in resp.get("message", ""):
         raise ConnectionError(
