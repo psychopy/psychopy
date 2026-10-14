@@ -945,6 +945,17 @@ def _nextFlip(win):
     return win.getFutureFlipTime(clock=core.monotonicClock)
 
 
+def _flip(win):
+    """Flip the window, returning the time of the flip on the clock
+    `core.getTime()` reads. `Window.flip()` returns it on
+    `logging.defaultClock`, which a Builder experiment replaces with its
+    own."""
+    tFlip = win.flip()
+
+    return (tFlip + logging.defaultClock.getLastResetTime() -
+            core.monotonicClock.getLastResetTime())
+
+
 def _drawUntil(win, mov, t):
     """Draw the movie until `core.getTime()` reaches `t`.
 
@@ -995,6 +1006,29 @@ class _AudioTrackStandIn:
 class TestMovieStimScheduling:
     """Tests for scheduling the start of playback with `play(when=...)`."""
 
+    @pytest.fixture(autouse=True)
+    def experimentClock(self, win):
+        """Log on a clock of the experiment's own, as a Builder experiment
+        does with `logging.setDefaultClock(globalClock)`.
+
+        The window's flip times are then on a different clock to the movie
+        clock, which runs on `core.getTime()`, so mixing the two up fails
+        here rather than passing by chance. Whether the clocks match otherwise
+        depends on whichever test ran an experiment last.
+
+        """
+        oldClock = logging.defaultClock
+        # started well after `monotonicClock`, as an experiment's clock is,
+        # so that times on the two can't be mistaken for each other
+        logging.setDefaultClock(core.MonotonicClock(
+            start_time=core.monotonicClock.getLastResetTime() + 1000.0))
+        win.flip()  # as the experiment does, so the last flip is on it
+        try:
+            yield
+        finally:
+            logging.setDefaultClock(oldClock)
+            win.flip()
+
     def test_playWhenHoldsUntilStartTime(self, win, movieLib):
         """Playback scheduled for a time to come holds the movie at its
         position until then, and the movie clock runs from that time."""
@@ -1028,7 +1062,7 @@ class TestMovieStimScheduling:
             mov.draw()
             assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
 
-            tFlip = win.flip()
+            tFlip = _flip(win)
             tDrawn = _drawUntil(win, mov, tFlip + SCHEDULE_DELAY)
             assert mov.movieTime == pytest.approx(
                 tDrawn - tFlip, abs=SCHEDULE_TOL)
@@ -1044,7 +1078,7 @@ class TestMovieStimScheduling:
             mov.draw()
             assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
 
-            tFlip = win.flip()
+            tFlip = _flip(win)
             tDrawn = _drawUntil(win, mov, tFlip + SCHEDULE_DELAY)
             assert mov.movieTime == pytest.approx(
                 tDrawn - tFlip, abs=SCHEDULE_TOL)
@@ -1173,7 +1207,7 @@ class TestMovieStimScheduling:
             tFlip = track.playedWhen[-1].getFutureFlipTime(clock=None)
             assert tFlip == pytest.approx(
                 win.getFutureFlipTime(clock=None), abs=1e-3)
-            assert tFlip > core.getTime()
+            assert tFlip > logging.defaultClock.getTime()
 
 
 # --------------------------------------------------------------------------
