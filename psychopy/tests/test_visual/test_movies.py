@@ -11,6 +11,7 @@ often lack.
 
 """
 import math
+import shutil
 import threading
 import time
 import weakref
@@ -20,7 +21,7 @@ from contextlib import contextmanager
 import numpy as np
 import pytest
 
-from psychopy import visual, prefs, core, logging
+from psychopy import visual, prefs, core, logging, experiment, session
 import psychopy.visual.movies as movies
 from psychopy.visual.movies import MovieFileReader, _frameSampleOffset
 from .. import utils
@@ -2557,3 +2558,173 @@ class TestMovieStimFrameTexture:
             # drawn as it is, and staying put while paused
             _drawFrames(win, mov, count=3, interval=0.02)
             np.testing.assert_array_equal(self._frameTexture(mov), after)
+
+
+# --------------------------------------------------------------------------
+# Builder
+#
+
+# Folder holding the Builder experiments run by the tests below
+BUILDER_DIR = Path(__file__).parent / 'builder'
+
+
+def _rowsWith(entries, key):
+    """Rows of experiment data which have a value for `key`, in order."""
+    return [row for row in entries if row.get(key) is not None]
+
+
+class TestBuilderMovieEndRoutine:
+    """Compile and run a Builder experiment whose movies end, or don't end,
+    their Routines.
+
+    `builderMovieEndRoutineTest.psyexp` plays the test movie through three
+    times, followed each time by a `probe` Routine which records what the
+    movies are doing once their Routine is over:
+
+    * `movieForceEnd`: "Force end of Routine" is on, so the Routine ends when
+      the movie does. A Text Component with no stop time keeps the Routine
+      going otherwise, up to its 20s maximum duration.
+    * `movieNoForce`: "Force end of Routine" is off, so the Routine carries on
+      after the movie ends, until a Text Component stops at 9s.
+    * `movieEarlyEnd`, twice in a loop: the Routine stops at 1s, well before
+      the movie ends.
+
+    The Text Components are there because a Routine also ends once every
+    Component in it has finished, whatever "Force end of Routine" says.
+    Running it through a `Session` takes the same path as running it from
+    Builder: the experiment is compiled to a script, which is imported and has
+    its `run()` called.
+
+    """
+    # how long `movieNoForce` and `movieEarlyEnd` run for, in seconds, as set
+    # in the experiment
+    HOLD_DURATION = 9.0
+    EARLY_DURATION = 1.0
+
+    def setup_method(self):
+        # the Session applies the experiment's window settings to the window
+        # it's given, so this has its own rather than the module's shared one
+        self.win = visual.Window(
+            [128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+
+    def teardown_method(self):
+        self.win.close()
+
+    def _runExperiment(self, tmp_path, movieLib):
+        """Run the experiment with its movies played by `movieLib`, from a
+        copy in `tmp_path`, returning its `ExperimentHandler`."""
+        exp = experiment.Experiment()
+        exp.loadFromXML(str(BUILDER_DIR / 'builderMovieEndRoutineTest.psyexp'))
+        for routine in exp.routines.values():
+            for comp in routine:
+                if comp.type == 'Movie':
+                    comp.params['backend'].val = movieLib
+
+        # Work from a copy, so the compiled script and the data the experiment
+        # writes land in the temp folder rather than in the source tree, with
+        # the movie next to it for its relative filename. The Session imports
+        # the script as a module named after the file, which stays imported,
+        # so each backend's copy gets a name of its own.
+        expFile = tmp_path / 'builderMovieEndRoutineTest_{}.psyexp'.format(
+            movieLib)
+        exp.saveToXML(str(expFile), makeLegacy=False)
+        shutil.copy(str(MOVIE_PATH), str(tmp_path / 'testMovie.mp4'))
+
+        sess = session.Session(root=tmp_path, win=self.win)
+        sess.addExperiment(expFile.name, key='movieEndRoutine')
+
+        script = expFile.with_suffix('.py').read_text(encoding='utf8')
+        assert script.count("movieLib='{}'".format(movieLib)) == 3, (
+            "Not every movie in the compiled experiment is played with "
+            "{}.".format(movieLib))
+
+        sess.runExperiment('movieEndRoutine')
+
+        return sess.runs[-1]
+
+    def test_routineEnding(self, tmp_path, movieLib):
+        """Movies end their Routine when asked to, and leave nothing behind
+        when their Routine ends first."""
+        thisExp = self._runExperiment(tmp_path, movieLib)
+        entries = thisExp.entries
+
+        forceRow, = _rowsWith(entries, 'movieForceEnd.started')
+        keepRow, = _rowsWith(entries, 'movieNoForce.started')
+        # rows in the loop hold both `movieEarlyEnd` and its `probe`
+        earlyRows = _rowsWith(entries, 'movieEarlyEnd.started')
+        probeRows = _rowsWith(entries, 'probe.started')
+        assert len(earlyRows) == 2 and len(probeRows) == 4, (
+            "Expected 2 repeats of `movieEarlyEnd` and 4 of `probe`, got {} "
+            "and {}.".format(len(earlyRows), len(probeRows)))
+
+        def ranFor(row, name):
+            return row[name + '.stopped'] - row[name + '.started']
+
+        def checkNextRoutineStarts(row, name, probeRow):
+            # straight away, so stopping the movie as the Routine ends (which
+            # reloads it) doesn't hold up the experiment
+            gap = probeRow['probe.started'] - row[name + '.stopped']
+            assert 0.0 <= gap < 0.25, (
+                "`probe` started {}s after `{}` ended.".format(gap, name))
+
+        # "Force end of Routine" on: the Routine ended with the movie, well
+        # before the Text Component or the Routine's maximum duration would
+        # have ended it
+        assert forceRow.get('movieForce.stopped') is not None, (
+            "`movieForce` never finished.")
+        assert ranFor(forceRow, 'movieForceEnd') == pytest.approx(
+            MOVIE_DURATION, abs=0.5), (
+            "`movieForceEnd` ran for {}s, expected it to end with its {}s "
+            "movie.".format(ranFor(forceRow, 'movieForceEnd'), MOVIE_DURATION))
+        checkNextRoutineStarts(forceRow, 'movieForceEnd', probeRows[0])
+
+        # "Force end of Routine" off: the movie finished, but the Routine
+        # carried on until the Text Component stopped
+        assert ranFor(keepRow, 'movieKeep') == pytest.approx(
+            MOVIE_DURATION, abs=0.5), (
+            "`movieKeep` ran for {}s, expected all {}s of it.".format(
+                ranFor(keepRow, 'movieKeep'), MOVIE_DURATION))
+        assert ranFor(keepRow, 'movieNoForce') == pytest.approx(
+            self.HOLD_DURATION, abs=0.25), (
+            "`movieNoForce` ran for {}s, expected it to carry on after its "
+            "movie ended, to {}s.".format(
+                ranFor(keepRow, 'movieNoForce'), self.HOLD_DURATION))
+
+        # the Routine ending first: it ended on time each repeat, rather than
+        # the second being cut short by anything the first left behind, and
+        # the movie played from the start each time
+        for repeat, row in enumerate(earlyRows):
+            assert ranFor(row, 'movieEarlyEnd') == pytest.approx(
+                self.EARLY_DURATION, abs=0.1), (
+                "Repeat {} of `movieEarlyEnd` ran for {}s, expected {}s."
+                "".format(repeat, ranFor(row, 'movieEarlyEnd'),
+                          self.EARLY_DURATION))
+            assert row.get('movieEarly.stopped') is None, (
+                "Repeat {}: `movieEarly` finished, though its Routine ended "
+                "first.".format(repeat))
+            assert row['movieEarly.timeAtStart'] == pytest.approx(
+                0.0, abs=1e-6), (
+                "Repeat {}: `movieEarly` started from {}s, not the "
+                "beginning.".format(repeat, row['movieEarly.timeAtStart']))
+            assert row['movieEarly.timeAtEnd'] == pytest.approx(
+                self.EARLY_DURATION, abs=0.2), (
+                "Repeat {}: `movieEarly` had played to {}s by the time its "
+                "Routine ended, expected about {}s.".format(
+                    repeat, row['movieEarly.timeAtEnd'],
+                    self.EARLY_DURATION))
+            checkNextRoutineStarts(row, 'movieEarlyEnd', row)
+
+        # once its Routine is over, a movie isn't drawn, playing or moving on
+        for row in probeRows:
+            assert not row['probe.anyDrawn'], (
+                "A movie was still being drawn after its Routine ended.")
+            assert not row['probe.anyPlaying'], (
+                "A movie was still playing after its Routine ended.")
+            assert row['probe.timesHeld'], (
+                "A movie moved on after its Routine ended.")
+
+        # and stopping a movie leaves no decoding threads behind
+        threads = [row['probe.threads'] for row in earlyRows]
+        assert threads[0] == threads[1], (
+            "{} threads were running after the first repeat of "
+            "`movieEarlyEnd`, {} after the second.".format(*threads))
