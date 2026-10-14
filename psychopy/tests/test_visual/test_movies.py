@@ -1971,6 +1971,76 @@ class TestMovieStimAudioTrack:
 
 
 # --------------------------------------------------------------------------
+# Decoders which play the audio themselves
+#
+
+class _FFPyPlayerReaderStandIn(movies.readers._base._MOVIE_READER_CLASSES['pyav']):
+    """Stands in for the `ffpyplayer` reader, decoding with PyAV.
+
+    `ffpyplayer` isn't available on every Python version these tests run on,
+    so this goes by its name instead. That makes `MovieStim` treat it as a
+    decoder playing the audio itself, and it records what it is asked to do
+    with the audio. Like the `ffpyplayer` reader, it unmutes itself once open.
+
+    `_decoderLib` is set when it is put in place (see `ffpyplayerStandIn`),
+    since setting it here would have it replace the real `ffpyplayer` reader
+    as soon as it was defined.
+
+    """
+    _decoderLib = None
+
+    def __init__(self, filename, decoderLib=None, decoderOpts=None):
+        super().__init__(filename, decoderLib, decoderOpts)
+        self.openedWithOpts = dict(decoderOpts or {})
+
+    def _open(self):
+        super()._open()
+        self.mute(False)
+
+
+@pytest.fixture
+def ffpyplayerStandIn(monkeypatch):
+    """Have `movieLib='ffpyplayer'` read movies with `_FFPyPlayerReaderStandIn`."""
+    monkeypatch.setattr(_FFPyPlayerReaderStandIn, '_decoderLib', 'ffpyplayer')
+    monkeypatch.setitem(
+        movies.readers._base._MOVIE_READER_CLASSES, 'ffpyplayer',
+        _FFPyPlayerReaderStandIn)
+
+
+class TestMovieStimDecoderPlaysAudio:
+    """Tests for `noAudio` with a decoder which plays the audio itself."""
+
+    @pytest.mark.parametrize('noAudio', [True, False])
+    def test_noAudioKeepsDecoderQuiet(self, win, movieLib, ffpyplayerStandIn,
+                                      noAudio):
+        """With `noAudio` and no speaker device given, `ffpyplayer` is told to
+        leave the audio out, and kept muted for good measure, through playing,
+        pausing, and stopping (which reloads the movie). Without `noAudio`, it
+        plays the audio."""
+        if movieLib != 'pyav':
+            pytest.skip('the stand-in for ffpyplayer decodes with pyav')
+
+        with movieStim(win, 'ffpyplayer', noAudio=noAudio) as mov:
+            assert mov._decoderPlaysAudio
+            assert mov._noAudio == noAudio
+            assert mov._audioTrack is None  # it plays the audio itself
+
+            for _ in range(2):  # and again once stopped, with a new reader
+                player = mov._player
+                assert isinstance(player, _FFPyPlayerReaderStandIn)
+                assert player.openedWithOpts['an'] == noAudio
+
+                mov.play()
+                _drawFrames(win, mov)
+                assert mov.muted == noAudio
+                mov.pause()
+                mov.play()
+                assert mov.muted == noAudio
+
+                mov.stop()
+
+
+# --------------------------------------------------------------------------
 # Scaling frames down as they're decoded
 #
 
