@@ -10,6 +10,7 @@ and extracting an audio track needs a working output device which test machines
 often lack.
 
 """
+import gc
 import math
 import shutil
 import threading
@@ -656,6 +657,25 @@ class TestMovieStimWithOtherStimuli:
     state left by other stimuli could show up in the movie.
 
     """
+
+    @pytest.fixture(autouse=True)
+    def collectOnMainThread(self):
+        """Keep the garbage collector off the movie's decode thread.
+
+        The gratings these tests leave behind free their textures in
+        `__del__`, which has to happen on the thread with the GL context.
+        Left to run whenever it likes, the collector can run on the decode
+        thread instead, which crashes on macOS. So it collects here, before
+        and after each test, and not at all in between.
+
+        """
+        gc.collect()
+        gc.disable()
+        try:
+            yield
+        finally:
+            gc.enable()
+            gc.collect()
 
     @pytest.mark.parametrize('ori', [0, 30, 45, 90, 137])
     def test_gratingOverMovieDrawsCorrectly(self, win, movieLib,
