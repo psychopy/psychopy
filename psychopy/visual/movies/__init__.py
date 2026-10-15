@@ -745,16 +745,21 @@ class MovieFileReader:
             
             # if we get `None` for the frame, it means the player is not ready 
             # to give us a frame yet, so we wait a bit and try again. If we get 
-            # `None` too many times, we give up and return `None` 
+            # `None` too many times, we give up and return `None` so the last
+            # frame stays on-screen. This happens near the end of the stream,
+            # where FFPyPlayer may return `None` for a while before reporting
+            # 'eof' (e.g., when the audio track outlasts the video track).
             if frame is None:
                 if getFrameAttempts < self._maxGetFrameAttempts:
                     time.sleep(0.001)  # wait a bit before trying again
                     getFrameAttempts += 1
                     continue   # keep retrying
                 else:
-                    raise RuntimeError(
-                        'Failed to return a frame after multiple attempts.'
-                    )
+                    logging.debug(
+                        'Decoder did not return a frame for PTS {:.4f} after '
+                        '{} attempts, keeping the last frame.'.format(
+                            reqPTS, getFrameAttempts))
+                    break
             
             img, curPts = frame  # extract frame information
 
