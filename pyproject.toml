@@ -90,7 +90,6 @@ dependencies = [
     "distro; platform_system == \"Linux\"",
     "tables",  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
-    "moviepy",
     "pyarrow",
     "beautifulsoup4",
 ]
