@@ -3,6 +3,7 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import gc
+import os
 import sys
 
 import psutil
@@ -38,6 +39,12 @@ class Computer():
     #: The iohub server checks that this process exists
     #: (server.checkForPsychopyProcess()) and shuts down if it does not.
     psychopy_process = None
+
+    #: If Computer class is on the iohub server process and it was started
+    #: directly by the psychopy process (POSIX only), the parent process ID at
+    #: startup. If the parent PID later changes, the psychopy process has
+    #: exited and the iohub server was reparented.
+    psychopy_process_ppid = None
 
     #: The OS process ID of the ioHub Process.
     iohub_process_id = None
@@ -605,3 +612,70 @@ class Computer():
 
         """
         return Computer.iohub_process
+
+    @staticmethod
+    def isProcessGone(pid, createdBefore=None):
+        """Check whether a process has exited.
+
+        Args:
+            pid (int): OS process ID to check.
+            createdBefore (float): Optional creation time (seconds since the
+                epoch) that the process must not be newer than. If the process
+                with the given pid was created after this (allowing a couple of
+                seconds slack for wall clock adjustments), the pid has been
+                reused by a different process.
+
+        Returns:
+            bool: True if the process no longer exists, is a zombie, or its pid
+            has been reused. False if it is running or can not be inspected.
+        """
+        try:
+            proc = psutil.Process(pid)
+            if proc.status() == psutil.STATUS_ZOMBIE:
+                return True
+            if createdBefore is not None:
+                return proc.create_time() > createdBefore + 2.0
+            return False
+        except psutil.NoSuchProcess:  # includes psutil.ZombieProcess
+            return True
+        except psutil.AccessDenied:
+            return False
+
+    @staticmethod
+    def isPsychopyProcessAlive():
+        """Check whether the psychopy process that started the iohub server is
+        still running. Only meaningful on the iohub server process.
+
+        Returns:
+            bool: False if the psychopy process has exited, otherwise True.
+        """
+        proc = Computer.psychopy_process
+        if proc is None:
+            return True
+        ppid = Computer.psychopy_process_ppid
+        if ppid is not None and os.getppid() != ppid:
+            # psychopy process exited and the iohub server was reparented
+            return False
+        return not Computer.isProcessGone(
+            proc.pid, createdBefore=Computer.current_process.create_time())
+
+    @staticmethod
+    def parseIohubServerCmdline(cmdline):
+        """Get the psychopy process ID from the command line of an iohub server
+        process.
+
+        Args:
+            cmdline (list): Command line arguments of a process.
+
+        Returns:
+            int: The psychopy process ID passed to the iohub server, or None if
+            cmdline is not that of an iohub server process.
+        """
+        for i, arg in enumerate(cmdline or ()):
+            if os.path.basename(arg).lower() == 'start_iohub_process.py':
+                try:
+                    pid = int(cmdline[i + 4])
+                except (IndexError, ValueError):
+                    return None
+                return pid if pid > 0 else None
+        return None
