@@ -995,7 +995,7 @@ class BaseComponent:
             if paramName == 'color':
                 buff.writeIndented(f"{compName}.setColor({params['color']}, colorSpace={params['colorSpace']}")
                 buff.write(f"{loggingStr}){endStr}\n")
-            elif paramName == 'movie' and params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
+            elif paramName == 'movie' and params['backend'].val in ('moviepy', 'avbin', 'vlc'):
                 # we're going to do this for now ...
                 if params['units'].val == 'from exp settings':
                     unitsStr = "units=''"
@@ -1011,15 +1011,10 @@ class BaseComponent:
                     code = ("%s = visual.MovieStim(\n" % params['name'] +
                             "    win=win, name='%s', %s,\n" % (
                                 params['name'], unitsStr))
-                elif params['backend'].val == 'vlc':
+                else:  # vlc
                     code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
                             "    win=win, name='%s', %s,\n" % (
                                 params['name'], unitsStr))
-                else:
-                    code = ("%s = visual.MovieStim(\n" % params['name'] +
-                            "    win=win, name='%s', %s,\n" % (
-                                params['name'], unitsStr) +
-                            "    noAudio=%(No audio)s,\n" % params)
 
                 code += ("    filename=%(movie)s,\n"
                          "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"

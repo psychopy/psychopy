@@ -6588,7 +6588,7 @@ MovieComponent.No audio.categ:Playback
 MovieComponent.No audio.codeWanted:False
 MovieComponent.No audio.ctrlParams:{}
 MovieComponent.No audio.direct:True
-MovieComponent.No audio.hint:Prevent the audio stream from being loaded/processed (moviepy and opencv only)
+MovieComponent.No audio.hint:Prevent the movie's audio from being loaded or played
 MovieComponent.No audio.inputType:bool
 MovieComponent.No audio.label:No audio
 MovieComponent.No audio.plugin:None
@@ -6616,11 +6616,11 @@ MovieComponent.anchor.staticUpdater:None
 MovieComponent.anchor.updates:constant
 MovieComponent.anchor.val:center
 MovieComponent.anchor.valType:str
-MovieComponent.backend.default:'ffpyplayer'
+MovieComponent.backend.default:'pyav'
 MovieComponent.backend.allowedLabels:[]
 MovieComponent.backend.allowedTypes:[]
 MovieComponent.backend.allowedUpdates:None
-MovieComponent.backend.allowedVals:['ffpyplayer', 'moviepy', 'opencv', 'vlc']
+MovieComponent.backend.allowedVals:['pyav', 'ffpyplayer', 'moviepy', 'opencv', 'vlc']
 MovieComponent.backend.canBePath:True
 MovieComponent.backend.categ:Playback
 MovieComponent.backend.codeWanted:False
@@ -6633,7 +6633,7 @@ MovieComponent.backend.plugin:None
 MovieComponent.backend.readOnly:False
 MovieComponent.backend.staticUpdater:None
 MovieComponent.backend.updates:None
-MovieComponent.backend.val:ffpyplayer
+MovieComponent.backend.val:pyav
 MovieComponent.backend.valType:str
 MovieComponent.contrast.default:1.0
 MovieComponent.contrast.allowedLabels:[]
