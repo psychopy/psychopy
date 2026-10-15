@@ -1,4 +1,6 @@
+import shutil
 from pathlib import Path
+from tempfile import mkdtemp
 from psychopy.experiment.components.keyboard import KeyboardComponent
 from psychopy.hardware.keyboard import Keyboard, KeyboardDevice
 from psychopy.tests import utils
@@ -11,12 +13,22 @@ class TestKeyboardComponent(BaseComponentTests):
     libraryClass = Keyboard
 
     def setup_class(self):
-        # make a Session
-        self.session = session.Session(
-            root=Path(utils.TESTS_DATA_PATH) / "test_components",
+        # run from a copy of the test experiments, as running them writes the
+        # compiled script and data files alongside them
+        self.root = Path(mkdtemp(prefix="psychopy-tests-keyboard"))
+        shutil.copytree(
+            Path(utils.TESTS_DATA_PATH) / "test_components" / "testClearKeyboard",
+            self.root / "testClearKeyboard",
         )
+        # make a Session
+        self.session = session.Session(root=self.root)
         # setup default window
         self.session.setupWindowFromParams({})
+
+    def teardown_class(self):
+        # closes the session's window too
+        self.session.close()
+        shutil.rmtree(self.root, ignore_errors=True)
 
     def testKeyboardClear(self):
         """
