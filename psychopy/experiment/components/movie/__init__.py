@@ -27,7 +27,7 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 forceEndRoutine=False, backend='ffpyplayer',
+                 forceEndRoutine=False, backend='pyav',
                  loop=False, volume=1, noAudio=False,
                  stopWithRoutine=True
                  ):
@@ -60,12 +60,12 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
-            allowedVals=['ffpyplayer', 'moviepy', 'opencv', 'vlc'],
+            allowedVals=['pyav', 'ffpyplayer', 'moviepy', 'opencv', 'vlc'],
             hint=msg, direct=False,
             label=_translate("Backend"))
 
-        msg = _translate("Prevent the audio stream from being loaded/processed "
-               "(moviepy and opencv only)")
+        msg = _translate("Prevent the movie's audio from being loaded or "
+               "played")
         self.params["No audio"] = Param(
             noAudio, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
@@ -151,6 +151,7 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
         else:
             params = self.params
 
+        # only the old backends get here, see `writeInitCode`
         if self.params['backend'].val == 'moviepy':
             code = ("%s = visual.MovieStim3(\n" % params['name'] +
                     "    win=win, name='%s', %s,\n" % (
@@ -160,15 +161,10 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
             code = ("%s = visual.MovieStim(\n" % params['name'] +
                     "    win=win, name='%s', %s,\n" % (
                         params['name'], unitsStr))
-        elif self.params['backend'].val == 'vlc':
+        else:  # vlc
             code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
                     "    win=win, name='%s', %s,\n" % (
                         params['name'], unitsStr))
-        else:
-            code = ("%s = visual.MovieStim2(\n" % params['name'] +
-                    "    win=win, name='%s', %s,\n" % (
-                        params['name'], unitsStr) +
-                    "    noAudio=%(No audio)s,\n" % params)
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
@@ -196,7 +192,7 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
             params["units"].val = None
 
         # Handle old backends
-        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
+        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc'):
             if self.params['movie'].updates == 'constant':
                 # create the code using init vals
                 self._writeCreationCode(buff, useInits=True)

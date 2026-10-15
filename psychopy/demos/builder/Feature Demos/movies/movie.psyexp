@@ -98,7 +98,7 @@
       <MovieComponent name="movie" plugin="None">
         <Param val="False" valType="bool" updates="None" name="No audio"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
-        <Param val="ffpyplayer" valType="str" updates="None" name="backend"/>
+        <Param val="pyav" valType="str" updates="None" name="backend"/>
         <Param val="1" valType="num" updates="constant" name="contrast"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
