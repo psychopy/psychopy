@@ -16,7 +16,6 @@ import sys
 import wx
 import numpy as np
 import platform
-import codecs
 from packaging.version import Version
 
 if Version(wx.__version__) < Version('2.9'):
@@ -449,7 +448,7 @@ class BaseWizard():
 
     def save(self):
         """Save the html text as a file."""
-        with codecs.open(self.reportPath, 'wb', encoding='utf-8-sig') as f:
+        with open(self.reportPath, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(self.reportText)
 
 class ConfigWizard(BaseWizard):
