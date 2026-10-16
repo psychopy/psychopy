@@ -1170,7 +1170,6 @@ class TextureMixin:
 
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
-        wasImage = False  # change this if image loading works
         interpolate = stim.interpolate
         if dataType is None:
             if pixFormat == GL.GL_RGB:
@@ -1308,7 +1307,6 @@ class TextureMixin:
                         (intensity, wasLum, dataType, origSize, notSqr))
 
             stim._origSize = origSize
-            wasImage = True
         if pixFormat == GL.GL_RGB and wasLum and dataType == GL.GL_FLOAT:
             # grating stim on good machine
             # keep as float32 -1:1
@@ -1351,7 +1349,12 @@ class TextureMixin:
         elif pixFormat == GL.GL_ALPHA:
             internalFormat = GL.GL_ALPHA
             dataType = GL.GL_UNSIGNED_BYTE
-            if wasImage:
+            # Alpha textures are always stored as bytes. Images mostly arrive
+            # as bytes already, but a greyscale one comes back from
+            # `_prepareImageArray()` as floats in -1:1, as does everything
+            # else, and uploading those as bytes would fill the texture with
+            # the floats' raw bytes.
+            if intensity.dtype == numpy.uint8:
                 data = intensity
             else:
                 data = float_uint8(intensity)
@@ -1371,7 +1374,7 @@ class TextureMixin:
         # Arrange for the texture to be mirrored in a pixel buffer object,
         # which gives the stimulus a handle on the texture's storage that can
         # be mapped into the application's address space later on (see
-        # `ImageStim.imageData`).
+        # `ImageStim.imageData` and `ImageStim.maskData`).
         #
         # The buffer is neither allocated nor filled here. Doing so would send
         # every image to the graphics card twice, once into the buffer and once
@@ -1380,31 +1383,15 @@ class TextureMixin:
         # it instead, reading the pixels back out of the texture itself, so a
         # mapping still shows what is presently being displayed.
         #
-        # Only the stimulus' colour texture gets one. Masks come through here
-        # with the same `stim` but their own texture name, and would otherwise
-        # overwrite the contents of the buffer belonging to the image.
-        texName = getattr(id, 'value', id)
-        colorTexName = getattr(stim, '_texID', None)
-        colorTexName = getattr(colorTexName, 'value', colorTexName)
-        if (stim is not None and hasattr(stim, '_pixbuffID') and
-                colorTexName is not None and texName == colorTexName):
-            # Drop any mapping held over the buffer before it is reused,
-            # discarding whatever was written to it since the texture it
-            # belonged to is going away.
-            unmapImageData = getattr(stim, '_unmapImageData', None)
-            if unmapImageData is not None:
-                unmapImageData(upload=False)
-
-            # Record how the buffer's bytes are laid out, needed to present it
-            # as an array and to transfer it back to the texture afterwards.
-            stim._texBufferShape = data.shape
-            stim._texBufferDType = data.dtype
-            stim._texBufferPixFormat = pixFormat
-            stim._texBufferDataType = dataType
-            # Size the buffer needs to be, and the flag saying it has not
-            # been allocated or filled for this texture yet.
-            stim._texBufferNBytes = data.nbytes
-            stim._texBufferNeedsFill = True
+        # Each texture has a buffer of its own (if the stimulus supports this
+        # at all), so the one belonging to the texture being created is looked
+        # up rather than assumed. Otherwise a mask, which comes through here
+        # with the same `stim`, would overwrite the image's buffer.
+        textureBufferFor = getattr(stim, '_textureBufferFor', None)
+        if textureBufferFor is not None:
+            texBuffer = textureBufferFor(id)
+            if texBuffer is not None:
+                texBuffer.setLayout(stim, data, pixFormat, dataType)
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1464,14 +1451,6 @@ class TextureMixin:
 
         if hasattr(self, '_maskID'):
             GL.glDeleteTextures(1, self._maskID)
-
-        if hasattr(self, '_pixbuffID'):
-            # release any mapping on the buffer, it's invalid after deletion
-            unmapImageData = getattr(self, '_unmapImageData', None)
-            if unmapImageData is not None:
-                unmapImageData(upload=False)
-
-            GL.glDeleteBuffers(1, self._pixbuffID)
 
     @attributeSetter
     def mask(self, value):
