@@ -10,6 +10,7 @@
 
 import os
 import copy
+import threading
 from packaging.version import Version
 from pathlib import Path
 from psychopy import logging, colors, prefs
@@ -28,6 +29,41 @@ import numpy as np
 reportNImageResizes = 5  # stop raising warning after this
 # global _nImageResizes
 _nImageResizes = 0
+
+
+def callOnGLThread(win, func, *args, **kwargs):
+    """Call a function on the thread a window's OpenGL context is on.
+
+    This is for freeing a stimulus's OpenGL objects from its `__del__`, which
+    runs on whichever thread the garbage collector happens to be running on.
+    That can be another thread, such as a movie's decode thread, where OpenGL
+    calls crash on some platforms (macOS). On the window's thread `func` is
+    called straight away, and on any other it is left for the window to call at
+    its next flip, see `Window._callOnGLThread`.
+
+    Parameters
+    ----------
+    win : `~psychopy.visual.Window` or None
+        Window whose OpenGL context the objects `func` frees were made in.
+        If `None`, or not a window, `func` is only called on the main thread
+        (the one PsychoPy's windows are made on), and otherwise not at all,
+        leaving the objects to be freed with the context rather than risk a
+        crash.
+    func : callable
+        Function to call.
+    *args, **kwargs
+        Arguments to call it with.
+
+    """
+    try:
+        callOnWindowThread = getattr(win, '_callOnGLThread', None)
+    except ReferenceError:  # a weak proxy to a window which has gone
+        callOnWindowThread = None
+
+    if callOnWindowThread is not None:
+        callOnWindowThread(func, *args, **kwargs)
+    elif threading.current_thread() is threading.main_thread():
+        func(*args, **kwargs)
 
 try:
     import matplotlib

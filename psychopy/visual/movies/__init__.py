@@ -37,6 +37,7 @@ from psychopy.tools.filetools import pathToString, defaultStim
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
 )
+from psychopy.visual.helpers import callOnGLThread
 from psychopy.constants import (
     FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, SEEKING)
 from psychopy import core
@@ -2817,8 +2818,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         This function is called when the object is deleted. It closes the movie
         player and frees any resources used by the object.
 
+        The garbage collector may be running on any thread, including the
+        movie's own decode thread, so this unloads the movie on the thread
+        with the window's OpenGL context: its textures have to be freed there,
+        and its decode thread can't be stopped from itself.
+
         """
-        self.unload()
+        callOnGLThread(self.__dict__.get('win'), self.unload)
     
 
 def _closeAllMovieReaders():

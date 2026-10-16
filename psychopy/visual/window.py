@@ -10,6 +10,7 @@
 import ctypes
 import os
 import sys
+import threading
 import weakref
 import atexit
 from itertools import product
@@ -438,6 +439,10 @@ class Window():
         # __repr__
         self._initParams = dir()
         self._closed = False
+        # the thread the window's OpenGL context is made on, and calls made
+        # from other threads to run on it, see `_callOnGLThread`
+        self._glThread = threading.current_thread()
+        self._glThreadCalls = deque()
         self.backend = None  # this will be set later
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
@@ -1641,6 +1646,10 @@ class Window():
                         obj=logEntry['obj'])
         del self._toLog[:]
 
+        # free whatever was let go of on other threads since the last flip,
+        # after the timing-sensitive work above
+        self._runGLThreadCalls()
+
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
 
@@ -1658,6 +1667,46 @@ class Window():
         #
         if self.waitBlanking is True:
             return now
+
+    def _callOnGLThread(self, func, *args, **kwargs):
+        """Call a function on the thread this window's OpenGL context is on.
+
+        On that thread, `func` is called straight away. On any other, it is
+        called there at the end of the window's next flip (or when it closes,
+        if sooner), since OpenGL calls made from a thread without the context
+        crash on some platforms (macOS) and are lost on others.
+
+        This is for freeing OpenGL objects from `__del__`, which runs on
+        whichever thread the garbage collector happens to be running on, such
+        as a movie's decode thread. Calls from other threads once the window
+        has closed are dropped, as its context, and everything in it, has gone.
+
+        Parameters
+        ----------
+        func : callable
+            Function to call.
+        *args, **kwargs
+            Arguments to call it with.
+
+        """
+        if threading.current_thread() is self._glThread:
+            func(*args, **kwargs)
+        elif not self._closed:
+            self._glThreadCalls.append((func, args, kwargs))
+
+    def _runGLThreadCalls(self):
+        """Make the calls other threads queued for this window's OpenGL thread,
+        see `_callOnGLThread`.
+        """
+        while self._glThreadCalls:
+            func, args, kwargs = self._glThreadCalls.popleft()
+            try:
+                func(*args, **kwargs)
+            except Exception as err:
+                # as it would have been ignored in the `__del__` it came from
+                logging.debug(
+                    "Error in {} called on the OpenGL thread: {}".format(
+                        func, err))
 
     def update(self):
         """Deprecated: use Window.flip() instead
@@ -3353,6 +3402,16 @@ class Window():
         """Close the window (and reset the Bits++ if necess).
         """
         self._closed = True
+
+        # make any calls still waiting for the OpenGL thread while there is a
+        # context to make them in (other threads can't queue more once closed)
+        if self._glThreadCalls and threading.current_thread() is self._glThread:
+            try:
+                self.backend.setCurrent()
+            except Exception:
+                pass
+            self._runGLThreadCalls()
+        self._glThreadCalls.clear()
 
         # If iohub is running, inform it to stop using this win id
         # for mouse events
