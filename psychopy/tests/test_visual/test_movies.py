@@ -10,7 +10,9 @@ and extracting an audio track needs a working output device which test machines
 often lack.
 
 """
+import gc
 import math
+import shutil
 import threading
 import time
 import weakref
@@ -20,7 +22,7 @@ from contextlib import contextmanager
 import numpy as np
 import pytest
 
-from psychopy import visual, prefs, core, logging
+from psychopy import visual, prefs, core, logging, experiment, session
 import psychopy.visual.movies as movies
 from psychopy.visual.movies import MovieFileReader, _frameSampleOffset
 from .. import utils
@@ -320,6 +322,52 @@ def _drawnSize(win, mov):
     return (0, 0) if box is None else (box[2], box[3])
 
 
+def _dilate(mask, n=1):
+    """Grow the set region of a mask by `n` pixels in every direction."""
+    grown = mask.copy()
+    for _ in range(n):
+        step = grown.copy()
+        step[1:] |= grown[:-1]
+        step[:-1] |= grown[1:]
+        step[:, 1:] |= grown[:, :-1]
+        step[:, :-1] |= grown[:, 1:]
+        grown = step
+
+    return grown
+
+
+def _erode(mask, n=1):
+    """Shrink the set region of a mask by `n` pixels from every edge."""
+    return ~_dilate(~mask, n)
+
+
+def _grating(win, ori=0.0, size=(48, 48)):
+    """An opaque, unmasked sine grating to draw alongside a movie."""
+    return visual.GratingStim(
+        win, units='pix', tex='sin', mask=None, sf=1 / 12., size=size,
+        ori=ori, autoLog=False)
+
+
+def _footprint(win, size, ori=0.0):
+    """Mask of the pixels a square stimulus of `size` at `ori` covers.
+
+    This draws a solid rectangle in its place, since a sine grating has pixels
+    the same grey as the background, which would leave holes in a mask taken
+    from the grating itself.
+
+    """
+    rect = visual.Rect(
+        win, units='pix', size=size, ori=ori, fillColor='white',
+        lineColor=None, autoLog=False)
+
+    return _drawnRegion(win, rect)[0]
+
+
+def _maxDifference(a, b, mask):
+    """Largest difference between two captured frames over `mask`."""
+    return np.abs(a - b)[mask].max()
+
+
 # --------------------------------------------------------------------------
 # Decoding
 #
@@ -578,6 +626,179 @@ class TestMovieStimDecoding:
             assert not mov._isLoaded
 
             mov.unload()  # unloading again must not raise
+
+
+# --------------------------------------------------------------------------
+# Drawing alongside other stimuli
+#
+
+# Pixels this close to the edge of a stimulus are left out of comparisons, as
+# anti-aliasing blends them with whatever is underneath.
+EDGE_MARGIN = 2
+
+
+@contextmanager
+def _pausedMovie(win, movieLib, **kwargs):
+    """A movie held on one frame, so that every capture of it is the same."""
+    with movieStim(win, movieLib, **kwargs) as mov:
+        mov.play()
+        mov.seek(SAMPLE_EARLY)
+        mov.pause()
+        yield mov
+
+
+@pytest.mark.parametrize('gpuColorConversion', [True, False])
+class TestMovieStimWithOtherStimuli:
+    """Tests that a movie and other stimuli drawn on the same window each look
+    the same as they do drawn alone.
+
+    `MovieStim` binds its own textures, shaders and pixel buffers to draw, so
+    any GL state it leaves behind would show up in the next stimulus drawn, and
+    state left by other stimuli could show up in the movie.
+
+    """
+
+    @pytest.fixture(autouse=True)
+    def collectOnMainThread(self):
+        """Keep the garbage collector off the movie's decode thread.
+
+        The gratings these tests leave behind free their textures in
+        `__del__`, which has to happen on the thread with the GL context.
+        Left to run whenever it likes, the collector can run on the decode
+        thread instead, which crashes on macOS. So it collects here, before
+        and after each test, and not at all in between.
+
+        """
+        gc.collect()
+        gc.disable()
+        try:
+            yield
+        finally:
+            gc.enable()
+            gc.collect()
+
+    @pytest.mark.parametrize('ori', [0, 30, 45, 90, 137])
+    def test_gratingOverMovieDrawsCorrectly(self, win, movieLib,
+                                            gpuColorConversion, ori):
+        """A rotated grating drawn over a movie looks as it does alone, and
+        leaves the rest of the movie as it was."""
+        size = (48, 48)
+        grating = _grating(win, ori=ori, size=size)
+
+        with _pausedMovie(win, movieLib, size=(100, 100),
+                          gpuColorConversion=gpuColorConversion) as mov:
+            gratingAlone, _ = _drawToBackBuffer(win, grating)
+            movieAlone, _ = _drawToBackBuffer(win, mov)
+            composite, _ = _drawToBackBuffer(win, mov, grating)
+
+        footprint = _footprint(win, size, ori)
+        inside = _erode(footprint, EDGE_MARGIN)
+        outside = ~_dilate(footprint, EDGE_MARGIN)
+
+        # the grating is opaque, so covers the movie entirely and looks just
+        # as it does without the movie under it
+        assert _maxDifference(composite, gratingAlone, inside) <= 1
+
+        # and the movie around it is untouched
+        assert _maxDifference(composite, movieAlone, outside) <= 1
+
+        # the grating did cover something, so the first check means something
+        assert np.abs(composite - movieAlone)[inside].mean() > 1.0
+
+    def test_movieOverGratingDrawsCorrectly(self, win, movieLib,
+                                            gpuColorConversion):
+        """A movie drawn over a grating looks as it does alone, with the
+        grating still showing around it."""
+        size, ori = (120, 120), 30
+        grating = _grating(win, ori=ori, size=size)
+
+        with _pausedMovie(win, movieLib, size=(64, 64),
+                          gpuColorConversion=gpuColorConversion) as mov:
+            gratingAlone, _ = _drawToBackBuffer(win, grating)
+            movieAlone, _ = _drawToBackBuffer(win, mov)
+            composite, _ = _drawToBackBuffer(win, grating, mov)
+            movieMask, _ = _drawnRegion(win, mov)
+
+        inside = _erode(movieMask, EDGE_MARGIN)
+        around = _erode(_footprint(win, size, ori), EDGE_MARGIN) & \
+            ~_dilate(movieMask, EDGE_MARGIN)
+
+        assert inside.any() and around.any()
+        assert _maxDifference(composite, movieAlone, inside) <= 1
+        assert _maxDifference(composite, gratingAlone, around) <= 1
+
+    def test_drawLeavesGLStateAlone(self, win, movieLib, gpuColorConversion):
+        """Drawing a playing movie, uploading new frames as it goes, leaves the
+        GL state as it found it, including pixel store settings other than the
+        defaults which another stimulus may have left set to upload with."""
+        import psychopy.tools.pygletgl as GL
+
+        grating = _grating(win, ori=30)
+
+        with movieStim(win, movieLib, size=(100, 100),
+                       gpuColorConversion=gpuColorConversion) as mov:
+            mov.play()
+            try:
+                for _ in range(10):
+                    grating.draw()
+                    GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 2)
+                    GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 3)
+                    before = _glState()
+
+                    mov.draw()
+
+                    assert _glState() == before
+                    win.flip()
+                    time.sleep(0.02)  # so that there's a new frame to upload
+            finally:
+                # back to the defaults, for the tests sharing the window
+                GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
+                GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
+
+    def test_rotatingGratingOverPlayingMovie(self, win, movieLib,
+                                             gpuColorConversion):
+        """A grating rotated frame by frame over a playing movie looks as it
+        does alone at every angle, while new movie frames are uploaded between
+        draws.
+
+        The grating swaps texture every frame too, so that it uploads one right
+        after the movie has, as it would if pixel upload state (a bound pixel
+        buffer, row length or alignment) were left behind by the movie.
+
+        """
+        size = (48, 48)
+        steps = [(ori, 'sqr' if i % 2 else 'sin')
+                 for i, ori in enumerate(range(0, 360, 30))]
+        grating = _grating(win, size=size)
+
+        # how the grating looks alone at each step, and where it is solid
+        expected = {}
+        for ori, tex in steps:
+            grating.ori, grating.tex = ori, tex
+            alone, _ = _drawToBackBuffer(win, grating)
+            expected[ori] = (
+                alone, _erode(_footprint(win, size, ori), EDGE_MARGIN))
+
+        with movieStim(win, movieLib, size=(100, 100),
+                       gpuColorConversion=gpuColorConversion) as mov:
+            mov.play()
+            _drawFrames(win, mov, count=2)
+            start = mov.movieTime
+
+            for ori, tex in steps:
+                win.flip()  # clear the back buffer, as `_drawToBackBuffer`
+                mov.draw()
+                grating.ori, grating.tex = ori, tex  # uploaded after the movie
+                grating.draw()
+                composite = _captureBackBuffer(win)
+                win.flip()
+                alone, inside = expected[ori]
+
+                assert _maxDifference(composite, alone, inside) <= 1, ori
+
+                time.sleep(0.02)  # let the movie move on a frame or so
+
+            assert mov.movieTime > start
 
 
 # --------------------------------------------------------------------------
@@ -1804,6 +2025,76 @@ class TestMovieStimAudioTrack:
 
 
 # --------------------------------------------------------------------------
+# Decoders which play the audio themselves
+#
+
+class _FFPyPlayerReaderStandIn(movies.readers._base._MOVIE_READER_CLASSES['pyav']):
+    """Stands in for the `ffpyplayer` reader, decoding with PyAV.
+
+    `ffpyplayer` isn't available on every Python version these tests run on,
+    so this goes by its name instead. That makes `MovieStim` treat it as a
+    decoder playing the audio itself, and it records what it is asked to do
+    with the audio. Like the `ffpyplayer` reader, it unmutes itself once open.
+
+    `_decoderLib` is set when it is put in place (see `ffpyplayerStandIn`),
+    since setting it here would have it replace the real `ffpyplayer` reader
+    as soon as it was defined.
+
+    """
+    _decoderLib = None
+
+    def __init__(self, filename, decoderLib=None, decoderOpts=None):
+        super().__init__(filename, decoderLib, decoderOpts)
+        self.openedWithOpts = dict(decoderOpts or {})
+
+    def _open(self):
+        super()._open()
+        self.mute(False)
+
+
+@pytest.fixture
+def ffpyplayerStandIn(monkeypatch):
+    """Have `movieLib='ffpyplayer'` read movies with `_FFPyPlayerReaderStandIn`."""
+    monkeypatch.setattr(_FFPyPlayerReaderStandIn, '_decoderLib', 'ffpyplayer')
+    monkeypatch.setitem(
+        movies.readers._base._MOVIE_READER_CLASSES, 'ffpyplayer',
+        _FFPyPlayerReaderStandIn)
+
+
+class TestMovieStimDecoderPlaysAudio:
+    """Tests for `noAudio` with a decoder which plays the audio itself."""
+
+    @pytest.mark.parametrize('noAudio', [True, False])
+    def test_noAudioKeepsDecoderQuiet(self, win, movieLib, ffpyplayerStandIn,
+                                      noAudio):
+        """With `noAudio` and no speaker device given, `ffpyplayer` is told to
+        leave the audio out, and kept muted for good measure, through playing,
+        pausing, and stopping (which reloads the movie). Without `noAudio`, it
+        plays the audio."""
+        if movieLib != 'pyav':
+            pytest.skip('the stand-in for ffpyplayer decodes with pyav')
+
+        with movieStim(win, 'ffpyplayer', noAudio=noAudio) as mov:
+            assert mov._decoderPlaysAudio
+            assert mov._noAudio == noAudio
+            assert mov._audioTrack is None  # it plays the audio itself
+
+            for _ in range(2):  # and again once stopped, with a new reader
+                player = mov._player
+                assert isinstance(player, _FFPyPlayerReaderStandIn)
+                assert player.openedWithOpts['an'] == noAudio
+
+                mov.play()
+                _drawFrames(win, mov)
+                assert mov.muted == noAudio
+                mov.pause()
+                mov.play()
+                assert mov.muted == noAudio
+
+                mov.stop()
+
+
+# --------------------------------------------------------------------------
 # Scaling frames down as they're decoded
 #
 
@@ -2391,3 +2682,173 @@ class TestMovieStimFrameTexture:
             # drawn as it is, and staying put while paused
             _drawFrames(win, mov, count=3, interval=0.02)
             np.testing.assert_array_equal(self._frameTexture(mov), after)
+
+
+# --------------------------------------------------------------------------
+# Builder
+#
+
+# Folder holding the Builder experiments run by the tests below
+BUILDER_DIR = Path(__file__).parent / 'builder'
+
+
+def _rowsWith(entries, key):
+    """Rows of experiment data which have a value for `key`, in order."""
+    return [row for row in entries if row.get(key) is not None]
+
+
+class TestBuilderMovieEndRoutine:
+    """Compile and run a Builder experiment whose movies end, or don't end,
+    their Routines.
+
+    `builderMovieEndRoutineTest.psyexp` plays the test movie through three
+    times, followed each time by a `probe` Routine which records what the
+    movies are doing once their Routine is over:
+
+    * `movieForceEnd`: "Force end of Routine" is on, so the Routine ends when
+      the movie does. A Text Component with no stop time keeps the Routine
+      going otherwise, up to its 20s maximum duration.
+    * `movieNoForce`: "Force end of Routine" is off, so the Routine carries on
+      after the movie ends, until a Text Component stops at 9s.
+    * `movieEarlyEnd`, twice in a loop: the Routine stops at 1s, well before
+      the movie ends.
+
+    The Text Components are there because a Routine also ends once every
+    Component in it has finished, whatever "Force end of Routine" says.
+    Running it through a `Session` takes the same path as running it from
+    Builder: the experiment is compiled to a script, which is imported and has
+    its `run()` called.
+
+    """
+    # how long `movieNoForce` and `movieEarlyEnd` run for, in seconds, as set
+    # in the experiment
+    HOLD_DURATION = 9.0
+    EARLY_DURATION = 1.0
+
+    def setup_method(self):
+        # the Session applies the experiment's window settings to the window
+        # it's given, so this has its own rather than the module's shared one
+        self.win = visual.Window(
+            [128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+
+    def teardown_method(self):
+        self.win.close()
+
+    def _runExperiment(self, tmp_path, movieLib):
+        """Run the experiment with its movies played by `movieLib`, from a
+        copy in `tmp_path`, returning its `ExperimentHandler`."""
+        exp = experiment.Experiment()
+        exp.loadFromXML(str(BUILDER_DIR / 'builderMovieEndRoutineTest.psyexp'))
+        for routine in exp.routines.values():
+            for comp in routine:
+                if comp.type == 'Movie':
+                    comp.params['backend'].val = movieLib
+
+        # Work from a copy, so the compiled script and the data the experiment
+        # writes land in the temp folder rather than in the source tree, with
+        # the movie next to it for its relative filename. The Session imports
+        # the script as a module named after the file, which stays imported,
+        # so each backend's copy gets a name of its own.
+        expFile = tmp_path / 'builderMovieEndRoutineTest_{}.psyexp'.format(
+            movieLib)
+        exp.saveToXML(str(expFile), makeLegacy=False)
+        shutil.copy(str(MOVIE_PATH), str(tmp_path / 'testMovie.mp4'))
+
+        sess = session.Session(root=tmp_path, win=self.win)
+        sess.addExperiment(expFile.name, key='movieEndRoutine')
+
+        script = expFile.with_suffix('.py').read_text(encoding='utf8')
+        assert script.count("movieLib='{}'".format(movieLib)) == 3, (
+            "Not every movie in the compiled experiment is played with "
+            "{}.".format(movieLib))
+
+        sess.runExperiment('movieEndRoutine')
+
+        return sess.runs[-1]
+
+    def test_routineEnding(self, tmp_path, movieLib):
+        """Movies end their Routine when asked to, and leave nothing behind
+        when their Routine ends first."""
+        thisExp = self._runExperiment(tmp_path, movieLib)
+        entries = thisExp.entries
+
+        forceRow, = _rowsWith(entries, 'movieForceEnd.started')
+        keepRow, = _rowsWith(entries, 'movieNoForce.started')
+        # rows in the loop hold both `movieEarlyEnd` and its `probe`
+        earlyRows = _rowsWith(entries, 'movieEarlyEnd.started')
+        probeRows = _rowsWith(entries, 'probe.started')
+        assert len(earlyRows) == 2 and len(probeRows) == 4, (
+            "Expected 2 repeats of `movieEarlyEnd` and 4 of `probe`, got {} "
+            "and {}.".format(len(earlyRows), len(probeRows)))
+
+        def ranFor(row, name):
+            return row[name + '.stopped'] - row[name + '.started']
+
+        def checkNextRoutineStarts(row, name, probeRow):
+            # straight away, so stopping the movie as the Routine ends (which
+            # reloads it) doesn't hold up the experiment
+            gap = probeRow['probe.started'] - row[name + '.stopped']
+            assert 0.0 <= gap < 0.25, (
+                "`probe` started {}s after `{}` ended.".format(gap, name))
+
+        # "Force end of Routine" on: the Routine ended with the movie, well
+        # before the Text Component or the Routine's maximum duration would
+        # have ended it
+        assert forceRow.get('movieForce.stopped') is not None, (
+            "`movieForce` never finished.")
+        assert ranFor(forceRow, 'movieForceEnd') == pytest.approx(
+            MOVIE_DURATION, abs=0.5), (
+            "`movieForceEnd` ran for {}s, expected it to end with its {}s "
+            "movie.".format(ranFor(forceRow, 'movieForceEnd'), MOVIE_DURATION))
+        checkNextRoutineStarts(forceRow, 'movieForceEnd', probeRows[0])
+
+        # "Force end of Routine" off: the movie finished, but the Routine
+        # carried on until the Text Component stopped
+        assert ranFor(keepRow, 'movieKeep') == pytest.approx(
+            MOVIE_DURATION, abs=0.5), (
+            "`movieKeep` ran for {}s, expected all {}s of it.".format(
+                ranFor(keepRow, 'movieKeep'), MOVIE_DURATION))
+        assert ranFor(keepRow, 'movieNoForce') == pytest.approx(
+            self.HOLD_DURATION, abs=0.25), (
+            "`movieNoForce` ran for {}s, expected it to carry on after its "
+            "movie ended, to {}s.".format(
+                ranFor(keepRow, 'movieNoForce'), self.HOLD_DURATION))
+
+        # the Routine ending first: it ended on time each repeat, rather than
+        # the second being cut short by anything the first left behind, and
+        # the movie played from the start each time
+        for repeat, row in enumerate(earlyRows):
+            assert ranFor(row, 'movieEarlyEnd') == pytest.approx(
+                self.EARLY_DURATION, abs=0.1), (
+                "Repeat {} of `movieEarlyEnd` ran for {}s, expected {}s."
+                "".format(repeat, ranFor(row, 'movieEarlyEnd'),
+                          self.EARLY_DURATION))
+            assert row.get('movieEarly.stopped') is None, (
+                "Repeat {}: `movieEarly` finished, though its Routine ended "
+                "first.".format(repeat))
+            assert row['movieEarly.timeAtStart'] == pytest.approx(
+                0.0, abs=1e-6), (
+                "Repeat {}: `movieEarly` started from {}s, not the "
+                "beginning.".format(repeat, row['movieEarly.timeAtStart']))
+            assert row['movieEarly.timeAtEnd'] == pytest.approx(
+                self.EARLY_DURATION, abs=0.2), (
+                "Repeat {}: `movieEarly` had played to {}s by the time its "
+                "Routine ended, expected about {}s.".format(
+                    repeat, row['movieEarly.timeAtEnd'],
+                    self.EARLY_DURATION))
+            checkNextRoutineStarts(row, 'movieEarlyEnd', row)
+
+        # once its Routine is over, a movie isn't drawn, playing or moving on
+        for row in probeRows:
+            assert not row['probe.anyDrawn'], (
+                "A movie was still being drawn after its Routine ended.")
+            assert not row['probe.anyPlaying'], (
+                "A movie was still playing after its Routine ended.")
+            assert row['probe.timesHeld'], (
+                "A movie moved on after its Routine ended.")
+
+        # and stopping a movie leaves no decoding threads behind
+        threads = [row['probe.threads'] for row in earlyRows]
+        assert threads[0] == threads[1], (
+            "{} threads were running after the first repeat of "
+            "`movieEarlyEnd`, {} after the second.".format(*threads))
