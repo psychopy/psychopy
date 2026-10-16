@@ -22,6 +22,7 @@ try:
 except ImportError:
     pass
 
+from psychopy import logging
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
@@ -162,7 +163,10 @@ class udpServer(DatagramServer):
                 self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
                 return False
         elif request_type == 'GET_IOHUB_STATUS':
-            self.sendResponse((request_type, self.iohub.getStatus()), replyTo)
+            # include the server pid so the client can tell this server apart
+            # from a stale one still bound to the same port
+            self.sendResponse(
+                (request_type, self.iohub.getStatus(), os.getpid()), replyTo)
             return True
         elif request_type == 'STOP_IOHUB_SERVER':
             self.shutDown()
@@ -550,8 +554,8 @@ class udpServer(DatagramServer):
 
     def shutDown(self):
         try:
-            self.setPriority('normal')
             self.iohub.shutdown()
+            self.setPriority('normal')
             self._running = False
             self.stop()
         except Exception:
@@ -1023,13 +1027,24 @@ class ioServer():
 
     def checkForPsychopyProcess(self, sleep_interval):
         while self._running:
-            if Computer.psychopy_process:
-                if Computer.psychopy_process.is_running() is False:
-                    Computer.psychopy_process = None
-                    self.shutdown()
-                    break
-                else:
-                    gevent.sleep(sleep_interval)
+            if not Computer.isPsychopyProcessAlive():
+                logging.warning(
+                    "PsychoPy process has exited, shutting down ioHub Server.")
+                # stdout / stderr are inherited from the psychopy process and
+                # may no longer have a reader, so discard any further output
+                # rather than risk shutdown failing on a broken pipe
+                try:
+                    devnull = os.open(os.devnull, os.O_WRONLY)
+                    os.dup2(devnull, 1)
+                    os.dup2(devnull, 2)
+                    os.close(devnull)
+                except OSError:
+                    pass
+                # stop the udp service as well as the server, otherwise the
+                # process is kept alive and keeps the udp port bound
+                self.udpService.shutDown()
+                break
+            gevent.sleep(sleep_interval)
 
     @classmethod
     def getStatus(cls):
@@ -1041,32 +1056,55 @@ class ioServer():
         return s
 
     def shutdown(self):
-        try:
-            self._running = False
+        # each step is handled separately so that a failure in one does not
+        # stop the datastore or devices from being closed
+        self._running = False
 
+        try:
             if Computer.platform.startswith('linux'):
                 if self._hookManager:
                     self._hookManager.cancel()
 
             elif Computer.platform == 'win32':
-                del self._hookManager
+                self._hookManager = None
                 # if self._hookManager:
                 #    self._hookManager.UnhookMouse()
                 #    self._hookManager.UnhookKeyboard()
+        except Exception:
+            print2err('Error in ioSever.shutdown() stopping hook manager:')
+            printExceptionDetailsToStdErr()
 
-            while self.deviceMonitors:
-                self.deviceMonitors.pop(0).running = False
+        while self.deviceMonitors:
+            self.deviceMonitors.pop(0).running = False
 
+        while self.custom_tasks:
+            _, task = self.custom_tasks.popitem()
+            try:
+                task.stop()
+            except Exception:
+                print2err('Error in ioSever.shutdown() stopping custom task:')
+                printExceptionDetailsToStdErr()
+
+        try:
             if self.eventBuffer:
                 self.clearEventBuffer()
-
-            self.closeDataStoreFile()
-
-            while self.devices:
-                self.devices.pop(0)._close()
         except Exception:
-            print2err('Error in ioSever.shutdown():')
+            print2err('Error in ioSever.shutdown() clearing event buffer:')
             printExceptionDetailsToStdErr()
+
+        try:
+            self.closeDataStoreFile()
+        except Exception:
+            print2err('Error in ioSever.shutdown() closing datastore:')
+            printExceptionDetailsToStdErr()
+
+        while self.devices:
+            device = self.devices.pop(0)
+            try:
+                device._close()
+            except Exception:
+                print2err('Error in ioSever.shutdown() closing device:', device)
+                printExceptionDetailsToStdErr()
 
     def __del__(self):
         self.shutdown()
