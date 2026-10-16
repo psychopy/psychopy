@@ -12,6 +12,7 @@ class TestDeviceManager:
             "psychopy.hardware.keyboard.KeyboardDevice",
             "psychopy.hardware.microphone.MicrophoneDevice",
             "psychopy.hardware.serialdevice.SerialDevice",
+            "psychopy.hardware.joystick.JoystickDevice",
             # "psychopy_bbtk.tpad.TPadPhotodiodeGroup",  # uncomment when running locally with a BBTK
 
         )

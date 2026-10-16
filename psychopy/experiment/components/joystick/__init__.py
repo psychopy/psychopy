@@ -6,13 +6,14 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.experiment import valid_var_re
+from psychopy.experiment.components import (
+    BaseDeviceComponent, Param, getInitVals, _translate)
+from psychopy.experiment.devices import DeviceBackend
 from psychopy.experiment import CodeGenerationException, valid_var_re
 import re
 
 
-class JoystickComponent(BaseComponent):
+class JoystickComponent(BaseDeviceComponent):
     """An event class for checking the joystick location and buttons
     at given timepoints
     """
@@ -21,25 +22,32 @@ class JoystickComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'joystick.png'
     iconSVG = Path(__file__).parent / 'JoystickComponent.svg'
     tooltip = _translate('Joystick: query joystick position and buttons')
+    deviceClasses = ['psychopy.hardware.joystick.JoystickDevice']
 
     def __init__(self, exp, parentName, name='joystick',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  save='final', forceEndRoutineOnPress="any click",
-                 timeRelativeTo='joystick onset', deviceNumber='0', allowedButtons=''):
-        super(JoystickComponent, self).__init__(
-            exp, parentName, name=name,
+                 timeRelativeTo='joystick onset', deviceLabel='',
+                 deviceNumber='0', allowedButtons='', disabled=False):
+        BaseDeviceComponent.__init__(
+            self, exp, parentName, name=name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
-            startEstim=startEstim, durationEstim=durationEstim)
+            startEstim=startEstim, durationEstim=durationEstim,
+            deviceLabel=deviceLabel, disabled=disabled)
 
         self.type = 'Joystick'
         self.url = "https://www.psychopy.org/builder/components/joystick.html"
+        # `event` is kept available because Code Components in existing
+        # experiments commonly assume this Component imported it
         self.exp.requirePsychopyLibs(['event'])
+        self.exp.requireImport(
+            importName='Joystick', importFrom='psychopy.hardware.joystick')
         self.categories = ['Inputs']
 
-        self.order += ['forceEndRoutine',  # Basic tab
+        self.order += ['forceEndRoutineOnPress',  # Basic tab
                        'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'allowedButtons',  # Data tab
                        'deviceNumber',  # Hardware tab
                        ]
@@ -97,14 +105,28 @@ class JoystickComponent(BaseComponent):
             hint=msg, direct=False,
             label=_translate("Store params for clicked"))
 
-        msg = _translate('Device number, if you have multiple devices which'
-                         ' one do you want (0, 1, 2...)')
+        msg = _translate(
+            "Deprecated: index of the joystick to use when no Device is named "
+            "above. Prefer naming a device in the Device field, which lets the "
+            "same joystick be shared between Components.")
 
         self.params['deviceNumber'] = Param(
             deviceNumber, valType='int', inputType="single", allowedTypes=[], categ="Device",
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_translate("Device number"))
+            label=_translate("Device number (deprecated)"))
+        # only relevant while no named device is chosen. NB: this param is
+        # deliberately NOT a legacyParam -- legacyParams drop the stored value
+        # on load, and there's no way to migrate an index into another
+        # machine's device config, so an experiment would silently change which
+        # joystick it read from.
+        self.depends.append({
+            "dependsOn": "deviceLabel",
+            "condition": "==''",
+            "param": "deviceNumber",
+            "true": "show",
+            "false": "hide",
+        })
 
         msg = _translate('Buttons to be read (blank for any) numbers separated by '
                          'commas')
@@ -145,117 +167,35 @@ class JoystickComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-2, relative=True)
 
-    def writeStartCode(self, buff):
-        code = ("from psychopy.hardware import joystick as joysticklib  "
-                "# joystick/gamepad accsss\n"
-                "from psychopy.experiment.components.joystick import "
-                "virtualJoystick as virtualjoysticklib\n")
-        buff.writeIndentedLines(code % self.params)
+    @property
+    def clockStr(self):
+        """Name of the clock this Component times against.
+
+        A property rather than something `writeFrameCode` assigns, so
+        `writeRoutineEndCode` doesn't depend on the order the two are called in.
+        """
+        if self.params['timeRelativeTo'].val.lower() == 'experiment':
+            return 'globalClock'
+        return "%s.joystickClock" % self.params['name'].val
 
     def writeInitCode(self, buff):
-        code = ("x, y = [None, None]\n"
-                "%(name)s = type('', (), {})() "
-                "# Create an object to use as a name space\n"
-                "%(name)s.device = None\n"
-                "%(name)s.device_number = %(deviceNumber)s\n"
-                "%(name)s.joystickClock = core.Clock()\n"
-                "%(name)s.xFactor = 1\n"
-                "%(name)s.yFactor = 1\n"
-                "\n"
-                "try:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("numJoysticks = len(joysticklib.Joystick.getAvailableDevices())\n"
-                "if numJoysticks > 0:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("try:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("joystickCache\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(-1, relative=True)
-        code = ("except NameError:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("joystickCache={}\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(-1, relative=True)
-        code = ("if not %(deviceNumber)s in joystickCache:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("joystickCache[%(deviceNumber)s] = joysticklib.Joystick(%(deviceNumber)s)\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(-1, relative=True)
-        code = ("%(name)s.device = joystickCache[%(deviceNumber)s]\n")
-        buff.writeIndentedLines(code % self.params)
-
-        code = ("if win.units == 'height':\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(1, relative=True)
-        code = ("%(name)s.xFactor = 0.5 * win.size[0]/win.size[1]\n"
-                "%(name)s.yFactor = 0.5\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(-1, relative=True)
-        buff.setIndentLevel(-1, relative=True)
-
-        code = ("else:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("%(name)s.device = virtualjoysticklib.VirtualJoystick(%(deviceNumber)s)\n"
-                "logging.warning(\"joystick_{}: "
-                "Using keyboard+mouse emulation 'ctrl' "
-                "+ 'Alt' + digit.\".format(%(name)s.device_number))\n")
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        buff.setIndentLevel(-1, relative=True)
-
-        code = ("except Exception:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("pass\n\n")
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-
-        code = ("if not %(name)s.device:\n")
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(+1, relative=True)
-        code = ("logging.error('No joystick/gamepad device found.')\n"
-                "core.quit()\n")
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-
-        code = ("\n"
-                "%(name)s.status = None\n"
-                "%(name)s.clock = core.Clock()\n"
-                "%(name)s.numButtons = %(name)s.device.getNumButtons()\n"
-                "%(name)s.getNumButtons = %(name)s.device.getNumButtons\n"
-                "%(name)s.getAllButtons = %(name)s.device.getAllButtons\n"
-                "%(name)s.getX = lambda: %(name)s.xFactor * %(name)s.device.getX()\n"
-                "%(name)s.getY = lambda: %(name)s.yFactor * %(name)s.device.getY()\n"
+        inits = getInitVals(self.params)
+        code = (
+            "# set up joystick %(name)s\n"
+            "%(name)s = Joystick(\n"
+            "    device=%(deviceLabel)s,\n"
+            "    index=%(deviceNumber)s,\n"
+            "    win=win,\n"
+            ")\n"
         )
-        buff.writeIndentedLines(code % self.params)
-        buff.writeIndented("\n")
-
+        buff.writeIndentedLines(code % inits)
 
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine
         """
 
-        code = ("{name}.oldButtonState = {name}.device.getAllButtons()[:]\n")
+        code = ("{name}.clearData()\n"
+                "{name}.oldButtonState = {name}.getAllButtons()[:]\n")
         buff.writeIndentedLines(code.format(**self.params))
 
         allowedButtons = self.params['allowedButtons'].val.strip()
@@ -279,8 +219,7 @@ class JoystickComponent(BaseComponent):
             buff.writeIndentedLines(code.format(allowedButtons))
 
             buff.setIndentLevel(-1, relative=True)
-            code = ("elif not (isinstance({0}, str) "
-                    "or isinstance({0}, unicode)):\n")
+            code = ("elif not isinstance({0}, str):\n")
             buff.writeIndentedLines(code.format(allowedButtons))
 
             buff.setIndentLevel(1, relative=True)
@@ -348,13 +287,6 @@ class JoystickComponent(BaseComponent):
         forceEnd = self.params['forceEndRoutineOnPress'].val
         #routineClockName = self.exp.flow._currentRoutine._clockName
 
-        # get a clock for timing
-        timeRelative = self.params['timeRelativeTo'].val.lower()
-        if timeRelative == 'experiment':
-            self.clockStr = 'globalClock'
-        elif timeRelative in ['routine', 'joystick onset']:
-            self.clockStr = '%s.joystickClock' % self.params['name'].val
-
         # only write code for cases where we are storing data as we go (each
         # frame or each click)
 
@@ -386,6 +318,9 @@ class JoystickComponent(BaseComponent):
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
+
+        code = ("%(name)s.poll()  # refresh the joystick state\n") % self.params
+        buff.writeIndented(code)
 
         # write param checking code
         if (self.params['saveJoystickState'].val == 'on click'
@@ -474,7 +409,7 @@ class JoystickComponent(BaseComponent):
         name = self.params['name']
         # do this because the param itself is not a string!
         store = self.params['saveJoystickState'].val
-        if store == 'nothing':
+        if store == 'never':
             return
 
         forceEnd = self.params['forceEndRoutineOnPress'].val
@@ -495,7 +430,6 @@ class JoystickComponent(BaseComponent):
 
         if store == 'final':
             # write code about clicked objects if needed.
-            buff.writeIndentedLines(code)
             if self.params['clickable'].val:
                 code = ("if len({name}.buttons) > 0:\n")
                 buff.writeIndentedLines(code.format(**self.params))
@@ -503,7 +437,8 @@ class JoystickComponent(BaseComponent):
                 self._writeClickableObjectsCode(buff)
                 buff.setIndentLevel(-1, relative=True)
 
-            code = ("x, y = {name}.getX(), {name}.getY()\n"
+            code = ("{name}.poll()\n"
+                    "x, y = {name}.getX(), {name}.getY()\n"
                     "{name}.newButtonState = {name}.getAllButtons()[:]\n"
                     "{name}.pressedState = [{name}.newButtonState[i] "
                     "for i in range({name}.numButtons)]\n"
@@ -571,3 +506,60 @@ class JoystickComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
+
+
+class JoystickDeviceBackend(DeviceBackend):
+    """Joystick or gamepad, read through pyglet, GLFW, or keyboard emulation.
+
+    There is one backend rather than one per input library because they all map
+    onto the same device class -- which library to use is a property of the
+    device being configured, so it is a parameter here rather than a separate
+    backend. Registering several backends against one device class would also
+    enumerate the same joysticks once per backend in Device Manager.
+    """
+    backendLabel = _translate("Joystick / Gamepad")
+    deviceClass = "psychopy.hardware.joystick.JoystickDevice"
+    icon = "light/joystick.png"
+
+    def getParams(self):
+        order = ['backend', 'deadzone']
+        params = {
+            # NB: DeviceBackend.__init__ stores the discovered profile before
+            # calling this, so the backend a device was found under becomes its
+            # default. `.get` covers the empty profile used for templates.
+            'backend': Param(
+                self.profile.get('backend', 'pyglet'),
+                valType='str', inputType='choice', categ="Device",
+                allowedVals=['pyglet', 'glfw', 'virtual'],
+                allowedLabels=[
+                    _translate("Pyglet"),
+                    _translate("GLFW"),
+                    _translate("Virtual (keyboard + mouse)"),
+                ],
+                label=_translate("Input library"),
+                hint=_translate(
+                    "Library used to read this device. Pyglet needs an open "
+                    "pyglet Window which is being flipped; GLFW works with any "
+                    "window backend, or none; Virtual emulates a joystick "
+                    "using 'ctrl' + 'alt' + a number key and the mouse.")),
+            'deadzone': Param(
+                0, valType='num', inputType='single', categ="Device",
+                label=_translate("Deadzone"),
+                hint=_translate(
+                    "Axis values whose magnitude falls below this are reported "
+                    "as zero, which suppresses drift on an idle stick.")),
+        }
+
+        return params, order
+
+    def writeDeviceCode(self, buff):
+        self.writeBaseDeviceCode(buff, close=False)
+        code = (
+            "    backend=%(backend)s,\n"
+            "    deadzone=%(deadzone)s,\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+
+JoystickComponent.registerBackend(JoystickDeviceBackend)
