@@ -17,7 +17,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 import collections
 import os
-import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy, copy
@@ -591,7 +590,7 @@ class Experiment:
         if filename.suffix != ".psyexp":
             filename = filename.parent / (filename.stem + ".psyexp")
         # write to file
-        with codecs.open(str(filename), 'wb', encoding='utf-8-sig') as f:
+        with open(filename, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(pretty)
         # if useVersion is less than current version, create a sanitized legacy variant
         if self.settings.params['Use version'].val not in (None, "", "latest") and makeLegacy:

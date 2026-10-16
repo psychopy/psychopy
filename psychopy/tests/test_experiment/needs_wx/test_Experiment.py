@@ -9,7 +9,6 @@ import os, shutil, glob
 import py_compile
 import difflib
 from tempfile import mkdtemp
-import codecs
 from psychopy import core, prefs
 import pytest
 import locale
@@ -96,7 +95,7 @@ class TestExpt():
         assert len(script) > 1500  # default empty script is ~2200 chars
 
         # save the script:
-        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+        with open(py_file, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(script)
 
         return py_file, psyexp_file
@@ -222,7 +221,7 @@ class TestExpt():
             pytest.skip("response emulation thread not working on linux yet")
 
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
-        with codecs.open(expfile, 'r', encoding='utf-8-sig') as f:
+        with open(expfile, 'r', encoding='utf-8-sig', newline='') as f:
             text = f.read()
 
         # copy conditions file to tmp_dir
@@ -233,7 +232,7 @@ class TestExpt():
         text = text.replace("'Arial'", "'" + TESTS_FONT +"'")
 
         expfile = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
-        with codecs.open(expfile, 'w', encoding='utf-8-sig') as f:
+        with open(expfile, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(text)
 
         self.exp.loadFromXML(expfile)  # reload the edited file
@@ -251,7 +250,7 @@ class TestExpt():
                                 'logging.console.setLevel(logging.ERROR')
 
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        with codecs.open(lastrun, 'w', encoding='utf-8-sig') as f:
+        with open(lastrun, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(script)
 
         # run:

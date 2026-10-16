@@ -30,6 +30,7 @@ from psychopy.tools import gltools as gt
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin, TextureMixin
 )
+from psychopy.visual.helpers import callOnGLThread
 import numpy
 
 USE_LEGACY_GL = GL.USE_LEGACY_GL
@@ -563,6 +564,15 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glEndList()
 
     def __del__(self):
+        # the garbage collector may be running on any thread, so these are
+        # freed on the one with the window's OpenGL context
+        try:
+            callOnGLThread(self.__dict__.get('win'), self._freeGLObjects)
+        except Exception:
+            pass  # probably shutting down
+
+    def _freeGLObjects(self):
+        """Delete the display list and textures, see `__del__`."""
         try:
             GL.glDeleteLists(self._listID, 1)
         except Exception:

@@ -30,6 +30,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
 )
+from psychopy.visual.helpers import callOnGLThread
 
 USE_LEGACY_GL = GL.USE_LEGACY_GL
 
@@ -157,7 +158,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         try:
             #if hasattr(self, '_listID'):
                 # GL.glDeleteLists(self._listID, 1)
-            self.clearTextures()
+            # the garbage collector may be running on any thread, so these
+            # are freed on the one with the window's OpenGL context
+            callOnGLThread(self.__dict__.get('win'), self.clearTextures)
         except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
             pass  # has probably been garbage-collected already
 

@@ -12,7 +12,6 @@ import shutil
 import subprocess
 import sys
 import atexit
-import codecs
 import numpy as np
 import json
 import json_tricks
@@ -138,7 +137,7 @@ def fromFile(filename, encoding='utf-8-sig'):
             contents = pickle.load(f)
         return contents
     elif filename.endswith('.json'):
-        with codecs.open(filename, 'r', encoding=encoding) as f:
+        with open(filename, 'r', encoding=encoding) as f:
             contents = json_tricks.load(f)
 
         # Restore RNG if we load a TrialHandler2 object.
@@ -268,9 +267,10 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
     if os.path.exists(fileName) and mode in ['w', 'wb']:
         logging.info('Data file %s will be overwritten' % fileName)
 
-    # The file will always be opened in binary writing mode,
-    # see https://docs.python.org/2/library/codecs.html#codecs.open
-    f = codecs.open(fileName, mode=mode, encoding=encoding)
+    # Don't translate line endings when writing text, binary mode doesn't
+    # accept a newline argument
+    newline = None if 'b' in mode else ''
+    f = open(fileName, mode=mode, encoding=encoding, newline=newline)
     return f
 
 

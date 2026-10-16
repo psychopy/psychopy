@@ -31,7 +31,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools import gltools as gt
-from psychopy.visual.helpers import setColor
+from psychopy.visual.helpers import setColor, callOnGLThread
 from psychopy.visual.basevisual import MinimalStim, TextureMixin, ColorMixin
 from . import globalVars
 
@@ -795,8 +795,10 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.mask = value
 
     def __del__(self):
-        # remove textures from graphics card to prevent OpenGl memory leak
+        # remove textures from graphics card to prevent OpenGl memory leak, on
+        # the thread with the window's OpenGL context, as the garbage collector
+        # may be running on any
         try:
-            self.clearTextures()
+            callOnGLThread(self.__dict__.get('win'), self.clearTextures)
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
