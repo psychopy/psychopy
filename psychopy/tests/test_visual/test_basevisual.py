@@ -358,7 +358,8 @@ class _TestUnitsMixin:
         monitor.setSizePix((256, 128))
         monitor.setWidth(4)
         monitor.setDistance(50)
-        win = visual.Window(size=(256, 128), monitor=monitor)
+        win = visual.Window(size=(256, 128), monitor=monitor,
+                            title=f"{type(self).__name__}::test_pos_size")
         try:
             win.useRetina = False
             # Setup object for this test
@@ -426,7 +427,8 @@ class _TestUnitsMixin:
         # Test all unit types apart from None and ""
         unitTypes = layout.unitTypes[2:]
         # Create window (same size as was used for other tests)
-        win = visual.Window(self.obj.win.size, pos=self.obj.win.pos, monitor="testMonitor")
+        win = visual.Window(self.obj.win.size, pos=self.obj.win.pos, monitor="testMonitor",
+                            title=f"{type(self).__name__}::test_unit_mismatch")
         try:
             # Create object
             obj = copy(self.obj)
@@ -504,7 +506,8 @@ class _TestUnitsMixin:
                     continue
                 try:
                     # Create a window and object
-                    win = visual.Window(monitor="testMonitor", units=winunits)
+                    win = visual.Window(monitor="testMonitor", units=winunits,
+                                        title=f"{type(self).__name__}::test_manual")
                     win.monitor.setSizePix((256, 128))
                     win.monitor.setWidth(4)
                     win.monitor.setDistance(50)
@@ -552,7 +555,8 @@ class _TestUnitsMixin:
             if units in [None, "None", "none", ""]:
                 continue
             # Create a window with given units
-            win = visual.Window(monitor="testMonitor", units=units)
+            win = visual.Window(monitor="testMonitor", units=units,
+                                title=f"{type(self).__name__}::test_default_units")
             try:
                 win.monitor.setSizePix((256, 128))
                 win.monitor.setWidth(4)
