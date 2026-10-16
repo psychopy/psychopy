@@ -12,10 +12,12 @@ def testGetFromNames():
     localVal1 = 1
     localVal2 = 2
     assert et.getFromNames(['localVal1', 'localVal2'], locals()) == [1, 2]
-    # locals set via exec
-    exec("localExec1 = 1")
-    exec("localExec2 = 2")
-    assert et.getFromNames(['localExec1', 'localExec2'], locals()) == [1, 2]
+    # locals set via exec (from Python 3.13, each locals() call in a function
+    # returns a fresh snapshot, so keep a reference to the namespace exec writes to)
+    localNamespace = locals()
+    exec("localExec1 = 1", globals(), localNamespace)
+    exec("localExec2 = 2", globals(), localNamespace)
+    assert et.getFromNames(['localExec1', 'localExec2'], localNamespace) == [1, 2]
     # globals set via normal code
     global globalVal1
     global globalVal2
@@ -46,7 +48,8 @@ def testSetExecEnvironment():
     exec("execEnvGlobalTest = 1")
     assert globals()['execEnvGlobalTest'] == 1
 
-    # locals
-    exec = et.setExecEnvironment(locals())
+    # locals (keep a reference, as locals() returns a fresh snapshot from Python 3.13)
+    localNamespace = locals()
+    exec = et.setExecEnvironment(localNamespace)
     exec("execLocalTest = 1")
-    assert locals()['execLocalTest'] == 1
+    assert localNamespace['execLocalTest'] == 1
