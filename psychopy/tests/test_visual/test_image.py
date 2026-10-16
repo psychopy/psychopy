@@ -11,8 +11,10 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
     Test that images render as expected. Note: In BaseVisual tests, image colors will look different than
     seems intuitive as foreColor will be set to `"blue"`.
     """
-    def setup_method(self):
-        self.win = visual.Window()
+    def setup_method(self, method):
+        # name the window after the test, so it's clear which one is running
+        self.win = visual.Window(
+            title=f"{type(self).__name__}::{method.__name__}")
         self.obj = visual.ImageStim(
             self.win,
             str(Path(utils.TESTS_DATA_PATH) / 'testimage.jpg'),
@@ -262,7 +264,8 @@ class TestImageAnimation:
         for i, case in enumerate(cls.cases):
             size = case['size']
             # Create window and shapes
-            win = visual.Window(size=(size, size), color='purple')
+            win = visual.Window(size=(size, size), color='purple',
+                                title=f"{cls.__name__}::setup_class")
             shape1 = visual.ShapeStim(win,
                                       pos=(0.2, 0.2), size=(0.5, 0.5),
                                       lineWidth=size * 0.1,
@@ -319,6 +322,10 @@ class TestImageAnimation:
             # Update case
             cls.cases[i]['frames'] = frames
 
+    def setup_method(self, method):
+        # name windows after the test, so it's clear which one is running
+        self.testName = f"{type(self).__name__}::{method.__name__}"
+
     def test_fps(self):
         """
         Check that images can be updated sufficiently fast to create frame animations
@@ -332,7 +339,7 @@ class TestImageAnimation:
         for case in self.cases:
             size = case['size']
             # Make window and image
-            win = visual.Window(size=(size, size))
+            win = visual.Window(size=(size, size), title=self.testName)
             img = visual.ImageStim(win, units='pix', size=(size, size))
             # Iterate through frames
             refr = []
