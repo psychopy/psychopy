@@ -425,6 +425,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     volume : int or float
         If specifying an `int` the nominal level is 100, and 0 is silence. If a
         `float`, values between 0 and 1 may be used.
+    noAudio : bool
+        Leave out the movie's audio: it isn't loaded, and isn't played by
+        decoders which play it themselves (`ffpyplayer` and `vlc`). Default is
+        `False`.
     loop : bool
         Whether to start the movie over from the beginning if draw is called and
         the movie is done. Default is `False`.
@@ -592,9 +596,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             if audioLib is not None:
                 self._audioLib = audioLib
             elif self._movieLib == 'ffpyplayer':
-                # ffpyplayer plays audio itself via SDL2
+                # ffpyplayer plays audio itself via SDL2, unless `noAudio`
+                # turns it off (see `loadMovie`)
                 self._audioLib = 'sdl2'
-                self._noAudio = False  # use SDL2 for audio playback
             elif self._movieLib == 'vlc':
                 # VLC plays audio itself, on the default output device
                 self._audioLib = 'vlc'
@@ -868,11 +872,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._loadAudioTrack()  # decode and load the audio track
             disableAudio = True  # playing through our libs, so disable in ffpyplayer
 
-        if self._noAudio and self._movieLib == 'vlc':
-            # VLC opens the audio output device itself as soon as it starts
-            # playing, so `noAudio` has to be passed down to it. The other
-            # backends are kept as they are: theirs is either muted (SDL2) or
-            # never played in the first place.
+        if self._noAudio and self._decoderPlaysAudio:
+            # `ffpyplayer` (through SDL2) and VLC open the audio output device
+            # themselves as soon as they start playing, so `noAudio` has to be
+            # passed down to them. The other backends never play it.
             disableAudio = True
 
         self._decoderOpts['an'] = disableAudio
@@ -909,7 +912,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # decoding frames in the background.
         
         self._player.open()
-        
+
+        if self._noAudio and self._decoderPlaysAudio:
+            # and muted too, should the decoder not leave the audio out (the
+            # `ffpyplayer` reader unmutes itself once it has opened)
+            self._player.mute(True)
+
         logging.debug(
             "Movie file opened in {:.2f} seconds".format(
                 time.time() - t0))
@@ -1951,7 +1959,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # which `_drawRectangle` sets up for itself.
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
-        # rows of 4-byte pixels are always 4-byte aligned
+        # rows of 4-byte pixels are always 4-byte aligned, kept to this upload
+        # so that other stimuli upload with whatever they set themselves
+        GL.glPushClientAttrib(GL.GL_CLIENT_PIXEL_STORE_BIT)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
 
         # copy the PBO to the texture, the format matching the texture's own
@@ -1962,6 +1972,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_RGBA,
             GL.GL_UNSIGNED_BYTE,
             0)  # point to the presently bound buffer
+        GL.glPopClientAttrib()
 
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
@@ -2006,6 +2017,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # and from there to each plane's texture, the row length telling GL to
         # skip any padding at the end of each row
         GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glPushClientAttrib(GL.GL_CLIENT_PIXEL_STORE_BIT)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         for textureId, offset, (_, width, height, rowLength) in zip(
                 self._planeTextureIds, offsets, planes):
@@ -2015,9 +2027,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 GL.GL_TEXTURE_2D, 0, 0, 0, width, height,
                 GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, ctypes.c_void_p(offset))
 
-        # back to the defaults, which other stimuli upload with
-        GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
+        # back to whatever other stimuli had set to upload with
+        GL.glPopClientAttrib()
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
