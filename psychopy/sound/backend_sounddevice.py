@@ -655,14 +655,14 @@ class SoundDeviceSound(_SoundBase):
 
         self.sndArr = np.asarray(thisArray)
         if thisArray.ndim == 1:
-            self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
+            self.sndArr = self.sndArr.reshape(len(thisArray), 1)  # make 2D for broadcasting
         if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
             self.sndArr = self.sndArr.repeat(2, axis=1)
         elif self.sndArr.shape[1] == 1:  # if channels in [-1,1] then pass
             pass
         else:
             try:
-                self.sndArr.shape = [len(thisArray), self.channels]
+                self.sndArr = self.sndArr.reshape(len(thisArray), self.channels)
             except ValueError:
                 raise ValueError(
                     "Failed to format sound with shape {} into sound "
@@ -895,7 +895,7 @@ class SoundDeviceSound(_SoundBase):
                 stop=stopT * uu,
                 num=blockSize, endpoint=False
             )
-            xx.shape = [blockSize, 1]
+            xx = xx.reshape(blockSize, 1)
             block = np.sin(xx)
             # if run beyond our desired t then set to zeros
             if stopT > (self.secs):

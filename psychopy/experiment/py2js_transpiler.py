@@ -10,8 +10,6 @@ import sys
 import re
 from psychopy.contrib.javascripthon import translates
 
-import astunparse
-
 
 namesJS = {
     'sin': 'Math.sin',
@@ -577,7 +575,7 @@ def translatePythonToJavaScript(psychoPyCode, namespace=[]):
 
     # turn the transformed AST into code:
     try:
-        transformedPsychoPyCode = astunparse.unparse(transformedAstNode)
+        transformedPsychoPyCode = ast.unparse(transformedAstNode)
     # print('>>> transformed PsychoPy code:\n' + transformedPsychoPyCode)
     except Exception as error:
         raise Exception('unable to turn the transformed abstract syntax tree back into code: ' + str(error))

@@ -67,7 +67,6 @@ dependencies = [
     # for translation
     "i18next",
     # psychoJS conversions
-    "astunparse",
     "esprima",
     "jedi >= 0.16",
     # hardware

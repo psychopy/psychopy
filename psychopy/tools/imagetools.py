@@ -286,7 +286,7 @@ def image2array(im):
     else:
         a = numpy.frombuffer(imdata, numpy.float32)
 
-    a.shape = im.size[1], im.size[0]
+    a = a.reshape(im.size[1], im.size[0])
     return a
 
 
