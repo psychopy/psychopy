@@ -624,6 +624,24 @@ class SoundDeviceSound(_SoundBase):
             soundSecs=self.duration,
             sampleRate=self.sampleRate)
 
+    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
+        """Set sound from a frequency in Hz.
+
+        Parameters
+        ----------
+        thisFreq : float
+            Frequency in Hz.
+        secs : float or None
+            Duration of the sound in seconds (0.5 if None). If negative, the
+            sound will loop indefinitely (until stopped).
+        hamming : bool
+            Ignored: the tone is generated without apodizing it, as `setSound`
+            gives it a Hanning window applied as it plays, which would
+            otherwise ramp its onset and offset twice.
+
+        """
+        _SoundBase._setSndFromFreq(self, thisFreq, secs, hamming=False)
+
     def _setSndFromClip(self, clip):
         """Set the sound from an AudioClip object.
         
