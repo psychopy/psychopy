@@ -438,6 +438,9 @@ class PavloviaSession:
         return projs
 
     def listUserGroups(self, namesOnly=True):
+        # make sure token is in date
+        self.doRefreshToken()
+        
         gps = self.gitlab.groups.list(member=True)
         if namesOnly:
             gps = [this.name for this in gps]
