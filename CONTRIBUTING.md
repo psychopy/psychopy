@@ -22,14 +22,21 @@ Look [here](https://www.psychopy.org/developers/repository.html) to see how the 
 To help you get started with modifying PsychoPy, we've got some [developer guides](https://www.psychopy.org/developers/index.html). To try out your modified PsychoPy, do a [developer's install](https://www.psychopy.org/download.html#developers-install).
 
 ## 3. Committing your changes
-Once you're happy with your changes, commit them to your GitHub repo. Please use the tags below in your commit and add an informative message.
-  - **BF:** bug fix. For fixing bugs in the *release* branch.
-  - **FF:** ‘feature’ fix. For fixing bugs in the *dev* branch.
-  - **RF:** refactoring
-  - **NF:** new feature
-  - **ENH:** enhancement (to existing code, but don't worry too much about the difference between this and NF)
-  - **DOC:** for all kinds of documentation related commits
-  - **TEST:** for adding or changing tests
+Once you're happy with your changes, commit them to your GitHub repo. Please use the tags below in your commit and add an informative message:
+
+- `fix` : Bug fix
+- `refactor` : Restructuring code
+- `feat` : Add a new feature or improvement
+- `docs`: Any changes to documentation (including comments, demos and function docstrings)
+- `test`: Any changes to the test suite
+- `chore`: Changes to processes, actions, etc. (devops stuff, basically)
+
+You can add the following after the tag (before the `:`) to give more specific detail:
+
+- `(reg)` : Regression scope - indicates that you are fixing/improving something unreleased, e.g. `fix(reg): Forgot to delete print statement from debugging a new feature`
+- `!` : Breaking change - indicates that this change may break users' existing experiments, e.g. `refactor!: Completely rearrange everything`
+
+You can also indicate a breaking change by adding BREAKING CHANGE: to the commit footer. For more information on the structure of commit messages, check out the [Conventional Commits](https://conventionalcommits.org/) specification.
 
 ## 4. File a Pull Request
 Once you're done, it's time to add it to the central PsychoPy source code. File a [Pull Request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from your own fork and branch to the PsychoPy repo. Be sure to target the right branch in PsychoPy (*release* or *dev*). Thanks for contributing!
