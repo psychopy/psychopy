@@ -712,9 +712,12 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
             if t is not None:
                 tDown = t
+                # event timestamps come from core.getTime(), so use the
+                # monotonicClock's reset time rather than logging.defaultClock,
+                # which experiments replace with their own clock
                 timeBaseDiff = (
                     self.clock.getLastResetTime()
-                    - logging.defaultClock.getLastResetTime()
+                    - psychopy.clock.monotonicClock.getLastResetTime()
                 )
                 rt = t - timeBaseDiff
             else:
