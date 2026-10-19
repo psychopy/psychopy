@@ -14,7 +14,8 @@ from pathlib import Path
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
-from psychopy.hardware.speaker import SpeakerDevice
+from psychopy.hardware.speaker.speaker_psychtoolbox import \
+    PsychtoolboxSpeakerDevice
 from psychopy.tools import systemtools
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
@@ -132,9 +133,8 @@ class SoundPTB(_SoundBase):
         # if given the name of a managed speaker, get it
         if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
             speaker = DeviceManager.getDevice(speaker)
-        # make sure speaker is a SpeakerDevice
-        if not isinstance(speaker, SpeakerDevice.resolveBackend()):
-            speaker = SpeakerDevice(speaker)
+        # make sure speaker is a psychtoolbox speaker, whatever the audioLib pref
+        speaker = PsychtoolboxSpeakerDevice._fromSpeaker(speaker)
         self.speaker = speaker
         
         self.sound = value

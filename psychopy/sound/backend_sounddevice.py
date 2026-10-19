@@ -33,7 +33,8 @@ from psychopy.sound.exceptions import SoundFormatError, DependencyError
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.sound._base import _SoundBase, HammingWindow
 from ..hardware import DeviceManager
-from psychopy.hardware.speaker import SpeakerDevice
+from psychopy.hardware.speaker.speaker_sounddevice import \
+    SoundDeviceSpeakerDevice
 
 try:
     import sounddevice as sd
@@ -455,9 +456,8 @@ class SoundDeviceSound(_SoundBase):
         """
         if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
             speaker = DeviceManager.getDevice(speaker)
-        # make sure speaker is a SpeakerDevice
-        if not isinstance(speaker, SpeakerDevice.resolveBackend()):
-            speaker = SpeakerDevice(speaker)
+        # make sure speaker is a sounddevice speaker, whatever the audioLib pref
+        speaker = SoundDeviceSpeakerDevice._fromSpeaker(speaker)
         self.speaker = speaker
 
         self.preBuffer = preBuffer
