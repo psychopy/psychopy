@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 from tempfile import mkdtemp
@@ -13,6 +14,8 @@ class TestKeyboardComponent(BaseComponentTests):
     libraryClass = Keyboard
 
     def setup_class(self):
+        # Session.runExperiment chdirs into its root, so note where we started
+        self.origCwd = os.getcwd()
         # run from a copy of the test experiments, as running them writes the
         # compiled script and data files alongside them
         self.root = Path(mkdtemp(prefix="psychopy-tests-keyboard"))
@@ -28,6 +31,8 @@ class TestKeyboardComponent(BaseComponentTests):
     def teardown_class(self):
         # closes the session's window too
         self.session.close()
+        # leave the temp dir before deleting it, later tests need a valid cwd
+        os.chdir(self.origCwd)
         shutil.rmtree(self.root, ignore_errors=True)
 
     def testKeyboardClear(self):
