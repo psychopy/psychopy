@@ -1596,11 +1596,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         return self._updateVideoFrame(blocking)
 
-    def _updateVideoFrame(self, blocking=None):
+    def _updateVideoFrame(self, blocking=None, advanceClock=True):
         """`updateVideoFrame()`, with the window already chosen by the caller
-        (which `draw()` does, being able to draw to any window)."""
+        (which `draw()` does, being able to draw to any window). If
+        `advanceClock` is `False`, the frame is fetched for the movie's present
+        position without first moving it on by the time elapsed."""
         # get the current movie frame for the video time
-        self._updateMoviePos()  # update the movie position
+        if advanceClock:
+            self._updateMoviePos()  # update the movie position
 
         if blocking is None:
             # Waiting is worthwhile when the decoder is merely a little behind
@@ -2530,9 +2533,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             # Fetch the frame for the new position now, rather than leaving it
             # to the next `draw()`. This has to wait explicitly: the seek is
             # outstanding at this point, which is exactly when
-            # `updateVideoFrame` would otherwise choose not to.
-            self._lastFrameAbsTime = self._nextFlipTime()
-            _ = self.updateVideoFrame(blocking=True)
+            # `updateVideoFrame` would otherwise choose not to. The movie clock
+            # is held still meanwhile, or any delay before the fetch (if it
+            # spans a refresh) would be charged to it and the frame shown would
+            # be a later one than asked for.
+            self._selectWindow(self.win)
+            _ = self._updateVideoFrame(blocking=True, advanceClock=False)
 
             # Moving the decoder and waiting on the frame for the new position
             # is not time the movie spent playing, so don't let the next
