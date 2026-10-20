@@ -745,16 +745,21 @@ class MovieFileReader:
             
             # if we get `None` for the frame, it means the player is not ready 
             # to give us a frame yet, so we wait a bit and try again. If we get 
-            # `None` too many times, we give up and return `None` 
+            # `None` too many times, we give up and return `None` so the last
+            # frame stays on-screen. This happens near the end of the stream,
+            # where FFPyPlayer may return `None` for a while before reporting
+            # 'eof' (e.g., when the audio track outlasts the video track).
             if frame is None:
                 if getFrameAttempts < self._maxGetFrameAttempts:
                     time.sleep(0.001)  # wait a bit before trying again
                     getFrameAttempts += 1
                     continue   # keep retrying
                 else:
-                    raise RuntimeError(
-                        'Failed to return a frame after multiple attempts.'
-                    )
+                    logging.debug(
+                        'Decoder did not return a frame for PTS {:.4f} after '
+                        '{} attempts, keeping the last frame.'.format(
+                            reqPTS, getFrameAttempts))
+                    break
             
             img, curPts = frame  # extract frame information
 
@@ -1229,6 +1234,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._initParams = dir()
         self._initParams.remove('self')
 
+        self._player = None
+        self._isLoaded = False
+
         super(MovieStim, self).__init__(
             win, units=units, name=name, autoLog=False)
 
@@ -1665,6 +1673,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         self.setMovie(filename)
 
+    def _freePlayer(self):
+        """Free the player interface and associated resources.
+
+        This function closes the player and clears the player object.
+        """
+        if hasattr(self, '_player') and self._player is not None:
+            self._player.close()
+            self._player = None
+
     def unload(self, log=True):
         """Stop and unload the movie.
 
@@ -1674,9 +1691,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        if self._isLoaded:
+        if getattr(self, '_isLoaded', False):
             self._freePlayer()  # free the player if it is already open
             self._freeTextureBuffers()  # free buffer before creating a new one
+            self._cleanupAudioTrack()
             self._isLoaded = False
 
     # --------------------------------------------------------------------------
@@ -2182,8 +2200,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if log:
             logging.debug("Stopping movie: {}".format(self._filename))
 
-        self._player.close()  # close the player
-        self._cleanupAudioTrack()  # clean up the audio track
+        self.unload()
 
         self.loadMovie(self._filename)  # reload the movie
         

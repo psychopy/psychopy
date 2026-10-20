@@ -132,21 +132,31 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
     win.getMovieFrame(buffer='back')
     frame=win.movieFrames[-1]
     win.movieFrames=[]
+    # exemplars are stored in client (window) pixels, but on a high-DPI display
+    # the framebuffer we just grabbed is bigger than that
+    clientSize = tuple(int(s) for s in win.clientSize)
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
-        frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
-                             resample=Image.LANCZOS)
+        if frame.size != clientSize:
+            frame = frame.resize(clientSize, resample=Image.Resampling.LANCZOS)
         frame.save(fileName, optimize=1)
         pytest.skip("Created %s" % basename(fileName))
     else:
         expected = Image.open(fileName)
+        # the exemplar must be this window's client size, otherwise it was made
+        # for some other window and there's no meaningful comparison to make
+        if expected.size != clientSize:
+            raise AssertionError(
+                "Exemplar '%s' is %s but the window it's compared against has a "
+                "client size of %s, so they cannot be compared. The exemplar is "
+                "most likely stale and needs regenerating."
+                % (basename(fileName), expected.size, clientSize))
+        if frame.size != expected.size:
+            # high-DPI display, bring the framebuffer down to client pixels
+            frame = frame.resize(expected.size, resample=Image.Resampling.LANCZOS)
+            crit += 5  # be more relaxed because of the interpolation
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
-        # for retina displays the frame data is 4x bigger than expected
-        if win.useRetina and imgDat.shape[0] == expDat.shape[0]*4:
-            frame = frame.resize(expected.size, resample=Image.LANCZOS)
-            imgDat = np.array(frame.getdata())
-            crit += 5  # be more relaxed because of the interpolation
         rms = np.std(imgDat-expDat)
         localFileName, exemplarFileName = getFailFilenames(fileName, tag=tag)
         if rms >= crit/2:

@@ -80,6 +80,37 @@ def test_handleFileCollision_rename_multiple_files_exists():
     shutil.rmtree(temp_dir)
 
 
+def test_handleFileCollision_strips_trailing_spaces():
+    # trailing spaces are removed from each path component so that Windows
+    # doesn't create a folder under a different name than requested (issue
+    # #7755)
+    temp_dir = mkdtemp()
+
+    # a folder component ending in a space is stripped
+    path = os.path.join(temp_dir, 'sub002 ', 'data.psydat')
+    expected = os.path.join(temp_dir, 'sub002', 'data.psydat')
+    for method in ('overwrite', 'rename'):
+        handled_path = handleFileCollision(fileName=path,
+                                           fileCollisionMethod=method)
+        assert handled_path == expected
+
+    # a trailing space on the file name itself is stripped too
+    path = os.path.join(temp_dir, 'data.psydat ')
+    expected = os.path.join(temp_dir, 'data.psydat')
+    for method in ('overwrite', 'rename'):
+        handled_path = handleFileCollision(fileName=path,
+                                           fileCollisionMethod=method)
+        assert handled_path == expected
+
+    # leading/internal spaces and clean paths are left untouched
+    path = os.path.join(temp_dir, 'sub 002', 'data file.psydat')
+    handled_path = handleFileCollision(fileName=path,
+                                       fileCollisionMethod='overwrite')
+    assert handled_path == path
+
+    shutil.rmtree(temp_dir)
+
+
 def test_handleFileCollision_invalid_method():
     _, path = mkstemp()
 
