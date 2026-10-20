@@ -61,6 +61,11 @@ message = visual.TextStim(
               "'r' to reset, 'escape' to quit",
     pos=(0, -.8), units='norm', height=.06)
 
+# shows the axis and angle of the box's orientation
+axisAngleText = visual.TextStim(
+    win, text='', pos=(-.95, .95), units='norm', height=.06,
+    anchorHoriz='left', anchorVert='top', alignText='left')
+
 dragStart = None  # arcball vector and box orientation when dragging started
 
 while True:
@@ -92,6 +97,12 @@ while True:
     else:
         dragStart = None
 
+    # show the box's orientation as axis-angle
+    axis, angle = box.getOriAxisAngle()
+    axisAngleText.text = (
+        "Axis: ({:.2f}, {:.2f}, {:.2f})\n"
+        "Angle: {:.1f}°".format(*axis, angle))
+
     win.useLights = True
     box.draw()
     if dragStart is not None:
@@ -100,6 +111,7 @@ while True:
 
     win.resetEyeTransform()  # reset the transformation to draw 2D stimuli
     message.draw()
+    axisAngleText.draw()
 
     win.flip()
 
