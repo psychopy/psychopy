@@ -894,6 +894,23 @@ class TestStim3DLighting(_Stim3DRenderTest):
         dark = self._pixel(frame, -0.15, 0)
         assert lit.sum() > dark.sum() + 3 * 50, (lit, dark)
 
+    @pytest.mark.parametrize('sceneAmbient, expected', [
+        ((0, 0, 0), (0, 0, 0)),
+        ((.5, .5, .5), (128, 0, 0)),
+    ])
+    def test_use_lights_disabled_without_material(self, sceneAmbient,
+                                                  expected):
+        # as with materials, lights have no effect unless `useLights` is set,
+        # only the scene ambient light is used, the same as without lights
+        plane = self._plane(color=(1, -1, -1))
+        frame = self._render(
+            plane, [self._light((0, 0, 1))], sceneAmbient=sceneAmbient,
+            useLights=False)
+        self._assertColor(self._pixel(frame), expected)
+
+        noLights = self._render(plane, sceneAmbient=sceneAmbient)
+        self._assertColor(self._pixel(noLights), expected)
+
 
 class TestStim3DTextureMapping(_Stim3DRenderTest):
     """Tests for mapping textures onto 3D stimuli.
