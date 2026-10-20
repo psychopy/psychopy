@@ -1953,6 +1953,21 @@ class Window():
         return self.getContentScaleFactor()
 
     @property
+    def pixScaleFactor(self):
+        """Number of framebuffer pixels per 'pix' unit (`float`).
+
+        When using `useRetina=True`, 'pix' units are window coordinates (points)
+        rather than framebuffer pixels, so this is the content scale factor of
+        the display (e.g. 2.0 on Retina displays). Otherwise this is 1.0.
+
+        See Also
+        --------
+        getContentScaleFactor
+
+        """
+        return self.getContentScaleFactor() if self.useRetina else 1.0
+
+    @property
     def aspect(self):
         """Aspect ratio of the current viewport (width / height)."""
         return self._viewport[2] / float(self._viewport[3])
@@ -2859,9 +2874,8 @@ class Window():
             numpy.zeros((2,)), numpy.asarray(pos, dtype=float),
             units=self.units, win=self)[:2]
 
-        # 'pix' units are window coordinates, which are half the resolution of
-        # the framebuffer on Retina displays
-        return pix * 2.0 if self.useRetina else pix
+        # 'pix' units are window coordinates on high DPI (e.g. Retina) displays
+        return pix * self.pixScaleFactor
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
@@ -3942,10 +3956,7 @@ class Window():
         stimulus drawing but this is now handled by the stimuli themselves and
         the window should always be left in units of 'pix'
         """
-        if self.useRetina:
-            retinaScale = 2.0
-        else:
-            retinaScale = 1.0
+        retinaScale = self.pixScaleFactor
         # then unit-specific changes
         if units == "norm":
             thisScale = numpy.array([1.0, 1.0])

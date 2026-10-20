@@ -888,9 +888,7 @@ class Mouse:
 
     def _pix2windowUnits(self, pos):
         if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos /= 2.0
-            return pos
+            return pos / self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
         elif self.win.units == 'cm':
@@ -901,10 +899,8 @@ class Mouse:
             return pos / float(self.win.size[1])
 
     def _windowUnits2pix(self, pos):
-        if self.win.units == 'pix':
-            if self.win.useRetina:  # inverse of `_pix2windowUnits`
-                pos = pos * 2.0
-            return pos
+        if self.win.units == 'pix':  # inverse of `_pix2windowUnits`
+            return pos * self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
         elif self.win.units == 'cm':
