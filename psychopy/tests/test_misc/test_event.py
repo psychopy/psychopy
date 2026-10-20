@@ -84,6 +84,50 @@ class _baseTest():
                 m.setPos((0,0))
                 m.getPos()
 
+    def test_mouse_pos_from_pyglet(self):
+        """Check `getPos` converts the cursor position pyglet stores. These
+        differ on high DPI (e.g. Retina) displays depending on the version of
+        pyglet.
+        """
+        if self.win.winType != 'pyglet':
+            pytest.skip()
+
+        m = event.Mouse(win=self.win)
+        handle = self.win.winHandle
+
+        # Since pyglet 2.1 the cursor position is stored in framebuffer pixels
+        # (unless DPI scaling is 'stretch'), before that in window coordinates
+        dpiScaling = getattr(pyglet.options, 'dpi_scaling', None)
+        if dpiScaling is not None and dpiScaling != 'stretch':
+            bufferToStored = 1.0
+        else:
+            bufferToStored = 1.0 / self.win.getContentScaleFactor()
+
+        w, h = self.win.size  # framebuffer pixels
+        # fraction of the way across and up the window, and position in 'norm'
+        for frac, expected in [((.5, .5), (0., 0.)),
+                               ((.75, .75), (.5, .5)),
+                               ((0., 0.), (-1., -1.))]:
+            handle._mouse_x = int(frac[0] * w * bufferToStored)
+            handle._mouse_y = int(frac[1] * h * bufferToStored)
+            assert np.allclose(m.getPos(), expected), frac
+
+    def test_mouse_setPos_getPos(self):
+        """Check the position set with `setPos` is returned by `getPos`."""
+        if self.win.winType == 'pygame':
+            pytest.skip()  # pygame.setVisible errors
+
+        m = event.Mouse(win=self.win)
+        try:
+            for units, positions in [('norm', [(0., 0.), (.5, -.25), (-.75, .5)]),
+                                     ('pix', [(0., 0.), (20., -10.), (-30., 16.)])]:
+                self.win.units = units
+                for pos in positions:
+                    m.setPos(pos)
+                    assert np.allclose(m.getPos(), pos), (units, pos)
+        finally:
+            self.win.units = 'norm'
+
     def test_emulated_mouse(self):
         mouse = event.Mouse()  # real mouse
         event.mouseButtons = [0,0,0]
