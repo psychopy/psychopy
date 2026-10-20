@@ -1,4 +1,5 @@
 import importlib
+import sys
 import weakref
 from copy import copy
 from pathlib import Path
@@ -8,7 +9,7 @@ import pytest
 from PIL import Image
 
 from psychopy import visual, colors, core
-from psychopy.tests import utils
+from psychopy.tests import skip_under_vm, utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.tools.stimulustools import serialize
 from psychopy import colors
@@ -274,6 +275,75 @@ class TestWindowFailedInit:
         assert len(nativeWindows) == 1, "Expected one native window to be made."
         assert nativeWindows[0].context is None, (
             "Native window was left open after the backend failed.")
+
+
+def _getCoreGraphics():
+    """Load the CoreGraphics functions used to check display capture."""
+    import ctypes
+    import ctypes.util
+
+    cg = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreGraphics'))
+    cg.CGDisplayIsCaptured.restype = ctypes.c_bool
+    cg.CGDisplayIsCaptured.argtypes = [ctypes.c_uint32]
+    cg.CGDisplayRelease.argtypes = [ctypes.c_uint32]
+    cg.CGMainDisplayID.restype = ctypes.c_uint32
+
+    return cg
+
+
+@skip_under_vm
+@pytest.mark.skipif(
+    sys.platform != 'darwin', reason="display capture is specific to macOS")
+class TestFullscreenDisplayCapture:
+    """A fullscreen pyglet window captures its display on macOS, which shows
+    black over everything else. Closing the window has to release it again,
+    otherwise the display stays black until the process exits."""
+
+    @pytest.fixture
+    def cg(self):
+        """CoreGraphics, releasing the main display afterwards so a failure
+        here doesn't leave the rest of the session running behind a black
+        screen."""
+        cg = _getCoreGraphics()
+        yield cg
+        cg.CGDisplayRelease(cg.CGMainDisplayID())
+
+    @staticmethod
+    def _openFullscreen():
+        win = visual.Window(fullscr=True, screen=0, autoLog=False)
+        win.flip()
+
+        return win, win.backend.winHandle.screen._cg_display_id
+
+    def test_releasedOnClose(self, cg):
+        """Closing a fullscreen window releases its display."""
+        win, displayID = self._openFullscreen()
+        try:
+            assert cg.CGDisplayIsCaptured(displayID), (
+                "Display wasn't captured for the fullscreen window, so this "
+                "test can't check it is released.")
+        finally:
+            win.close()
+
+        assert not cg.CGDisplayIsCaptured(displayID), (
+            "Display is still captured after its fullscreen window closed.")
+
+    def test_keptForOtherFullscreenWindow(self, cg):
+        """The display stays captured while another fullscreen window is still
+        open on it, and is released once that one closes too."""
+        firstWin, displayID = self._openFullscreen()
+        secondWin, _ = self._openFullscreen()
+        try:
+            firstWin.close()
+            assert cg.CGDisplayIsCaptured(displayID), (
+                "Display was released while a fullscreen window was still "
+                "open on it.")
+        finally:
+            firstWin.close()
+            secondWin.close()
+
+        assert not cg.CGDisplayIsCaptured(displayID), (
+            "Display is still captured after both fullscreen windows closed.")
 
 
 class TestWindow:
