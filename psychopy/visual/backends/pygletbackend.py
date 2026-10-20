@@ -780,18 +780,32 @@ class PygletBackend(BaseBackend):
     # Window unit conversion
     #
 
-    def _windowToBufferCoords(self, pos):
-        """Convert window coordinates to OpenGL buffer coordinates.
+    @staticmethod
+    def _mouseInBufferPixels():
+        """Check if pyglet reports mouse positions in framebuffer pixels,
+        rather than window coordinates.
 
-        The standard convention for window coordinates is that the origin is at
-        the top-left corner. The `y` coordinate increases in the downwards
-        direction. OpenGL places the origin at bottom left corner, where `y`
-        increases in the upwards direction.
+        These differ on high DPI (e.g. Retina) displays. Since pyglet 2.1,
+        positions are in framebuffer pixels unless `pyglet.options.dpi_scaling`
+        is 'stretch', earlier versions use window coordinates.
+
+        Returns
+        -------
+        bool
+            `True` if mouse positions are in framebuffer pixels.
+
+        """
+        dpiScaling = getattr(pyglet.options, 'dpi_scaling', None)
+        return dpiScaling is not None and dpiScaling != 'stretch'
+
+    def _windowToBufferCoords(self, pos):
+        """Convert mouse positions reported by pyglet to OpenGL buffer
+        coordinates.
 
         Parameters
         ----------
         pos : ArrayLike
-            Position `(x, y)` in window coordinates.
+            Position `(x, y)` reported by pyglet.
 
         Returns
         -------
@@ -800,14 +814,21 @@ class PygletBackend(BaseBackend):
 
         """
         # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
-        # window coordinate convention by default.
-        scaleFactor = self.win.getContentScaleFactor()
-        return np.asarray(pos, dtype=np.float32) * scaleFactor
+        # window coordinate convention (origin at bottom-left), so `y` isn't
+        # flipped
+        pos = np.asarray(pos, dtype=np.float32)
+        if self._mouseInBufferPixels():  # already in framebuffer pixels
+            return pos
+
+        return pos * self.win.getContentScaleFactor()
 
     def _bufferToWindowCoords(self, pos):
-        """OpenGL buffer coordinates to window coordinates.
+        """OpenGL buffer coordinates to window coordinates, as used by
+        `set_mouse_position`.
 
-        This is the inverse of `_windowToBufferCoords`.
+        This is the inverse of `_windowToBufferCoords`, except when pyglet
+        reports mouse positions in framebuffer pixels, since
+        `set_mouse_position` always takes window coordinates.
 
         Parameters
         ----------
