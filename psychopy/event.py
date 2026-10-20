@@ -611,6 +611,21 @@ class Mouse:
         """
         return self.win.units
 
+    def _pygletMouseInBufferPixels(self):
+        """Check if the window's pyglet handle stores the mouse position in
+        framebuffer pixels, rather than window coordinates.
+
+        These differ on high DPI (e.g. Retina) displays. Since pyglet 2.1,
+        positions are in framebuffer pixels unless `pyglet.options.dpi_scaling`
+        is 'stretch', earlier versions use window coordinates.
+
+        """
+        if not havePyglet or getattr(self.win, 'winType', None) != 'pyglet':
+            return False
+
+        dpiScaling = getattr(pyglet.options, 'dpi_scaling', None)
+        return dpiScaling is not None and dpiScaling != 'stretch'
+
     def setPos(self, newPos=(0, 0)):
         """Sets the current position of the mouse,
         in the same units as the :class:`~visual.Window`. (0,0) is the center.
@@ -634,6 +649,11 @@ class Mouse:
                         numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
+                if self._pygletMouseInBufferPixels():
+                    # the position is set in window coordinates, but pyglet
+                    # keeps it in framebuffer pixels
+                    scale = 2.0 if self.win.useRetina else self._winScaleFactor
+                    x, y = int(x * scale), int(y * scale)
                 self.win.winHandle._mouse_x = x
                 self.win.winHandle._mouse_y = y
             else:
@@ -670,7 +690,9 @@ class Mouse:
             lastPosPix[:] = w._mouse_x, w._mouse_y
 
             # set (0,0) to centre
-            if self.win.useRetina:
+            if self._pygletMouseInBufferPixels():
+                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+            elif self.win.useRetina:
                 lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
             else:
                 wsf = self._winScaleFactor 
@@ -931,6 +953,8 @@ class Mouse:
 
     def _windowUnits2pix(self, pos):
         if self.win.units == 'pix':
+            if self.win.useRetina:  # inverse of `_pix2windowUnits`
+                pos = pos * 2.0
             return pos
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
