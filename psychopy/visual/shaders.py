@@ -483,15 +483,23 @@ if USE_LEGACY_GL:
             
             finalColor += ambient + attenuation * (diffuse + specular);
         }
-        gl_FragColor = finalColor;  // use texture alpha
     #else
         // no lights, only scene ambient and emission
     #ifdef DIFFUSE_TEXTURE
-        gl_FragColor = (sceneAmbient + emission) * diffTexColor;
+        vec4 finalColor = (sceneAmbient + emission) * diffTexColor;
     #else
-        gl_FragColor = sceneAmbient + emission;
+        vec4 finalColor = sceneAmbient + emission;
     #endif
     #endif
+
+        // opacity comes from the material diffuse color and texture, the
+        // lighting terms above only determine the color
+    #ifdef DIFFUSE_TEXTURE
+        finalColor.a = clamp(gl_FrontMaterial.diffuse.a * diffTexColor.a, 0.0, 1.0);
+    #else
+        finalColor.a = clamp(gl_FrontMaterial.diffuse.a, 0.0, 1.0);
+    #endif
+        gl_FragColor = finalColor;
     }
     """
 
@@ -919,15 +927,23 @@ else:
 
             finalColor += ambient + attenuation * (diffuse + specular);
         }
-        fragColor = finalColor;  // use texture alpha
     #else
         // no lights, only scene ambient and emission
     #ifdef DIFFUSE_TEXTURE
-        fragColor = (sceneAmbient + emission) * diffTexColor;
+        vec4 finalColor = (sceneAmbient + emission) * diffTexColor;
     #else
-        fragColor = sceneAmbient + emission;
+        vec4 finalColor = sceneAmbient + emission;
     #endif
     #endif
+
+        // opacity comes from the material diffuse color and texture, the
+        // lighting terms above only determine the color
+    #ifdef DIFFUSE_TEXTURE
+        finalColor.a = clamp(uFrontMaterial.diffuse.a * diffTexColor.a, 0.0, 1.0);
+    #else
+        finalColor.a = clamp(uFrontMaterial.diffuse.a, 0.0, 1.0);
+    #endif
+        fragColor = finalColor;
     }
     """
 
