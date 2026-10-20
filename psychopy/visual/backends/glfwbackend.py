@@ -25,7 +25,8 @@ from psychopy.hardware import mouse
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tools import systemtools
 from .gamma import (
-    createLinearRamp, defaultGammaErrorPolicy, raise_msg, warn_msg)
+    createLinearRamp, defaultGammaErrorPolicy, hardwareGammaSupported,
+    raise_msg, warn_msg)
 from .. import globalVars
 from ._base import BaseBackend
 
@@ -869,6 +870,18 @@ class GLFWBackend(BaseBackend):
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()
         self._setGammaRamp(gammaRamp)
+
+    @property
+    def hardwareGammaSupported(self):
+        """`True` if the hardware gamma table of the display can be changed
+        (`bool`). `False` under Wayland, whether GLFW uses Wayland or X11
+        through Xwayland.
+        """
+        if _isWayland():
+            return False
+
+        # the X screen, not `screenID` which is the monitor index
+        return hardwareGammaSupported(xDisplay=self.xDisplay)
 
     def _setGammaRamp(self, gammaRamp):
         """Set the hardware gamma ramp for the display the window is on.

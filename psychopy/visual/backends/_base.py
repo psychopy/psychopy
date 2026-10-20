@@ -115,6 +115,16 @@ class BaseBackend(ABC):
                 "Backend has failed to override a necessary method")
 
     @property
+    def hardwareGammaSupported(self):
+        """`True` if the hardware gamma table of the display can be changed
+        (`bool`). If `False`, the window applies gamma in software instead.
+
+        Backends should override this where the platform can report that the
+        gamma table can't be changed, e.g. under Wayland.
+        """
+        return True
+
+    @property
     def shadersSupported(self):
         """This is a read-only property indicating whether or not this backend
         supports OpenGL shaders"""

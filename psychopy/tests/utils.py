@@ -119,6 +119,28 @@ def checkSyntax(exp, targets=("PsychoPy", "PsychoJS")):
             raise SyntaxError(err.message)
 
 
+def isMesaHardwareDriver():
+    """
+    Check whether the current OpenGL context uses a Mesa driver for real
+    hardware (e.g. radeonsi, iris), as opposed to a Mesa software renderer like
+    llvmpipe. Screenshots drawn by these drivers can differ from the
+    references, e.g. wide lines are drawn as axis-aligned strips.
+
+    Returns
+    ==========
+    bool
+        True if the current context is from a Mesa hardware driver, False
+        otherwise (including when there is no current context)
+    """
+    from psychopy.tools.pygletgl import gl_info
+
+    renderer = gl_info.get_renderer().lower()
+    software = ('llvmpipe', 'softpipe', 'swrast')
+
+    return 'Mesa' in gl_info.get_version_string() and not any(
+        name in renderer for name in software)
+
+
 def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
 

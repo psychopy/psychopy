@@ -106,6 +106,11 @@ class Warper:
         self.win = win
         # monkey patch the warp method
         win._renderFBO = self.drawWarp
+        if win.useSoftwareGamma:
+            logging.warning(
+                "Gamma is applied in software for this window, when the "
+                "framebuffer is drawn to it, which warping replaces. Gamma "
+                "won't be applied.")
         self.warp = warp
         self.warpfile = warpfile
         self.warpGridsize = warpGridsize

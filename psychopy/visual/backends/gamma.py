@@ -31,6 +31,8 @@ elif sys.platform == 'darwin':
 elif sys.platform.startswith('linux'):
     # we need XF86VidMode
     xf86vm = ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
+    xf86vm.XF86VidModeGetGammaRampSize.argtypes = [
+        ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
 
 # Handling what to do if gamma can't be set
 if prefs.general['gammaErrorPolicy'] == 'abort':  # more clear to Builder users
@@ -39,13 +41,63 @@ else:
     defaultGammaErrorPolicy = prefs.general['gammaErrorPolicy']
 
 problem_msg = 'The hardware look-up table function ({func:s}) failed. '
-raise_msg = (problem_msg +
+fix_msg = (
         'If you would like to proceed without look-up table '
         '(gamma) changes, you can change your `defaultGammaFailPolicy` in the '
         'application preferences. For more information see\n'
         'https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp '
         )
-warn_msg = problem_msg + 'Proceeding without look-up table (gamma) changes.'
+proceed_msg = 'Proceeding without look-up table (gamma) changes.'
+raise_msg = problem_msg + fix_msg
+warn_msg = problem_msg + proceed_msg
+unsupported_msg = (
+    'The display server does not support changing the hardware look-up table '
+    '({func:s} reported a size of 0). This is expected under Wayland '
+    '(Xwayland), where the compositor controls the display. ')
+
+
+def hardwareGammaSupported(screenID=None, xDisplay=None):
+    """Check if the hardware gamma table (look-up table) of the display can be
+    changed.
+
+    This is `False` under Wayland, including X11 windows shown through Xwayland,
+    since the compositor controls the display. It is `True` on other platforms,
+    where failures are only found when getting or setting the gamma ramp.
+
+    Parameters
+    ----------
+    screenID : int or None
+        X screen number, on Linux only. If `None`, the default screen of
+        `xDisplay` is used.
+    xDisplay : ctypes pointer or None
+        X display connection, on Linux only. If `None`, a connection to the
+        default display is used.
+
+    Returns
+    -------
+    bool
+        `True` if the hardware gamma table can be changed.
+
+    """
+    if not sys.platform.startswith('linux') or systemtools.isVM_CI():
+        return True
+    if systemtools.isXWayland(xDisplay):
+        return False
+
+    # older Xwayland releases (< 23.1) lack the `XWAYLAND` extension, but report
+    # a ramp size of 0, as do other X servers that can't change the gamma table
+    if xDisplay is not None:
+        if screenID is None:
+            x11 = ctypes.CDLL(ctypes.util.find_library('X11'))
+            x11.XDefaultScreen.argtypes = [ctypes.c_void_p]
+            screenID = x11.XDefaultScreen(xDisplay)
+        rampSize = ctypes.c_int()
+        success = xf86vm.XF86VidModeGetGammaRampSize(
+            xDisplay, screenID, ctypes.byref(rampSize))
+        if success and rampSize.value == 0:
+            return False
+
+    return True
 
 
 def setGamma(screenID=None, newGamma=1.0, rampType=None, rampSize=None,
@@ -132,6 +184,10 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
                 logging.warning(warn_msg.format(func=func))
 
     if sys.platform.startswith('linux') and not systemtools.isVM_CI():
+        # the server rejects ramps that don't match the size it reports
+        if getGammaRampSize(screenID, xDisplay=xDisplay,
+                            gammaErrorPolicy=gammaErrorPolicy) == 0:
+            return
         newRamp = (numpy.around(65535 * newRamp)).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
             xDisplay, screenID, LUTlength,
@@ -143,7 +199,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
             if gammaErrorPolicy == 'raise':
                 raise OSError(raise_msg.format(func=func))
             elif gammaErrorPolicy == 'warn':
-                logging.warning(raise_msg.format(func=func))
+                logging.warning(warn_msg.format(func=func))
 
     elif systemtools.isVM_CI():
         logging.warn("It looks like we're running in a Virtual Machine. "
@@ -196,6 +252,8 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
                 logging.warning(warn_msg.format(func=func))
 
     if sys.platform.startswith('linux') and not systemtools.isVM_CI():
+        if rampSize == 0:  # not supported, already handled by getGammaRampSize
+            return None
         origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = xf86vm.XF86VidModeGetGammaRamp(
             xDisplay, screenID, rampSize,
@@ -333,6 +391,16 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
                 raise OSError(raise_msg.format(func=func))
             elif gammaErrorPolicy == 'warn':
                 logging.warning(warn_msg.format(func=func))
+        elif rampSize.value == 0:
+            # e.g. Xwayland, requests with any other size are rejected so
+            # there's no point falling back to a default size
+            func = 'XF86VidModeGetGammaRampSize'
+            if gammaErrorPolicy == 'raise':
+                raise OSError((unsupported_msg + fix_msg).format(func=func))
+            elif gammaErrorPolicy == 'warn':
+                logging.warning(
+                    (unsupported_msg + proceed_msg).format(func=func))
+            return 0
         else:
             rampSize = rampSize.value
     else:
