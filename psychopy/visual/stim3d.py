@@ -57,7 +57,7 @@ class LightSource:
                  pos=(0., 0., 0.),
                  diffuseColor=(1., 1., 1.),
                  specularColor=(1., 1., 1.),
-                 ambientColor=(0., 0., 0.),
+                 ambientColor=(-1., -1., -1.),
                  colorSpace='rgb',
                  contrast=1.0,
                  lightType='point',
@@ -75,11 +75,12 @@ class LightSource:
             light source is coming from. For instance, a vector of (0, 1, 0, 0)
             will indicate that a light source is coming from above.
         diffuseColor : array_like
-            Diffuse light color.
+            Diffuse light color. Default is white.
         specularColor : array_like
-            Specular light color.
+            Specular light color. Default is white.
         ambientColor : array_like
-            Ambient light color.
+            Ambient light color. Default is black, so the light adds no ambient
+            light to the scene.
         colorSpace : str or None
             Colorspace for diffuse, specular, and ambient color components.
         contrast : float

@@ -685,6 +685,18 @@ class TestStim3DLighting(_Stim3DRenderTest):
         frame = self._render(plane, [light])
         self._assertColor(self._pixel(frame), (0, 0, 0))
 
+    def test_light_default_ambient(self):
+        # lights add no ambient light by default, like `BlinnPhongMaterial`
+        light = LightSource(self.win, pos=self.BEHIND, lightType='directional')
+        assert light.diffuseRGB == pytest.approx([1, 1, 1, 1])
+        assert light.specularRGB == pytest.approx([1, 1, 1, 1])
+        assert light.ambientRGB == pytest.approx([0, 0, 0, 1])
+
+        # stimuli without a material use their color as the ambient color
+        plane = self._plane(color=(1, 1, 1))
+        frame = self._render(plane, [light])
+        self._assertColor(self._pixel(frame), (0, 0, 0))
+
     def test_scene_ambient_without_lights(self):
         # the diffuse color multiplied by the scene ambient color, the same as
         # the scene ambient contribution when there are lights

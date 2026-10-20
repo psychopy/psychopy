@@ -138,7 +138,8 @@ class VisualSystemHD(window.Window):
         # create scene light at the pivot point
         win.lights = [
             visual.LightSource(win, pos=(0.4, 4.0, -2.0), lightType='point',
-                        diffuseColor=(0, 0, 0), specularColor=(1, 1, 1))
+                        diffuseColor=(0, 0, 0), specularColor=(1, 1, 1),
+                        ambientColor=(0, 0, 0))
         ]
         win.ambientLight = (0.2, 0.2, 0.2)
 
