@@ -701,6 +701,7 @@ class BlinnPhongMaterial:
         self._ambientColor = Color()
         self._emissionColor = Color()
         self._shininess = float(shininess)
+        self._opacity = 1.0  # set later
         self._face = None  # set later
 
         # internal RGB values post colorspace conversion
@@ -811,6 +812,24 @@ class BlinnPhongMaterial:
         self._shininess = float(value)
 
     @property
+    def opacity(self):
+        """Opacity of the material (`float`), from 0.0 (transparent) to 1.0
+        (opaque).
+
+        This is multiplied with the alpha of `diffuseColor` and, if there is
+        one, `diffuseTexture` to give the opacity of surfaces drawn with this
+        material. Transparent objects look best when drawn from farthest to
+        nearest.
+
+        """
+        return self._opacity
+
+    @opacity.setter
+    def opacity(self, value):
+        self._opacity = float(value)
+        self._diffuseRGB[3] = self._diffuseColor.opacity * self._opacity
+
+    @property
     def face(self):
         """Face to apply the material to (`str`). Possible values are one of
         `'front'`, `'back'` or `'both'`.
@@ -853,9 +872,10 @@ class BlinnPhongMaterial:
             self._diffuseColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
 
-        # compute RGB values for the shader
+        # compute RGB values for the shader, the diffuse alpha is the opacity of
+        # the material
         self._diffuseRGB[:3] = self._diffuseColor.rgb1
-        self._diffuseRGB[3] = self._diffuseColor.opacity
+        self._diffuseRGB[3] = self._diffuseColor.opacity * self._opacity
 
     def setDiffuseColor(self, color, colorSpace=None, operation='', log=None):
         """Set the diffuse color for the material.
