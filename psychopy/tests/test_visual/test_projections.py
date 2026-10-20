@@ -162,11 +162,7 @@ class ProjectionsLinesAndCircles:
 
 class Test_class_WindowWarp():
     def setup_class(self):
-        # Windowed, as warping only needs the FBO. A fullscreen window covers
-        # everything else (on macOS, even the Force Quit dialog), so if the
-        # test ever stalled there would be no way to close it short of a
-        # reboot.
-        self.win = Window(monitor='testMonitor', screen=0, fullscr=False, color='gray', useFBO = True, autoLog=False)
+        self.win = Window(monitor='testMonitor', screen=0, fullscr=True, color='gray', useFBO = True, autoLog=False)
         try:
             self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],
                                  flipHorizontal=False, flipVertical=False)
