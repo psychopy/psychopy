@@ -1345,10 +1345,10 @@ def project(v0, v1, out=None, dtype=None):
     Parameters
     ----------
     v0 : array_like
-        Vector can be Nx2, Nx3, or Nx4. If a 2D array is specified, rows are
-        treated as separate vectors.
+        Vector to project. Can be Nx2, Nx3, or Nx4. If a 2D array is
+        specified, rows are treated as separate vectors.
     v1 : array_like
-        Vector to project onto `v0`.
+        Vector to project `v0` onto.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -1371,16 +1371,19 @@ def project(v0, v1, out=None, dtype=None):
     v0 = np.asarray(v0, dtype=dtype)
     v1 = np.asarray(v1, dtype=dtype)
 
+    # projection is `v1 * dot(v0, v1) / |v1|^2`
     if v0.ndim == v1.ndim == 2 or v0.ndim == 1 and v1.ndim == 2:
         toReturn = np.zeros_like(v1, dtype=dtype) if out is None else out
         toReturn[:, :] = v1[:, :]
-        toReturn *= (dot(v0, v1, dtype=dtype) / length(v1))[:, np.newaxis]
+        toReturn *= (dot(v0, v1, dtype=dtype) /
+                     np.sum(np.square(v1), axis=1))[:, np.newaxis]
     elif v0.ndim == v1.ndim == 1:
         toReturn = v1 * (dot(v0, v1, dtype=dtype) / np.sum(np.square(v1)))
     elif v0.ndim == 2 and v1.ndim == 1:
         toReturn = np.zeros_like(v0, dtype=dtype) if out is None else out
         toReturn[:, :] = v1[:]
-        toReturn *= (dot(v0, v1, dtype=dtype) / length(v1))[:, np.newaxis]
+        toReturn *= (dot(v0, v1, dtype=dtype) /
+                     np.sum(np.square(v1)))[:, np.newaxis]
     else:
         raise ValueError("Input arguments have invalid dimensions.")
 
@@ -2246,15 +2249,17 @@ def intersectRaySphere(rayOrig, rayDir, sphereOrig=(0., 0., 0.), sphereRadius=1.
 
     Get the 3D coordinate of the point which the ray intersects the sphere and
     the distance to the point from `orig`. The nearest point is returned if
-    the line intersects the sphere at multiple locations. All coordinates should
-    be in world/scene units.
+    the line intersects the sphere at multiple locations. If the ray starts
+    inside the sphere, the point where it exits the sphere is returned. Only
+    points in the direction of the ray are considered, a sphere behind the ray
+    is not intersected. All coordinates should be in world/scene units.
 
     Parameters
     ----------
     rayOrig : array_like
         Origin of the ray in space [x, y, z].
     rayDir : array_like
-        Direction vector of the ray [x, y, z], should be normalized.
+        Direction vector of the ray [x, y, z], does not need to be normalized.
     sphereOrig : array_like
         Origin of the sphere to test [x, y, z].
     sphereRadius : float
@@ -2279,19 +2284,28 @@ def intersectRaySphere(rayOrig, rayDir, sphereOrig=(0., 0., 0.), sphereRadius=1.
     sphereOrig = np.asarray(sphereOrig, dtype=dtype)
     sphereRadius = np.asarray(sphereRadius, dtype=dtype)
 
+    # solve |rayOrig + t * rayDir - sphereOrig| = sphereRadius for t
     d = rayOrig - sphereOrig
+    a = np.dot(rayDir, rayDir)
     b = np.dot(rayDir, d)
     c = np.dot(d, d) - np.square(sphereRadius)
-    b2mc = np.square(b) - c  # determinant
+    discriminant = np.square(b) - a * c
 
-    if b2mc < 0.0:  # no roots, ray does not intersect sphere
+    if a == 0.0 or discriminant < 0.0:  # no roots, ray does not intersect
         return None
 
-    u = np.sqrt(b2mc)
-    nearestDist = np.minimum(-b + u, -b - u)
-    pos = (rayDir * nearestDist) + rayOrig
+    u = np.sqrt(discriminant)
+    tNear = (-b - u) / a
+    tFar = (-b + u) / a
 
-    return pos, nearestDist
+    if tFar < 0.0:  # sphere is behind the ray
+        return None
+
+    # if the ray starts inside the sphere, the near root is behind it
+    t = tNear if tNear >= 0.0 else tFar
+    pos = (rayDir * t) + rayOrig
+
+    return pos, t * np.sqrt(a)  # distance in scene units
 
 
 def intersectRayAABB(rayOrig, rayDir, boundsOffset, boundsExtents, dtype=None):
@@ -3083,6 +3097,9 @@ def multQuat(q0, q1, out=None, dtype=None):
     Notes
     -----
     * Quaternions are normalized prior to multiplication.
+    * The returned quaternion applies the rotation of `q1` followed by that of
+      `q0`, so `multQuat(q0, q1)` rotates an existing orientation `q1` by
+      `q0`.
 
     Examples
     --------
@@ -4193,7 +4210,9 @@ def isAffine(m):
     dtype = np.dtype(m.dtype).type
     eps = np.finfo(dtype).eps
 
-    return np.all(m[3, :3] < eps) and (dtype(1.0) - m[3, 3]) < eps
+    # the bottom row must be [0, 0, 0, 1]
+    return bool(np.all(np.abs(m[3, :3]) < eps) and
+                np.abs(dtype(1.0) - m[3, 3]) < eps)
 
 
 def applyMatrix(m, points, out=None, dtype=None):
@@ -4290,7 +4309,9 @@ def applyMatrix(m, points, out=None, dtype=None):
     pout, p = np.atleast_2d(toReturn, points)
 
     nCols = p.shape[1]
-    if m.shape[0] > nCols:
+    # 4x4 matrices transform Nx3 points as if they had `w=1` (handled below),
+    # so translations and projections are applied
+    if m.shape[0] > nCols and not (m.shape == (4, 4) and nCols == 3):
         if m.shape[1] < nCols:
             raise ValueError(
                 'Input matrix dimensions are not compatible with input array.')
