@@ -7,7 +7,9 @@ from PIL import Image
 from psychopy import visual
 from psychopy.colors import Color
 import psychopy.tools.gltools as gt
+import psychopy.tools.mathtools as mt
 import psychopy.tools.pygletgl as GL
+import psychopy.tools.viewtools as vt
 from psychopy.visual.stim3d import (
     LightSource, SceneSkybox, BlinnPhongMaterial, SphereStim, BoxStim,
     PlaneStim, ObjMeshStim)
@@ -1119,6 +1121,107 @@ class TestStim3DTextureMapping(_Stim3DRenderTest):
                                (-.25, -.25, self.BLUE),
                                (.25, -.25, self.YELLOW)]:
             self._assertColor(self._sample(frame, (x, y, -2.5)), expected)
+
+
+class TestWindowMouseRay(_Stim3DRenderTest):
+    """Tests for `Window.getMouseRay` and `Window.coordToRay`."""
+
+    def teardown_method(self):
+        self.win.units = 'norm'
+        self.win.resetEyeTransform()
+
+    def _toWindowUnits(self, ndc, units):
+        """Convert normalized device coordinates to window units."""
+        bufferPix = np.asarray(ndc[:2]) * self.win.size / 2.
+        if units == 'norm':
+            return np.asarray(ndc[:2])
+        elif units == 'pix':  # half the framebuffer resolution on Retina
+            return bufferPix / (2. if self.win.useRetina else 1.)
+        elif units == 'height':
+            return bufferPix / self.win.size[1]
+
+    @staticmethod
+    def _distanceToRay(point, rayOrig, rayDir):
+        toPoint = np.subtract(point, rayOrig)
+        return np.linalg.norm(toPoint - np.dot(toPoint, rayDir) * rayDir)
+
+    @pytest.mark.parametrize('units', ['norm', 'pix', 'height'])
+    def test_ray_through_point(self, units):
+        # a ray through where a point appears in the window passes through the
+        # point
+        self.win.units = units
+        self.win.setPerspectiveView()
+        eyePos = np.linalg.inv(self.win.viewMatrix)[:3, 3]
+
+        for point in [(0., 0., -3.), (.5, -.25, -2.), (-1., .75, -4.)]:
+            ndc = vt.pointToNdc(
+                point, self.win.viewMatrix, self.win.projectionMatrix)
+            rayOrig, rayDir = self.win.getMouseRay(
+                self._toWindowUnits(ndc, units))
+
+            assert np.allclose(rayOrig, eyePos, atol=1e-5)
+            assert np.isclose(np.linalg.norm(rayDir), 1.)
+            assert self._distanceToRay(point, rayOrig, rayDir) < 1e-4, point
+            assert np.dot(np.subtract(point, rayOrig), rayDir) > 0  # in front
+
+    def test_ray_view_matrix(self):
+        # rays start at the viewer and follow the direction it's looking
+        self.win.setPerspectiveView()
+        camera = mt.RigidBodyPose((1., 2., 3.))
+        camera.alignTo((0., 0., -3.))
+        self.win.viewMatrix = camera.getViewMatrix()
+
+        rayOrig, rayDir = self.win.getMouseRay((0, 0))
+        assert np.allclose(rayOrig, camera.pos, atol=1e-5)
+        assert np.allclose(rayDir, mt.normalize(np.subtract((0, 0, -3), camera.pos)),
+                           atol=1e-5)
+
+    def test_ray_from_mouse(self):
+        # without a position, the ray goes through the mouse
+        self.win.setPerspectiveView()
+        handle = self.win.winHandle
+        for x, y in [(10, 20), (100, 40)]:
+            handle._mouse_x, handle._mouse_y = x, y
+            mousePos = self.win._mouse.getPos()
+            for a, b in zip(self.win.getMouseRay(),
+                            self.win.getMouseRay(mousePos)):
+                assert np.allclose(a, b)
+
+    def test_ray_orthographic(self):
+        # rays are parallel for orthographic projections, starting from the
+        # point under the position on the near clipping plane
+        self.win.resetEyeTransform()
+        rays = [self.win.getMouseRay(pos)
+                for pos in [(0., 0.), (.5, -.5), (-.25, .75)]]
+        for pos, (rayOrig, rayDir) in zip([(0., 0.), (.5, -.5), (-.25, .75)],
+                                          rays):
+            assert np.allclose(rayDir, rays[0][1])
+            ndc = vt.pointToNdc(
+                rayOrig, self.win.viewMatrix, self.win.projectionMatrix)
+            assert np.allclose(ndc[:2], pos, atol=1e-5)
+
+    @pytest.mark.parametrize('units', ['norm', 'pix', 'height'])
+    def test_coordToRay(self, units):
+        # without rotating the view, the ray relative to the viewer has the
+        # same direction as in the scene
+        self.win.units = units
+        self.win.setPerspectiveView()
+        for ndc in [(0., 0.), (.5, 0.), (-.5, .5)]:
+            pos = self._toWindowUnits(ndc, units)
+            _, rayDir = self.win.getMouseRay(pos)
+            assert np.allclose(self.win.coordToRay(pos), rayDir, atol=1e-5)
+
+    def test_ray_picks_stimulus(self):
+        sphere = SphereStim(self.win, radius=.5, pos=(0., 0., -3.))
+        self.win.setPerspectiveView()
+
+        # the center of the window is over the sphere, the corner isn't
+        rayOrig, rayDir = self.win.getMouseRay((0., 0.))
+        hit = sphere.getRayIntersectSphere(rayOrig, rayDir)
+        assert hit is not None
+        assert np.allclose(hit[0], (0., 0., -2.5), atol=1e-5)
+        assert sphere.getRayIntersectSphere(
+            *self.win.getMouseRay((.95, .95))) is None
 
 
 if __name__ == '__main__':
