@@ -2759,39 +2759,109 @@ class Window():
                 planeNormal=(0, 1, 0))
 
         """
-        # put in units of pixels
-        if self.units == 'pix':
-            scrX, scrY = numpy.asarray(screenXY, numpy.float32)
-        else:
-            scrX, scrY = convertToPix(numpy.asarray([0, 0]),
-                                      numpy.asarray(screenXY),
-                                      units=self.units,
-                                      win=self)[:2]
+        scrX, scrY = self._windowUnitsToBufferPix(screenXY)
 
-        # transform psychopy mouse coordinates to viewport coordinates
-        scrX += (self.size[0] / 2.)
-        scrY +=  (self.size[1] / 2.)
+        return viewtools.cursorToRay(
+            scrX, scrY, self.size, self.viewport, self.projectionMatrix)
 
-        # get the NDC coordinates of the
-        projX = 2. * (scrX - self.viewport[0]) / self.viewport[2] - 1.
-        projY = 2. * (scrY - self.viewport[1]) / self.viewport[3] - 1.
+    def getMouseRay(self, pos=None):
+        """Get a ray from the viewer through the mouse cursor, in scene
+        coordinates.
 
-        vecNear = numpy.array((projX, projY, 0., 1.), dtype=numpy.float32)
-        vecFar = numpy.array((projX, projY, 1., 1.), dtype=numpy.float32)
+        The ray can be used to find what is under the mouse in a 3D scene, by
+        passing it to the ray intersection functions in
+        :mod:`~psychopy.tools.mathtools` (e.g.
+        :func:`~psychopy.tools.mathtools.intersectRaySphere`) or methods of 3D
+        stimuli (e.g. `getRayIntersectBounds`).
 
-        # compute the inverse projection matrix
-        invPM = numpy.linalg.inv(self.projectionMatrix)
+        The ray is computed using the current `projectionMatrix`, `viewMatrix`
+        and `viewport`, so the view should be set (e.g. by calling
+        :meth:`setPerspectiveView`) before calling this.
 
-        vecNear[:] = vecNear.dot(invPM.T)
-        vecFar[:] = vecFar.dot(invPM.T)
+        Parameters
+        ----------
+        pos : array_like or None
+            Position `(x, y)` in the units of the window to cast the ray
+            through. If `None`, the current position of the mouse is used.
 
-        vecNear /= vecNear[3]
-        vecFar /= vecFar[3]
+        Returns
+        -------
+        tuple
+            Origin and direction of the ray as arrays `[x, y, z]`. The origin
+            is the position of the viewer. For orthographic projections, where
+            rays are parallel, it's the point under `pos` on the near clipping
+            plane. The direction is normalized.
 
-        # direction vector, get rid of `w`
-        dirVec = vecFar[:3] - vecNear[:3]
+        See Also
+        --------
+        coordToRay : Get the direction of the ray relative to the viewer.
 
-        return dirVec / numpy.linalg.norm(dirVec)
+        Examples
+        --------
+        Check if the mouse is over a sphere::
+
+            win.setPerspectiveView()
+            rayOrig, rayDir = win.getMouseRay()
+            if sphere.getRayIntersectSphere(rayOrig, rayDir) is not None:
+                print('the mouse is over the sphere')
+
+        Get the point on the floor (the plane where `y=0`) under the mouse::
+
+            rayOrig, rayDir = win.getMouseRay()
+            result = mathtools.intersectRayPlane(
+                rayOrig, rayDir, (0, 0, 0), (0, 1, 0))
+            if result is not None:
+                pointOnFloor, distance = result
+
+        """
+        if pos is None:
+            pos = self._mouse.getPos()
+
+        x, y = self._windowUnitsToBufferPix(pos)
+
+        # normalized device coordinates of the points under `pos` on the near
+        # and far clipping planes, transformed back into the scene
+        ndcX = 2. * (x + self.size[0] / 2. - self.viewport[0]) / \
+            self.viewport[2] - 1.
+        ndcY = 2. * (y + self.size[1] / 2. - self.viewport[1]) / \
+            self.viewport[3] - 1.
+        near, far = mathtools.reverseProject(
+            numpy.array([[ndcX, ndcY, -1.], [ndcX, ndcY, 1.]]),
+            self.viewMatrix,
+            self.projectionMatrix)
+
+        rayDir = mathtools.normalize(far - near)
+        if mathtools.isAffine(self.projectionMatrix):  # orthographic
+            rayOrig = near
+        else:  # perspective, all rays start at the viewer
+            rayOrig = mathtools.invertMatrix(self.viewMatrix)[:3, 3]
+
+        return numpy.asarray(rayOrig, dtype=float), rayDir
+
+    def _windowUnitsToBufferPix(self, pos):
+        """Convert a position in the units of the window to framebuffer pixels,
+        relative to the center of the window.
+
+        These differ from 'pix' units on high DPI (e.g. Retina) displays.
+
+        Parameters
+        ----------
+        pos : array_like
+            Position `(x, y)` in the units of the window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in framebuffer pixels.
+
+        """
+        pix = convertToPix(
+            numpy.zeros((2,)), numpy.asarray(pos, dtype=float),
+            units=self.units, win=self)[:2]
+
+        # 'pix' units are window coordinates, which are half the resolution of
+        # the framebuffer on Retina displays
+        return pix * 2.0 if self.useRetina else pix
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
