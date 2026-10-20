@@ -663,14 +663,52 @@ class PygletBackend(BaseBackend):
             self._displayLinkMacOS.release()
             self._displayLinkMacOS = None
 
+        wasFullScr = self.winHandle.fullscreen
+        screen = self.winHandle.screen
+
         try:
             self.winHandle.close()
         except Exception:
             pass
 
+        if sys.platform == 'darwin' and wasFullScr:
+            self._releaseDisplayMacOS(screen)
+
         # Pyglet leaves its shadow window's context current after closing a
         # window, so switch back to an open window
         self._makeOpenWindowCurrent()
+
+    @staticmethod
+    def _releaseDisplayMacOS(screen):
+        """Release a display captured for a fullscreen window which has closed.
+
+        On macOS, pyglet captures the display when it opens a fullscreen
+        window, so nothing else can be drawn over it. Closing the window is
+        meant to release it again, but pyglet only does so if the display mode
+        was changed (`CocoaScreen.restore_mode()` returns early otherwise),
+        which it never is for PsychoPy's windows. The display then stays
+        captured, showing black over everything else, until the process exits.
+
+        Parameters
+        ----------
+        screen : pyglet.display.cocoa.CocoaScreen
+            Screen the fullscreen window was on.
+
+        """
+        # another fullscreen window on the same display still needs it captured
+        # (`get_display_id()` would do, but older pyglet versions lack it)
+        displayID = screen._cg_display_id
+        for openWin in pyglet.app.windows:
+            if openWin.fullscreen and \
+                    openWin.screen._cg_display_id == displayID:
+                return
+
+        try:
+            screen.release_display()
+        except Exception as err:
+            logging.error(
+                "Could not release display captured for a fullscreen window: "
+                "{}".format(err))
 
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode.
