@@ -11,6 +11,7 @@ class TestWin:
     """
     def __init__(self, exp):
         self.useRetina = True
+        self.pixScaleFactor = 2.0
         self.exp = exp
         self.monitor = self.exp.settings.monitor
         winSize = self.exp.settings.params['Window size (pixels)'].val
