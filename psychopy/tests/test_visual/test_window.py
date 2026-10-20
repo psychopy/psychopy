@@ -152,6 +152,130 @@ class TestOpenWinList:
         assert [ref() for ref in winList] == [keep]
 
 
+class TestCloseOnInitError:
+    """Tests for `closeOnInitError`, which closes a window whose `__init__`
+    raises partway rather than leaving it open."""
+
+    class _Opener:
+        """Stand-in for a class which opens a native window in `__init__`."""
+        def __init__(self, error=None, closeError=None):
+            self.closed = False
+            self._closeError = closeError
+            if error is not None:
+                raise error
+
+        def _closeAfterFailedInit(self):
+            if self._closeError is not None:
+                raise self._closeError
+            self.closed = True
+
+    def _decorated(self):
+        """Get a subclass of `_Opener` with its `__init__` decorated."""
+        from psychopy.visual.backends._base import closeOnInitError
+
+        class DecoratedOpener(self._Opener):
+            @closeOnInitError
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+        return DecoratedOpener
+
+    def test_closesAndReraises(self):
+        """The window is closed, and the error `__init__` raised still reaches
+        the caller."""
+        instances = []
+
+        class Recording(self._decorated()):
+            def __init__(self, *args, **kwargs):
+                instances.append(self)
+                super().__init__(*args, **kwargs)
+
+        with pytest.raises(RuntimeError, match="failed partway"):
+            Recording(error=RuntimeError("failed partway"))
+
+        assert instances[0].closed
+
+    def test_closeErrorDoesNotMaskInitError(self):
+        """An error closing the window is logged rather than replacing the
+        error `__init__` raised, which is what explains the failure."""
+        with pytest.raises(RuntimeError, match="failed partway"):
+            self._decorated()(
+                error=RuntimeError("failed partway"),
+                closeError=ValueError("could not close"))
+
+    def test_noCloseWithoutError(self):
+        """A window which initializes fine is left open."""
+        assert not self._decorated()().closed
+
+    def test_keepsSignature(self):
+        """The decorated `__init__` reports the signature of the original, which
+        serializing stimuli (amongst other things) relies on."""
+        import inspect
+        assert 'gammaErrorPolicy' in inspect.signature(visual.Window).parameters
+
+
+class TestWindowFailedInit:
+    """A window which fails to initialize after its native window has opened
+    should close that window, rather than leaving it open (a fullscreen one
+    covering the screen) until the process exits."""
+
+    @pytest.fixture
+    def nativeWindows(self, monkeypatch):
+        """Record the native (pyglet) windows the backend creates."""
+        from psychopy.visual.backends import pygletbackend
+
+        created = []
+        origWindow = pygletbackend.GL.Window
+
+        def recordingWindow(*args, **kwargs):
+            nativeWin = origWindow(*args, **kwargs)
+            created.append(nativeWin)
+            return nativeWin
+
+        monkeypatch.setattr(pygletbackend.GL, 'Window', recordingWindow)
+
+        return created
+
+    def test_closedIfWindowFails(self, monkeypatch, nativeWindows):
+        """`Window.__init__` raising after the backend was created closes the
+        backend's window."""
+        def failSetupGL(self):
+            raise RuntimeError("simulated failure setting up OpenGL")
+
+        monkeypatch.setattr(visual.Window, '_setupGL', failSetupGL)
+
+        # Hold on to the error while checking, as pytest does when reporting a
+        # failure. Its traceback keeps the half-made `Window` alive, so its
+        # `__del__` can't be what closes the native window.
+        with pytest.raises(RuntimeError, match="simulated failure") as excinfo:
+            visual.Window(winType='pyglet', autoLog=False)
+
+        assert excinfo.traceback
+        assert len(nativeWindows) == 1, "Expected one native window to be made."
+        assert nativeWindows[0].context is None, (
+            "Native window was left open after `Window.__init__` failed.")
+
+    def test_closedIfBackendFails(self, monkeypatch, nativeWindows):
+        """The backend raising after it created its native window closes that
+        window, even though `Window` never got a reference to the backend."""
+        from psychopy.visual.backends import pygletbackend
+
+        def failGetRenderer():
+            raise RuntimeError("simulated failure querying the renderer")
+
+        monkeypatch.setattr(
+            pygletbackend.GL.gl_info, 'get_renderer', failGetRenderer)
+
+        # hold on to the error while checking, see `test_closedIfWindowFails`
+        with pytest.raises(RuntimeError, match="simulated failure") as excinfo:
+            visual.Window(winType='pyglet', autoLog=False)
+
+        assert excinfo.traceback
+        assert len(nativeWindows) == 1, "Expected one native window to be made."
+        assert nativeWindows[0].context is None, (
+            "Native window was left open after the backend failed.")
+
+
 class TestWindow:
     def test_serialization(self):
         # make window
