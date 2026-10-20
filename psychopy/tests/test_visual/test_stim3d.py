@@ -394,22 +394,13 @@ class TestStim3D:
             SceneSkybox(self.win, tex='face.png')
 
 
-class TestStim3DLighting:
-    """Tests for lighting and shading of 3D stimuli.
-
-    Expected pixel values are computed from the Blinn-Phong lighting model the
-    shaders implement. Unless a test says otherwise, lights have black ambient
-    and specular colors and the scene ambient light is black, so only the
-    diffuse component contributes.
+class _Stim3DRenderTest:
+    """Base class for tests which render 3D stimuli and check the resulting
+    pixel values.
     """
 
     # 8-bit framebuffer rounding
     TOL = 3
-
-    # direction of a light behind surfaces facing the viewer. Not directly
-    # behind, since the specular halfway vector is undefined when the light
-    # and view directions are exactly opposite.
-    BEHIND = (0, 1, -1)
 
     @classmethod
     def setup_class(cls):
@@ -484,6 +475,32 @@ class TestStim3DLighting:
     def _assertColor(self, actual, expected):
         assert np.all(np.abs(np.asarray(actual) - expected) <= self.TOL), \
             "got {}, expected {}".format(list(actual), list(expected))
+
+    def _project(self, point):
+        """Get the normalized window coordinates of a point in the scene, for
+        use with `_pixel`.
+        """
+        self.win.setPerspectiveView()
+        mvp = np.matmul(self.win.projectionMatrix, self.win.viewMatrix)
+        self.win.resetEyeTransform()
+
+        clip = np.matmul(mvp, np.append(np.asarray(point, float), 1.))
+        return clip[:2] / clip[3]
+
+
+class TestStim3DLighting(_Stim3DRenderTest):
+    """Tests for lighting and shading of 3D stimuli.
+
+    Expected pixel values are computed from the Blinn-Phong lighting model the
+    shaders implement. Unless a test says otherwise, lights have black ambient
+    and specular colors and the scene ambient light is black, so only the
+    diffuse component contributes.
+    """
+
+    # direction of a light behind surfaces facing the viewer. Not directly
+    # behind, since the specular halfway vector is undefined when the light
+    # and view directions are exactly opposite.
+    BEHIND = (0, 1, -1)
 
     # --------------------------------------------------------------------------
     # Diffuse
@@ -874,6 +891,234 @@ class TestStim3DLighting:
         lit = self._pixel(frame, 0.15, 0)
         dark = self._pixel(frame, -0.15, 0)
         assert lit.sum() > dark.sum() + 3 * 50, (lit, dark)
+
+
+class TestStim3DTextureMapping(_Stim3DRenderTest):
+    """Tests for mapping textures onto 3D stimuli.
+
+    Stimuli use a white material with a texture whose quadrants are different
+    colors, lit straight on by a white light so drawn colors match the texture.
+    """
+
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    YELLOW = (255, 255, 0)
+
+    @pytest.fixture
+    def textureFile(self, tmp_path):
+        """Image file with red, green, blue and yellow quadrants (top-left,
+        top-right, bottom-left and bottom-right).
+        """
+        size = 64
+        half = size // 2
+        im = np.zeros((size, size, 3), dtype=np.uint8)
+        im[:half, :half] = self.RED  # rows go from top to bottom
+        im[:half, half:] = self.GREEN
+        im[half:, :half] = self.BLUE
+        im[half:, half:] = self.YELLOW
+
+        path = tmp_path / 'quadrants.png'
+        Image.fromarray(im).save(path)
+        return path
+
+    @pytest.fixture
+    def texture(self, textureFile):
+        return gt.createTexImage2dFromFile(str(textureFile))
+
+    def _quadrantColor(self, u, v):
+        """Expected color at texture coordinates (u, v), where (0, 0) is the
+        bottom-left of the image and the texture repeats outside 0 to 1.
+        """
+        right = u % 1. >= 0.5
+        top = v % 1. >= 0.5
+        if top:
+            return self.GREEN if right else self.RED
+        return self.YELLOW if right else self.BLUE
+
+    def _texturedMaterial(self, texture):
+        material = BlinnPhongMaterial(
+            self.win, diffuseColor=(1, 1, 1), specularColor=(-1, -1, -1),
+            ambientColor=(-1, -1, -1), emissionColor=(-1, -1, -1))
+        material.diffuseTexture = texture
+        return material
+
+    def _renderLit(self, stim):
+        """Draw `stim` lit by a white light shining from the viewer."""
+        light = LightSource(
+            self.win, pos=(0, 0, 1), lightType='directional',
+            diffuseColor=(1, 1, 1), specularColor=(-1, -1, -1),
+            ambientColor=(-1, -1, -1))
+        return self._render(stim, [light])
+
+    def _sample(self, frame, point):
+        """Color of the pixel showing `point` in the scene."""
+        return self._pixel(frame, *self._project(point))
+
+    # --------------------------------------------------------------------------
+    # Planes
+    #
+
+    def test_plane_orientation(self, texture):
+        # the image appears upright, the same way round as in the file
+        plane = PlaneStim(self.win, size=(1, 1), pos=(0, 0, -3))
+        plane.material = self._texturedMaterial(texture)
+        frame = self._renderLit(plane)
+
+        for x, y, expected in [(-.25, .25, self.RED), (.25, .25, self.GREEN),
+                               (-.25, -.25, self.BLUE),
+                               (.25, -.25, self.YELLOW)]:
+            self._assertColor(self._sample(frame, (x, y, -3)), expected)
+
+    @pytest.mark.parametrize('angle', [90, 180, 270])
+    def test_plane_rotation(self, texture, angle):
+        # the texture turns with the plane
+        plane = PlaneStim(self.win, size=(1, 1), pos=(0, 0, -3))
+        plane.material = self._texturedMaterial(texture)
+        plane.setOriAxisAngle((0, 0, 1), angle)
+        frame = self._renderLit(plane)
+
+        c, s = np.cos(np.radians(angle)), np.sin(np.radians(angle))
+        for x, y in [(-.25, .25), (.25, .25), (-.25, -.25), (.25, -.25)]:
+            # position of the texture point after rotating the plane
+            point = (c * x - s * y, s * x + c * y, -3)
+            expected = self._quadrantColor(x + .5, y + .5)
+            self._assertColor(self._sample(frame, point), expected)
+
+    @pytest.mark.parametrize(
+        'textureScale', [1, 2, 3, (2, 1), (1, 3)], ids=str)
+    def test_plane_texture_scale(self, texture, textureScale):
+        # the texture repeats `textureScale` times across the plane
+        plane = PlaneStim(
+            self.win, size=(1, 1), pos=(0, 0, -3), textureScale=textureScale)
+        plane.material = self._texturedMaterial(texture)
+        frame = self._renderLit(plane)
+
+        su, sv = np.broadcast_to(textureScale, (2,))
+        # sample the center of each quadrant of each repeat
+        for i in range(2 * su):
+            for j in range(2 * sv):
+                x = (i + .5) / (2 * su) - .5
+                y = (j + .5) / (2 * sv) - .5
+                expected = self._quadrantColor((x + .5) * su, (y + .5) * sv)
+                self._assertColor(self._sample(frame, (x, y, -3)), expected)
+
+    def test_load_without_transpose(self, textureFile):
+        # without flipping, image rows are in the opposite order to OpenGL's
+        # so the image appears upside down
+        texture = gt.createTexImage2dFromFile(str(textureFile), transpose=False)
+        plane = PlaneStim(self.win, size=(1, 1), pos=(0, 0, -3))
+        plane.material = self._texturedMaterial(texture)
+        frame = self._renderLit(plane)
+
+        self._assertColor(self._sample(frame, (-.25, .25, -3)), self.BLUE)
+        self._assertColor(self._sample(frame, (.25, -.25, -3)), self.GREEN)
+
+    # --------------------------------------------------------------------------
+    # Other shapes
+    #
+
+    @pytest.mark.parametrize('axis, angle', [
+        ((0, 1, 0), 0),     # +Z face
+        ((0, 1, 0), 90),    # -X face
+        ((0, 1, 0), 180),   # -Z face
+        ((0, 1, 0), -90),   # +X face
+        ((1, 0, 0), 90),    # +Y face
+        ((1, 0, 0), -90),   # -Y face
+    ])
+    def test_box_faces(self, texture, axis, angle):
+        # each face shows the whole texture
+        box = BoxStim(self.win, size=(1, 1, 1), pos=(0, 0, -3))
+        box.material = self._texturedMaterial(texture)
+        box.setOriAxisAngle(axis, angle)
+        frame = self._renderLit(box)
+
+        # quadrant centers of the face towards the viewer
+        samples = [tuple(self._sample(frame, (x, y, -2.5)))
+                   for x, y in [(-.25, .25), (.25, .25), (-.25, -.25),
+                                (.25, -.25)]]
+        for sample in samples:
+            assert any(np.all(np.abs(np.subtract(sample, c)) <= self.TOL)
+                       for c in (self.RED, self.GREEN, self.BLUE, self.YELLOW)
+                       ), sample
+        assert len(set(samples)) == 4, samples
+
+    def test_box_front_orientation(self, texture):
+        box = BoxStim(self.win, size=(1, 1, 1), pos=(0, 0, -3))
+        box.material = self._texturedMaterial(texture)
+        frame = self._renderLit(box)
+
+        for x, y, expected in [(-.25, .25, self.RED), (.25, .25, self.GREEN),
+                               (-.25, -.25, self.BLUE),
+                               (.25, -.25, self.YELLOW)]:
+            self._assertColor(self._sample(frame, (x, y, -2.5)), expected)
+
+    @pytest.mark.parametrize('axis, angle', [
+        ((1, 0, 0), 0),    # a pole facing the viewer
+        ((1, 0, 0), -90),  # poles at the top and bottom
+    ])
+    def test_sphere(self, texture, axis, angle):
+        # the poles of the sphere are on its Z axis. Texture `u` goes around
+        # the poles, `v` goes from the +Z pole (0) to the -Z pole (1).
+        sphere = SphereStim(self.win, radius=1.0, pos=(0, 0, -3))
+        sphere.material = self._texturedMaterial(texture)
+        sphere.setOriAxisAngle(axis, angle)
+        frame = self._renderLit(sphere)
+        toLocal = sphere.thePose.inverseModelMatrix
+
+        quadrants = [self.RED, self.GREEN, self.BLUE, self.YELLOW]
+
+        def closestQuadrant(sample):
+            # lighting darkens the sphere away from its center, so compare
+            # hues rather than values
+            similarity = [np.dot(sample, c) / np.linalg.norm(c)
+                          for c in quadrants]
+            return quadrants[int(np.argmax(similarity))]
+
+        nChecked = 0
+        for x in np.linspace(-.6, .6, 7):
+            for y in np.linspace(-.6, .6, 7):
+                if x ** 2 + y ** 2 > .6 ** 2:
+                    continue
+                # point on the surface of the sphere, in the sphere's frame
+                point = (x, y, -3 + np.sqrt(1 - x ** 2 - y ** 2))
+                lx, ly, lz = np.matmul(toLocal, np.append(point, 1.))[:3]
+                u = 1. - (np.arctan2(ly, lx) % (2 * np.pi)) / (2 * np.pi)
+                v = (np.pi / 2 - np.arcsin(np.clip(lz, -1, 1))) / np.pi
+
+                # skip points near quadrant edges, where colors are blended
+                if (min(abs(u - .5), u, 1 - u) < .05 or
+                        abs(v - .5) < .05):
+                    continue
+
+                sample = self._sample(frame, point)
+                assert closestQuadrant(sample) == self._quadrantColor(u, v), \
+                    ((x, y), (u, v), sample)
+                nChecked += 1
+
+        assert nChecked >= 10
+
+    def test_obj_mtl_texture(self, tmp_path, textureFile):
+        # textures in the MTL file are loaded with the materials
+        objFile = _writeObjFile(tmp_path)
+        (tmp_path / 'cube.mtl').write_text(
+            'newmtl red\nNs 10\nKa 0 0 0\nKd 1 1 1\nKs 0 0 0\n'
+            'map_Kd {0}\n\n'
+            'newmtl blue\nNs 10\nKa 0 0 0\nKd 1 1 1\nKs 0 0 0\n'
+            'map_Kd {0}\n'.format(textureFile.name))
+
+        stim = ObjMeshStim(self.win, str(objFile), pos=(0, 0, -3))
+        assert stim.material['red'].diffuseTexture is not None
+        # the same file is only loaded once
+        assert (stim.material['red'].diffuseTexture is
+                stim.material['blue'].diffuseTexture)
+
+        # the OBJ is a box, so faces are mapped the same as `BoxStim`
+        frame = self._renderLit(stim)
+        for x, y, expected in [(-.25, .25, self.RED), (.25, .25, self.GREEN),
+                               (-.25, -.25, self.BLUE),
+                               (.25, -.25, self.YELLOW)]:
+            self._assertColor(self._sample(frame, (x, y, -2.5)), expected)
 
 
 if __name__ == '__main__':
