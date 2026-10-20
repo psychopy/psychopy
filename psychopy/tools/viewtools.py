@@ -21,6 +21,7 @@ __all__ = ['Frustum',
            'lookAt',
            'pointToNdc',
            'cursorToRay',
+           'getArcballVector',
            'visible',
            'visibleBBox']
 
@@ -871,6 +872,91 @@ def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix,
         mt.normalize(toReturn, out=toReturn)
 
     return toReturn
+
+
+def getArcballVector(rayOrig, rayDir, center, radius, dtype=None):
+    """Get the direction from the center of an arcball to the point on it under
+    a ray.
+
+    An arcball is a virtual sphere around an object, used to rotate the object
+    with a pointing device such as a mouse. When dragging starts, the point on
+    the arcball under the mouse is found. As the mouse moves, the object is
+    rotated by the rotation taking that point to the one now under the mouse
+    (see :func:`~psychopy.tools.mathtools.alignTo`), so the point on the object
+    which was grabbed stays under the mouse.
+
+    If the ray misses the arcball, the direction to the point on the ray
+    closest to the center is used, at right angles to the line of sight from
+    the ray origin to the center. Dragging around outside of the arcball then
+    rotates the object around the line of sight. A ray pointing directly away
+    from the arcball gives the direction towards the ray origin, the same as a
+    ray through the center.
+
+    Parameters
+    ----------
+    rayOrig : array_like
+        Origin of the ray `[x, y, z]`, usually the position of the viewer.
+    rayDir : array_like
+        Direction of the ray `[x, y, z]`, does not need to be normalized.
+    center : array_like
+        Center of the arcball `[x, y, z]`, usually the position of the object.
+    radius : float
+        Radius of the arcball in scene units. The arcball should be large
+        enough to enclose the object.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None`
+        is specified, the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Normalized direction vector `[x, y, z]` from the center of the arcball.
+
+    Examples
+    --------
+    Rotate a 3D stimulus by dragging it with the mouse, using rays from the
+    viewer through the mouse::
+
+        # in the render loop, after setting the view
+        if mouse.getPressed()[0]:
+            rayOrig, rayDir = win.getMouseRay()
+            vec = getArcballVector(rayOrig, rayDir, stim.pos, radius)
+
+            if dragStart is None:  # dragging just started
+                dragStart = (vec, stim.thePose.ori.copy())
+            else:
+                startVec, startOri = dragStart
+                stim.thePose.ori = mt.multQuat(
+                    mt.alignTo(startVec, vec), startOri)
+        else:
+            dragStart = None
+
+    """
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    rayOrig = np.asarray(rayOrig, dtype=dtype)
+    rayDir = np.asarray(rayDir, dtype=dtype)
+    center = np.asarray(center, dtype=dtype)
+
+    hit = mt.intersectRaySphere(rayOrig, rayDir, center, radius, dtype=dtype)
+    if hit is not None:
+        point, _ = hit
+        return mt.normalize(point - center, dtype=dtype)
+
+    # the ray misses, use the closest point on the ray to the center but at
+    # right angles to the line of sight to the center
+    toCenter = center - rayOrig
+    closest = rayOrig + mt.project(toCenter, rayDir, dtype=dtype)
+    vec = closest - center
+    vec -= mt.project(vec, toCenter, dtype=dtype)
+
+    # If the ray points away from the arcball along the line of sight, the
+    # closest point is the center. Use the point facing the ray origin, as for
+    # a ray through the center.
+    if np.linalg.norm(vec) <= np.finfo(dtype).eps * radius:
+        vec = -toCenter
+
+    return mt.normalize(vec, dtype=dtype)
 
 
 def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
