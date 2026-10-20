@@ -585,12 +585,6 @@ class Mouse:
                               ' (need to create one first)')
                 self.win = None
 
-        # get the scaling factors for the display
-        if self.win is not None:
-            self._winScaleFactor = self.win.getContentScaleFactor()
-        else:
-            self._winScaleFactor = 1.0
-
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -611,24 +605,13 @@ class Mouse:
         """
         return self.win.units
 
-    def _pygletMouseInBufferPixels(self):
-        """Check if the window's pyglet handle stores the mouse position in
-        framebuffer pixels, rather than window coordinates.
-
-        These differ on high DPI (e.g. Retina) displays. Since pyglet 2.1,
-        positions are in framebuffer pixels unless `pyglet.options.dpi_scaling`
-        is 'stretch', earlier versions use window coordinates.
-
-        """
-        if not havePyglet or getattr(self.win, 'winType', None) != 'pyglet':
-            return False
-
-        dpiScaling = getattr(pyglet.options, 'dpi_scaling', None)
-        return dpiScaling is not None and dpiScaling != 'stretch'
-
     def setPos(self, newPos=(0, 0)):
         """Sets the current position of the mouse,
         in the same units as the :class:`~visual.Window`. (0,0) is the center.
+
+        The mouse is moved to the nearest position the operating system
+        supports, which is a whole window coordinate (or point on high DPI
+        displays), so `getPos` may differ slightly from `newPos`.
 
         :Parameters:
             newPos : (x,y) or [x,y]
@@ -639,26 +622,11 @@ class Mouse:
             newPosPix[1] = self.win.size[1] / 2 - newPosPix[1]
             newPosPix[0] = self.win.size[0] / 2 + newPosPix[0]
             mouse.set_pos(newPosPix)
+        elif self.win is not None and self.win.winType in ('pyglet', 'glfw'):
+            # the backend converts framebuffer pixels to window coordinates
+            self.win.backend.setMousePos(newPosPix)
         else:
-            if hasattr(self.win.winHandle, 'set_mouse_position'):
-                if self.win.useRetina:
-                    newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
-                else:
-                    wsf = self._winScaleFactor 
-                    newPosPix = \
-                        numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
-                x, y = int(newPosPix[0]), int(newPosPix[1])
-                self.win.winHandle.set_mouse_position(x, y)
-                if self._pygletMouseInBufferPixels():
-                    # the position is set in window coordinates, but pyglet
-                    # keeps it in framebuffer pixels
-                    scale = 2.0 if self.win.useRetina else self._winScaleFactor
-                    x, y = int(x * scale), int(y * scale)
-                self.win.winHandle._mouse_x = x
-                self.win.winHandle._mouse_y = y
-            else:
-                msg = 'mouse position could not be set (pyglet %s)'
-                logging.error(msg % pyglet.version)
+            logging.error('mouse position could not be set')
 
     def getPos(self):
         """Returns the current position of the mouse,
@@ -671,32 +639,13 @@ class Mouse:
             lastPosPix[1] = self.win.size[1] / 2 - lastPosPix[1]
             lastPosPix[0] = lastPosPix[0] - self.win.size[0] / 2
             self.lastPos = self._pix2windowUnits(lastPosPix)
-        elif useGLFW and self.win.winType=='glfw':
-            # already in framebuffer pixels
+        elif self.win is None:
+            logging.warning("Called event.Mouse.getPos() for the mouse with no "
+                            "Window being opened")
+            return None
+        else:
+            # framebuffer pixels relative to the center of the window
             lastPosPix[:] = self.win.backend.getMousePos()
-        else:  # for pyglet bottom left is 0,0
-            # use default window if we don't have one
-            if self.win:
-                w = self.win.winHandle
-            else:
-
-                if psychopy.core.openWindows:
-                    w = psychopy.core.openWindows[0]()
-                else:
-                    logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
-                    return None
-
-            # get position in window
-            lastPosPix[:] = w._mouse_x, w._mouse_y
-
-            # set (0,0) to centre
-            if self._pygletMouseInBufferPixels():
-                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
-            elif self.win.useRetina:
-                lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
-            else:
-                wsf = self._winScaleFactor 
-                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
