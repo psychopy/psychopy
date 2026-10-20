@@ -577,6 +577,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # time playback was scheduled to start by `play(when=...)`, until the
         # decoder has been started then (`None` when there's nothing pending)
         self._startPlayerAt = None
+        # whether the decoder may still be filling its queue of frames ahead,
+        # having been left to by `stop()`, for `play()` to wait for
+        self._decodeAheadPending = False
 
         # audio stuff
         if audioDevice is not None:
@@ -852,6 +855,25 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
+        self._openMovie(filename)
+
+        # Let the decoder fill its queue now, at the size and in the format the
+        # frames are now to be decoded in, rather than as fast as it can while
+        # the movie starts playing
+        self._player.waitForDecodedFrames()
+        self._decodeAheadPending = False
+
+    def _openMovie(self, filename):
+        """Open a movie file as `loadMovie()` does, but without waiting for
+        the decoder to fill its queue of frames ahead, which it carries on
+        doing in the background. See `stop()`.
+
+        Parameters
+        ----------
+        filename : str
+            Path to movie file. Must be a format that FFMPEG supports.
+
+        """
         # Set the movie file name, this handles normalizing the path and
         # checking if the file exists.
 
@@ -949,11 +971,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         else:
             # at the movie's own size until it has a frame to show
             self._setupTextureBuffers()
-
-        # Let the decoder fill its queue now, at the size and in the format the
-        # frames are now to be decoded in, rather than as fast as it can while
-        # the movie starts playing
-        self._player.waitForDecodedFrames()
 
     def _setupAudioStream(self):
         """Setup the audio stream for the movie.
@@ -2348,6 +2365,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # when to start, so that playback still starts on the next flip after.
         self._finishAudioLoad()
 
+        # Likewise the decoder, if `stop()` left it filling its queue of frames
+        # ahead, so that it isn't still doing so as playback starts. By now it
+        # has usually finished.
+        if self._decodeAheadPending:
+            self._player.waitForDecodedFrames()
+            self._decodeAheadPending = False
+
         # The movie clock runs on `core.getTime()`, which is
         # `psychopy.clock.getTime()` less `monotonicClock`'s last reset time.
         now = core.getTime()
@@ -2486,8 +2510,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._audioTrack is not None and hasattr(self._audioTrack, 'stop'):
             self._audioTrack.stop()
 
-        self.loadMovie(self._filename)  # reload the movie
-        
+        # Reload the movie, but leave the decoder to fill its queue of frames
+        # ahead in the background rather than hold up whatever comes next
+        # (such as the next Routine) while it does. `play()` waits for it.
+        self._openMovie(self._filename)
+        self._decodeAheadPending = True
+
         self._playbackStatus = NOT_STARTED
 
         if log:
