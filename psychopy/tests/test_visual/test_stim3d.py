@@ -5,6 +5,7 @@ import pytest
 from PIL import Image
 
 from psychopy import visual
+from psychopy.colors import Color
 import psychopy.tools.gltools as gt
 import psychopy.tools.pygletgl as GL
 from psychopy.visual.stim3d import (
@@ -750,6 +751,96 @@ class TestStim3DLighting:
             specular=(1, 1, 1))
         self._assertColor(
             self._pixel(self._render(plane, [light])), (0, 255, 0))
+
+    # --------------------------------------------------------------------------
+    # Opacity
+    #
+
+    def _background(self):
+        """Color of the background, measured at the corner of a frame with a
+        tiny plane at its center.
+        """
+        plane = self._plane(self._material(diffuse=(1, 1, 1)), size=(.1, .1))
+        return self._render(plane, [self._light((0, 0, 1))])[0, 0]
+
+    def _blend(self, color, opacity):
+        """Expected color of `color` drawn over the background."""
+        return (opacity * np.asarray(color) +
+                (1 - opacity) * self._background())
+
+    def test_material_opacity_value(self):
+        mat = BlinnPhongMaterial(self.win, diffuseColor=(1, 1, 1), opacity=0.5)
+        assert mat.opacity == 0.5
+        assert mat._diffuseRGB[3] == pytest.approx(0.5)
+
+        # combined with the alpha of the diffuse color, and kept when the
+        # diffuse color changes
+        mat.diffuseColor = Color((1, 1, 1, 0.5), 'rgba')
+        assert mat._diffuseRGB[3] == pytest.approx(0.25)
+        assert list(mat._ptrDiffuse)[3] == pytest.approx(0.25)
+
+        mat.opacity = 1.0
+        assert mat._diffuseRGB[3] == pytest.approx(0.5)
+
+    def test_transparent_is_background(self):
+        # nothing should be drawn when fully transparent, even when lit
+        plane = self._plane(
+            self._material(diffuse=(1, 1, 1), emission=(1, 1, 1)))
+        plane.material.opacity = 0.0
+        frame = self._render(plane, [self._light((0, 0, 1))])
+        background = self._background()
+        assert np.abs(background - 255).sum() > 30  # differs from the plane
+        assert np.all(frame == background)
+
+    @pytest.mark.parametrize('nLights', [0, 1, 2, 8])
+    @pytest.mark.parametrize('opacity', [0.25, 0.5, 0.75, 1.0])
+    def test_material_opacity(self, opacity, nLights):
+        # opacity doesn't depend on how many lights there are, white lights
+        # make the plane white, without lights it's black
+        plane = self._plane(self._material(diffuse=(1, 1, 1)))
+        plane.material.opacity = opacity
+        lights = [self._light((0, 0, 1)) for _ in range(nLights)]
+        frame = self._render(plane, lights)
+
+        color = (255, 255, 255) if nLights else (0, 0, 0)
+        self._assertColor(self._pixel(frame), self._blend(color, opacity))
+
+    def test_emission_opacity(self):
+        plane = self._plane(self._material(emission=(1, -1, -1)))
+        plane.material.opacity = 0.5
+        frame = self._render(plane)
+        self._assertColor(self._pixel(frame), self._blend((255, 0, 0), 0.5))
+
+    @pytest.mark.parametrize('texAlpha', [0, 128, 255])
+    def test_texture_opacity(self, texAlpha):
+        texData = np.zeros((4, 4, 4), dtype=np.uint8)
+        texData[:, :, 1] = 255  # green
+        texData[:, :, 3] = texAlpha
+        texture = gt.createTexImage2D(
+            4, 4, internalFormat=GL.GL_RGBA, pixelFormat=GL.GL_RGBA,
+            dataType=GL.GL_UNSIGNED_BYTE, data=texData.ctypes,
+            unpackAlignment=1)
+        material = self._material(diffuse=(1, 1, 1))
+        material.diffuseTexture = texture
+        material.opacity = 0.5
+        plane = self._plane(material)
+        frame = self._render(plane, [self._light((0, 0, 1))])
+
+        # texture alpha is multiplied with the material opacity
+        opacity = 0.5 * texAlpha / 255.
+        self._assertColor(
+            self._pixel(frame), self._blend((0, 255, 0), opacity))
+
+    @pytest.mark.parametrize('stimClass, kwargs', [
+        (PlaneStim, {'size': (4, 4)}),
+        (SphereStim, {'radius': 1.0}),
+    ])
+    def test_opacity_without_material(self, stimClass, kwargs):
+        stim = stimClass(
+            self.win, pos=(0, 0, -3), color=(1, 1, 1), opacity=0.5, **kwargs)
+        frame = self._render(stim, [self._light((0, 0, 1))])
+        self._assertColor(
+            self._pixel(frame), self._blend((255, 255, 255), 0.5))
 
     # --------------------------------------------------------------------------
     # Stimuli without a material
