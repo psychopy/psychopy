@@ -1254,9 +1254,12 @@ atexit.register(closeAllMovieWriters)
 def _getFFMPEGExe():
     """Get the path to the FFMPEG executable to use for shell commands.
 
-    A copy of FFMPEG installed on the system takes precedence over the one
-    shipped with `imageio-ffmpeg`, which is used as a fallback. The result is
-    cached after the first successful lookup.
+    The binary shipped with `imageio-ffmpeg` takes precedence over a copy of
+    FFMPEG installed on the system, which is used as a fallback. The bundled
+    binary is built for the platform PsychoPy is running on, whereas whatever
+    is on the system path may not be (e.g., an Intel build left behind by a
+    migration to Apple Silicon). The result is cached after the first
+    successful lookup.
 
     Returns
     -------
@@ -1275,19 +1278,22 @@ def _getFFMPEGExe():
 
     import shutil
 
-    foundExe = shutil.which('ffmpeg')
+    # `imageio-ffmpeg` checks a binary runs before handing it back, and raises
+    # if it can't find one which does
+    try:
+        import imageio_ffmpeg
+        foundExe = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        foundExe = None
 
-    if foundExe is None:  # fallback to the binary `imageio-ffmpeg` provides
-        try:
-            import imageio_ffmpeg
-            foundExe = imageio_ffmpeg.get_ffmpeg_exe()
-        except Exception:
-            foundExe = None
+    if foundExe is None:  # fallback to the system FFMPEG
+        foundExe = shutil.which('ffmpeg')
 
     if foundExe is None:
         raise FileNotFoundError(
-            "Could not find an FFMPEG executable on this system. Install "
-            "FFMPEG and make sure it is on the system path.")
+            "Could not find an FFMPEG executable on this system. Install the "
+            "`imageio-ffmpeg` package, or install FFMPEG and make sure it is "
+            "on the system path.")
 
     logging.debug("Using FFMPEG executable at `{}`".format(foundExe))
 
