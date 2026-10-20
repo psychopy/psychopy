@@ -351,6 +351,40 @@ class TestPygletNorm(_baseTest):
             assert pygame.display.get_init() == 0
 
 
+@pytest.mark.event
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+@pytest.mark.parametrize('winType', ['pyglet', 'glfw'])
+def test_mouse_setPos_nearest_point(winType):
+    """Check `setPos` moves the cursor to the nearest whole point, which
+    `getPos` returns, and that both backends round the same way."""
+    if winType == 'glfw':
+        pytest.importorskip('glfw')
+
+    win = Window([128, 128], winType=winType, units='pix', pos=[50, 50],
+                 allowGUI=False, autoLog=False)
+    try:
+        m = event.Mouse(win=win)
+        # 'pix' units are window coordinates (points on retina displays)
+        for pos, expected in [((20.4, -10.6), (20., -11.)),
+                              ((-30.6, 16.4), (-31., 16.)),
+                              ((.25, -.25), (0., 0.))]:
+            m.setPos(pos)
+            assert np.allclose(m.getPos(), expected), pos
+
+            # the backends take framebuffer pixels
+            scale = win.getContentScaleFactor()
+            win.backend.setMousePos(np.multiply(pos, scale))
+            assert np.allclose(
+                win.backend.getMousePos(), np.multiply(expected, scale)), pos
+
+        # the window is 64 points from the center to the edge
+        win.units = 'norm'
+        m.setPos((.3, -.7))
+        assert np.allclose(m.getPos(), (19. / 64, -45. / 64))
+    finally:
+        win.close()
+
+
 class xxxTestPygameNorm(_baseTest):
     @classmethod
     def setup_class(self):
