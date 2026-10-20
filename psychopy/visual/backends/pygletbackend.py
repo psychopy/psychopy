@@ -1007,14 +1007,26 @@ class PygletBackend(BaseBackend):
     def setMousePos(self, pos):
         """Set/move the position of the mouse on the current window.
 
+        The cursor is moved to the nearest position the operating system
+        supports, see `_nearestCursorPos`.
+
         Parameters
         ----------
         pos : ArrayLike
-            Position `(x, y)` in window coordinates.
+            Position `(x, y)` in PsychoPy pixel coordinates.
 
         """
-        x, y = self._pixToWindowCoords(pos)
-        self.winHandle.set_mouse_position(int(x), int(y))
+        # whole numbers once rounded, `round` removes floating point error
+        x, y = (int(round(v)) for v in
+                self._pixToWindowCoords(self._nearestCursorPos(pos)))
+        self.winHandle.set_mouse_position(x, y)
+
+        # pyglet only records the cursor position on mouse events, so record it
+        # here in the same coordinates for `getMousePos`
+        scale = self.win.getContentScaleFactor() \
+            if self._mouseInBufferPixels() else 1.0
+        self.winHandle._mouse_x = int(round(x * scale))
+        self.winHandle._mouse_y = int(round(y * scale))
 
 
 def _onResize(width, height):

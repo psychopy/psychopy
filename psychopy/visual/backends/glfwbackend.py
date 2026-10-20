@@ -1373,11 +1373,16 @@ class GLFWBackend(BaseBackend):
     def setMousePos(self, pos):
         """Set/move the position of the mouse on the current window.
 
+        The cursor is moved to the nearest position the operating system
+        supports, see `_nearestCursorPos`.
+
         Parameters
         ----------
         pos : ArrayLike
             Position `(x, y)` in PsychoPy pixel coordinates.
 
         """
-        x, y = self._pixToWindowCoords(pos)
-        glfw.set_cursor_pos(self.winHandle.handle, float(x), float(y))
+        # whole numbers once rounded, `round` removes floating point error
+        x, y = (float(round(v)) for v in
+                self._pixToWindowCoords(self._nearestCursorPos(pos)))
+        glfw.set_cursor_pos(self.winHandle.handle, x, y)
