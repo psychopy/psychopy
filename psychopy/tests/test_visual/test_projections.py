@@ -1,4 +1,3 @@
-import sys
 from pyglet.window import key
 from psychopy.visual import Window, TextStim, GratingStim, Circle
 from psychopy.visual.windowwarp import Warper
@@ -27,6 +26,9 @@ class ProjectionsLinesAndCircles:
 
         self.win = win
         self.warper = warper
+        # set when [q]uit or escape is pressed, for an interactive session to
+        # stop on
+        self.quitRequested = False
 
         self.stimT = TextStim(self.win, text='Null warper', units = 'pix',
                               pos=(0, -140), height=20)
@@ -93,8 +95,9 @@ class ProjectionsLinesAndCircles:
         for keys in event.getKeys(timeStamped=True):
             k = keys[0]
             if k in ['escape', 'q']:
-                self.win.close()
-                sys.exit()
+                # leave it to the caller to stop, as exiting here would take
+                # the whole test session down with it
+                self.quitRequested = True
             elif k in ['space']:
                 for c in range (1,2):
                     t = Circle(self.win, size=c * 2, fillColor=None,
@@ -159,11 +162,21 @@ class ProjectionsLinesAndCircles:
 
 class Test_class_WindowWarp():
     def setup_class(self):
-        self.win = Window(monitor='testMonitor', screen=0, fullscr=True, color='gray', useFBO = True, autoLog=False)
-        self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],
-                             flipHorizontal=False, flipVertical=False)
-        self.warper.dist_cm = 15
-        self.g = ProjectionsLinesAndCircles(self.win, self.warper)
+        # Windowed, as warping only needs the FBO. A fullscreen window covers
+        # everything else (on macOS, even the Force Quit dialog), so if the
+        # test ever stalled there would be no way to close it short of a
+        # reboot.
+        self.win = Window(monitor='testMonitor', screen=0, fullscr=False, color='gray', useFBO = True, autoLog=False)
+        try:
+            self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],
+                                 flipHorizontal=False, flipVertical=False)
+            self.warper.dist_cm = 15
+            self.g = ProjectionsLinesAndCircles(self.win, self.warper)
+        except BaseException:
+            # pytest doesn't call `teardown_class` if this raises, so close the
+            # window here rather than leave it open for the rest of the session
+            self.win.close()
+            raise
 
     def teardown_class(self):
         self.win.close()
@@ -214,4 +227,6 @@ if __name__ == '__main__':
         cls.setup_class()
         for i in range(2 * 60 * 60):
             cls.g.update_sweep()
+            if cls.g.quitRequested:
+                break
         cls.win.close()
