@@ -691,6 +691,26 @@ def test_alignTo():
 
 
 @pytest.mark.mathtools
+@pytest.mark.parametrize('vec, target', [
+    ([1., 0., 0.], [0., 1., 0.]),                      # single vector
+    ([1., 0., 0.], [-1., 0., 0.]),                     # opposite directions
+    ([0., 1., 0.], [0., -1., 0.]),
+    ([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]],       # mixed
+     [[0., 1., 0.], [0., -1., 0.], [0., 0., -1.]]),
+])
+def test_alignToOut(vec, target):
+    """Check `alignTo` returns `out`, and that values already in `out` don't
+    affect the result."""
+    expected = alignTo(vec, target)
+    out = np.full_like(expected, 7.)  # values from some previous use
+
+    assert alignTo(vec, target, out=out) is out
+    assert np.allclose(out, expected)
+    assert np.allclose(applyQuat(out, vec), target)
+    assert not np.any(np.signbit(out) & (out == 0.))  # no negative zeros
+
+
+@pytest.mark.mathtools
 @pytest.mark.parametrize('rayOrig, rayDir, expectedPos, expectedDist', [
     ((0, 0, 0), (0, 0, -1), (0, 0, -2), 2.),     # towards the sphere
     ((0, 0, 0), (0, 0, -5), (0, 0, -2), 2.),     # direction not normalized
