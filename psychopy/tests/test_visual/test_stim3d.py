@@ -1,5 +1,7 @@
 """Tests for 3D stimulus classes in `psychopy.visual.stim3d`.
 """
+import ctypes
+
 import numpy as np
 import pytest
 from PIL import Image
@@ -360,6 +362,24 @@ class TestStim3D:
         self._assertDrawn(frame)
         r, g, b = self._centerPixel(frame)
         assert r > g and r > b
+
+    @pytest.mark.parametrize('material', ['mtllib', 'single', None])
+    def test_draw_unbinds_vao(self, tmp_path, material):
+        # VAOs drawn one after another are only unbound after the last one,
+        # nothing may be left bound once drawing has finished
+        stim = ObjMeshStim(
+            self.win, str(_writeObjFile(tmp_path)), pos=(0, 0, -3),
+            loadMtllib=material == 'mtllib')
+        if material == 'single':
+            stim.material = BlinnPhongMaterial(self.win)
+        assert len(stim._vao) > 1
+
+        box = BoxStim(self.win, pos=(0, 0, -3))
+        for thisStim in (stim, box):
+            self._render(thisStim)
+            binding = GL.GLint()
+            GL.glGetIntegerv(GL.GL_VERTEX_ARRAY_BINDING, ctypes.byref(binding))
+            assert binding.value == 0, thisStim
 
     # --------------------------------------------------------------------------
     # SceneSkybox
