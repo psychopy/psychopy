@@ -26,7 +26,7 @@ from psychopy.tools.attributetools import attributeSetter
 from psychopy.tools import systemtools
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
-from ._base import BaseBackend
+from ._base import BaseBackend, closeOnInitError
 
 import pyglet
 import pyglet.window as pyglet_window
@@ -103,6 +103,7 @@ class PygletBackend(BaseBackend):
     GL = GL
     winTypeName = 'pyglet'
 
+    @closeOnInitError
     def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
