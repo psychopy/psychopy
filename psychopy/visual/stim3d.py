@@ -1418,8 +1418,10 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
         GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
 
-        for vao in vaos:
-            gt.drawVAO(vao, GL.GL_TRIANGLES)
+        # only unbind after the last VAO
+        vaos = tuple(vaos)
+        for i, vao in enumerate(vaos, start=1):
+            gt.drawVAO(vao, GL.GL_TRIANGLES, unbind=i == len(vaos))
 
         GL.glUseProgram(0)
 
@@ -2111,15 +2113,17 @@ class ObjMeshStim(BaseRigidBodyStim):
                 for i, (materialName, materialDesc) in enumerate(
                         self.material.items(), start=1):
                     materialDesc.begin()
-                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
+                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES,
+                               unbind=i == nMaterials)
                     # the next material overwrites the state anyway, so only
                     # restore defaults after the last one
                     materialDesc.end(clear=i == nMaterials)
             else:
                 # material is a single item
                 self.material.begin()
-                for vao in self._vao.values():
-                    gt.drawVAO(vao, GL.GL_TRIANGLES)
+                nVAOs = len(self._vao)
+                for i, vao in enumerate(self._vao.values(), start=1):
+                    gt.drawVAO(vao, GL.GL_TRIANGLES, unbind=i == nVAOs)
                 self.material.end()
         else:
             self._drawWithoutMaterial(self._vao.values(), win)
