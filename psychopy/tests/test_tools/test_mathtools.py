@@ -757,6 +757,66 @@ def test_reverseProject():
     assert np.allclose(reverseProject(ndc, np.identity(4), proj), points)
 
 
+def _gluProject(points, modelView, proj, viewport):
+    """Reference implementation of `gluProject` for testing."""
+    clip = np.hstack((points, np.ones((len(points), 1)))).dot(
+        np.matmul(proj, modelView).T)
+    ndc = clip[:, :3] / clip[:, 3:]
+    win = (ndc + 1.) / 2.
+    win[:, 0] = viewport[0] + viewport[2] * win[:, 0]
+    win[:, 1] = viewport[1] + viewport[3] * win[:, 1]
+
+    return ndc, win
+
+
+@pytest.mark.mathtools
+@pytest.mark.parametrize('nPoints', [1, 2, 3, 5])
+def test_forwardProject(nPoints):
+    """Check `forwardProject` against `gluProject` for any number of points,
+    with a translation in the model/view matrix and an offset viewport.
+    """
+    np.random.seed(1234)
+    proj = perspectiveProjectionMatrix(-.1, .1, -.075, .075, .1, 100.)
+    modelView = translationMatrix((.5, -.25, -5.))
+    viewport = (100, 50, 800, 600)
+    points = np.random.uniform(-1., 1., (nPoints, 3))
+    ndc, win = _gluProject(points, modelView, proj, viewport)
+
+    assert np.allclose(forwardProject(points, modelView, proj), ndc)
+    assert np.allclose(
+        forwardProject(points, modelView, proj, viewport=viewport), win)
+
+    # single point as a 1D array
+    assert np.allclose(
+        forwardProject(points[0], modelView, proj, viewport=viewport), win[0])
+
+    # into `out`
+    out = np.zeros((nPoints, 3))
+    result = forwardProject(points, modelView, proj, viewport, out=out)
+    assert result is out
+    assert np.allclose(out, win)
+
+
+@pytest.mark.mathtools
+@pytest.mark.parametrize('viewport', [(0, 0, 800, 600), (100, 50, 800, 600)])
+def test_reverseProjectViewport(viewport):
+    """Check `reverseProject` undoes `gluProject` with a viewport, and that
+    `forwardProject` and `reverseProject` are inverses.
+    """
+    np.random.seed(1234)
+    proj = perspectiveProjectionMatrix(-.1, .1, -.075, .075, .1, 100.)
+    modelView = translationMatrix((.5, -.25, -5.))
+    points = np.random.uniform(-1., 1., (5, 3))
+    _, win = _gluProject(points, modelView, proj, viewport)
+
+    assert np.allclose(
+        reverseProject(win, modelView, proj, viewport=viewport), points)
+
+    winPos = forwardProject(points, modelView, proj, viewport=viewport)
+    assert np.allclose(
+        reverseProject(winPos, modelView, proj, viewport=viewport), points)
+
+
 @pytest.mark.mathtools
 def test_multQuatOrder():
     """Check `multQuat(q0, q1)` applies `q1` then `q0`.
