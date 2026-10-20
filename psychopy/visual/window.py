@@ -120,6 +120,13 @@ IOHUB_ACTIVE = False
 retinaContext = None  # only needed for retina-ready displays
 IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix to copy
 
+# values for `Window.depthFunc`
+_DEPTH_FUNCS = {
+    'never': pygletgl.GL_NEVER, 'less': pygletgl.GL_LESS,
+    'equal': pygletgl.GL_EQUAL, 'lequal': pygletgl.GL_LEQUAL,
+    'greater': pygletgl.GL_GREATER, 'notequal': pygletgl.GL_NOTEQUAL,
+    'gequal': pygletgl.GL_GEQUAL, 'always': pygletgl.GL_ALWAYS}
+
 # File extensions `Window.saveMovieFrames()` encodes with a `MovieWriter` from
 # `psychopy.tools.movietools`. Anything else is written by Pillow, either as an
 # animated GIF or as one image file per captured frame.
@@ -3562,12 +3569,7 @@ class Window():
 
     @depthFunc.setter
     def depthFunc(self, value):
-        depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
-                      'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
-                      'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
-                      'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-
-        GL.glDepthFunc(depthFuncs[value])
+        GL.glDepthFunc(_DEPTH_FUNCS[value])
 
         self._depthFunc = value
 
