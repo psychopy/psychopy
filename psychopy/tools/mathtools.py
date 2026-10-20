@@ -3419,10 +3419,14 @@ def alignTo(v, t, out=None, dtype=None):
     qr[nonparallel, :3] = cross(v2d[nonparallel], b[nonparallel], dtype=dtype)
     qr[nonparallel, 3] = cosHalfAngle[nonparallel]
 
+    # adding zero in-place turns any `-0.0` into `0.0` and keeps `out`
     if np.all(nonparallel):  # don't bother handling special cases
-        return toReturn + 0.0
+        toReturn += 0.0
+        return toReturn
 
-    # deal with cases where the vectors are facing exact opposite directions
+    # deal with cases where the vectors are facing exact opposite directions,
+    # only some components are set below so clear any values in `out`
+    qr[~nonparallel, :] = 0.0
     ry = np.logical_and(np.abs(v2d[:, 0]) >= np.abs(v2d[:, 1]), ~nonparallel)
     rx = np.logical_and(~ry, ~nonparallel)
 
@@ -3439,7 +3443,8 @@ def alignTo(v, t, out=None, dtype=None):
         qr[rx, 1] = v2d[rx, 2] * invLength
         qr[rx, 2] = -v2d[rx, 1] * invLength
 
-    return toReturn + 0.0
+    toReturn += 0.0
+    return toReturn
 
 
 def matrixToQuat(m, out=None, dtype=None):
