@@ -37,9 +37,11 @@ import pyglet
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 pyglet.options['debug_gl'] = False
-GL = pyglet.gl  # Pyglet is used as the OpenGL loader for the whole library
+# Pyglet is used as the OpenGL loader for the whole library, through the module
+# PsychoPy uses to support legacy OpenGL with all versions of pyglet
+import psychopy.tools.pygletgl as GL
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 # On Linux, `psychopy/__init__.py` selects the X11 build of GLFW by default
 # since Pyglet's GLX contexts can't be mixed with the EGL ones GLFW uses under
@@ -532,12 +534,30 @@ class GLFWBackend(BaseBackend):
         glfw.focus_window(handle)
 
         # get the actual size of the window and its framebuffer
+        # On macOS, the framebuffer of a window created without retina scaling
+        # is resized to match the window some time after it's shown, until
+        # then its size is for a retina framebuffer
+        glfw.poll_events()
+        if sys.platform == 'darwin' and not win.useRetina:
+            timeout = core.getTime() + 1.0
+            while (glfw.get_framebuffer_size(handle)[0] !=
+                   glfw.get_window_size(handle)[0] and
+                   core.getTime() < timeout):
+                glfw.wait_events_timeout(0.01)
+
         win.clientSize[:] = glfw.get_window_size(handle)
         self._frameBufferSize = np.array(
             glfw.get_framebuffer_size(handle), dtype=int)
-        if sys.platform == 'darwin' and win.useRetina:
-            if self._frameBufferSize[0] == win.clientSize[0]:
+        if sys.platform == 'darwin':
+            # `useRetina` must match the framebuffer we got
+            isRetina = self._frameBufferSize[0] != win.clientSize[0]
+            if win.useRetina and not isRetina:
                 win.useRetina = False  # the screen is not a retina display
+            elif not win.useRetina and isRetina:
+                logging.warn(
+                    "Failed to create a window without retina scaling, "
+                    "using `useRetina=True`.")
+                win.useRetina = True
 
         # check the number of MSAA samples we actually got
         if msaaSamples:
@@ -566,11 +586,6 @@ class GLFWBackend(BaseBackend):
                 "graphics drivers or use a different backend.")
 
         self._glVersion = glVersion
-
-        # Pyglet's `gl_info` is normally populated by its shadow window, fill it
-        # using this context if that is disabled
-        if not GL.gl_info.have_context():
-            GL.gl_info.set_active_context()
 
         self._driver = ctypes.cast(
             GL.glGetString(GL.GL_RENDERER), ctypes.c_char_p).value.decode()
