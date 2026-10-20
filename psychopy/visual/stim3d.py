@@ -1376,7 +1376,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
             self.material.end()
         else:  # doesn't have a material, use class colors
-            self._drawWithoutMaterial((self._vao,))
+            self._drawWithoutMaterial((self._vao,), win)
 
         GL.glPopMatrix()
 
@@ -1391,7 +1391,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         GL.glPushMatrix()
         GL.glMultTransposeMatrixf(self._ptrModelMatrix)
 
-    def _drawWithoutMaterial(self, vaos):
+    def _drawWithoutMaterial(self, vaos, win):
         """Draw VAOs using the stimulus color for the diffuse and ambient
         material colors.
 
@@ -1399,15 +1399,18 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         ----------
         vaos : iterable
             VAOs to draw.
+        win : `~psychopy.visual.Window`
+            Window to draw to.
 
         """
         # OpenGL expects color components between 0 and 1
         r, g, b = self._foreColor.render('rgb1')
         color = (GL.GLfloat * 4)(r, g, b, self.opacity)
 
-        nLights = len(self.win.lights)
+        # same as materials, lights are only used if lighting is enabled
+        nLights = len(win.lights) if win.useLights else 0
         shaderKey = (nLights, False)
-        GL.glUseProgram(self.win._shaders['stim3d_phong'][shaderKey])
+        GL.glUseProgram(win._shaders['stim3d_phong'][shaderKey])
 
         # pass values to OpenGL as material
         GL.glColor4f(r, g, b, self.opacity)
@@ -2118,7 +2121,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                     gt.drawVAO(vao, GL.GL_TRIANGLES)
                 self.material.end()
         else:
-            self._drawWithoutMaterial(self._vao.values())
+            self._drawWithoutMaterial(self._vao.values(), win)
 
         GL.glPopMatrix()
 
