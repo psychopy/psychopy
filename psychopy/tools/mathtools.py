@@ -4689,22 +4689,16 @@ def forwardProject(objPos, modelView, proj, viewport=None, out=None, dtype=None)
     # transformation matrix
     mvp = np.matmul(proj, modelView)
 
-    # must have `w` for this one
-    if objPos.shape[1] == 3:
-        temp = np.zeros((objPos.shape[1], 4), dtype=dtype)
-        temp[:, :3] = objPos
-        objPos = temp
-
-    # transform the points
+    # transform the points, `applyMatrix` treats Nx3 points as having `w=1` and
+    # divides by `w` for projection matrices
     objNorm = applyMatrix(mvp, objPos, dtype=dtype)
 
     if viewport is not None:
         # if we have a viewport, transform it
-        objNorm[:, :] += 1.0
+        objNorm[:, :] = (objNorm + 1.0) / 2.0
         winCoord[:, 0] = viewport[0] + viewport[2] * objNorm[:, 0]
         winCoord[:, 1] = viewport[1] + viewport[3] * objNorm[:, 1]
         winCoord[:, 2] = objNorm[:, 2]
-        winCoord[:, :] /= 2.0
     else:
         # already in NDC
         winCoord[:, :] = objNorm
@@ -4767,8 +4761,8 @@ def reverseProject(winPos, modelView, proj, viewport=None, out=None, dtype=None)
 
     if viewport is not None:
         # if we have a viewport, we need to transform to NDC first
-        objCoord[:, 0] = ((2 * winPos[:, 0] - viewport[0]) / viewport[2])
-        objCoord[:, 1] = ((2 * winPos[:, 1] - viewport[1]) / viewport[3])
+        objCoord[:, 0] = 2 * (winPos[:, 0] - viewport[0]) / viewport[2]
+        objCoord[:, 1] = 2 * (winPos[:, 1] - viewport[1]) / viewport[3]
         objCoord[:, 2] = 2 * winPos[:, 2]
         objCoord -= 1
         objCoord[:, :] = applyMatrix(invMVP, objCoord, dtype=dtype)
