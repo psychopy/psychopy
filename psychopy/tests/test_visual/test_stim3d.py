@@ -428,7 +428,10 @@ class _Stim3DRenderTest:
     def setup_class(cls):
         cls.win = visual.Window(
             [128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
-        cls.win.scrWidthPIX = 128  # needed by `setPerspectiveView`
+        # needed by `setPerspectiveView`, which sizes the frustum using the
+        # ratio of `win.size` (framebuffer pixels) to this, so match it to keep
+        # the view the same regardless of the display's pixel scale (Retina)
+        cls.win.scrWidthPIX = cls.win.size[0]
 
     @classmethod
     def teardown_class(cls):
@@ -556,10 +559,10 @@ class TestStim3DLighting(_Stim3DRenderTest):
         self._assertColor(self._pixel(frame), (0, 0, 0))
 
     @pytest.mark.parametrize('lightPos, litSide, darkSide', [
-        ((1, 0, 0), (0.15, 0), (-0.15, 0)),   # from the right
-        ((-1, 0, 0), (-0.15, 0), (0.15, 0)),  # from the left
-        ((0, 1, 0), (0, 0.15), (0, -0.15)),   # from above
-        ((0, -1, 0), (0, -0.15), (0, 0.15)),  # from below
+        ((1, 0, 0), (0.3, 0), (-0.3, 0)),   # from the right
+        ((-1, 0, 0), (-0.3, 0), (0.3, 0)),  # from the left
+        ((0, 1, 0), (0, 0.3), (0, -0.3)),   # from above
+        ((0, -1, 0), (0, -0.3), (0, 0.3)),  # from below
     ])
     def test_directional_light_shading(self, lightPos, litSide, darkSide):
         sphere = SphereStim(self.win, radius=1.0, pos=(0, 0, -3))
@@ -922,8 +925,8 @@ class TestStim3DLighting(_Stim3DRenderTest):
         sphere = SphereStim(
             self.win, radius=1.0, pos=(0, 0, -3), color=(1, 1, 1))
         frame = self._render(sphere, [self._light((1, 0, 0))])
-        lit = self._pixel(frame, 0.15, 0)
-        dark = self._pixel(frame, -0.15, 0)
+        lit = self._pixel(frame, 0.3, 0)
+        dark = self._pixel(frame, -0.3, 0)
         assert lit.sum() > dark.sum() + 3 * 50, (lit, dark)
 
     @pytest.mark.parametrize('sceneAmbient, expected', [
