@@ -1142,11 +1142,80 @@ class TestGetFFMPEGExe:
 
         found = _getFFMPEGExe()
 
-        def doNotLookAgain(name):
+        def doNotLookAgain(*args, **kwargs):
             raise AssertionError(
-                "Looked for '{}' again after it had been found.".format(name))
+                "Looked for FFMPEG again after it had been found.")
 
         monkeypatch.setattr(shutil, 'which', doNotLookAgain)
+        monkeypatch.setitem(
+            sys.modules, 'imageio_ffmpeg',
+            type(sys)('imageio_ffmpeg'))  # a module with nothing in it
+        monkeypatch.setattr(
+            sys.modules['imageio_ffmpeg'], 'get_ffmpeg_exe', doNotLookAgain,
+            raising=False)
 
         assert _getFFMPEGExe() == found
         assert mt._ffmpegExe == found
+
+
+class TestGetFFMPEGExePrecedence:
+    """Tests for which FFMPEG executable is picked when there's a choice.
+
+    Both places FFMPEG can come from are stubbed out, so these don't need an
+    FFMPEG to be installed to run.
+
+    """
+    BUNDLED_EXE = '/path/to/imageio_ffmpeg/binaries/ffmpeg'
+    SYSTEM_EXE = '/usr/local/bin/ffmpeg'
+
+    @pytest.fixture(autouse=True)
+    def _freshLookup(self, monkeypatch):
+        """Look for FFMPEG from scratch rather than using the cached result,
+        and put the cached result back afterwards."""
+        import psychopy.tools.movietools as mt
+        monkeypatch.setattr(mt, '_ffmpegExe', None)
+
+    def _stubBundledExe(self, monkeypatch, getExe):
+        """Have `imageio_ffmpeg.get_ffmpeg_exe()` do `getExe` instead."""
+        stubModule = type(sys)('imageio_ffmpeg')
+        stubModule.get_ffmpeg_exe = getExe
+        monkeypatch.setitem(sys.modules, 'imageio_ffmpeg', stubModule)
+
+    def test_prefersBundledExe(self, monkeypatch):
+        """The `imageio-ffmpeg` binary is used over one on the system path.
+
+        Whatever is on the system path may not run here (an Intel build on
+        Apple Silicon, say), whereas the bundled binary is built for this
+        platform.
+
+        """
+        self._stubBundledExe(monkeypatch, lambda: self.BUNDLED_EXE)
+        monkeypatch.setattr(shutil, 'which', lambda name: self.SYSTEM_EXE)
+
+        assert _getFFMPEGExe() == self.BUNDLED_EXE
+
+    def test_fallsBackToSystemExe(self, monkeypatch):
+        """The system FFMPEG is used if `imageio-ffmpeg` can't find one."""
+        def noBundledExe():
+            raise RuntimeError("No ffmpeg exe could be found.")
+
+        self._stubBundledExe(monkeypatch, noBundledExe)
+        monkeypatch.setattr(shutil, 'which', lambda name: self.SYSTEM_EXE)
+
+        assert _getFFMPEGExe() == self.SYSTEM_EXE
+
+    def test_fallsBackToSystemExeWithoutImageioFFMPEG(self, monkeypatch):
+        """The system FFMPEG is used if `imageio-ffmpeg` isn't installed."""
+        # a `None` entry makes importing the module raise `ImportError`
+        monkeypatch.setitem(sys.modules, 'imageio_ffmpeg', None)
+        monkeypatch.setattr(shutil, 'which', lambda name: self.SYSTEM_EXE)
+
+        assert _getFFMPEGExe() == self.SYSTEM_EXE
+
+    def test_raisesIfNoExeFound(self, monkeypatch):
+        """Not finding FFMPEG anywhere is reported to the caller."""
+        monkeypatch.setitem(sys.modules, 'imageio_ffmpeg', None)
+        monkeypatch.setattr(shutil, 'which', lambda name: None)
+
+        with pytest.raises(FileNotFoundError):
+            _getFFMPEGExe()
