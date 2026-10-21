@@ -113,6 +113,41 @@ class BaseSpeakerDevice(BaseDevice):
         # start off opened
         self.open()
 
+    @classmethod
+    def _fromSpeaker(cls, speaker):
+        """Get a speaker of this class, for a sound backend which can only play
+        on its own kind of speaker, whatever the `audioLib` preference (which
+        `SpeakerDevice` makes speakers for).
+
+        Parameters
+        ----------
+        speaker : BaseSpeakerDevice, int, str or None
+            A speaker of this class, which is returned as it is. A speaker of
+            another backend, such as one set up with `DeviceManager`, for which
+            the same device is found by name, since each backend numbers devices
+            its own way. Otherwise the index or name of a device, or None for
+            the default speaker.
+
+        Returns
+        -------
+        BaseSpeakerDevice
+            A speaker of this class.
+
+        """
+        if isinstance(speaker, cls):
+            return speaker
+        if isinstance(speaker, BaseSpeakerDevice):
+            if speaker.name is None and speaker.index is not None:
+                # rather than fall back to the default speaker, which would
+                # play somewhere other than asked without saying so
+                raise ValueError(
+                    "Can't play on {} index {}, which is numbered by the '{}' "
+                    "backend, with the '{}' backend. Give the speaker's name "
+                    "instead.".format(type(speaker).__name__, speaker.index,
+                                      speaker.backend, cls.backend))
+            return cls(name=speaker.name)
+        return cls(speaker)
+
     @property
     def isOpen(self):
         """

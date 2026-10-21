@@ -33,7 +33,8 @@ from psychopy.sound.exceptions import SoundFormatError, DependencyError
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.sound._base import _SoundBase, HammingWindow
 from ..hardware import DeviceManager
-from psychopy.hardware.speaker import SpeakerDevice
+from psychopy.hardware.speaker.speaker_sounddevice import \
+    SoundDeviceSpeakerDevice
 
 try:
     import sounddevice as sd
@@ -455,9 +456,8 @@ class SoundDeviceSound(_SoundBase):
         """
         if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
             speaker = DeviceManager.getDevice(speaker)
-        # make sure speaker is a SpeakerDevice
-        if not isinstance(speaker, SpeakerDevice.resolveBackend()):
-            speaker = SpeakerDevice(speaker)
+        # make sure speaker is a sounddevice speaker, whatever the audioLib pref
+        speaker = SoundDeviceSpeakerDevice._fromSpeaker(speaker)
         self.speaker = speaker
 
         self.preBuffer = preBuffer
@@ -623,6 +623,24 @@ class SoundDeviceSound(_SoundBase):
             winSecs=hammDur,
             soundSecs=self.duration,
             sampleRate=self.sampleRate)
+
+    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
+        """Set sound from a frequency in Hz.
+
+        Parameters
+        ----------
+        thisFreq : float
+            Frequency in Hz.
+        secs : float or None
+            Duration of the sound in seconds (0.5 if None). If negative, the
+            sound will loop indefinitely (until stopped).
+        hamming : bool
+            Ignored: the tone is generated without apodizing it, as `setSound`
+            gives it a Hanning window applied as it plays, which would
+            otherwise ramp its onset and offset twice.
+
+        """
+        _SoundBase._setSndFromFreq(self, thisFreq, secs, hamming=False)
 
     def _setSndFromClip(self, clip):
         """Set the sound from an AudioClip object.

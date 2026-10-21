@@ -419,16 +419,18 @@ class _TestUnitsMixin:
     #         # Check that the resulting size is as desired
     #         assert all(obj.size == case['size'])
 
-    def test_unit_mismatch(self):
+    def test_unit_mismatch(self, tmp_path):
         """
         Test that a given stimulus can be drawn without error in all combinations of stimulus units x window units and
         checking that it looks the same as when both units are pix.
         """
         # Test all unit types apart from None and ""
         unitTypes = layout.unitTypes[2:]
-        # Create window (same size as was used for other tests)
-        win = visual.Window(self.obj.win.size, pos=self.obj.win.pos, monitor="testMonitor",
-                            title=f"{type(self).__name__}::test_unit_mismatch")
+        # Create window (same size as was used for other tests), using the client size as `size` is the framebuffer
+        # size, which is bigger on a high-DPI display
+        win = visual.Window(self.obj.win.clientSize, pos=self.obj.win.pos, monitor="testMonitor")
+        # Model image is only needed for this test, so keep it out of the test data folder
+        filename = tmp_path / "test_unit_mismatch.png"
         try:
             # Create object
             obj = copy(self.obj)
@@ -437,8 +439,7 @@ class _TestUnitsMixin:
             win.units = 'pix'
             obj.units = 'pix'
             obj.draw()
-            filename = Path(utils.TESTS_DATA_PATH) / "test_unit_mismatch.png"
-            win.getMovieFrame(buffer='back').save(filename)
+            utils.saveScreenshot(filename, win)
             if hasattr(obj, "_size"):
                 # Get model sizes
                 targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
@@ -465,8 +466,6 @@ class _TestUnitsMixin:
         finally:
             # Close window
             win.close()
-        # Delete model image
-        filename.unlink()
 
     def test_manual(self):
         """
