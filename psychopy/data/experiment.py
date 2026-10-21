@@ -96,7 +96,12 @@ class ExperimentHandler(_ComparisonMixin, FileSaveMixin):
         self.originPath = originPath
         self.savePickle = savePickle
         self.saveWideText = saveWideText
-        self.dataFileName = handleFileCollision(dataFileName, "rename")
+        # only resolve collisions for a real name, as an empty one would
+        # become a glob pattern (".*") and data would be saved under that
+        if dataFileName in ['', None]:
+            self.dataFileName = dataFileName
+        else:
+            self.dataFileName = handleFileCollision(dataFileName, "rename")
         self.sortColumns = sortColumns
         self.thisEntry = {}
         self.entries = []  # chronological list of entries

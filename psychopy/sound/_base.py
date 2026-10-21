@@ -150,7 +150,7 @@ class HammingWindow:
         else:
             block = None  # we're in the middle of sound so no need for window
         if block is not None:
-            block.shape = [len(block), 1]
+            block = block.reshape(len(block), 1)
         return block
 
 

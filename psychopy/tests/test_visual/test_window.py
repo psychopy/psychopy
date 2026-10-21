@@ -486,7 +486,8 @@ class TestWindowMovieFrames:
     FPS = 30
 
     @pytest.fixture(scope='class')
-    def captureWin(self):
+    @classmethod
+    def captureWin(cls):
         """Window the image tests capture from.
 
         Shared rather than opened per test, both because opening a window is
@@ -497,7 +498,7 @@ class TestWindowMovieFrames:
 
         """
         win = visual.Window(
-            size=self.WIN_SIZE, allowGUI=False, autoLog=False, color='black')
+            size=cls.WIN_SIZE, allowGUI=False, autoLog=False, color='black')
         yield win
         win.close()
 

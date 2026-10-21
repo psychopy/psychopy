@@ -10,10 +10,12 @@ import re
 import ast
 import pickle
 import time, datetime
+import warnings
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
+from contextlib import contextmanager
 from packaging.version import Version
 
 from psychopy import logging, exceptions
@@ -35,6 +37,22 @@ except ImportError:
 haveXlrd = False
 
 _nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
+
+
+@contextmanager
+def _ignoreUnknownExcelExtensions():
+    """Silence openpyxl's warning about Excel extensions it can't read.
+
+    Excel adds these to a workbook for features such as data validation and
+    conditional formatting. openpyxl warns that they "will be removed", which
+    only happens if the workbook is saved again, so the warning means nothing
+    to someone who is just importing conditions from it.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            'ignore', message='Unknown extension is not supported',
+            category=UserWarning, module='openpyxl')
+        yield
 
 
 def checkValidFilePath(filepath, makeValid=True):
@@ -343,7 +361,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 )
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
         elif fileName.endswith(('.xlsx', '.xlsm')):
-            trialsArr = pd.read_excel(fileName, engine='openpyxl')
+            with _ignoreUnknownExcelExtensions():
+                trialsArr = pd.read_excel(fileName, engine='openpyxl')
             logging.debug(u"Read Excel file with pandas: {}".format(fileName))
         elif fileName.endswith('.xls'):
             trialsArr = pd.read_excel(fileName, engine='xlrd')
@@ -446,10 +465,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 _translate("openpyxl or xlrd is required for loading excel files, but neither was found.")
             )
 
-        # data_only was added in 1.8
-        if Version(openpyxl.__version__) < Version('1.8'):
-            wb = load_workbook(filename=fileName)
-        else:
+        with _ignoreUnknownExcelExtensions():
             wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
 

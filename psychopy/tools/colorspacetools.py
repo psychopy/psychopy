@@ -182,19 +182,20 @@ def srgbTF(rgb, reverse=False, **kwargs):
     """
     rgb, orig_shape, orig_dim = unpackColors(rgb)
 
-    # apply the sRGB TF
+    # apply the sRGB TF, both branches of `where` are evaluated for every
+    # value so the power's base is clamped to keep it from going negative
     if not reverse:
         # applies the sRGB transfer function (linear RGB -> sRGB)
         to_return = numpy.where(
             rgb <= 0.0031308,
             rgb * 12.92,
-            (1.0 + 0.055) * rgb ** (1.0 / 2.4) - 0.055)
+            (1.0 + 0.055) * numpy.maximum(rgb, 0.0031308) ** (1.0 / 2.4) - 0.055)
     else:
         # do the inverse (sRGB -> linear RGB)
         to_return = numpy.where(
             rgb <= 0.04045,
             rgb / 12.92,
-            ((rgb + 0.055) / 1.055) ** 2.4)
+            ((numpy.maximum(rgb, 0.04045) + 0.055) / 1.055) ** 2.4)
 
     if orig_dim == 1:
         to_return = to_return[0]
@@ -557,7 +558,8 @@ def rgb2hsv(rgb):
         hsv_out[:, 2] = cmax[:]  # no B/W colors
 
     # --- calculate saturation ---
-    hsv_out[:, 1] = numpy.where(cmax > 0.0, delta / cmax, 0.0)
+    hsv_out[:, 1] = numpy.divide(
+        delta, cmax, out=numpy.zeros_like(delta, dtype=float), where=cmax > 0.0)
 
     # --- calculate hues ---
     # views of each column

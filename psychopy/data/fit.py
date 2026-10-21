@@ -19,10 +19,8 @@ class _baseFunctionFit():
 
         self.xx = np.array(xx)
         self.yy = np.array(yy)
-        self.sems = np.array(sems)
-        if not hasattr(sems, "__len__"):
-            # annoyingly in numpy 1.13 len(numpy.array(1)) gives an error
-            self.sems.shape = (1,)  # otherwise we can't get len (in numpy 1.13)
+        # at least 1D, as len() of a 0D array gives an error
+        self.sems = np.atleast_1d(np.array(sems))
         self.expectedMin = expectedMin
         self.guess = guess
         self.optimize_kws = {}
@@ -110,8 +108,11 @@ class FitWeibull(_baseFunctionFit):
     def _eval(xx, alpha, beta):
         global _chance
         xx = np.asarray(xx)
-        yy = _chance + (1.0 - _chance) * (1 -
-                                          np.exp(-(xx/alpha)**beta))
+        # curve_fit can try a negative alpha, which gives NaN (the function is
+        # undefined there) and steers the fit away, so don't warn about it
+        with np.errstate(invalid='ignore'):
+            yy = _chance + (1.0 - _chance) * (1 -
+                                              np.exp(-(xx/alpha)**beta))
         return yy
 
     @staticmethod

@@ -863,7 +863,7 @@ class GLFWBackend(BaseBackend):
         if newGamma.size == 1:
             newGamma = np.tile(newGamma.flatten(), [3, 1])
         else:
-            newGamma.shape = [3, 1]
+            newGamma = newGamma.reshape(3, 1)
 
         # create LUT from gamma values
         newLUT = np.tile(

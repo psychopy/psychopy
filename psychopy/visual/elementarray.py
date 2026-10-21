@@ -189,7 +189,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         if 'scalar' in acceptedInput and value.shape in [(), (1,), (2,)]:
             value = numpy.resize(value, [self.nElements, 2])
         elif 'Nx1' in acceptedInput and valShpElem:
-            value.shape = (self.nElements, 1)  # set to be 2D
+            value = value.reshape(self.nElements, 1)  # set to be 2D
             value = value.repeat(2, 1)  # repeat once on dim 1
         elif 'Nx2' in acceptedInput and value.shape == (self.nElements, 2):
             pass  # all is good
