@@ -2,7 +2,9 @@
 """Tests for psychopy.tools.viewtools
 """
 
-from psychopy.tools.mathtools import alignTo, lookAt, distance
+from psychopy.tools.mathtools import (
+    alignTo, lookAt, distance, applyQuat, intersectRaySphere, normalize,
+    quatToAxisAngle)
 from psychopy.tools.viewtools import *
 import numpy as np
 import pytest
@@ -162,6 +164,105 @@ def test_frustumToProjectionMatrix():
                                                  farClip=farClip)
 
         assert np.allclose(P, GP)
+
+
+# arcball used by the `getArcballVector` tests, viewed from the origin
+_ARCBALL_CENTER = np.array([0., 0., -3.])
+_ARCBALL_RADIUS = 1.
+
+
+@pytest.mark.viewtools
+@pytest.mark.parametrize('rayDir', [
+    (0., 0., -1.),       # center
+    (.2, -.1, -1.),      # off center
+    (0., .3, -1.),       # near the edge
+    (0., 0., -10.),      # not normalized
+])
+def test_getArcballVector_hit(rayDir):
+    """Rays hitting the arcball give the direction to the near point where they
+    hit it."""
+    vec = getArcballVector(
+        (0., 0., 0.), rayDir, _ARCBALL_CENTER, _ARCBALL_RADIUS)
+    point, _ = intersectRaySphere(
+        (0., 0., 0.), rayDir, _ARCBALL_CENTER, _ARCBALL_RADIUS)
+
+    assert np.isclose(np.linalg.norm(vec), 1.)
+    assert np.allclose(vec, normalize(point - _ARCBALL_CENTER))
+    assert vec[2] > 0.  # on the side facing the viewer
+
+
+@pytest.mark.viewtools
+@pytest.mark.parametrize('rayDir, expected', [
+    ((1., 0., -1.), (1., 0., 0.)),
+    ((-1., 0., -1.), (-1., 0., 0.)),
+    ((0., 2., -1.), (0., 1., 0.)),
+    ((1., -1., -1.), normalize((1., -1., 0.))),
+])
+def test_getArcballVector_miss(rayDir, expected):
+    """Rays missing the arcball give directions at right angles to the line of
+    sight to its center, on the side the ray passes."""
+    vec = getArcballVector(
+        (0., 0., 0.), rayDir, _ARCBALL_CENTER, _ARCBALL_RADIUS)
+
+    assert np.isclose(np.linalg.norm(vec), 1.)
+    assert np.isclose(np.dot(vec, _ARCBALL_CENTER), 0.)  # line of sight
+    assert np.allclose(vec, expected)
+
+
+@pytest.mark.viewtools
+@pytest.mark.parametrize('dtype', [np.float32, np.float64])
+def test_getArcballVector_away(dtype):
+    """A ray pointing directly away from the arcball gives the direction
+    towards the ray origin, the same as a ray through the center."""
+    for rayOrig in [(0., 0., 0.), (1., 2., 3.)]:
+        towardsCenter = _ARCBALL_CENTER - np.asarray(rayOrig)
+        vec = getArcballVector(
+            rayOrig, -towardsCenter, _ARCBALL_CENTER, _ARCBALL_RADIUS,
+            dtype=dtype)
+        throughCenter = getArcballVector(
+            rayOrig, towardsCenter, _ARCBALL_CENTER, _ARCBALL_RADIUS,
+            dtype=dtype)
+
+        assert np.allclose(vec, normalize(-towardsCenter), atol=1e-6)
+        assert np.allclose(vec, throughCenter, atol=1e-6)
+
+
+@pytest.mark.viewtools
+def test_getArcballVector_rotation():
+    """The rotation between the vectors for two rays hitting the arcball takes
+    the point under the first ray to the point under the second, and rays
+    missing it rotate around the line of sight."""
+    def point(rayDir):
+        return intersectRaySphere(
+            (0., 0., 0.), rayDir, _ARCBALL_CENTER, _ARCBALL_RADIUS)[0]
+
+    startDir, endDir = (.2, .1, -1.), (-.1, -.2, -1.)
+    startVec = getArcballVector(
+        (0., 0., 0.), startDir, _ARCBALL_CENTER, _ARCBALL_RADIUS)
+    endVec = getArcballVector(
+        (0., 0., 0.), endDir, _ARCBALL_CENTER, _ARCBALL_RADIUS)
+    rotation = alignTo(startVec, endVec)
+    rotated = applyQuat(rotation, point(startDir) - _ARCBALL_CENTER)
+    assert np.allclose(rotated + _ARCBALL_CENTER, point(endDir))
+
+    # around the outside, a quarter turn about the line of sight
+    startVec = getArcballVector(
+        (0., 0., 0.), (1., 0., -1.), _ARCBALL_CENTER, _ARCBALL_RADIUS)
+    endVec = getArcballVector(
+        (0., 0., 0.), (0., 1., -1.), _ARCBALL_CENTER, _ARCBALL_RADIUS)
+    axis, angle = quatToAxisAngle(alignTo(startVec, endVec), degrees=True)
+    assert np.allclose(np.abs(axis), (0., 0., 1.))
+    assert np.isclose(angle, 90.)
+
+
+@pytest.mark.viewtools
+@pytest.mark.parametrize('dtype', [np.float32, np.float64])
+def test_getArcballVector_dtype(dtype):
+    for rayDir in [(.2, -.1, -1.), (1., 0., -1.)]:  # hit and miss
+        vec = getArcballVector(
+            (0., 0., 0.), rayDir, _ARCBALL_CENTER, _ARCBALL_RADIUS,
+            dtype=dtype)
+        assert vec.dtype == dtype
 
 
 if __name__ == "__main__":

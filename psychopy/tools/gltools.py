@@ -1039,14 +1039,14 @@ def useProgram(program):
 
         useProgram(0)
 
-    """
-    if program is None:
-        program = 0
+    Notes
+    -----
+    * `program` isn't checked with `glIsProgram`, since this is called often
+      and queries like it can stall some drivers. An invalid `program`
+      generates an OpenGL error instead of raising an exception.
 
-    if GL.glIsProgram(program) or program == 0:
-        GL.glUseProgram(program)
-    else:
-        raise ValueError('Specified `program` is not a program object.')
+    """
+    GL.glUseProgram(0 if program is None else program)
 
 
 def useProgramObjectARB(program):
@@ -3483,7 +3483,7 @@ else:
 
 
 def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
-            flush=False):
+            flush=False, unbind=True):
     """Draw a vertex array object. Uses `glDrawArrays` or `glDrawElements` if
     `instanceCount` is `None`, or else `glDrawArraysInstanced` or
     `glDrawElementsInstanced` is used.
@@ -3507,6 +3507,10 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
         will be used.
     flush : bool, optional
         Flush queued drawing commands before returning.
+    unbind : bool, optional
+        Unbind the VAO after drawing. Only set to `False` if another VAO is
+        drawn right after, since legacy vertex array calls (e.g.
+        `glVertexPointer`) change whichever VAO is bound.
 
     Examples
     --------
@@ -3514,6 +3518,11 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
 
         # draw the VAO, renders the mesh
         drawVAO(vaoDesc, GL.GL_TRIANGLES)
+
+    Drawing several VAOs, only unbinding after the last one::
+
+        for i, vao in enumerate(vaos, start=1):
+            drawVAO(vao, GL.GL_TRIANGLES, unbind=i == len(vaos))
 
     """
     if isinstance(mode, str):
@@ -3547,8 +3556,8 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
     if flush:
         GL.glFlush()
 
-    # reset
-    _glBindVertexArray(0)
+    if unbind:
+        _glBindVertexArray(0)
 
 
 def deleteVAO(vao):

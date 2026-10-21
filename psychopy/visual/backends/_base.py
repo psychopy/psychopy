@@ -402,6 +402,32 @@ class BaseBackend(ABC):
         return self._bufferToWindowCoords(
             np.asarray(pos, dtype=np.float32) + self.win.size / 2.0)
 
+    def _nearestCursorPos(self, pos):
+        """Round a position in PsychoPy 'pix' coordinates to the nearest
+        position the mouse cursor can be moved to.
+
+        Operating systems only place the cursor at whole window coordinates
+        (points on high DPI displays). Positions are rounded from the bottom-left
+        corner of the window, so all backends round them the same way regardless
+        of where their window coordinates have their origin.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in PsychoPy pixel coordinates.
+
+        Returns
+        -------
+        ndarray
+            Nearest cursor position `(x, y)` in PsychoPy pixel coordinates.
+
+        """
+        scaleFactor = self.win.getContentScaleFactor()
+        origin = np.asarray(self.win.size, dtype=float) / 2.0
+        winPos = (np.asarray(pos, dtype=float) + origin) / scaleFactor
+
+        return np.floor(winPos + 0.5) * scaleFactor - origin
+
     # --------------------------------------------------------------------------
     # Mouse related methods (e.g., event handlers)
     #

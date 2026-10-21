@@ -381,7 +381,13 @@ def test_project():
         {'v0': np.array([[1, 2], [3, 4]]),
          'v1': np.array([[5, 6], [7, 8]]),
          'dtype': np.float64,
-         'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+         'ans': np.array([[1.39344262, 1.67213115], [3.28318584, 3.75221239]]),
+         },
+        # 2d array onto 1d
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([5, 6]),
+         'dtype': np.float64,
+         'ans': np.array([[1.39344262, 1.67213115], [3.19672131, 3.83606557]]),
          },
     ]
     tykes = [
@@ -682,6 +688,166 @@ def test_alignTo():
     out = applyQuat(qr, vec)
 
     assert np.allclose(out, target)
+
+
+@pytest.mark.mathtools
+@pytest.mark.parametrize('vec, target', [
+    ([1., 0., 0.], [0., 1., 0.]),                      # single vector
+    ([1., 0., 0.], [-1., 0., 0.]),                     # opposite directions
+    ([0., 1., 0.], [0., -1., 0.]),
+    ([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]],       # mixed
+     [[0., 1., 0.], [0., -1., 0.], [0., 0., -1.]]),
+])
+def test_alignToOut(vec, target):
+    """Check `alignTo` returns `out`, and that values already in `out` don't
+    affect the result."""
+    expected = alignTo(vec, target)
+    out = np.full_like(expected, 7.)  # values from some previous use
+
+    assert alignTo(vec, target, out=out) is out
+    assert np.allclose(out, expected)
+    assert np.allclose(applyQuat(out, vec), target)
+    assert not np.any(np.signbit(out) & (out == 0.))  # no negative zeros
+
+
+@pytest.mark.mathtools
+@pytest.mark.parametrize('rayOrig, rayDir, expectedPos, expectedDist', [
+    ((0, 0, 0), (0, 0, -1), (0, 0, -2), 2.),     # towards the sphere
+    ((0, 0, 0), (0, 0, -5), (0, 0, -2), 2.),     # direction not normalized
+    ((0, 0, -3), (0, 0, -1), (0, 0, -4), 1.),    # starts at the center
+    ((0, 0, -2.5), (0, 0, 1), (0, 0, -2), .5),   # starts inside
+    ((0, 1, 0), (0, 0, -1), (0, 1, -3), 3.),     # tangent to the sphere
+    ((0, 0, 0), (0, 0, 1), None, None),          # away from the sphere
+    ((0, 0, -5), (0, 0, -1), None, None),        # starts past the sphere
+    ((0, 2, 0), (0, 0, -1), None, None),         # misses
+    ((0, 0, 0), (0, 0, 0), None, None),          # no direction
+])
+def test_intersectRaySphere(rayOrig, rayDir, expectedPos, expectedDist):
+    """Test the intersection of rays with a sphere of radius 1 at
+    (0, 0, -3).
+    """
+    result = intersectRaySphere(rayOrig, rayDir, (0, 0, -3), 1.)
+    if expectedPos is None:
+        assert result is None
+    else:
+        pos, dist = result
+        assert np.allclose(pos, expectedPos)
+        assert np.isclose(dist, expectedDist)
+
+
+@pytest.mark.mathtools
+def test_applyMatrix4x4Nx3():
+    """4x4 matrices applied to Nx3 points treat them as having `w=1`, so
+    translations and perspective divides are applied.
+    """
+    m = concatenate([rotationMatrix(90., (0., 0., 1.)),
+                     translationMatrix((1., 2., 3.))])
+    points = np.array([[0., 0., 0.], [1., 0., 0.]])
+    expected = applyMatrix(m, np.hstack((points, np.ones((2, 1)))))[:, :3]
+
+    assert np.allclose(applyMatrix(m, points), expected)
+    assert np.allclose(applyMatrix(m, points[1]), expected[1])  # 1D
+
+
+@pytest.mark.mathtools
+def test_isAffineBottomRow():
+    """Matrices are only affine if the bottom row is [0, 0, 0, 1], negative
+    values or `w` greater than 1 are not affine.
+    """
+    proj = perspectiveProjectionMatrix(-.1, .1, -.075, .075, .1, 100.)
+    assert not isAffine(proj)
+    assert not isAffine(np.linalg.inv(proj))  # bottom row [0, 0, -5, 5]
+
+    for row in ([0., 0., -1., 1.], [0., 0., 0., 2.], [-1., 0., 0., 1.]):
+        m = np.identity(4)
+        m[3, :] = row
+        assert not isAffine(m), row
+        # not affine, so must be fully inverted
+        assert np.allclose(invertMatrix(m), np.linalg.inv(m)), row
+
+
+@pytest.mark.mathtools
+def test_reverseProject():
+    """Check `reverseProject` undoes a perspective projection."""
+    proj = perspectiveProjectionMatrix(-.1, .1, -.075, .075, .1, 100.)
+    points = np.array([[.3, -.2, -3.], [-1., .5, -10.]])
+    clip = np.hstack((points, np.ones((2, 1)))).dot(proj.T)
+    ndc = clip[:, :3] / clip[:, 3:]
+
+    assert np.allclose(reverseProject(ndc, np.identity(4), proj), points)
+
+
+def _gluProject(points, modelView, proj, viewport):
+    """Reference implementation of `gluProject` for testing."""
+    clip = np.hstack((points, np.ones((len(points), 1)))).dot(
+        np.matmul(proj, modelView).T)
+    ndc = clip[:, :3] / clip[:, 3:]
+    win = (ndc + 1.) / 2.
+    win[:, 0] = viewport[0] + viewport[2] * win[:, 0]
+    win[:, 1] = viewport[1] + viewport[3] * win[:, 1]
+
+    return ndc, win
+
+
+@pytest.mark.mathtools
+@pytest.mark.parametrize('nPoints', [1, 2, 3, 5])
+def test_forwardProject(nPoints):
+    """Check `forwardProject` against `gluProject` for any number of points,
+    with a translation in the model/view matrix and an offset viewport.
+    """
+    np.random.seed(1234)
+    proj = perspectiveProjectionMatrix(-.1, .1, -.075, .075, .1, 100.)
+    modelView = translationMatrix((.5, -.25, -5.))
+    viewport = (100, 50, 800, 600)
+    points = np.random.uniform(-1., 1., (nPoints, 3))
+    ndc, win = _gluProject(points, modelView, proj, viewport)
+
+    assert np.allclose(forwardProject(points, modelView, proj), ndc)
+    assert np.allclose(
+        forwardProject(points, modelView, proj, viewport=viewport), win)
+
+    # single point as a 1D array
+    assert np.allclose(
+        forwardProject(points[0], modelView, proj, viewport=viewport), win[0])
+
+    # into `out`
+    out = np.zeros((nPoints, 3))
+    result = forwardProject(points, modelView, proj, viewport, out=out)
+    assert result is out
+    assert np.allclose(out, win)
+
+
+@pytest.mark.mathtools
+@pytest.mark.parametrize('viewport', [(0, 0, 800, 600), (100, 50, 800, 600)])
+def test_reverseProjectViewport(viewport):
+    """Check `reverseProject` undoes `gluProject` with a viewport, and that
+    `forwardProject` and `reverseProject` are inverses.
+    """
+    np.random.seed(1234)
+    proj = perspectiveProjectionMatrix(-.1, .1, -.075, .075, .1, 100.)
+    modelView = translationMatrix((.5, -.25, -5.))
+    points = np.random.uniform(-1., 1., (5, 3))
+    _, win = _gluProject(points, modelView, proj, viewport)
+
+    assert np.allclose(
+        reverseProject(win, modelView, proj, viewport=viewport), points)
+
+    winPos = forwardProject(points, modelView, proj, viewport=viewport)
+    assert np.allclose(
+        reverseProject(winPos, modelView, proj, viewport=viewport), points)
+
+
+@pytest.mark.mathtools
+def test_multQuatOrder():
+    """Check `multQuat(q0, q1)` applies `q1` then `q0`.
+    """
+    np.random.seed(12345)
+    q0 = quatFromAxisAngle(normalize(np.random.uniform(-1, 1, 3)), 50.)
+    q1 = quatFromAxisAngle(normalize(np.random.uniform(-1, 1, 3)), 70.)
+    v = np.random.uniform(-1, 1, 3)
+
+    assert np.allclose(applyQuat(multQuat(q0, q1), v),
+                       applyQuat(q0, applyQuat(q1, v)))
 
 
 @pytest.mark.mathtools

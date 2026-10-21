@@ -421,11 +421,20 @@ if USE_LEGACY_GL:
     {  
     #ifdef DIFFUSE_TEXTURE
         vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
-    #endif 
+    #endif
+
+        // scene ambient and emission don't depend on the lights, so they're
+        // only added once
+        vec4 sceneAmbient = clamp(
+            gl_FrontMaterial.diffuse * gl_LightModel.ambient, 0.0, 1.0);
+        vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
 
     #if MAX_LIGHTS > 0
         vec3 N = normalize(N);
-        vec4 finalColor = vec4(0.0);
+    #ifdef DIFFUSE_TEXTURE
+        sceneAmbient *= diffTexColor;  // ambient is modulated by diffuse color
+    #endif
+        vec4 finalColor = sceneAmbient + emission;
         // loop over available lights
         for (int i=0; i < MAX_LIGHTS; i++)
         {
@@ -452,9 +461,9 @@ if USE_LEGACY_GL:
             vec3 E = normalize(-v);
             vec3 R = normalize(-reflect(L, N)); 
             
-            // combine scene ambient with object
-            vec4 ambient = gl_FrontMaterial.diffuse * 
-                (gl_FrontLightProduct[i].ambient + gl_LightModel.ambient); 
+            // light ambient, modulated by the material
+            vec4 ambient = gl_FrontMaterial.diffuse *
+                gl_FrontLightProduct[i].ambient;
             
             // calculate diffuse component
             vec4 diffuse = gl_FrontLightProduct[i].diffuse * max(dot(N, L), 0.0);
@@ -472,24 +481,25 @@ if USE_LEGACY_GL:
             diffuse = clamp(diffuse, 0.0, 1.0); 
             specular = clamp(specular, 0.0, 1.0); 
             
-            // falloff with distance from eye? might be something to consider for 
-            // realism
-            vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
-            
-            finalColor += (ambient + emission) + attenuation * (diffuse + specular);
+            finalColor += ambient + attenuation * (diffuse + specular);
         }
-        gl_FragColor = finalColor;  // use texture alpha
     #else
-        // no lights, only track ambient and emission component
-        vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
-        vec4 ambient = gl_FrontLightProduct[0].ambient * gl_LightModel.ambient; 
-        ambient = clamp(ambient, 0.0, 1.0); 
+        // no lights, only scene ambient and emission
     #ifdef DIFFUSE_TEXTURE
-        gl_FragColor = (ambient + emission) * texture2D(diffTexture, gl_TexCoord[0].st);
+        vec4 finalColor = (sceneAmbient + emission) * diffTexColor;
     #else
-        gl_FragColor = ambient + emission;
+        vec4 finalColor = sceneAmbient + emission;
     #endif
     #endif
+
+        // opacity comes from the material diffuse color and texture, the
+        // lighting terms above only determine the color
+    #ifdef DIFFUSE_TEXTURE
+        finalColor.a = clamp(gl_FrontMaterial.diffuse.a * diffTexColor.a, 0.0, 1.0);
+    #else
+        finalColor.a = clamp(gl_FrontMaterial.diffuse.a, 0.0, 1.0);
+    #endif
+        gl_FragColor = finalColor;
     }
     """
 
@@ -497,7 +507,7 @@ if USE_LEGACY_GL:
     varying vec3 texCoord;
     void main(void)  
     {   
-        texCoord = gl_Vertex;
+        texCoord = gl_Vertex.xyz;
         gl_Position = ftransform().xyww;
     }      
     """
@@ -507,7 +517,7 @@ if USE_LEGACY_GL:
     uniform samplerCube SkyTexture;
     void main (void)  
     {  
-        gl_FragColor = texture(SkyTexture, texCoord);
+        gl_FragColor = textureCube(SkyTexture, texCoord);
     }
     """
 
@@ -832,12 +842,8 @@ else:
         float shininess;
     };
 
-    // without lights, light 0's ambient color is still used, as with the
-    // fixed-function pipeline
     #if MAX_LIGHTS > 0
         uniform LightSource uLightSource[MAX_LIGHTS];
-    #else
-        uniform LightSource uLightSource[1];
     #endif
     uniform Material uFrontMaterial;
     uniform vec4 uLightModelAmbient;
@@ -861,9 +867,18 @@ else:
         vec4 diffTexColor = texture2D(diffTexture, vTexCoord0.st);
     #endif
 
+        // scene ambient and emission don't depend on the lights, so they're
+        // only added once
+        vec4 sceneAmbient = clamp(
+            uFrontMaterial.diffuse * uLightModelAmbient, 0.0, 1.0);
+        vec4 emission = clamp(uFrontMaterial.emission, 0.0, 1.0);
+
     #if MAX_LIGHTS > 0
         vec3 N = normalize(N);
-        vec4 finalColor = vec4(0.0);
+    #ifdef DIFFUSE_TEXTURE
+        sceneAmbient *= diffTexColor;  // ambient is modulated by diffuse color
+    #endif
+        vec4 finalColor = sceneAmbient + emission;
         // loop over available lights
         for (int i=0; i < MAX_LIGHTS; i++)
         {
@@ -890,9 +905,9 @@ else:
             vec3 E = normalize(-v);
             vec3 R = normalize(-reflect(L, N));
 
-            // combine scene ambient with object
+            // light ambient, modulated by the material
             vec4 ambient = uFrontMaterial.diffuse *
-                (uFrontMaterial.ambient * uLightSource[i].ambient + uLightModelAmbient);
+                uFrontMaterial.ambient * uLightSource[i].ambient;
 
             // calculate diffuse component
             vec4 diffuse = uFrontMaterial.diffuse * uLightSource[i].diffuse * max(dot(N, L), 0.0);
@@ -910,24 +925,25 @@ else:
             diffuse = clamp(diffuse, 0.0, 1.0);
             specular = clamp(specular, 0.0, 1.0);
 
-            // falloff with distance from eye? might be something to consider for
-            // realism
-            vec4 emission = clamp(uFrontMaterial.emission, 0.0, 1.0);
-
-            finalColor += (ambient + emission) + attenuation * (diffuse + specular);
+            finalColor += ambient + attenuation * (diffuse + specular);
         }
-        fragColor = finalColor;  // use texture alpha
     #else
-        // no lights, only track ambient and emission component
-        vec4 emission = clamp(uFrontMaterial.emission, 0.0, 1.0);
-        vec4 ambient = uFrontMaterial.ambient * uLightSource[0].ambient * uLightModelAmbient;
-        ambient = clamp(ambient, 0.0, 1.0);
+        // no lights, only scene ambient and emission
     #ifdef DIFFUSE_TEXTURE
-        fragColor = (ambient + emission) * texture2D(diffTexture, vTexCoord0.st);
+        vec4 finalColor = (sceneAmbient + emission) * diffTexColor;
     #else
-        fragColor = ambient + emission;
+        vec4 finalColor = sceneAmbient + emission;
     #endif
     #endif
+
+        // opacity comes from the material diffuse color and texture, the
+        // lighting terms above only determine the color
+    #ifdef DIFFUSE_TEXTURE
+        finalColor.a = clamp(uFrontMaterial.diffuse.a * diffTexColor.a, 0.0, 1.0);
+    #else
+        finalColor.a = clamp(uFrontMaterial.diffuse.a, 0.0, 1.0);
+    #endif
+        fragColor = finalColor;
     }
     """
 

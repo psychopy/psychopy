@@ -121,6 +121,13 @@ IOHUB_ACTIVE = False
 retinaContext = None  # only needed for retina-ready displays
 IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix to copy
 
+# values for `Window.depthFunc`
+_DEPTH_FUNCS = {
+    'never': pygletgl.GL_NEVER, 'less': pygletgl.GL_LESS,
+    'equal': pygletgl.GL_EQUAL, 'lequal': pygletgl.GL_LEQUAL,
+    'greater': pygletgl.GL_GREATER, 'notequal': pygletgl.GL_NOTEQUAL,
+    'gequal': pygletgl.GL_GEQUAL, 'always': pygletgl.GL_ALWAYS}
+
 # File extensions `Window.saveMovieFrames()` encodes with a `MovieWriter` from
 # `psychopy.tools.movietools`. Anything else is written by Pillow, either as an
 # animated GIF or as one image file per captured frame.
@@ -1968,6 +1975,21 @@ class Window():
         return self.getContentScaleFactor()
 
     @property
+    def pixScaleFactor(self):
+        """Number of framebuffer pixels per 'pix' unit (`float`).
+
+        When using `useRetina=True`, 'pix' units are window coordinates (points)
+        rather than framebuffer pixels, so this is the content scale factor of
+        the display (e.g. 2.0 on Retina displays). Otherwise this is 1.0.
+
+        See Also
+        --------
+        getContentScaleFactor
+
+        """
+        return self.getContentScaleFactor() if self.useRetina else 1.0
+
+    @property
     def aspect(self):
         """Aspect ratio of the current viewport (width / height)."""
         return self._viewport[2] / float(self._viewport[3])
@@ -2774,39 +2796,108 @@ class Window():
                 planeNormal=(0, 1, 0))
 
         """
-        # put in units of pixels
-        if self.units == 'pix':
-            scrX, scrY = numpy.asarray(screenXY, numpy.float32)
-        else:
-            scrX, scrY = convertToPix(numpy.asarray([0, 0]),
-                                      numpy.asarray(screenXY),
-                                      units=self.units,
-                                      win=self)[:2]
+        scrX, scrY = self._windowUnitsToBufferPix(screenXY)
 
-        # transform psychopy mouse coordinates to viewport coordinates
-        scrX += (self.size[0] / 2.)
-        scrY +=  (self.size[1] / 2.)
+        return viewtools.cursorToRay(
+            scrX, scrY, self.size, self.viewport, self.projectionMatrix)
 
-        # get the NDC coordinates of the
-        projX = 2. * (scrX - self.viewport[0]) / self.viewport[2] - 1.
-        projY = 2. * (scrY - self.viewport[1]) / self.viewport[3] - 1.
+    def getMouseRay(self, pos=None):
+        """Get a ray from the viewer through the mouse cursor, in scene
+        coordinates.
 
-        vecNear = numpy.array((projX, projY, 0., 1.), dtype=numpy.float32)
-        vecFar = numpy.array((projX, projY, 1., 1.), dtype=numpy.float32)
+        The ray can be used to find what is under the mouse in a 3D scene, by
+        passing it to the ray intersection functions in
+        :mod:`~psychopy.tools.mathtools` (e.g.
+        :func:`~psychopy.tools.mathtools.intersectRaySphere`) or methods of 3D
+        stimuli (e.g. `getRayIntersectBounds`).
 
-        # compute the inverse projection matrix
-        invPM = numpy.linalg.inv(self.projectionMatrix)
+        The ray is computed using the current `projectionMatrix`, `viewMatrix`
+        and `viewport`, so the view should be set (e.g. by calling
+        :meth:`setPerspectiveView`) before calling this.
 
-        vecNear[:] = vecNear.dot(invPM.T)
-        vecFar[:] = vecFar.dot(invPM.T)
+        Parameters
+        ----------
+        pos : array_like or None
+            Position `(x, y)` in the units of the window to cast the ray
+            through. If `None`, the current position of the mouse is used.
 
-        vecNear /= vecNear[3]
-        vecFar /= vecFar[3]
+        Returns
+        -------
+        tuple
+            Origin and direction of the ray as arrays `[x, y, z]`. The origin
+            is the position of the viewer. For orthographic projections, where
+            rays are parallel, it's the point under `pos` on the near clipping
+            plane. The direction is normalized.
 
-        # direction vector, get rid of `w`
-        dirVec = vecFar[:3] - vecNear[:3]
+        See Also
+        --------
+        coordToRay : Get the direction of the ray relative to the viewer.
 
-        return dirVec / numpy.linalg.norm(dirVec)
+        Examples
+        --------
+        Check if the mouse is over a sphere::
+
+            win.setPerspectiveView()
+            rayOrig, rayDir = win.getMouseRay()
+            if sphere.getRayIntersectSphere(rayOrig, rayDir) is not None:
+                print('the mouse is over the sphere')
+
+        Get the point on the floor (the plane where `y=0`) under the mouse::
+
+            rayOrig, rayDir = win.getMouseRay()
+            result = mathtools.intersectRayPlane(
+                rayOrig, rayDir, (0, 0, 0), (0, 1, 0))
+            if result is not None:
+                pointOnFloor, distance = result
+
+        """
+        if pos is None:
+            pos = self._mouse.getPos()
+
+        x, y = self._windowUnitsToBufferPix(pos)
+
+        # normalized device coordinates of the points under `pos` on the near
+        # and far clipping planes, transformed back into the scene
+        ndcX = 2. * (x + self.size[0] / 2. - self.viewport[0]) / \
+            self.viewport[2] - 1.
+        ndcY = 2. * (y + self.size[1] / 2. - self.viewport[1]) / \
+            self.viewport[3] - 1.
+        near, far = mathtools.reverseProject(
+            numpy.array([[ndcX, ndcY, -1.], [ndcX, ndcY, 1.]]),
+            self.viewMatrix,
+            self.projectionMatrix)
+
+        rayDir = mathtools.normalize(far - near)
+        if mathtools.isAffine(self.projectionMatrix):  # orthographic
+            rayOrig = near
+        else:  # perspective, all rays start at the viewer
+            rayOrig = mathtools.invertMatrix(self.viewMatrix)[:3, 3]
+
+        return numpy.asarray(rayOrig, dtype=float), rayDir
+
+    def _windowUnitsToBufferPix(self, pos):
+        """Convert a position in the units of the window to framebuffer pixels,
+        relative to the center of the window.
+
+        These differ from 'pix' units on high DPI (e.g. Retina) displays.
+
+        Parameters
+        ----------
+        pos : array_like
+            Position `(x, y)` in the units of the window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in framebuffer pixels.
+
+        """
+        pix = convertToPix(
+            numpy.zeros((2,)), numpy.asarray(pos, dtype=float),
+            units=self.units, win=self)[:2]
+
+        # 'pix' units are window coordinates on high DPI (e.g. Retina) displays
+        return pix * self.pixScaleFactor
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
@@ -3493,12 +3584,7 @@ class Window():
 
     @depthFunc.setter
     def depthFunc(self, value):
-        depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
-                      'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
-                      'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
-                      'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-
-        GL.glDepthFunc(depthFuncs[value])
+        GL.glDepthFunc(_DEPTH_FUNCS[value])
 
         self._depthFunc = value
 
@@ -3887,10 +3973,7 @@ class Window():
         stimulus drawing but this is now handled by the stimuli themselves and
         the window should always be left in units of 'pix'
         """
-        if self.useRetina:
-            retinaScale = 2.0
-        else:
-            retinaScale = 1.0
+        retinaScale = self.pixScaleFactor
         # then unit-specific changes
         if units == "norm":
             thisScale = numpy.array([1.0, 1.0])

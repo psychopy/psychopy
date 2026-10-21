@@ -497,7 +497,7 @@ class Vector:
         # Otherwise, do conversion and cache
         buffer = np.ndarray(self.pix.shape, dtype=float)
         for i in range(self.dimensions):
-            u = self.win.useRetina + 1
+            u = self.win.pixScaleFactor
             if len(self) > 1:
                 buffer[:, i] = self.pix[:, i] / (self.win.size[i] / u) * 2
             else:
@@ -515,7 +515,7 @@ class Vector:
         # Convert and set
         buffer = np.ndarray(value.shape, dtype=float)
         for i in range(self.dimensions):
-            u = self.win.useRetina + 1
+            u = self.win.pixScaleFactor
             if len(self) > 1:
                 buffer[:, i] = value[:, i] * (self.win.size[i] / u) / 2
             else:
@@ -532,7 +532,7 @@ class Vector:
             return self._cache['height']
         # Otherwise, do conversion and cache
         self._cache['height'] = \
-            self.pix / (self.win.size[1] / (self.win.useRetina + 1))
+            self.pix / (self.win.size[1] / self.win.pixScaleFactor)
         # Return new cached value
         return self._cache['height']
 
@@ -541,7 +541,7 @@ class Vector:
         # Validate
         value, units = self.validate(value, 'height')
         # Convert and set
-        self.pix = value * (self.win.size[1] / (self.win.useRetina + 1))
+        self.pix = value * (self.win.size[1] / self.win.pixScaleFactor)
 
 
 class Position(Vector):

@@ -284,7 +284,9 @@ class TextBox:
 
         self._font_name = font_name
         if self.getWindow().useRetina:
-            self._font_size = font_size*2
+            # fonts are rendered in framebuffer pixels, sizes must be whole
+            self._font_size = int(round(
+                font_size * self.getWindow().pixScaleFactor))
         else:
             self._font_size = font_size
         self._dpi = dpi
@@ -640,7 +642,8 @@ class TextBox:
 
     def getFontSize(self):
         if self.getWindow().useRetina:
-            return self._font_size//2
+            return int(round(
+                self._font_size / self.getWindow().pixScaleFactor))
         return self._font_size
         
     def getFontColor(self):

@@ -182,9 +182,6 @@ class Mouse(AttributeGetSetMixin):
     # have the window automatically be set when a cursor hovers over it
     _autoFocus = True
 
-    # scaling factor for highdpi displays
-    _winScaleFactor = 1.0
-
     def __init__(self, win=None, pos=(0, 0), visible=True, exclusive=False,
                  autoFocus=True):
         # only setup if previously not instanced
@@ -193,10 +190,6 @@ class Mouse(AttributeGetSetMixin):
             self.visible = visible
             self.exclusive = exclusive
             self.autoFocus = autoFocus
-            if self.win is not None:
-                self._winScaleFactor = self.win.getContentScaleFactor()
-            else:
-                self._winScaleFactor = 1.0   # default to 1.0
 
             if self.win is not None and pos is not None:
                 self.setPos(pos)
@@ -380,11 +373,7 @@ class Mouse(AttributeGetSetMixin):
             return pos
 
         if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos /= 2.0
-            else:
-                pos /= self._winScaleFactor
-            return pos
+            return pos / self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
         elif self.win.units == 'cm':
@@ -415,11 +404,7 @@ class Mouse(AttributeGetSetMixin):
             return pos
 
         if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos *= 2.0
-            else:
-                pos *= self._winScaleFactor
-            return pos
+            return pos * self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
         elif self.win.units == 'cm':
