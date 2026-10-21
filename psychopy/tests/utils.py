@@ -119,6 +119,39 @@ def checkSyntax(exp, targets=("PsychoPy", "PsychoJS")):
             raise SyntaxError(err.message)
 
 
+def _getBackBuffer(win):
+    """Get the current back buffer of the given window as an image."""
+    win.getMovieFrame(buffer='back')
+    frame = win.movieFrames[-1]
+    win.movieFrames = []
+
+    return frame
+
+
+def _saveExemplar(frame, fileName, win):
+    """Save a frame from the given window as an exemplar for screenshot tests.
+
+    Exemplars are stored in client (window) pixels, but on a high-DPI display
+    the framebuffer is bigger than that, so the frame is scaled down to the
+    window's client size first.
+    """
+    clientSize = tuple(int(s) for s in win.clientSize)
+    if frame.size != clientSize:
+        frame = frame.resize(clientSize, resample=Image.Resampling.LANCZOS)
+    frame.save(fileName, optimize=1)
+
+
+def saveScreenshot(fileName, win):
+    """Save the current back buffer of the given window as an exemplar
+
+    The file is written as `compareScreenshot` would write it, so it can be
+    compared against later on. Relative paths are taken as being relative to
+    TESTS_DATA_PATH.
+    """
+    fileName = pjoin(TESTS_DATA_PATH, fileName)
+    _saveExemplar(_getBackBuffer(win), fileName, win)
+
+
 def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
 
@@ -129,17 +162,13 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
     #if we start this from a folder below run.py the data folder won't be found
     fileName = pjoin(TESTS_DATA_PATH, fileName)
     #get the frame from the window
-    win.getMovieFrame(buffer='back')
-    frame=win.movieFrames[-1]
-    win.movieFrames=[]
+    frame = _getBackBuffer(win)
     # exemplars are stored in client (window) pixels, but on a high-DPI display
     # the framebuffer we just grabbed is bigger than that
     clientSize = tuple(int(s) for s in win.clientSize)
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
-        if frame.size != clientSize:
-            frame = frame.resize(clientSize, resample=Image.Resampling.LANCZOS)
-        frame.save(fileName, optimize=1)
+        _saveExemplar(frame, fileName, win)
         pytest.skip("Created %s" % basename(fileName))
     else:
         expected = Image.open(fileName)
@@ -155,8 +184,11 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
             # high-DPI display, bring the framebuffer down to client pixels
             frame = frame.resize(expected.size, resample=Image.Resampling.LANCZOS)
             crit += 5  # be more relaxed because of the interpolation
-        expDat = np.array(expected.getdata())
-        imgDat = np.array(frame.getdata())
+        # as floats, so the difference below doesn't wrap around like uint8
+        # would, and read straight from the image buffers since going through
+        # `getdata()` builds a Python tuple for every pixel, which is slow
+        expDat = np.asarray(expected, dtype=float)
+        imgDat = np.asarray(frame, dtype=float)
         rms = np.std(imgDat-expDat)
         localFileName, exemplarFileName = getFailFilenames(fileName, tag=tag)
         if rms >= crit/2:
