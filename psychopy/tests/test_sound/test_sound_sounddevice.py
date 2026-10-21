@@ -16,6 +16,8 @@ except (ImportError, OSError, DependencyError) as err:
                 allow_module_level=True)
 import soundfile as sf  # importable once the backend is
 from psychopy.sound.backend_sounddevice import SoundDeviceSound
+from psychopy.hardware.speaker import SpeakerDevice
+from psychopy.hardware.speaker._base import BaseSpeakerDevice
 from psychopy.hardware.speaker.speaker_sounddevice import \
     SoundDeviceSpeakerDevice
 
@@ -36,8 +38,6 @@ def headless(monkeypatch):
     """No audio device, a private stream registry and frozen backend clocks."""
     monkeypatch.setattr(bsd, "travisCI", True)
     monkeypatch.setattr(bsd, "streams", bsd._StreamsDict())
-    # SoundDeviceSound requires a speaker of the backend resolved from prefs
-    monkeypatch.setattr(bsd.SpeakerDevice, "backend", "sounddevice")
     # stub only the backend's reference to the time module, not time itself
     monkeypatch.setattr(bsd, "time", types.SimpleNamespace(monotonic=lambda: NOW))
     # likewise its reference to `psychopy.clock`, which `when` is converted from
@@ -486,6 +486,50 @@ def test_speakers_get_streams_of_their_own():
     assert a.stream is not b.stream
     assert a.streamLabel == bsd.getDeviceStreamLabel("speaker A")
     assert b.streamLabel == bsd.getDeviceStreamLabel("speaker B")
+
+
+class _OtherBackendSpeaker(BaseSpeakerDevice):
+    """A speaker of another backend (e.g. ptb), without opening its device."""
+    backend = "ptb"
+
+    def __init__(self, index=None, name=None):
+        self.index = index
+        self.name = name
+
+
+def test_default_speaker_whatever_the_audiolib_pref(monkeypatch):
+    """The sounddevice backend plays on a sounddevice speaker even when the
+    audioLib pref, which `SpeakerDevice` makes speakers for, is another."""
+    monkeypatch.setattr(SpeakerDevice, "backend", "ptb")
+    sound = SoundDeviceSound(_ramp(N), sampleRate=SR, blockSize=BLOCK,
+                             hamming=False, autoLog=False)
+    assert isinstance(sound.speaker, SoundDeviceSpeakerDevice)
+
+
+def test_speaker_kept_when_of_this_backend():
+    speaker = _speaker("speaker A")
+    sound = _new_sound(_ramp(N), sampleRate=SR, speaker=speaker)
+    assert sound.speaker is speaker
+
+
+def test_speaker_of_another_backend_found_by_name():
+    """A speaker of another backend (such as one set up with DeviceManager
+    under another audioLib) is the same device found by its name, since each
+    backend numbers devices its own way."""
+    other = _OtherBackendSpeaker(index=3, name="speaker A")
+    sound = _new_sound(_ramp(N), sampleRate=SR, speaker=other)
+    assert isinstance(sound.speaker, SoundDeviceSpeakerDevice)
+    assert sound.speaker.name == "speaker A"
+    assert sound.speaker.index is None  # not the other backend's index
+    assert sound.streamLabel == bsd.getDeviceStreamLabel("speaker A")
+
+
+def test_speaker_of_another_backend_without_name_rejected():
+    """Only an index of another backend can't be found here, and must not fall
+    back to the default speaker."""
+    with pytest.raises(ValueError):
+        _new_sound(_ramp(N), sampleRate=SR,
+                   speaker=_OtherBackendSpeaker(index=3))
 
 
 @pytest.mark.parametrize("rate", [22050, 48000])
