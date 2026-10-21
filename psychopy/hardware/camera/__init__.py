@@ -5040,7 +5040,7 @@ class Camera:
         if mic is False or usageMode == CAMERA_MODE_CV:
             # `False` explicitly asks for no audio, and CV mode never records it
             self.mic = None
-        elif isinstance(mic, MicrophoneDevice):
+        elif isinstance(mic, MicrophoneDevice.resolveBackend()):
             # if given a device object, use it
             self.mic = mic
         elif isinstance(mic, Microphone):
