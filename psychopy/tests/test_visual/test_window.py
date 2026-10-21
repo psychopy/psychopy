@@ -1,4 +1,5 @@
 import importlib
+import sys
 import weakref
 from copy import copy
 from pathlib import Path
@@ -8,7 +9,7 @@ import pytest
 from PIL import Image
 
 from psychopy import visual, colors, core
-from psychopy.tests import utils
+from psychopy.tests import skip_under_vm, utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.tools.stimulustools import serialize
 from psychopy import colors
@@ -150,6 +151,199 @@ class TestOpenWinList:
         # removing a window which was never added still purges dead refs
         winList.remove(_DummyWin())
         assert [ref() for ref in winList] == [keep]
+
+
+class TestCloseOnInitError:
+    """Tests for `closeOnInitError`, which closes a window whose `__init__`
+    raises partway rather than leaving it open."""
+
+    class _Opener:
+        """Stand-in for a class which opens a native window in `__init__`."""
+        def __init__(self, error=None, closeError=None):
+            self.closed = False
+            self._closeError = closeError
+            if error is not None:
+                raise error
+
+        def _closeAfterFailedInit(self):
+            if self._closeError is not None:
+                raise self._closeError
+            self.closed = True
+
+    def _decorated(self):
+        """Get a subclass of `_Opener` with its `__init__` decorated."""
+        from psychopy.visual.backends._base import closeOnInitError
+
+        class DecoratedOpener(self._Opener):
+            @closeOnInitError
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+        return DecoratedOpener
+
+    def test_closesAndReraises(self):
+        """The window is closed, and the error `__init__` raised still reaches
+        the caller."""
+        instances = []
+
+        class Recording(self._decorated()):
+            def __init__(self, *args, **kwargs):
+                instances.append(self)
+                super().__init__(*args, **kwargs)
+
+        with pytest.raises(RuntimeError, match="failed partway"):
+            Recording(error=RuntimeError("failed partway"))
+
+        assert instances[0].closed
+
+    def test_closeErrorDoesNotMaskInitError(self):
+        """An error closing the window is logged rather than replacing the
+        error `__init__` raised, which is what explains the failure."""
+        with pytest.raises(RuntimeError, match="failed partway"):
+            self._decorated()(
+                error=RuntimeError("failed partway"),
+                closeError=ValueError("could not close"))
+
+    def test_noCloseWithoutError(self):
+        """A window which initializes fine is left open."""
+        assert not self._decorated()().closed
+
+    def test_keepsSignature(self):
+        """The decorated `__init__` reports the signature of the original, which
+        serializing stimuli (amongst other things) relies on."""
+        import inspect
+        assert 'gammaErrorPolicy' in inspect.signature(visual.Window).parameters
+
+
+class TestWindowFailedInit:
+    """A window which fails to initialize after its native window has opened
+    should close that window, rather than leaving it open (a fullscreen one
+    covering the screen) until the process exits."""
+
+    @pytest.fixture
+    def nativeWindows(self, monkeypatch):
+        """Record the native (pyglet) windows the backend creates."""
+        from psychopy.visual.backends import pygletbackend
+
+        created = []
+        origWindow = pygletbackend.GL.Window
+
+        def recordingWindow(*args, **kwargs):
+            nativeWin = origWindow(*args, **kwargs)
+            created.append(nativeWin)
+            return nativeWin
+
+        monkeypatch.setattr(pygletbackend.GL, 'Window', recordingWindow)
+
+        return created
+
+    def test_closedIfWindowFails(self, monkeypatch, nativeWindows):
+        """`Window.__init__` raising after the backend was created closes the
+        backend's window."""
+        def failSetupGL(self):
+            raise RuntimeError("simulated failure setting up OpenGL")
+
+        monkeypatch.setattr(visual.Window, '_setupGL', failSetupGL)
+
+        # Hold on to the error while checking, as pytest does when reporting a
+        # failure. Its traceback keeps the half-made `Window` alive, so its
+        # `__del__` can't be what closes the native window.
+        with pytest.raises(RuntimeError, match="simulated failure") as excinfo:
+            visual.Window(winType='pyglet', autoLog=False)
+
+        assert excinfo.traceback
+        assert len(nativeWindows) == 1, "Expected one native window to be made."
+        assert nativeWindows[0].context is None, (
+            "Native window was left open after `Window.__init__` failed.")
+
+    def test_closedIfBackendFails(self, monkeypatch, nativeWindows):
+        """The backend raising after it created its native window closes that
+        window, even though `Window` never got a reference to the backend."""
+        from psychopy.visual.backends import pygletbackend
+
+        def failGetRenderer():
+            raise RuntimeError("simulated failure querying the renderer")
+
+        monkeypatch.setattr(
+            pygletbackend.GL.gl_info, 'get_renderer', failGetRenderer)
+
+        # hold on to the error while checking, see `test_closedIfWindowFails`
+        with pytest.raises(RuntimeError, match="simulated failure") as excinfo:
+            visual.Window(winType='pyglet', autoLog=False)
+
+        assert excinfo.traceback
+        assert len(nativeWindows) == 1, "Expected one native window to be made."
+        assert nativeWindows[0].context is None, (
+            "Native window was left open after the backend failed.")
+
+
+def _getCoreGraphics():
+    """Load the CoreGraphics functions used to check display capture."""
+    import ctypes
+    import ctypes.util
+
+    cg = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreGraphics'))
+    cg.CGDisplayIsCaptured.restype = ctypes.c_bool
+    cg.CGDisplayIsCaptured.argtypes = [ctypes.c_uint32]
+    cg.CGDisplayRelease.argtypes = [ctypes.c_uint32]
+    cg.CGMainDisplayID.restype = ctypes.c_uint32
+
+    return cg
+
+
+@skip_under_vm
+@pytest.mark.skipif(
+    sys.platform != 'darwin', reason="display capture is specific to macOS")
+class TestFullscreenDisplayCapture:
+    """A fullscreen pyglet window captures its display on macOS, which shows
+    black over everything else. Closing the window has to release it again,
+    otherwise the display stays black until the process exits."""
+
+    @pytest.fixture
+    def cg(self):
+        """CoreGraphics, releasing the main display afterwards so a failure
+        here doesn't leave the rest of the session running behind a black
+        screen."""
+        cg = _getCoreGraphics()
+        yield cg
+        cg.CGDisplayRelease(cg.CGMainDisplayID())
+
+    @staticmethod
+    def _openFullscreen():
+        win = visual.Window(fullscr=True, screen=0, autoLog=False)
+        win.flip()
+
+        return win, win.backend.winHandle.screen._cg_display_id
+
+    def test_releasedOnClose(self, cg):
+        """Closing a fullscreen window releases its display."""
+        win, displayID = self._openFullscreen()
+        try:
+            assert cg.CGDisplayIsCaptured(displayID), (
+                "Display wasn't captured for the fullscreen window, so this "
+                "test can't check it is released.")
+        finally:
+            win.close()
+
+        assert not cg.CGDisplayIsCaptured(displayID), (
+            "Display is still captured after its fullscreen window closed.")
+
+    def test_keptForOtherFullscreenWindow(self, cg):
+        """The display stays captured while another fullscreen window is still
+        open on it, and is released once that one closes too."""
+        firstWin, displayID = self._openFullscreen()
+        secondWin, _ = self._openFullscreen()
+        try:
+            firstWin.close()
+            assert cg.CGDisplayIsCaptured(displayID), (
+                "Display was released while a fullscreen window was still "
+                "open on it.")
+        finally:
+            firstWin.close()
+            secondWin.close()
+
+        assert not cg.CGDisplayIsCaptured(displayID), (
+            "Display is still captured after both fullscreen windows closed.")
 
 
 class TestWindow:
