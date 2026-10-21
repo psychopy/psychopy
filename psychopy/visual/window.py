@@ -79,6 +79,7 @@ import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors
 import psychopy.event
 from . import backends, image
+from .backends._base import closeOnInitError
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -264,6 +265,8 @@ class Window():
 
     """
     USE_LEGACY_GL = pygletgl.USE_LEGACY_GL
+
+    @closeOnInitError
     def __init__(self,
                  size=(800, 600),
                  pos=None,
@@ -823,6 +826,18 @@ class Window():
         self.backgroundFit = backgroundFit
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
+
+    def _closeAfterFailedInit(self):
+        """Close the window after `__init__` has raised partway through, so
+        that its native window isn't left open (see `closeOnInitError`).
+
+        If the backend wasn't created, there's nothing to close here; a backend
+        which fails partway closes its own native window.
+        """
+        if getattr(self, 'backend', None) is None:
+            return
+
+        self.close()
 
     def __del__(self):
         if self._closed is False:

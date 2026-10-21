@@ -27,7 +27,7 @@ from psychopy.tools import systemtools
 from .gamma import (
     createLinearRamp, defaultGammaErrorPolicy, raise_msg, warn_msg)
 from .. import globalVars
-from ._base import BaseBackend
+from ._base import BaseBackend, closeOnInitError
 
 if sys.platform == 'darwin':
     from . import _macos
@@ -387,6 +387,7 @@ class GLFWBackend(BaseBackend):
     winTypeName = 'glfw'
     _nextHwHandle = 1  # fallback handle IDs when a native one is unavailable
 
+    @closeOnInitError
     def __init__(self, win, backendConf=None):
         BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
 

@@ -1579,6 +1579,43 @@ class TestMovieStimFrameTiming:
         assert decodedOn
         assert threading.main_thread() not in decodedOn
 
+    def test_stopLeavesDecodingAheadToPlay(self, win, movieLib, monkeypatch):
+        """`stop()` reloads the movie without waiting for the decoder to fill
+        its queue of frames ahead, which would hold up whatever comes next
+        (such as the next Routine), and `play()` waits for it instead."""
+        if movieLib not in DECODE_AHEAD_BACKENDS:
+            pytest.skip('{} does not decode ahead'.format(movieLib))
+
+        readerClass = movies.readers._base._MOVIE_READER_CLASSES[movieLib]
+        decodeNextFrame = readerClass._decodeNextFrame
+        released = threading.Event()
+        ungated = []  # readers left to decode, the rest wait for `released`
+
+        def gated(reader):
+            if ungated and reader not in ungated and \
+                    threading.current_thread() is not threading.main_thread():
+                released.wait()
+            return decodeNextFrame(reader)
+
+        monkeypatch.setattr(readerClass, '_decodeNextFrame', gated)
+
+        with movieStim(win, movieLib) as mov:
+            ungated.append(mov._player)
+            mov.play()
+            _drawFrames(win, mov)
+            try:
+                t0 = time.time()
+                mov.stop()
+                # rather than waiting on the decoder, for up to 5s
+                assert time.time() - t0 < 1.0
+                reader = mov._player
+                assert _queuedFrameCount(reader) < reader._decodeQueueDepth
+            finally:
+                released.set()
+
+            mov.play()
+            assert _queuedFrameCount(reader) == reader._decodeQueueDepth
+
     def test_framesFreedOffDrawingThread(self, win, movieLib):
         """Frames are freed by the decode thread rather than the one drawing
         them, where freeing a large frame can take long enough to miss a
