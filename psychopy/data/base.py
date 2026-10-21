@@ -7,7 +7,6 @@ import os
 import sys
 import copy
 import inspect
-import codecs
 import numpy as np
 import pandas as pd
 import json_tricks
@@ -437,7 +436,7 @@ class _BaseTrialHandler(_ComparisonMixin):
                                   "inspect.getouterframes")
                 return '', ''
         if os.path.isfile(originPath):  # do we NOW have a path?
-            with codecs.open(originPath, "r", encoding="utf-8-sig") as f:
+            with open(originPath, "r", encoding="utf-8-sig", newline="") as f:
                 origin = f.read()
         else:
             origin = None

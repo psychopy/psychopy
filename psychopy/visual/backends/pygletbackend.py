@@ -26,7 +26,7 @@ from psychopy.tools.attributetools import attributeSetter
 from psychopy.tools import systemtools
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
-from ._base import BaseBackend
+from ._base import BaseBackend, closeOnInitError
 
 import pyglet
 import pyglet.window as pyglet_window
@@ -103,6 +103,7 @@ class PygletBackend(BaseBackend):
     GL = GL
     winTypeName = 'pyglet'
 
+    @closeOnInitError
     def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
@@ -662,14 +663,52 @@ class PygletBackend(BaseBackend):
             self._displayLinkMacOS.release()
             self._displayLinkMacOS = None
 
+        wasFullScr = self.winHandle.fullscreen
+        screen = self.winHandle.screen
+
         try:
             self.winHandle.close()
         except Exception:
             pass
 
+        if sys.platform == 'darwin' and wasFullScr:
+            self._releaseDisplayMacOS(screen)
+
         # Pyglet leaves its shadow window's context current after closing a
         # window, so switch back to an open window
         self._makeOpenWindowCurrent()
+
+    @staticmethod
+    def _releaseDisplayMacOS(screen):
+        """Release a display captured for a fullscreen window which has closed.
+
+        On macOS, pyglet captures the display when it opens a fullscreen
+        window, so nothing else can be drawn over it. Closing the window is
+        meant to release it again, but pyglet only does so if the display mode
+        was changed (`CocoaScreen.restore_mode()` returns early otherwise),
+        which it never is for PsychoPy's windows. The display then stays
+        captured, showing black over everything else, until the process exits.
+
+        Parameters
+        ----------
+        screen : pyglet.display.cocoa.CocoaScreen
+            Screen the fullscreen window was on.
+
+        """
+        # another fullscreen window on the same display still needs it captured
+        # (`get_display_id()` would do, but older pyglet versions lack it)
+        displayID = screen._cg_display_id
+        for openWin in pyglet.app.windows:
+            if openWin.fullscreen and \
+                    openWin.screen._cg_display_id == displayID:
+                return
+
+        try:
+            screen.release_display()
+        except Exception as err:
+            logging.error(
+                "Could not release display captured for a fullscreen window: "
+                "{}".format(err))
 
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode.
@@ -780,18 +819,32 @@ class PygletBackend(BaseBackend):
     # Window unit conversion
     #
 
-    def _windowToBufferCoords(self, pos):
-        """Convert window coordinates to OpenGL buffer coordinates.
+    @staticmethod
+    def _mouseInBufferPixels():
+        """Check if pyglet reports mouse positions in framebuffer pixels,
+        rather than window coordinates.
 
-        The standard convention for window coordinates is that the origin is at
-        the top-left corner. The `y` coordinate increases in the downwards
-        direction. OpenGL places the origin at bottom left corner, where `y`
-        increases in the upwards direction.
+        These differ on high DPI (e.g. Retina) displays. Since pyglet 2.1,
+        positions are in framebuffer pixels unless `pyglet.options.dpi_scaling`
+        is 'stretch', earlier versions use window coordinates.
+
+        Returns
+        -------
+        bool
+            `True` if mouse positions are in framebuffer pixels.
+
+        """
+        dpiScaling = getattr(pyglet.options, 'dpi_scaling', None)
+        return dpiScaling is not None and dpiScaling != 'stretch'
+
+    def _windowToBufferCoords(self, pos):
+        """Convert mouse positions reported by pyglet to OpenGL buffer
+        coordinates.
 
         Parameters
         ----------
         pos : ArrayLike
-            Position `(x, y)` in window coordinates.
+            Position `(x, y)` reported by pyglet.
 
         Returns
         -------
@@ -800,14 +853,21 @@ class PygletBackend(BaseBackend):
 
         """
         # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
-        # window coordinate convention by default.
-        scaleFactor = self.win.getContentScaleFactor()
-        return np.asarray(pos, dtype=np.float32) * scaleFactor
+        # window coordinate convention (origin at bottom-left), so `y` isn't
+        # flipped
+        pos = np.asarray(pos, dtype=np.float32)
+        if self._mouseInBufferPixels():  # already in framebuffer pixels
+            return pos
+
+        return pos * self.win.getContentScaleFactor()
 
     def _bufferToWindowCoords(self, pos):
-        """OpenGL buffer coordinates to window coordinates.
+        """OpenGL buffer coordinates to window coordinates, as used by
+        `set_mouse_position`.
 
-        This is the inverse of `_windowToBufferCoords`.
+        This is the inverse of `_windowToBufferCoords`, except when pyglet
+        reports mouse positions in framebuffer pixels, since
+        `set_mouse_position` always takes window coordinates.
 
         Parameters
         ----------
@@ -986,14 +1046,26 @@ class PygletBackend(BaseBackend):
     def setMousePos(self, pos):
         """Set/move the position of the mouse on the current window.
 
+        The cursor is moved to the nearest position the operating system
+        supports, see `_nearestCursorPos`.
+
         Parameters
         ----------
         pos : ArrayLike
-            Position `(x, y)` in window coordinates.
+            Position `(x, y)` in PsychoPy pixel coordinates.
 
         """
-        x, y = self._pixToWindowCoords(pos)
-        self.winHandle.set_mouse_position(int(x), int(y))
+        # whole numbers once rounded, `round` removes floating point error
+        x, y = (int(round(v)) for v in
+                self._pixToWindowCoords(self._nearestCursorPos(pos)))
+        self.winHandle.set_mouse_position(x, y)
+
+        # pyglet only records the cursor position on mouse events, so record it
+        # here in the same coordinates for `getMousePos`
+        scale = self.win.getContentScaleFactor() \
+            if self._mouseInBufferPixels() else 1.0
+        self.winHandle._mouse_x = int(round(x * scale))
+        self.winHandle._mouse_y = int(round(y * scale))
 
 
 def _onResize(width, height):

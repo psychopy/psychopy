@@ -249,8 +249,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.dotSize = np.array(dotSize)
         else:
             self.dotSize = dotSize
-        if self.win.useRetina:
-            self.dotSize *= 2  # double dot size to make up for 1/2-size pixels
+        # dot sizes are in 'pix' units, but drawn in framebuffer pixels
+        self.dotSize *= self.win.pixScaleFactor
         self.fieldShape = fieldShape
         self.__dict__['dir'] = dir
         self.speed = speed

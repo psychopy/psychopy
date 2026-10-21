@@ -7,6 +7,8 @@ import json
 import os
 import sys
 import tempfile
+import threading
+import time
 import traceback
 import gevent
 try:
@@ -33,6 +35,42 @@ from psychopy.iohub.util import updateDict, yload, yLoader
 import psychopy.logging as logging
 from psychopy.preferences import prefs
 import atexit
+
+# exit code used when the server is force exited after the psychopy process
+# has exited (see _startOrphanBackstop)
+ORPHAN_EXIT_CODE = 3
+
+
+def _startOrphanBackstop():
+    """Start a daemon thread that force exits this process if it is still
+    running a while after the psychopy process has exited.
+
+    The server normally shuts itself down when the psychopy process exits (see
+    ioServer.checkForPsychopyProcess), this covers the cases where it can't,
+    e.g. a device blocks the event loop or a non-daemon thread never ends.
+    The grace period can be set with the PSYCHOPY_IOHUB_ORPHAN_GRACE
+    environment variable (seconds).
+    """
+    grace = float(os.environ.get('PSYCHOPY_IOHUB_ORPHAN_GRACE', 10.0))
+
+    def backstop():
+        while Computer.isPsychopyProcessAlive():
+            time.sleep(1.0)
+        try:
+            time.sleep(grace)
+            # psychopy.logging and stdout / stderr are not safe to use from
+            # this thread, so write directly to the log file
+            logFilePath = os.path.join(
+                prefs.paths['userPrefsDir'], 'iohub_last_session.log')
+            fd = os.open(logFilePath, os.O_WRONLY | os.O_APPEND | os.O_CREAT)
+            os.write(fd, b"ioHub Server did not shut down after the PsychoPy "
+                         b"process exited, forcing exit.\n")
+            os.close(fd)
+        finally:
+            os._exit(ORPHAN_EXIT_CODE)
+
+    threading.Thread(
+        target=backstop, name='iohubOrphanBackstop', daemon=True).start()
 
 
 def run(rootScriptPathDir, configFilePath):
@@ -125,10 +163,15 @@ def run(rootScriptPathDir, configFilePath):
         else:
             gevent.joinall(glets)
 
+        # the tasklets have finished, make sure the udp service has stopped
+        # too as otherwise it keeps the process alive
+        if not s.udpService.closed:
+            s.udpService.stop()
+
         # Wait for the server to be ready to shutdown
         logging.debug(
             "ioHub Server is SHUTTING DOWN, waiting for tasklets to finish ...")
-        gevent.wait()
+        gevent.wait(timeout=5.0)
 
         lrtime = Computer.global_clock.getLastResetTime()
         # s.log('Server END Time Offset: {0}'.format(lrtime), 'DEBUG')
@@ -183,10 +226,24 @@ if __name__ == '__main__':
         initial_offset = Computer.getTime()
 
     if psychopy_pid:
-        Computer.psychopy_process = psutil.Process(psychopy_pid)
+        try:
+            Computer.psychopy_process = psutil.Process(psychopy_pid)
+        except psutil.NoSuchProcess:
+            # psychopy process has already exited, so don't start the server
+            if configFileName and (os.path.dirname(configFileName)
+                                   == tempfile.gettempdir()):
+                os.remove(configFileName)
+            sys.exit(1)
+        # if started directly by the psychopy process, a change of parent
+        # means the psychopy process has exited (POSIX only, Windows does
+        # not reparent processes)
+        if os.name == 'posix' and os.getppid() == psychopy_pid:
+            Computer.psychopy_process_ppid = psychopy_pid
+        _startOrphanBackstop()
     Computer.global_clock = clock.MonotonicClock(initial_offset)
 
-    run(rootScriptPathDir=scriptPathDir, configFilePath=configFileName)
+    ok = run(rootScriptPathDir=scriptPathDir, configFilePath=configFileName)
+    sys.exit(0 if ok else 1)
 
 
 if __name__ == "__main__":

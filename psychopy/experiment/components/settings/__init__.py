@@ -286,7 +286,7 @@ class SettingsComponent:
             label=_translate("Window backend")
         )        
         self.params['Screen'] = Param(
-            screen, valType='num', inputType="spin", allowedTypes=[],
+            screen, valType='num', inputType="screen", allowedTypes=[],
             hint=_translate("Which physical screen to run on (1 or 2)"),
             label=_translate("Screen"), categ='Screen')
         self.params['Monitor'] = Param(

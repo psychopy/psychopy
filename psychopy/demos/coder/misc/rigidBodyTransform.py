@@ -22,7 +22,8 @@ instr = visual.TextStim(win, text="Any key to quit", pos=(0, -.7))
 # create scene light at the pivot point
 win.lights = [
     LightSource(win, pos=pivotPose.pos, lightType='point',
-                diffuseColor=(0, 0, 0), specularColor=(1, 1, 1))
+                diffuseColor=(0, 0, 0), specularColor=(1, 1, 1),
+                ambientColor=(0, 0, 0))
 ]
 
 # Create poses for objects in the scene, these need to remain unchanged so we

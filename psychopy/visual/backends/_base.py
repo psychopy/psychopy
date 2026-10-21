@@ -13,6 +13,7 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
+import functools
 import weakref
 from abc import ABC, abstractmethod
 
@@ -20,6 +21,38 @@ import numpy as np
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter
 from .. import globalVars
+
+
+def closeOnInitError(init):
+    """Decorator for the `__init__` of a class which opens a native window, so
+    that if `__init__` raises after the window has opened, the window is closed
+    rather than orphaned.
+
+    An orphaned window stays open until the process exits, since nothing holds
+    a reference to it which could close it. A fullscreen one also covers
+    everything else on the screen (on macOS, even the Force Quit dialog), so
+    there may be no way of getting back to the desktop short of a reboot.
+
+    The class must define `_closeAfterFailedInit()`, which closes whatever
+    `__init__` had opened before it raised. The exception `__init__` raised is
+    re-raised once that has been done, and any error closing the window is
+    logged rather than raised in its place.
+
+    """
+    @functools.wraps(init)
+    def wrapper(self, *args, **kwargs):
+        try:
+            init(self, *args, **kwargs)
+        except BaseException:
+            try:
+                self._closeAfterFailedInit()
+            except Exception as err:
+                logging.error(
+                    "Could not close the window of {} after it failed to "
+                    "initialize: {}".format(type(self).__name__, err))
+            raise
+
+    return wrapper
 
 
 class BaseBackend(ABC):
@@ -57,6 +90,18 @@ class BaseBackend(ABC):
         self._onResizeCallback = None
 
         super().__init__()
+
+    def _closeAfterFailedInit(self):
+        """Close the native window, if one had been created, after `__init__`
+        has raised (see `closeOnInitError`).
+
+        The `Window` this backend belongs to can't do this itself, since it
+        never got a reference to the backend.
+        """
+        if getattr(self, 'winHandle', None) is None:
+            return  # failed before the window was created, nothing to close
+
+        self.close()
 
     @abstractmethod
     def swapBuffers(self):
@@ -356,6 +401,32 @@ class BaseBackend(ABC):
         """
         return self._bufferToWindowCoords(
             np.asarray(pos, dtype=np.float32) + self.win.size / 2.0)
+
+    def _nearestCursorPos(self, pos):
+        """Round a position in PsychoPy 'pix' coordinates to the nearest
+        position the mouse cursor can be moved to.
+
+        Operating systems only place the cursor at whole window coordinates
+        (points on high DPI displays). Positions are rounded from the bottom-left
+        corner of the window, so all backends round them the same way regardless
+        of where their window coordinates have their origin.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in PsychoPy pixel coordinates.
+
+        Returns
+        -------
+        ndarray
+            Nearest cursor position `(x, y)` in PsychoPy pixel coordinates.
+
+        """
+        scaleFactor = self.win.getContentScaleFactor()
+        origin = np.asarray(self.win.size, dtype=float) / 2.0
+        winPos = (np.asarray(pos, dtype=float) + origin) / scaleFactor
+
+        return np.floor(winPos + 0.5) * scaleFactor - origin
 
     # --------------------------------------------------------------------------
     # Mouse related methods (e.g., event handlers)

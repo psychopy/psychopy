@@ -55,19 +55,13 @@ _unit2PixMappings['degFlat'] = _degFlat2pix
 def _norm2pix(vertices, pos, win):
     pos = array(pos)
     vertices = array(vertices)
-    if win.useRetina:
-        return (pos + vertices) * win.size / 4.0
-    else:
-        return (pos + vertices) * win.size / 2.0
+    return (pos + vertices) * win.size / (2.0 * win.pixScaleFactor)
 
 _unit2PixMappings['norm'] = _norm2pix
 
 
 def _height2pix(vertices, pos, win):
-    if win.useRetina:
-        return (pos + vertices) * win.size[1] / 2.0
-    else:
-        return (pos + vertices) * win.size[1]
+    return (pos + vertices) * win.size[1] / win.pixScaleFactor
 
 _unit2PixMappings['height'] = _height2pix
 
