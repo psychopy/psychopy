@@ -38,6 +38,21 @@ class TestComponentCompilerJS():
                     # except IOError as err:
                     #     compareTextFiles('new{}.js'.format(compName), correctPath, tolerance=3)
 
+    def test_microphone_pauses_before_finishing(self):
+        """Generated code must pause an active recorder before changing its status."""
+        self.reset_experiment('MicrophoneComponent')
+        self.add_components('MicrophoneComponent')
+        jsFilePath = self.create_component_output('MicrophoneComponent')
+
+        with open(jsFilePath, encoding='utf-8-sig') as jsFile:
+            script = jsFile.read()
+
+        pause = script.index('mic.pause();')
+        finished = script.index(
+            'mic.status = PsychoJS.Status.FINISHED;', pause
+        )
+        assert pause < finished
+
     def reset_experiment(self, compName):
         """Resets the exp object for each component"""
         self.exp = Experiment()  # create once, not every test
@@ -57,3 +72,4 @@ class TestComponentCompilerJS():
         """Create the JS script"""
         jsFilePath = os.path.join(self.temp_dir, 'new{}.js'.format(compName))
         psyexpCompile.compileScript(infile=self.exp, outfile=jsFilePath)
+        return jsFilePath
