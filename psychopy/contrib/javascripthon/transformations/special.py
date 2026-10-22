@@ -352,7 +352,7 @@ AT_PREFIX_RE = re.compile(r'^__([a-zA-Z0-9])')
 INSIDE_DUNDER_RE = re.compile(r'([a-zA-Z0-9])__([a-zA-Z0-9])')
 
 
-GEN_PREFIX_RE = re.compile(r'((?:[a-zA-Z][a-z]+)+)_')
+GEN_PREFIX_RE = re.compile(r'([a-zA-Z][a-z]+(?:[A-Z][a-z]+)*)_')
 SINGLE_WORD_RE = re.compile(r'([A-Z][a-z]+)')
 
 
