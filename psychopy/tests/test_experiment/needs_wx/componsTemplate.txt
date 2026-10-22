@@ -4789,7 +4789,7 @@ ImageComponent.validator.staticUpdater:None
 ImageComponent.validator.updates:None
 ImageComponent.validator.val:
 ImageComponent.validator.valType:code
-JoyButtonsComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns', 'deviceNumber']
+JoyButtonsComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'deviceLabel', 'forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns', 'deviceNumber']
 JoyButtonsComponent.allowedKeys.default:[0,1,2,3,4]
 JoyButtonsComponent.allowedKeys.allowedLabels:[]
 JoyButtonsComponent.allowedKeys.allowedTypes:[]
@@ -4828,19 +4828,38 @@ JoyButtonsComponent.correctAns.staticUpdater:None
 JoyButtonsComponent.correctAns.updates:constant
 JoyButtonsComponent.correctAns.val:
 JoyButtonsComponent.correctAns.valType:list
+JoyButtonsComponent.deviceLabel.default:''
+JoyButtonsComponent.deviceLabel.allowedLabels:[]
+JoyButtonsComponent.deviceLabel.allowedTypes:[]
+JoyButtonsComponent.deviceLabel.allowedUpdates:None
+JoyButtonsComponent.deviceLabel.allowedVals:[<class 'psychopy.experiment.components.joystick.JoystickDeviceBackend'>]
+JoyButtonsComponent.deviceLabel.canBePath:True
+JoyButtonsComponent.deviceLabel.categ:Device
+JoyButtonsComponent.deviceLabel.codeWanted:False
+JoyButtonsComponent.deviceLabel.ctrlParams:{}
+JoyButtonsComponent.deviceLabel.direct:True
+JoyButtonsComponent.deviceLabel.hint:The named device from Device Manager to use for this Component.
+JoyButtonsComponent.deviceLabel.inputType:device
+JoyButtonsComponent.deviceLabel.label:Device
+JoyButtonsComponent.deviceLabel.plugin:None
+JoyButtonsComponent.deviceLabel.readOnly:False
+JoyButtonsComponent.deviceLabel.staticUpdater:None
+JoyButtonsComponent.deviceLabel.updates:None
+JoyButtonsComponent.deviceLabel.val:
+JoyButtonsComponent.deviceLabel.valType:device
 JoyButtonsComponent.deviceNumber.default:0
 JoyButtonsComponent.deviceNumber.allowedLabels:[]
 JoyButtonsComponent.deviceNumber.allowedTypes:[]
 JoyButtonsComponent.deviceNumber.allowedUpdates:[]
 JoyButtonsComponent.deviceNumber.allowedVals:[]
 JoyButtonsComponent.deviceNumber.canBePath:True
-JoyButtonsComponent.deviceNumber.categ:Hardware
+JoyButtonsComponent.deviceNumber.categ:Device
 JoyButtonsComponent.deviceNumber.codeWanted:False
 JoyButtonsComponent.deviceNumber.ctrlParams:{}
 JoyButtonsComponent.deviceNumber.direct:True
-JoyButtonsComponent.deviceNumber.hint:Device number, if you have multiple devices which one do you want (0, 1, 2...)
+JoyButtonsComponent.deviceNumber.hint:Deprecated: index of the joystick to use when no Device is named above. Prefer naming a device in the Device field, which lets the same joystick be shared between Components.
 JoyButtonsComponent.deviceNumber.inputType:int
-JoyButtonsComponent.deviceNumber.label:Device number
+JoyButtonsComponent.deviceNumber.label:Device number (deprecated)
 JoyButtonsComponent.deviceNumber.plugin:None
 JoyButtonsComponent.deviceNumber.readOnly:False
 JoyButtonsComponent.deviceNumber.staticUpdater:None
@@ -4853,7 +4872,7 @@ JoyButtonsComponent.disabled.allowedTypes:[]
 JoyButtonsComponent.disabled.allowedUpdates:None
 JoyButtonsComponent.disabled.allowedVals:[]
 JoyButtonsComponent.disabled.canBePath:True
-JoyButtonsComponent.disabled.categ:Testing
+JoyButtonsComponent.disabled.categ:None
 JoyButtonsComponent.disabled.codeWanted:False
 JoyButtonsComponent.disabled.ctrlParams:{}
 JoyButtonsComponent.disabled.direct:False
@@ -4910,12 +4929,12 @@ JoyButtonsComponent.name.allowedTypes:[]
 JoyButtonsComponent.name.allowedUpdates:None
 JoyButtonsComponent.name.allowedVals:[]
 JoyButtonsComponent.name.canBePath:True
-JoyButtonsComponent.name.categ:Basic
+JoyButtonsComponent.name.categ:None
 JoyButtonsComponent.name.codeWanted:False
 JoyButtonsComponent.name.ctrlParams:{}
 JoyButtonsComponent.name.direct:True
 JoyButtonsComponent.name.hint:Name of this Component (alphanumeric or _, no spaces)
-JoyButtonsComponent.name.inputType:single
+JoyButtonsComponent.name.inputType:name
 JoyButtonsComponent.name.label:Name
 JoyButtonsComponent.name.plugin:None
 JoyButtonsComponent.name.readOnly:False
@@ -5093,7 +5112,7 @@ JoyButtonsComponent.syncScreenRefresh.staticUpdater:None
 JoyButtonsComponent.syncScreenRefresh.updates:constant
 JoyButtonsComponent.syncScreenRefresh.val:True
 JoyButtonsComponent.syncScreenRefresh.valType:bool
-JoystickComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'forceEndRoutine', 'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'allowedButtons', 'deviceNumber']
+JoystickComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'deviceLabel', 'forceEndRoutineOnPress', 'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'allowedButtons', 'deviceNumber']
 JoystickComponent.allowedButtons.default:[]
 JoystickComponent.allowedButtons.allowedLabels:[]
 JoystickComponent.allowedButtons.allowedTypes:[]
@@ -5132,19 +5151,38 @@ JoystickComponent.clickable.staticUpdater:None
 JoystickComponent.clickable.updates:constant
 JoystickComponent.clickable.val:
 JoystickComponent.clickable.valType:list
+JoystickComponent.deviceLabel.default:''
+JoystickComponent.deviceLabel.allowedLabels:[]
+JoystickComponent.deviceLabel.allowedTypes:[]
+JoystickComponent.deviceLabel.allowedUpdates:None
+JoystickComponent.deviceLabel.allowedVals:[<class 'psychopy.experiment.components.joystick.JoystickDeviceBackend'>]
+JoystickComponent.deviceLabel.canBePath:True
+JoystickComponent.deviceLabel.categ:Device
+JoystickComponent.deviceLabel.codeWanted:False
+JoystickComponent.deviceLabel.ctrlParams:{}
+JoystickComponent.deviceLabel.direct:True
+JoystickComponent.deviceLabel.hint:The named device from Device Manager to use for this Component.
+JoystickComponent.deviceLabel.inputType:device
+JoystickComponent.deviceLabel.label:Device
+JoystickComponent.deviceLabel.plugin:None
+JoystickComponent.deviceLabel.readOnly:False
+JoystickComponent.deviceLabel.staticUpdater:None
+JoystickComponent.deviceLabel.updates:None
+JoystickComponent.deviceLabel.val:
+JoystickComponent.deviceLabel.valType:device
 JoystickComponent.deviceNumber.default:0
 JoystickComponent.deviceNumber.allowedLabels:[]
 JoystickComponent.deviceNumber.allowedTypes:[]
 JoystickComponent.deviceNumber.allowedUpdates:[]
 JoystickComponent.deviceNumber.allowedVals:[]
 JoystickComponent.deviceNumber.canBePath:True
-JoystickComponent.deviceNumber.categ:Hardware
+JoystickComponent.deviceNumber.categ:Device
 JoystickComponent.deviceNumber.codeWanted:False
 JoystickComponent.deviceNumber.ctrlParams:{}
 JoystickComponent.deviceNumber.direct:True
-JoystickComponent.deviceNumber.hint:Device number, if you have multiple devices which one do you want (0, 1, 2...)
+JoystickComponent.deviceNumber.hint:Deprecated: index of the joystick to use when no Device is named above. Prefer naming a device in the Device field, which lets the same joystick be shared between Components.
 JoystickComponent.deviceNumber.inputType:single
-JoystickComponent.deviceNumber.label:Device number
+JoystickComponent.deviceNumber.label:Device number (deprecated)
 JoystickComponent.deviceNumber.plugin:None
 JoystickComponent.deviceNumber.readOnly:False
 JoystickComponent.deviceNumber.staticUpdater:None
@@ -5157,7 +5195,7 @@ JoystickComponent.disabled.allowedTypes:[]
 JoystickComponent.disabled.allowedUpdates:None
 JoystickComponent.disabled.allowedVals:[]
 JoystickComponent.disabled.canBePath:True
-JoystickComponent.disabled.categ:Testing
+JoystickComponent.disabled.categ:None
 JoystickComponent.disabled.codeWanted:False
 JoystickComponent.disabled.ctrlParams:{}
 JoystickComponent.disabled.direct:False
@@ -5214,12 +5252,12 @@ JoystickComponent.name.allowedTypes:[]
 JoystickComponent.name.allowedUpdates:None
 JoystickComponent.name.allowedVals:[]
 JoystickComponent.name.canBePath:True
-JoystickComponent.name.categ:Basic
+JoystickComponent.name.categ:None
 JoystickComponent.name.codeWanted:False
 JoystickComponent.name.ctrlParams:{}
 JoystickComponent.name.direct:True
 JoystickComponent.name.hint:Name of this Component (alphanumeric or _, no spaces)
-JoystickComponent.name.inputType:single
+JoystickComponent.name.inputType:name
 JoystickComponent.name.label:Name
 JoystickComponent.name.plugin:None
 JoystickComponent.name.readOnly:False
@@ -5407,7 +5445,7 @@ JoystickComponent.timeRelativeTo.categ:Data
 JoystickComponent.timeRelativeTo.codeWanted:False
 JoystickComponent.timeRelativeTo.ctrlParams:{}
 JoystickComponent.timeRelativeTo.direct:False
-JoystickComponent.timeRelativeTo.hint:What should the values of joystick.time should be relative to?
+JoystickComponent.timeRelativeTo.hint:What should the values of joystick.time be relative to?
 JoystickComponent.timeRelativeTo.inputType:choice
 JoystickComponent.timeRelativeTo.label:Time relative to
 JoystickComponent.timeRelativeTo.plugin:None
