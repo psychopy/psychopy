@@ -74,7 +74,8 @@ farsiText = visual.TextBox2(
     win,
     text='Farsi text: \n \u200E خوش آمدید 1999',
     color="FireBrick",
-    font="Noto Sans Arabic", 
+    font="Noto Sans Arabic",
+    languageStyle="Arabic",
     letterHeight=0.03, 
     size=(0.3, 0.2), 
     pos=(-0.3, 0.4)
