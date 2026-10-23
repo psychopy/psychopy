@@ -9,13 +9,14 @@ Created on Mon Jan 07 11:18:51 2013
 import numpy as np
 from weakref import proxy
 from psychopy import core
-from pyglet.gl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
+from psychopy.tools.pygletgl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
                        glTranslatef, glColor4f, glLineWidth, glBegin,
                        GL_LINES, glEndList, glDeleteLists, GL_COMPILE, glEnd,
                        GL_TEXTURE0, GL_TEXTURE_2D, GL_TEXTURE_ENV,
                        GL_TEXTURE_ENV_MODE, GL_MODULATE, GL_UNSIGNED_INT,
                        glPopMatrix, glBindTexture, glActiveTexture, glTexEnvf,
                        glPushMatrix, glCallLists, glVertex2i)
+from psychopy.visual.helpers import callOnGLThread
 from . import parsedtext
 getTime = core.getTime
 
@@ -267,6 +268,19 @@ class TextGrid:
             # etime=getTime()
 
     def __del__(self):
+        # the garbage collector may be running on any thread, so the display
+        # list is freed on the one with the window's OpenGL context
+        try:
+            win = self._text_box.getWindow()
+        except (ReferenceError, AttributeError):
+            win = None  # the text box has gone already
+        try:
+            callOnGLThread(win, self._freeGLObjects)
+        except (ModuleNotFoundError, ImportError, TypeError):
+            pass  # probably shutting down
+
+    def _freeGLObjects(self):
+        """Free the text and its display list, see `__del__`."""
         try:
             self._text_document._free()
             del self._text_document

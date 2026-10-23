@@ -11,13 +11,18 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
     Test that images render as expected. Note: In BaseVisual tests, image colors will look different than
     seems intuitive as foreColor will be set to `"blue"`.
     """
-    def setup_method(self):
-        self.win = visual.Window()
+    def setup_method(self, method):
+        # name the window after the test, so it's clear which one is running
+        self.win = visual.Window(
+            title=f"{type(self).__name__}::{method.__name__}")
         self.obj = visual.ImageStim(
             self.win,
             str(Path(utils.TESTS_DATA_PATH) / 'testimage.jpg'),
             colorSpace='rgb1',
         )
+
+    def teardown_method(self):
+        self.win.close()
 
     def test_anchor_flip(self):
         """
@@ -44,6 +49,141 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
         self.obj.draw()
         # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / "test_image_flip_anchor_horiz.png")
         utils.compareScreenshot("test_image_flip_anchor_horiz.png", self.win, crit=7)
+
+    def test_image_data(self):
+        """
+        Check that texture memory can be read and written through `.imageData`
+        """
+        import numpy as np
+
+        # texture of a known size and value so changes are easy to spot
+        self.obj.image = np.zeros((16, 32, 3), dtype=float)
+
+        imageData = self.obj.imageData
+        assert imageData is not None
+        assert imageData.shape == (16, 32, 3)
+        assert np.abs(imageData).max() == 0
+
+        # the same mapping comes back until it is released, whether it's
+        # reached through the property or the method behind it
+        assert self.obj.imageData is imageData
+        assert self.obj.mapImageData() is imageData
+
+        # mapping and unmapping explicitly round-trips the same way
+        assert self.obj.unmapImageData() is True
+        assert self.obj.unmapImageData() is False  # nothing left mapped
+        remapped = self.obj.mapImageData()
+        assert remapped is not imageData
+        assert remapped.shape == (16, 32, 3)
+        imageData = remapped
+
+        # writes survive being pushed to the texture and read back
+        imageData[4:8, :, 1] = 1.
+        self.obj.draw()
+        self.win.flip()
+        readback = self.obj.imageData
+        assert readback is not imageData
+        assert (readback[4:8, :, 1] == 1.).all()
+        assert (readback[8:, :, 1] == 0.).all()
+
+        # assigning to the property writes the whole array through
+        self.obj.imageData = np.ones((16, 32, 3), dtype=np.float32) * 0.5
+        assert (self.obj.imageData == 0.5).all()
+
+        # the mask has its own storage, it mustn't overwrite the image
+        self.obj.mask = "gauss"
+        assert self.obj.imageData.shape == (16, 32, 3)
+        assert (self.obj.imageData == 0.5).all()
+        self.obj.mask = None
+
+        # a new image replaces the mapping rather than reusing the old one
+        self.obj.image = str(Path(utils.TESTS_DATA_PATH) / 'testimage.jpg')
+        assert self.obj.imageData.shape[:2] != (16, 32)
+
+        # nothing to map when there's no texture of our own
+        self.obj.image = None
+        assert self.obj.imageData is None
+        assert self.obj.mapImageData() is None
+        with pytest.raises(AttributeError):
+            self.obj.imageData = np.zeros((16, 32, 3))
+
+    def test_mask_data(self):
+        """
+        Check that mask texture memory can be read and written through
+        `.maskData`
+        """
+        import numpy as np
+
+        self.obj.image = np.zeros((16, 32, 3), dtype=float)
+        self.obj.texRes = 64
+        self.obj.mask = "circle"
+
+        maskData = self.obj.maskData
+        assert maskData is not None
+        assert maskData.shape == (64, 64)
+        assert maskData.dtype == np.uint8
+        # a circle is opaque in the middle and transparent in the corners
+        assert maskData[32, 32] == 255
+        assert maskData[0, 0] == 0
+
+        # the same mapping comes back until it is released
+        assert self.obj.maskData is maskData
+        assert self.obj.mapMaskData() is maskData
+        assert self.obj.unmapMaskData() is True
+        assert self.obj.unmapMaskData() is False  # nothing left mapped
+        maskData = self.obj.mapMaskData()
+
+        # mapping the mask and image at once keeps them apart
+        imageData = self.obj.imageData
+        assert imageData.shape == (16, 32, 3)
+        imageData[:] = 0.5
+
+        # writes survive being pushed to the texture and read back
+        maskData[:32, :] = 0
+        self.obj.draw()
+        self.win.flip()
+        readback = self.obj.maskData
+        assert readback is not maskData
+        assert (readback[:32, :] == 0).all()
+        assert readback[48, 32] == 255
+        assert (self.obj.imageData == 0.5).all()
+
+        # assigning to the property writes the whole array through
+        self.obj.maskData = np.full((64, 64), 128, dtype=np.uint8)
+        assert (self.obj.maskData == 128).all()
+
+        # regenerating the mask replaces the mapping and the edits
+        self.obj.texRes = 32
+        assert self.obj.maskData.shape == (32, 32)
+        assert self.obj.maskData[0, 0] == 0
+
+        # a mask of None is a single opaque pixel
+        self.obj.mask = None
+        assert self.obj.maskData.shape == (1, 1)
+        assert self.obj.maskData[0, 0] == 255
+
+        # changing the image doesn't disturb the mask
+        self.obj.image = None
+        assert self.obj.imageData is None
+        assert self.obj.maskData.shape == (1, 1)
+
+    def test_greyscale_image_mask(self):
+        """
+        Check that a greyscale image used as a mask ends up in the texture as
+        the bytes it started as, rather than as the floats it is loaded as
+        """
+        import numpy as np
+        from PIL import Image
+
+        # every byte value, so any loss in the conversion would show
+        gradient = np.arange(256, dtype=np.uint8).reshape(8, 32)
+        for mode in ('L', 'RGB'):
+            im = Image.fromarray(gradient).convert(mode)
+            self.obj.mask = im
+            maskData = self.obj.maskData
+            assert maskData.dtype == np.uint8
+            # rows are flipped since row 0 is the bottom in OpenGL
+            assert (maskData == gradient[::-1]).all(), mode
 
     def test_aspect_ratio(self):
         """
@@ -124,7 +264,8 @@ class TestImageAnimation:
         for i, case in enumerate(cls.cases):
             size = case['size']
             # Create window and shapes
-            win = visual.Window(size=(size, size), color='purple')
+            win = visual.Window(size=(size, size), color='purple',
+                                title=f"{cls.__name__}::setup_class")
             shape1 = visual.ShapeStim(win,
                                       pos=(0.2, 0.2), size=(0.5, 0.5),
                                       lineWidth=size * 0.1,
@@ -181,6 +322,10 @@ class TestImageAnimation:
             # Update case
             cls.cases[i]['frames'] = frames
 
+    def setup_method(self, method):
+        # name windows after the test, so it's clear which one is running
+        self.testName = f"{type(self).__name__}::{method.__name__}"
+
     def test_fps(self):
         """
         Check that images can be updated sufficiently fast to create frame animations
@@ -194,7 +339,7 @@ class TestImageAnimation:
         for case in self.cases:
             size = case['size']
             # Make window and image
-            win = visual.Window(size=(size, size))
+            win = visual.Window(size=(size, size), title=self.testName)
             img = visual.ImageStim(win, units='pix', size=(size, size))
             # Iterate through frames
             refr = []

@@ -233,7 +233,7 @@ class EyeTrackerDevice(Device):
 
         return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
 
-    def runSetupProcedure(self, calibration_args={}):
+    def runSetupProcedure(self, calibration_args=None):
         """
         The runSetupProcedure method starts the eye tracker calibration
         routine. If calibration_args are provided, they should be used to

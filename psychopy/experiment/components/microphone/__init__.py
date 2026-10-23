@@ -11,10 +11,15 @@ from pathlib import Path
 from psychopy import logging
 from psychopy.alerts import alert
 from psychopy.experiment.devices import DeviceBackend
-from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, getInitVals, _translate
 )
+
+
+def getAudioCodecs():
+    from psychopy.tools import audiotools
+
+    return ["default"] + audiotools.AUDIO_SUPPORTED_CODECS
 
 
 class MicrophoneComponent(BaseDeviceComponent):
@@ -93,7 +98,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
             outputType, valType='code', inputType='choice', categ='Data',
-            allowedVals=["default"] + at.AUDIO_SUPPORTED_CODECS,
+            allowedVals=getAudioCodecs,
             hint=msg,
             label=_translate("Output file type")
         )

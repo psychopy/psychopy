@@ -8,6 +8,11 @@ from .. import Device, Computer
 from ...constants import DeviceConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
 import pyglet
+# `pyglet.canvas` was renamed `pyglet.display` in pyglet 2.1
+if pyglet.version < '2.1':
+    import pyglet.canvas as pyglet_display
+else:
+    import pyglet.display as pyglet_display
 currentSec = Computer.getTime
 
 class Display(Device):
@@ -481,17 +486,17 @@ class Display(Device):
     def _createAllRuntimeInfoDicts(cls):
         runtime_info_list = []
         try:
-            default_screen = pyglet.canvas.get_display().get_default_screen()
+            default_screen = pyglet_display.get_display().get_default_screen()
             dx, dy = default_screen.x, default_screen.y
             dw, dh = default_screen.width, default_screen.height
             dbounds = (dx, dy, dx + dw, dy + dh)
             is_zaphod = False
             if sys.platform.startswith('linux'):
                 pyglet_screens = []
-                from pyglet.canvas.xlib import NoSuchDisplayException
+                NoSuchDisplayException = pyglet_display.xlib.NoSuchDisplayException
                 try:
                     # test whether it's a Zaphodhead setup
-                    display = pyglet.canvas.Display(x_screen=1)
+                    display = pyglet_display.Display(x_screen=1)
                     is_zaphod = True
                 except NoSuchDisplayException:
                     pass
@@ -501,13 +506,13 @@ class Display(Device):
                 # make an assumption that no nested Xinerama-within-Zaphodhead
                 while True:
                     try:
-                        display = pyglet.canvas.Display(x_screen=screen_count)
+                        display = pyglet_display.Display(x_screen=screen_count)
                         pyglet_screens.append(display.get_default_screen())
                         screen_count += 1
                     except NoSuchDisplayException:
                         break
             else:
-                pyglet_screens = pyglet.canvas.get_display().get_screens()
+                pyglet_screens = pyglet_display.get_display().get_screens()
             display_count = len(pyglet_screens)
             for i in range(display_count):
                 d = pyglet_screens[i]

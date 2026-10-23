@@ -8,13 +8,7 @@
 import ast
 import sys
 import re
-
-try:
-    from metapensiero.pj.api import translates
-except ImportError:
-    translates = None # metapensiero not installed
-
-import astunparse
+from psychopy.contrib.javascripthon import translates
 
 
 namesJS = {
@@ -129,7 +123,8 @@ class pythonTransformer(ast.NodeTransformer):
         # formatted strings with %
         # note: we have extended the pythong syntax slightly, to accommodate both tuples and lists
         # so both '%_%' % (1,2) and '%_%' % [1,2] are successfully transpiled
-        if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
+        if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Constant) \
+                and isinstance(node.left.value, str):
             # transform the node into an f-string node:
             stringFormat = node.left.value
             stringTuple = node.right.elts if (
@@ -169,10 +164,10 @@ class pythonTransformer(ast.NodeTransformer):
 
         # formatted f-strings:
         if isinstance(node.format_spec, ast.JoinedStr) and len(node.format_spec.values) > 0 and isinstance(
-                node.format_spec.values[0], ast.Str):
+                node.format_spec.values[0], ast.Constant) and isinstance(node.format_spec.values[0].value, str):
 
             # split the format:
-            format = node.format_spec.values[0].s
+            format = node.format_spec.values[0].value
             match = re.search(r"([0-9]*).([0-9]+)(f|i)", format)
             if not match:
                 raise Exception(format + ' format is not currently supported')
@@ -273,8 +268,8 @@ class pythonTransformer(ast.NodeTransformer):
                 return utilNode
 
         # string.format(args):
-        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value,
-                                                               ast.Str) and node.func.attr == 'format':
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Constant) \
+                and isinstance(node.func.value.value, str) and node.func.attr == 'format':
             raise Exception('format() is not supported at the moment, please use f-strings instead')
 
         # return the node by default:
@@ -580,7 +575,7 @@ def translatePythonToJavaScript(psychoPyCode, namespace=[]):
 
     # turn the transformed AST into code:
     try:
-        transformedPsychoPyCode = astunparse.unparse(transformedAstNode)
+        transformedPsychoPyCode = ast.unparse(transformedAstNode)
     # print('>>> transformed PsychoPy code:\n' + transformedPsychoPyCode)
     except Exception as error:
         raise Exception('unable to turn the transformed abstract syntax tree back into code: ' + str(error))

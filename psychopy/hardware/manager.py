@@ -178,6 +178,38 @@ class DeviceManager:
         return cls
 
     @staticmethod
+    def _resolveInstanceClass(deviceClass):
+        """
+        Get the class which devices of a given type are instances of, for checking a device's type.
+
+        Some device classes, such as `MicrophoneDevice`, don't make instances of themselves: they
+        hand back a device from whichever backend is selected, and the backend classes don't
+        inherit from them. For these, the selected backend's class (from `resolveBackend`) is used.
+
+        Parameters
+        ----------
+        deviceClass : str or type
+            Full import path for the class, in PsychoPy, of the device, or the class itself.
+
+        Returns
+        -------
+        type
+            Class which devices of this type are instances of
+        """
+        cls = DeviceManager._resolveClassString(deviceClass)
+        if hasattr(cls, "resolveBackend"):
+            try:
+                backend = cls.resolveBackend()
+            except ImportError:
+                # if no backend can be loaded, no devices of this type can exist
+                return cls
+            # only device backends are classes (e.g. sound.Sound resolves to a module)
+            if isinstance(backend, type):
+                cls = backend
+
+        return cls
+
+    @staticmethod
     def activatePlugins(which="all"):
         """
         Activate plugins, allowing them to be imported from PsychoPy and making device backends
@@ -534,7 +566,7 @@ class DeviceManager:
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
-        cls = DeviceManager._resolveClassString(deviceClass)
+        cls = DeviceManager._resolveInstanceClass(deviceClass)
         # assess whether device matches class
         return isinstance(device, cls)
 
@@ -615,7 +647,7 @@ class DeviceManager:
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get actual device class from class str
-        cls = DeviceManager._resolveClassString(deviceClass)
+        cls = DeviceManager._resolveInstanceClass(deviceClass)
 
         foundDevices = {}
         # iterate through devices and names
@@ -887,8 +919,12 @@ class DeviceManager:
             Number of screens
         """
         import pyglet
-        # get screens
-        display = pyglet.canvas.Display()
+        # get screens (`pyglet.canvas` was renamed `pyglet.display` in 2.1)
+        if pyglet.version < '2.1':
+            import pyglet.canvas as pyglet_display
+        else:
+            import pyglet.display as pyglet_display
+        display = pyglet_display.Display()
         allScrs = display.get_screens()
 
         return len(allScrs)

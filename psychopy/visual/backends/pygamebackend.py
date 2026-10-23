@@ -17,14 +17,14 @@ import os
 import sys
 import pygame
 from abc import abstractmethod
-from ._base import BaseBackend
+from ._base import BaseBackend, closeOnInitError
 import psychopy
 from psychopy import core
 from psychopy.tools.attributetools import attributeSetter
 
 try:
     import pyglet
-    GL = pyglet.gl
+    import psychopy.tools.pygletgl as GL
 except ImportError:
     import OpenGL
     GL = OpenGL
@@ -36,6 +36,7 @@ class PygameBackend(BaseBackend):
     GL = GL
     winTypeName = 'pygame'
 
+    @closeOnInitError
     def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 

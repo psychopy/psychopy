@@ -12,9 +12,10 @@ translation _translate():
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from .translation import setLocale, getLocale, _translate
+from .translation import localedir, setLocale, getLocale, _translate
 
 __all__ = [
+    "localedir",
     "getLocale",
     "setLocale",
     "_translate"

@@ -50,13 +50,13 @@ class TestOpenOutputFile():
         with openOutputFile(self.baseFileName) as f:
             assert f.encoding == 'utf-8-sig'
             assert f.closed is False
-            assert f.stream.mode == 'wb'
+            assert f.mode == 'w'
 
     def test_append(self):
         with openOutputFile(self.baseFileName, append=True) as f:
             assert f.encoding == 'utf-8-sig'
             assert f.closed is False
-            assert f.stream.mode == 'ab'
+            assert f.mode == 'a'
 
     def test_stdout(self):
         f = openOutputFile(None)

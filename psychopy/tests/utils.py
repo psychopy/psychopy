@@ -119,6 +119,39 @@ def checkSyntax(exp, targets=("PsychoPy", "PsychoJS")):
             raise SyntaxError(err.message)
 
 
+def _getBackBuffer(win):
+    """Get the current back buffer of the given window as an image."""
+    win.getMovieFrame(buffer='back')
+    frame = win.movieFrames[-1]
+    win.movieFrames = []
+
+    return frame
+
+
+def _saveExemplar(frame, fileName, win):
+    """Save a frame from the given window as an exemplar for screenshot tests.
+
+    Exemplars are stored in client (window) pixels, but on a high-DPI display
+    the framebuffer is bigger than that, so the frame is scaled down to the
+    window's client size first.
+    """
+    clientSize = tuple(int(s) for s in win.clientSize)
+    if frame.size != clientSize:
+        frame = frame.resize(clientSize, resample=Image.Resampling.LANCZOS)
+    frame.save(fileName, optimize=1)
+
+
+def saveScreenshot(fileName, win):
+    """Save the current back buffer of the given window as an exemplar
+
+    The file is written as `compareScreenshot` would write it, so it can be
+    compared against later on. Relative paths are taken as being relative to
+    TESTS_DATA_PATH.
+    """
+    fileName = pjoin(TESTS_DATA_PATH, fileName)
+    _saveExemplar(_getBackBuffer(win), fileName, win)
+
+
 def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
 
@@ -129,17 +162,13 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
     #if we start this from a folder below run.py the data folder won't be found
     fileName = pjoin(TESTS_DATA_PATH, fileName)
     #get the frame from the window
-    win.getMovieFrame(buffer='back')
-    frame=win.movieFrames[-1]
-    win.movieFrames=[]
+    frame = _getBackBuffer(win)
     # exemplars are stored in client (window) pixels, but on a high-DPI display
     # the framebuffer we just grabbed is bigger than that
     clientSize = tuple(int(s) for s in win.clientSize)
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
-        if frame.size != clientSize:
-            frame = frame.resize(clientSize, resample=Image.Resampling.LANCZOS)
-        frame.save(fileName, optimize=1)
+        _saveExemplar(frame, fileName, win)
         pytest.skip("Created %s" % basename(fileName))
     else:
         expected = Image.open(fileName)
@@ -155,8 +184,11 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
             # high-DPI display, bring the framebuffer down to client pixels
             frame = frame.resize(expected.size, resample=Image.Resampling.LANCZOS)
             crit += 5  # be more relaxed because of the interpolation
-        expDat = np.array(expected.getdata())
-        imgDat = np.array(frame.getdata())
+        # as floats, so the difference below doesn't wrap around like uint8
+        # would, and read straight from the image buffers since going through
+        # `getdata()` builds a Python tuple for every pixel, which is slow
+        expDat = np.asarray(expected, dtype=float)
+        imgDat = np.asarray(frame, dtype=float)
         rms = np.std(imgDat-expDat)
         localFileName, exemplarFileName = getFailFilenames(fileName, tag=tag)
         if rms >= crit/2:
@@ -380,3 +412,60 @@ def forceBool(value, handler=any):
         value = handler(value)
 
     return value
+
+def profiledImport(ref, maxtime=None, notouch=None):
+    """
+    Import a class/method from a given reference, asserting that it doesn't take longer than a 
+    given time to import and that it doesn't touch any of a set of modules.
+
+    Parameters
+    ----------
+    ref : str
+        Module to import (an import path which can be passed to importlib.import_module)
+    maxtime : float
+        Maximum allowed time (s) for import
+    notouch : str
+        Modules which importing this module shouldn't touch
+    """
+    import cProfile
+    import importlib
+    import time
+    import os
+
+    # default for notouch
+    if notouch is None:
+        notouch = []
+    # setup a profiler
+    pr = cProfile.Profile()
+    # start a timer
+    start = time.time()
+    # start profiling
+    pr.enable()
+    try:
+        # import module
+        importlib.import_module(ref)
+        # stop profiling
+        pr.disable()
+    except:
+        # if anything fails, stop the profiler
+        pr.disable()
+    # generate stats
+    pr.create_stats()
+    # get time taken
+    duration = time.time() - start 
+    # check that total time is acceptable...
+    if maxtime is not None:
+        assert duration < maxtime, f"Importing module {ref} took longer than allowed ({duration}s > {maxtime}s)"
+    # iterate through all calls from the profile...
+    for key, val in pr.stats.items():
+        # parse information
+        file, lineno, func = key
+        cumCalls, nCalls, totalDuration, cumTime, subcalls = val
+        # was this call to a module we shouldn't have touched?
+        for mod in notouch:
+            msg = f"Importing module {ref} imports module {mod} when it shouldn't."
+            assert mod.replace(".", os.sep) not in file, msg
+            # did any subsequent calls touch a module they shouldn't have?
+            for call in subcalls:
+                subfile, line, subfunc = call
+                assert mod.replace(".", os.sep) not in subfile, msg

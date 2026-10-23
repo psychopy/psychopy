@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Creates a Circle with a given radius
-as a special case of a :class:`~psychopy.visual.Polygon`
+"""Creates a Circle as a special case of a :class:`~psychopy.visual.Polygon`
 """
 
 # Part of the PsychoPy library
@@ -88,18 +87,11 @@ class Circle(Polygon):
     colorSpace : str
         Sets the colorspace, changing how values passed to `lineColor` and
         `fillColor` are interpreted.
-
-    Attributes
-    ----------
-    radius : float or int
-        Radius of the shape. Avoid using `size` for adjusting figure dimensions
-        if radius != 0.5 which will result in undefined behavior.
-
     """
 
     def __init__(self,
                  win,
-                 radius=.5,
+                 radius=None,
                  edges="circle",
                  units='',
                  lineWidth=1.5,

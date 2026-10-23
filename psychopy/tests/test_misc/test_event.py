@@ -14,6 +14,7 @@ except Exception:
 import pytest
 import copy
 import threading
+import time
 import numpy as np
 from psychopy.tests import skip_under_vm
 
@@ -34,7 +35,9 @@ class DelayedFakeKeys(threading.Thread):
         self.delay = delay
 
     def run(self):
-        core.wait(self.delay)
+        # don't use `core.wait()`, it dispatches window events which must only
+        # be done on the main thread
+        time.sleep(self.delay)
         [event._onPygletKey(key, modifiers=self.modifiers, emulated=True)
          for key in self.keys]
 
@@ -50,7 +53,9 @@ class DelayedAddFakeKeysToBuffer(threading.Thread):
         self.delay = delay
 
     def run(self):
-        core.wait(self.delay)
+        # don't use `core.wait()`, it dispatches window events which must only
+        # be done on the main thread
+        time.sleep(self.delay)
         fake_events = [(key, self.modifiers, -1) for key in self.keys]
         event._keyBuffer.extend(fake_events)
 
@@ -78,6 +83,50 @@ class _baseTest():
                 assert m.units == 'norm'
                 m.setPos((0,0))
                 m.getPos()
+
+    def test_mouse_pos_from_pyglet(self):
+        """Check `getPos` converts the cursor position pyglet stores. These
+        differ on high DPI (e.g. Retina) displays depending on the version of
+        pyglet.
+        """
+        if self.win.winType != 'pyglet':
+            pytest.skip()
+
+        m = event.Mouse(win=self.win)
+        handle = self.win.winHandle
+
+        # Since pyglet 2.1 the cursor position is stored in framebuffer pixels
+        # (unless DPI scaling is 'stretch'), before that in window coordinates
+        dpiScaling = getattr(pyglet.options, 'dpi_scaling', None)
+        if dpiScaling is not None and dpiScaling != 'stretch':
+            bufferToStored = 1.0
+        else:
+            bufferToStored = 1.0 / self.win.getContentScaleFactor()
+
+        w, h = self.win.size  # framebuffer pixels
+        # fraction of the way across and up the window, and position in 'norm'
+        for frac, expected in [((.5, .5), (0., 0.)),
+                               ((.75, .75), (.5, .5)),
+                               ((0., 0.), (-1., -1.))]:
+            handle._mouse_x = int(frac[0] * w * bufferToStored)
+            handle._mouse_y = int(frac[1] * h * bufferToStored)
+            assert np.allclose(m.getPos(), expected), frac
+
+    def test_mouse_setPos_getPos(self):
+        """Check the position set with `setPos` is returned by `getPos`."""
+        if self.win.winType == 'pygame':
+            pytest.skip()  # pygame.setVisible errors
+
+        m = event.Mouse(win=self.win)
+        try:
+            for units, positions in [('norm', [(0., 0.), (.5, -.25), (-.75, .5)]),
+                                     ('pix', [(0., 0.), (20., -10.), (-30., 16.)])]:
+                self.win.units = units
+                for pos in positions:
+                    m.setPos(pos)
+                    assert np.allclose(m.getPos(), pos), (units, pos)
+        finally:
+            self.win.units = 'norm'
 
     def test_emulated_mouse(self):
         mouse = event.Mouse()  # real mouse
@@ -265,8 +314,15 @@ class _baseTest():
         if not s.contains(m.getPos()):
             pytest.skip()  # or can't test
 
+        prevButtons = event.mouseButtons
         event.mouseButtons = [1, 1, 1]
-        assert m.isPressedIn(s)
+        try:
+            assert m.isPressedIn(s)
+        finally:
+            # the buttons would otherwise stay held down for the rest of the
+            # session, so anything which reads the mouse (e.g. Slider.draw)
+            # would respond to a click
+            event.mouseButtons = prevButtons
 
     # obsolete?
     # m._pix2windowUnits()
@@ -293,6 +349,40 @@ class TestPygletNorm(_baseTest):
         self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
         if havePygame:
             assert pygame.display.get_init() == 0
+
+
+@pytest.mark.event
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+@pytest.mark.parametrize('winType', ['pyglet', 'glfw'])
+def test_mouse_setPos_nearest_point(winType):
+    """Check `setPos` moves the cursor to the nearest whole point, which
+    `getPos` returns, and that both backends round the same way."""
+    if winType == 'glfw':
+        pytest.importorskip('glfw')
+
+    win = Window([128, 128], winType=winType, units='pix', pos=[50, 50],
+                 allowGUI=False, autoLog=False)
+    try:
+        m = event.Mouse(win=win)
+        # 'pix' units are window coordinates (points on retina displays)
+        for pos, expected in [((20.4, -10.6), (20., -11.)),
+                              ((-30.6, 16.4), (-31., 16.)),
+                              ((.25, -.25), (0., 0.))]:
+            m.setPos(pos)
+            assert np.allclose(m.getPos(), expected), pos
+
+            # the backends take framebuffer pixels
+            scale = win.getContentScaleFactor()
+            win.backend.setMousePos(np.multiply(pos, scale))
+            assert np.allclose(
+                win.backend.getMousePos(), np.multiply(expected, scale)), pos
+
+        # the window is 64 points from the center to the edge
+        win.units = 'norm'
+        m.setPos((.3, -.7))
+        assert np.allclose(m.getPos(), (19. / 64, -45. / 64))
+    finally:
+        win.close()
 
 
 class xxxTestPygameNorm(_baseTest):

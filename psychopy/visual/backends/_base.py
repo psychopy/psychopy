@@ -13,12 +13,46 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
+import functools
 import weakref
 from abc import ABC, abstractmethod
 
 import numpy as np
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter
+from .. import globalVars
+
+
+def closeOnInitError(init):
+    """Decorator for the `__init__` of a class which opens a native window, so
+    that if `__init__` raises after the window has opened, the window is closed
+    rather than orphaned.
+
+    An orphaned window stays open until the process exits, since nothing holds
+    a reference to it which could close it. A fullscreen one also covers
+    everything else on the screen (on macOS, even the Force Quit dialog), so
+    there may be no way of getting back to the desktop short of a reboot.
+
+    The class must define `_closeAfterFailedInit()`, which closes whatever
+    `__init__` had opened before it raised. The exception `__init__` raised is
+    re-raised once that has been done, and any error closing the window is
+    logged rather than raised in its place.
+
+    """
+    @functools.wraps(init)
+    def wrapper(self, *args, **kwargs):
+        try:
+            init(self, *args, **kwargs)
+        except BaseException:
+            try:
+                self._closeAfterFailedInit()
+            except Exception as err:
+                logging.error(
+                    "Could not close the window of {} after it failed to "
+                    "initialize: {}".format(type(self).__name__, err))
+            raise
+
+    return wrapper
 
 
 class BaseBackend(ABC):
@@ -57,6 +91,18 @@ class BaseBackend(ABC):
 
         super().__init__()
 
+    def _closeAfterFailedInit(self):
+        """Close the native window, if one had been created, after `__init__`
+        has raised (see `closeOnInitError`).
+
+        The `Window` this backend belongs to can't do this itself, since it
+        never got a reference to the backend.
+        """
+        if getattr(self, 'winHandle', None) is None:
+            return  # failed before the window was created, nothing to close
+
+        self.close()
+
     @abstractmethod
     def swapBuffers(self):
         """Set the gamma table for the graphics card
@@ -71,6 +117,29 @@ class BaseBackend(ABC):
         where 2 windows are permitted, e.g. not pygame)
         """
         pass
+
+    def getFutureFlipTimestamp(self):
+        """The display system's own prediction of when the next buffer swap
+        will actually be presented on screen, if the backend/platform can
+        provide one.
+
+        This is distinct from simply extrapolating from the time of the last
+        `swapBuffers()` call: on platforms where window content passes
+        through a compositor with its own (possibly multi-frame) buffering
+        pipeline - such as macOS, where OpenGL windows are composited via
+        the WindowServer - the compositor knows its actual queue depth and
+        can predict the true presentation time more accurately than the
+        application can by simply assuming one frame period of latency.
+
+        Returns
+        -------
+        float or None
+            Predicted presentation timestamp, in the same raw timebase as
+            :func:`psychopy.clock.getTime`, or ``None`` if this backend has
+            no such prediction available (the default).
+
+        """
+        return None
 
     @attributeSetter
     def gamma(self, gamma):
@@ -170,6 +239,40 @@ class BaseBackend(ABC):
 
         if self._onMoveCallback is not None:
             self._onMoveCallback(self.win, posX, posY)
+
+    def _makeOpenWindowCurrent(self):
+        """Make another open window's context current after this one has been
+        closed.
+
+        Closing a window may leave no context current, or another one than
+        `globalVars.currWindow` says (e.g., Pyglet's shadow window). This makes
+        the window which was current before closing current again if it's still
+        open, otherwise the first open window.
+
+        Returns
+        -------
+        bool
+            `True` if a window was made current, `False` if there are no other
+            open windows.
+
+        """
+        from psychopy.visual.window import openWindows
+        remaining = [w for w in openWindows.getOpen() if w.backend is not self]
+        if not remaining:
+            globalVars.currWindow = None
+            return False
+
+        # `currWindow` may be set to either a window or its backend
+        lastCurrent = globalVars.currWindow
+        nextWin = next(
+            (w for w in remaining
+             if lastCurrent is w or lastCurrent is w.backend),
+            remaining[0])
+
+        globalVars.currWindow = None  # force the switch
+        nextWin._setCurrent()
+
+        return True
 
     # Helper methods that don't need converting
 
@@ -298,6 +401,32 @@ class BaseBackend(ABC):
         """
         return self._bufferToWindowCoords(
             np.asarray(pos, dtype=np.float32) + self.win.size / 2.0)
+
+    def _nearestCursorPos(self, pos):
+        """Round a position in PsychoPy 'pix' coordinates to the nearest
+        position the mouse cursor can be moved to.
+
+        Operating systems only place the cursor at whole window coordinates
+        (points on high DPI displays). Positions are rounded from the bottom-left
+        corner of the window, so all backends round them the same way regardless
+        of where their window coordinates have their origin.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in PsychoPy pixel coordinates.
+
+        Returns
+        -------
+        ndarray
+            Nearest cursor position `(x, y)` in PsychoPy pixel coordinates.
+
+        """
+        scaleFactor = self.win.getContentScaleFactor()
+        origin = np.asarray(self.win.size, dtype=float) / 2.0
+        winPos = (np.asarray(pos, dtype=float) + origin) / scaleFactor
+
+        return np.floor(winPos + 0.5) * scaleFactor - origin
 
     # --------------------------------------------------------------------------
     # Mouse related methods (e.g., event handlers)

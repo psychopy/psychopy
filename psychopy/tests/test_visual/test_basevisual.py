@@ -358,38 +358,41 @@ class _TestUnitsMixin:
         monitor.setSizePix((256, 128))
         monitor.setWidth(4)
         monitor.setDistance(50)
-        win = visual.Window(size=(256, 128), monitor=monitor)
-        win.useRetina = False
-        # Setup object for this test
-        obj = copy(self.obj)
-        obj.win = win
-        if hasattr(obj, "fillColor"):
-            obj.fillColor = 'red'
-        if hasattr(obj, "foreColor"):
-            obj.foreColor = 'blue'
-        if hasattr(obj, 'borderColor'):
-            obj.borderColor = 'green'
-        if hasattr(obj, 'opacity'):
-            obj.opacity = 1
-        # Run positions through each size exemplar
-        for size in self.sizeExemplars + self.sizeTykes:
-            for pos in self.posExemplars + self.posTykes:
-                for units in set(list(pos) + list(size)):
-                    if units == 'suffix':
-                        continue
-                    # Set pos and size
-                    obj.units = units
-                    obj.size = size[units]
-                    obj.pos = pos[units]
-                    # Draw
-                    obj.draw()
-                    # Compare screenshot
-                    filename = f"{self.__class__.__name__}_{size['suffix']}_{pos['suffix']}.png"
-                    #win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                    utils.compareScreenshot(filename, win, crit=8)
-                    win.flip()
-        # Cleanup
-        win.close()
+        win = visual.Window(size=(256, 128), monitor=monitor,
+                            title=f"{type(self).__name__}::test_pos_size")
+        try:
+            win.useRetina = False
+            # Setup object for this test
+            obj = copy(self.obj)
+            obj.win = win
+            if hasattr(obj, "fillColor"):
+                obj.fillColor = 'red'
+            if hasattr(obj, "foreColor"):
+                obj.foreColor = 'blue'
+            if hasattr(obj, 'borderColor'):
+                obj.borderColor = 'green'
+            if hasattr(obj, 'opacity'):
+                obj.opacity = 1
+            # Run positions through each size exemplar
+            for size in self.sizeExemplars + self.sizeTykes:
+                for pos in self.posExemplars + self.posTykes:
+                    for units in set(list(pos) + list(size)):
+                        if units == 'suffix':
+                            continue
+                        # Set pos and size
+                        obj.units = units
+                        obj.size = size[units]
+                        obj.pos = pos[units]
+                        # Draw
+                        obj.draw()
+                        # Compare screenshot
+                        filename = f"{self.__class__.__name__}_{size['suffix']}_{pos['suffix']}.png"
+                        #win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                        utils.compareScreenshot(filename, win, crit=8)
+                        win.flip()
+        finally:
+            # Cleanup
+            win.close()
         del obj
         del win
 
@@ -416,51 +419,53 @@ class _TestUnitsMixin:
     #         # Check that the resulting size is as desired
     #         assert all(obj.size == case['size'])
 
-    def test_unit_mismatch(self):
+    def test_unit_mismatch(self, tmp_path):
         """
         Test that a given stimulus can be drawn without error in all combinations of stimulus units x window units and
         checking that it looks the same as when both units are pix.
         """
         # Test all unit types apart from None and ""
         unitTypes = layout.unitTypes[2:]
-        # Create window (same size as was used for other tests)
-        win = visual.Window(self.obj.win.size, pos=self.obj.win.pos, monitor="testMonitor")
-        # Create object
-        obj = copy(self.obj)
-        obj.win = win
-        # Create model image (pix units for both)
-        win.units = 'pix'
-        obj.units = 'pix'
-        obj.draw()
-        filename = Path(utils.TESTS_DATA_PATH) / "test_unit_mismatch.png"
-        win.getMovieFrame(buffer='back').save(filename)
-        if hasattr(obj, "_size"):
-            # Get model sizes
-            targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
-        # Flip screen
-        win.flip()
-        # Iterate through window and object units
-        for winunits in unitTypes:
-            for objunits in unitTypes:
-                # Create a window and object
-                win.units = winunits
-                obj.units = objunits
-                # Draw object
-                obj.draw()
-                # Compare appearance
-                utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
-                if hasattr(obj, "_size"):
-                    # Compare reported size
-                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win), (
-                        f"Object size ({obj.size}, in {obj.units}) did not match desired size ({targetSizes[objunits]} "
-                        f"in {objunits} when window was {obj.win.size}px in {winunits}."
-                    )
-                # Flip screen
-                win.flip()
-        # Close window
-        win.close()
-        # Delete model image
-        filename.unlink()
+        # Create window (same size as was used for other tests), using the client size as `size` is the framebuffer
+        # size, which is bigger on a high-DPI display
+        win = visual.Window(self.obj.win.clientSize, pos=self.obj.win.pos, monitor="testMonitor")
+        # Model image is only needed for this test, so keep it out of the test data folder
+        filename = tmp_path / "test_unit_mismatch.png"
+        try:
+            # Create object
+            obj = copy(self.obj)
+            obj.win = win
+            # Create model image (pix units for both)
+            win.units = 'pix'
+            obj.units = 'pix'
+            obj.draw()
+            utils.saveScreenshot(filename, win)
+            if hasattr(obj, "_size"):
+                # Get model sizes
+                targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
+            # Flip screen
+            win.flip()
+            # Iterate through window and object units
+            for winunits in unitTypes:
+                for objunits in unitTypes:
+                    # Create a window and object
+                    win.units = winunits
+                    obj.units = objunits
+                    # Draw object
+                    obj.draw()
+                    # Compare appearance
+                    utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
+                    if hasattr(obj, "_size"):
+                        # Compare reported size
+                        assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win), (
+                            f"Object size ({obj.size}, in {obj.units}) did not match desired size ({targetSizes[objunits]} "
+                            f"in {objunits} when window was {obj.win.size}px in {winunits}."
+                        )
+                    # Flip screen
+                    win.flip()
+        finally:
+            # Close window
+            win.close()
 
     def test_manual(self):
         """
@@ -500,7 +505,8 @@ class _TestUnitsMixin:
                     continue
                 try:
                     # Create a window and object
-                    win = visual.Window(monitor="testMonitor", units=winunits)
+                    win = visual.Window(monitor="testMonitor", units=winunits,
+                                        title=f"{type(self).__name__}::test_manual")
                     win.monitor.setSizePix((256, 128))
                     win.monitor.setWidth(4)
                     win.monitor.setDistance(50)
@@ -548,17 +554,19 @@ class _TestUnitsMixin:
             if units in [None, "None", "none", ""]:
                 continue
             # Create a window with given units
-            win = visual.Window(monitor="testMonitor", units=units)
-            win.monitor.setSizePix((256, 128))
-            win.monitor.setWidth(4)
-            win.monitor.setDistance(50)
-            # When setting units to None with win, does it inherit units?
-            self.obj.win = win
-            self.obj.units = None
-            assert self.obj.units == units
-            # Cleanup
-            win.close()
+            win = visual.Window(monitor="testMonitor", units=units,
+                                title=f"{type(self).__name__}::test_default_units")
+            try:
+                win.monitor.setSizePix((256, 128))
+                win.monitor.setWidth(4)
+                win.monitor.setDistance(50)
+                # When setting units to None with win, does it inherit units?
+                self.obj.win = win
+                self.obj.units = None
+                assert self.obj.units == units
+            finally:
+                # Cleanup, resetting obj win so later tests don't get a
+                # closed window
+                self.obj.win = self.win
+                win.close()
             del win
-
-        # Reset obj win
-        self.obj.win = self.win

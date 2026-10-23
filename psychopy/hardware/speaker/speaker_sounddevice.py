@@ -44,9 +44,18 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
             )
             index = None
-        # handle string index
+        # handle string index, which may be a number or a device name
         if isinstance(index, str):
-            index = self.getNumericIndex(index or name)
+            requested = index
+            index = self.getNumericIndex(index)
+            if index is None:
+                # rather than fall back to the default speaker, which would play somewhere
+                # other than asked without saying so
+                raise DeviceNotConnectedError(
+                    _translate(
+                        "No speaker device found with index or name '{}'"
+                    ).format(requested),
+                    deviceClass=SoundDeviceSpeakerDevice)
         # if index is default, get default speaker device
         if index in (-1, None) and name is None:
             index = None  # set to none so we can find by name later
@@ -54,12 +63,19 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             pref = pref[0] if isinstance(pref, (list, tuple)) else pref
 
             if pref in ("default", "None"):
-                # if no pref, use first device
-                name = self.getAvailableDevices()[0]['deviceName']
-                # warn the user, this speaker might be a virtual device with no audio or something
-                logging.warn(
+                # If no pref, use the system's default output. The first device listed
+                # can be something nobody listens to, such as an unused HDMI output.
+                # Leaving the name as None plays on whatever the default is, should
+                # sounddevice be unable to say which device that is.
+                try:
+                    import sounddevice as sd
+                    name = sd.query_devices(kind='output')['name']
+                except Exception:
+                    name = None
+                logging.info(
                     _translate(
-                        "No default speaker specified in Preferences / Hardware, using first speaker found: {}"
+                        "No default speaker specified in Preferences / Hardware, using the "
+                        "system default output: {}"
                     ).format(name)
                 )
             else:

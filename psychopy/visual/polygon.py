@@ -9,6 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
+from psychopy import logging
 from psychopy.visual.shape import ShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute, undefined
 from psychopy.tools import gltools as gt
@@ -35,12 +36,9 @@ class Polygon(ShapeStim):
     edges : `int`
         Number of sides for the polygon (for instance, `edges=3` will result
         in a triangle).
-    radius : float
-        Initial radius of the polygon in `units`. This specifies how far out
-        to place the corners (vertices) of the shape.
     units : str
         Units to use when drawing. This will affect how parameters and
-        attributes `pos`, `size` and `radius` are interpreted.
+        attributes `pos` and `size` are interpreted.
     lineWidth : float
         Width of the polygon's outline.
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or `None`
@@ -104,7 +102,7 @@ class Polygon(ShapeStim):
     def __init__(self,
                  win,
                  edges=3,
-                 radius=.5,
+                 radius=None,
                  units='',
                  lineWidth=1.5,
                  lineColor="white",
@@ -138,7 +136,11 @@ class Polygon(ShapeStim):
         self.autoLog = False  # but will be changed if needed at end of init
         self.__dict__['edges'] = edges
         self.__dict__['lineWidth'] = lineWidth
-        self.radius = np.asarray(radius)
+        # radius is deprecated; unless set, always use 0.5
+        if radius is None:
+            self.__dict__['radius'] = np.array(0.5)
+        else:
+            self.radius = np.asarray(radius)
         self._calcVertices()
 
         super(Polygon, self).__init__(
@@ -199,15 +201,13 @@ class Polygon(ShapeStim):
 
     @attributeSetter
     def radius(self, radius):
-        """float, int, tuple, list or 2x1 array
-        Radius of the Polygon (distance from the center to the corners).
-        May be a -2tuple or list to stretch the polygon asymmetrically.
-
-        :ref:`Operations <attrib-operations>` supported.
-
-        Usually there's a setAttribute(value, log=False) method for each
-        attribute. Use this if you want to disable logging.
         """
+        Deprecated, please use `.size` instead.
+        """
+        logging.warn((
+            "The `.radius` method of Circle is deprecated. Instead, use `.size` to control the "
+            "size and shape of a Circle, same as other visual stimuli."
+        ))
         self.__dict__['radius'] = np.array(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)

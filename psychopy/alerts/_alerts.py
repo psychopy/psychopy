@@ -6,7 +6,6 @@ import traceback
 import yaml
 import os
 import sys
-import codecs
 
 from psychopy.localization import _translate
 
@@ -57,9 +56,7 @@ class AlertCatalog:
         alertDict = {}
 
         for filePath in self.alertFiles:
-            # '{}'.format(filePath) instead of simple open(filePath,'r')
-            # is needed for Py2 support only
-            with codecs.open('{}'.format(filePath), 'r', 'utf-8') as ymlFile:
+            with open(filePath, 'r', encoding='utf-8') as ymlFile:
                 entry = yaml.load(ymlFile, Loader=yaml.SafeLoader)
                 if entry is None:
                     continue  # this might be a stub for future entry

@@ -477,6 +477,8 @@ class ValidationProcedure:
 
         if self.results_in_degrees:
             for postdat in sample_array:
+                if len(postdat) == 0:
+                    continue
                 postdat['targ_pos_x'], postdat['targ_pos_y'] = toDeg(self.win,
                                                                      *toPix(self.win, postdat['targ_pos_x'],
                                                                             postdat['targ_pos_y']))
@@ -534,6 +536,7 @@ class ValidationProcedure:
                 except ZeroDivisionError:
                     good_sample_ratio = 0
             else:
+                first_stime = last_stime = filter_stime = filter_etime = None
                 all_samples_in_period = []
                 good_samples_in_period = []
                 good_sample_ratio = 0
@@ -778,7 +781,7 @@ class ValidationTargetRenderer:
                                         ('eye_y', np.float64),
                                         ('pupil_size', np.float64)]
 
-    def __init__(self, win, target, positions, storeeventsfor=[], triggers=None, msgcategory='',
+    def __init__(self, win, target, positions, storeeventsfor=None, triggers=None, msgcategory='',
                  io=None, terminate_key='escape', gaze_cursor_key='g', gaze_cursor=None,
                  color_space=None, unit_type=None):
         """
@@ -818,7 +821,7 @@ class ValidationTargetRenderer:
         self.win = proxy(win)
         self.target = target
         self.positions = positions
-        self.storeevents = storeeventsfor
+        self.storeevents = storeeventsfor if storeeventsfor is not None else []
         self.msgcategory = msgcategory
 
         if io is None:
@@ -1029,10 +1032,12 @@ class ValidationTargetRenderer:
                 deviceevents[device] = []
         self.targetdata.append(dict(frompos=frompos, topos=topos, events=deviceevents))
 
-    def _addDeviceEvents(self, device_event_dict={}):
+    def _addDeviceEvents(self, device_event_dict=None):
         if self._checkForTerminate():
             return
         self._checkForToggleGaze()
+        if device_event_dict is None:
+            device_event_dict = {}
         dev_event_buffer = self.targetdata[-1]['events']
         for dev, dev_events in dev_event_buffer.items():
             if dev in device_event_dict:
@@ -1123,6 +1128,8 @@ class ValidationTargetRenderer:
     def _processMessageEvents(self):
         self.target_pos_msgs = []
         self.saved_pos_samples = []
+        self.sample_type = None
+        self.sample_msg_dtype = self.binocular_sample_message_element
         for pd in self.targetdata:
             events = pd.get('events')
 
@@ -1138,11 +1145,12 @@ class ValidationTargetRenderer:
                                                         EventConstants.GAZEPOINT_SAMPLE)]
             self.saved_pos_samples.append(samples)
 
-            self.sample_type = self.saved_pos_samples[0][0].type
-            if self.sample_type == EventConstants.MONOCULAR_EYE_SAMPLE:
-                self.sample_msg_dtype = self.monocular_sample_message_element
-            else:
-                self.sample_msg_dtype = self.binocular_sample_message_element
+            if self.sample_type is None and samples:
+                self.sample_type = samples[0].type
+                if self.sample_type == EventConstants.MONOCULAR_EYE_SAMPLE:
+                    self.sample_msg_dtype = self.monocular_sample_message_element
+                else:
+                    self.sample_msg_dtype = self.binocular_sample_message_element
             messages = devlabel_events.get('experiment', [])
             msg_lists = []
             for m in messages:
@@ -1172,6 +1180,9 @@ class ValidationTargetRenderer:
 
         for i in range(len(self.target_pos_msgs)):
             self.target_pos_msgs[i] = np.asarray(self.target_pos_msgs[i], dtype=object)
+
+        if self.sample_type is None:
+            print("Validation received no eye samples; the run will be marked as failed.")
 
         return self.target_pos_msgs
 
@@ -1255,7 +1266,10 @@ class ValidationTargetRenderer:
                         si += 1
                 last_msg = current_msg
 
-            possamples = np.asanyarray(samplesforposition)
+            if len(samplesforposition):
+                possamples = np.asanyarray(samplesforposition)
+            else:
+                possamples = np.empty(0, dtype=self.sample_msg_dtype)
             target_pos_samples.append(possamples)
 
         # So we now have a list len == number target positions. Each element
@@ -1263,7 +1277,12 @@ class ValidationTargetRenderer:
         # target position. Each element of the data list for a single target
         # position is itself a list that that contains combined info about
         # an eye sample and message info valid for when the sample time was.
-        return np.asanyarray(target_pos_samples, dtype=object)
+        # Build the object array explicitly so that each position's ndarray
+        # keeps its own dtype; np.asanyarray would instead stack equal-length
+        # position arrays into a 2D object array, losing field access.
+        pos_samples_array = np.empty(len(target_pos_samples), dtype=object)
+        pos_samples_array[:] = target_pos_samples
+        return pos_samples_array
 
 
 def toPix(win, x, y):

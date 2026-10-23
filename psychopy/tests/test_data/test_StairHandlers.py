@@ -16,6 +16,34 @@ DEBUG = False
 np.random.seed(1000)
 
 
+def test_nReversals_clamped_to_nStepSizes():
+    """`nReversals` is raised to the number of step sizes when lower.
+
+    Regression test for GH-3174: a scalar `stepSizes` is treated as a single
+    step size, so the number of step sizes -- and therefore `nReversals` --
+    is always at least 1, and `nReversals=0` cannot be honored.
+    """
+    # scalar step size counts as one step size -> minimum of 1 reversal
+    stairs = data.StairHandler(startVal=0.5, nReversals=0, stepSizes=0.1,
+                               nTrials=5)
+    assert stairs.nReversals == 1
+
+    # nReversals below the number of step sizes is raised to that number
+    stairs = data.StairHandler(startVal=0.5, nReversals=1,
+                               stepSizes=[0.4, 0.2, 0.1], nTrials=5)
+    assert stairs.nReversals == 3
+
+    # nReversals above the number of step sizes is left untouched
+    stairs = data.StairHandler(startVal=0.5, nReversals=5,
+                               stepSizes=[0.4, 0.2, 0.1], nTrials=5)
+    assert stairs.nReversals == 5
+
+    # nReversals=None defaults to the number of step sizes
+    stairs = data.StairHandler(startVal=0.5, nReversals=None,
+                               stepSizes=[0.4, 0.2], nTrials=5)
+    assert stairs.nReversals == 2
+
+
 class _BaseTestStairHandler():
     def setup_method(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %

@@ -6,7 +6,7 @@
 #
 from psychopy import visual, event, core
 from psychopy.tools import arraytools, rifttools
-import pyglet.gl as GL
+import psychopy.tools.pygletgl as GL
 
 # Create a VR session, treat the returned object just like a regular window.
 # Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or

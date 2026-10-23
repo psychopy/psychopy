@@ -16,7 +16,7 @@ import shutil
 
 try:
     import psychopy_app
-except:
+except ImportError:
     psychopy_app = None
 
 try:

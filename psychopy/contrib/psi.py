@@ -80,8 +80,9 @@ class PsiObject():
         self._expectedEntropyX = sum(self._entropyXResponse * self._probResponseGivenX, axis=0).reshape((1,1,1,len(self.x)))
         
         #Generate next intensity
-        self.nextIntensityIndex = argmin(self._expectedEntropyX, axis=3)[0][0][0]
-        self.nextIntensity = self.x[self.nextIntensityIndex]
+        # as plain Python numbers, so they serialise cleanly (e.g. to JSON)
+        self.nextIntensityIndex = int(argmin(self._expectedEntropyX, axis=3)[0][0][0])
+        self.nextIntensity = float(self.x[self.nextIntensityIndex])
         
     def estimateLambda(self):
         return (sum(sum(self._alpha.reshape((len(self.alpha),1))*self._probLambda.squeeze(), axis=1)), sum(sum(self._beta.reshape((1,len(self.beta)))*self._probLambda.squeeze(), axis=1)))

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from psychopy.gui.wxgui import DlgFromDict
+
 import pytest
 
 
@@ -23,26 +23,29 @@ class TestDlgFromDictWx:
 
         self.title = 'Experiment'
 
+        from psychopy.gui.wxgui import DlgFromDict
+        self.DlgFromDict = DlgFromDict
+
     def test_title(self):
-        dlg = DlgFromDict(self.d, title=self.title, show=False)
+        dlg = self.DlgFromDict(self.d, title=self.title, show=False)
         assert dlg.Title == self.title
 
     def test_sort_keys_true(self):
-        dlg = DlgFromDict(self.d, sortKeys=True, show=False)
+        dlg = self.DlgFromDict(self.d, sortKeys=True, show=False)
         keys = sorted(self.d)
         assert keys == dlg._keys
 
     def test_sort_keys_false(self):
-        dlg = DlgFromDict(self.d, sortKeys=False, show=False)
+        dlg = self.DlgFromDict(self.d, sortKeys=False, show=False)
         keys = list(self.d)
         assert keys == dlg._keys
 
     def test_copy_dict_true(self):
-        dlg = DlgFromDict(self.d, copyDict=True, show=False)
+        dlg = self.DlgFromDict(self.d, copyDict=True, show=False)
         assert self.d is not dlg.dictionary
 
     def test_copy_dict_false(self):
-        dlg = DlgFromDict(self.d, copyDict=False, show=False)
+        dlg = self.DlgFromDict(self.d, copyDict=False, show=False)
         assert self.d is dlg.dictionary
 
     def test_order_list(self):
@@ -51,7 +54,7 @@ class TestDlgFromDictWx:
         # further down.
         assert order != list(self.od)
 
-        dlg = DlgFromDict(self.od, order=order, show=False)
+        dlg = self.DlgFromDict(self.od, order=order, show=False)
         assert dlg.inputFieldNames == order
 
     def test_order_tuple(self):
@@ -60,18 +63,18 @@ class TestDlgFromDictWx:
         # further down.
         assert list(order) != list(self.od)
 
-        dlg = DlgFromDict(self.od, order=order, show=False)
+        dlg = self.DlgFromDict(self.od, order=order, show=False)
         assert dlg.inputFieldNames == list(order)
 
     def test_fixed(self):
         fixed = 'exp_version'
-        dlg = DlgFromDict(self.d, fixed=fixed, show=False)
+        dlg = self.DlgFromDict(self.d, fixed=fixed, show=False)
         field = dlg.inputFields[dlg.inputFieldNames.index(fixed)]
         assert field.Enabled is False
 
     def test_tooltips(self):
         tip = dict(participant='Tooltip')
-        dlg = DlgFromDict(self.d, tip=tip, show=False)
+        dlg = self.DlgFromDict(self.d, tip=tip, show=False)
         field = dlg.inputFields[dlg.inputFieldNames.index('participant')]
         assert field.ToolTip.GetTip() == tip['participant']
 

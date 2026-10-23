@@ -13,10 +13,10 @@ getTime = core.getTime
 class Trigger:
     io = None
 
-    def __init__(self, trigger_function=lambda a, b, c: True, user_kwargs={}, repeat_count=0):
+    def __init__(self, trigger_function=lambda a, b, c: True, user_kwargs=None, repeat_count=0):
         Trigger.io = ioHubConnection.getActiveConnection()
         self.trigger_function = trigger_function
-        self.user_kwargs = user_kwargs
+        self.user_kwargs = user_kwargs if user_kwargs is not None else {}
         self._last_triggered_event = None
         self._last_triggered_time = None
         self.repeat_count = repeat_count
@@ -105,7 +105,7 @@ class TimeTrigger(Trigger):
     (that takes no parameters).
     """
 
-    def __init__(self, start_time, delay, repeat_count=0, trigger_function=lambda a, b, c: True, user_kwargs={}):
+    def __init__(self, start_time, delay, repeat_count=0, trigger_function=lambda a, b, c: True, user_kwargs=None):
         Trigger.io = ioHubConnection.getActiveConnection()
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
 
@@ -164,13 +164,13 @@ class DeviceEventTrigger(Trigger):
     """
     _lastEventsByDevice = dict()
 
-    def __init__(self, device, event_type, event_attribute_conditions={}, repeat_count=-1,
-                 trigger_function=lambda a, b, c: True, user_kwargs={}):
+    def __init__(self, device, event_type, event_attribute_conditions=None, repeat_count=-1,
+                 trigger_function=lambda a, b, c: True, user_kwargs=None):
         Trigger.io = ioHubConnection.getActiveConnection()
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
         self.device = device
         self.event_type = event_type
-        self.event_attribute_conditions = event_attribute_conditions
+        self.event_attribute_conditions = event_attribute_conditions if event_attribute_conditions is not None else {}
 
     def triggered(self, **kwargs):
         if Trigger.triggered(self) is False:

@@ -1,0 +1,81 @@
+name: Create a draft release for a tag
+
+# will run in root folder devops/devops/
+# and we will create the following (which will persist until next run):
+# - ./versions_upload/python #executable
+# - psychopy #repo
+# - devops #repo
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the release to regenerate notes for
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+
+  create_draft_release:
+
+    runs-on: [
+      ubuntu-latest
+    ]
+
+    env:
+      # tag to make a release for (from manual input if given, otherwise the pushed tag)
+      TAG: ${{ inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout psychopy
+        uses: actions/checkout@v6
+        with:
+          repository: psychopy/psychopy
+          path: psychopy
+          fetch-depth: 0
+      
+      - name: Install UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          activate-environment: true
+      
+      - name: Install requirements
+        run: |
+          uv pip install requests
+      
+      - name: Generate draft release notes
+        run: |
+          uv run --no-project 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(env.TAG, '.0') && '--filter release' || '' }}
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-${{ env.TAG }}
+          path: psychopy/building/.outputs/release_notes.md
+          retention-days: 14
+
+      - name: Check for existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # gh release view also finds draft releases
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create draft release
+        if: steps.existing.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.TAG }}
+          draft: true
+          body_path: psychopy/building/.outputs/release_notes.md

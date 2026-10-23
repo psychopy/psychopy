@@ -6,17 +6,15 @@ from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
-from psychopy import logging, plugins
+import sysconfig
+from psychopy import logging
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends, MouseGazeEyetrackerBackend
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
-from psychopy.monitors import Monitor
 from psychopy.alerts import alert
-from psychopy.tools.filetools import genDelimiter
-from psychopy.data.utils import parsePipeSyntax
 
 # for creating html output folders:
 import shutil
@@ -150,7 +148,7 @@ class SettingsComponent:
         self.order = [
                       'expName', 'expVersion',
                       'Audio lib', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
+                      'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       ]
         self.depends = []
 
@@ -283,12 +281,12 @@ class SettingsComponent:
         })
         self.params['winBackend'] = Param(
             winBackend, valType='str', inputType="choice", categ="Screen",
-            allowedVals=plugins.getWindowBackends(),
+            allowedVals="python:///psychopy.plugins:getWindowBackends",
             hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
             label=_translate("Window backend")
         )        
         self.params['Screen'] = Param(
-            screen, valType='num', inputType="spin", allowedTypes=[],
+            screen, valType='num', inputType="screen", allowedTypes=[],
             hint=_translate("Which physical screen to run on (1 or 2)"),
             label=_translate("Screen"), categ='Screen')
         self.params['Monitor'] = Param(
@@ -497,16 +495,6 @@ class SettingsComponent:
                 "format) or seconds since experiment start (as a float)."
             )
         )
-
-        # HTML output params
-        # self.params['OSF Project ID'] = ProjIDParam(
-        #     '', valType='str', # automatically updates to allow choices
-        #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
-        #     label="OSF Project ID", categ='Online')
-        self.params['HTML path'] = Param(
-            '', valType='str', inputType="single", allowedTypes=[],
-            hint=_translate("Place the HTML files will be saved locally "),
-            label=_translate("Output path"), categ='Online')
         self.params['Resources'] = Param(
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
@@ -542,16 +530,6 @@ class SettingsComponent:
         for key, cls in knownEyetrackerBackends.items():
             backendValues.append(key)
             backendLabels.append(cls.label or key)
-        # add backends via legacy detection method
-        try:
-            from psychopy.iohub import util as ioUtil
-            for legLbl, legKey in ioUtil.getDeviceNames(device_name="eyetracker.hw"):
-                if legKey not in backendValues:
-                    backendValues.append(legKey)
-                    backendLabels.append(legLbl)
-        except Exception:
-            # if it doesn't work, just stick with the known backends from plugins
-            pass
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
@@ -581,13 +559,30 @@ class SettingsComponent:
                     'false': "hide",  # otherwise...
                 })
 
-        # Input
+        # Legacy
+        self.params['useLegacyKeyboard'] = Param(
+            not sysconfig.get_config_var("Py_GIL_DISABLED"),
+            categ="Input",
+            valType="code", 
+            inputType="bool",
+            label=_translate("Use legacy keyboard backends?"),
+            hint=_translate(
+                "Legacy keyboard backends work better in Python 3.13 and earlier"
+            )
+        )
         self.params['keyboardBackend'] = Param(
             keyboardBackend, valType='str', inputType="choice",
             allowedVals=list(keyboardBackendMap),
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
             label=_translate("Keyboard backend"), categ="Input"
         )
+        self.depends.append({
+            'dependsOn': "useLegacyKeyboard",  # if...
+            'condition': f"==True",  # meets...
+            'param': "keyboardBackend",  # then...
+            'true': "show",  # should...
+            'false': "hide",  # otherwise...
+        })
     
     @classmethod
     def getTemplateJSON(cls):
@@ -680,6 +675,7 @@ class SettingsComponent:
                 val = infoDict[key]
                 # sanitize key if requested
                 if removePipeSyntax:
+                    from psychopy.data.utils import parsePipeSyntax
                     key, _ = parsePipeSyntax(key)
 
                 if exputils.list_like_re.search(str(val)):
@@ -790,7 +786,9 @@ class SettingsComponent:
             "\n"
         )
 
-        if not self.params['eyetracker'] == "None" or self.params['keyboardBackend'] == "ioHub":
+        if not self.params['eyetracker'] == "None" or (
+            self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == "ioHub"
+        ):
             code = (
                 "import psychopy.iohub as io\n"
             )
@@ -1023,7 +1021,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
-
+        from psychopy.tools.filetools import genDelimiter
 
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
@@ -1302,7 +1300,10 @@ class SettingsComponent:
         inits = deepcopy(self.params)
         if inits['mgMove'].val == "CONTINUOUS":
             inits['mgMove'].val = "$"
-        inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
+        if inits['useLegacyKeyboard']:
+            inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
+        else:
+            inits['keyboardBackend'].val = "$None"
 
         # Make ioConfig dict
         code = (
@@ -1538,23 +1539,16 @@ class SettingsComponent:
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
+        
+        if self.needIoHub and self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == 'PsychToolbox':
+            alert(code=4550)
 
-        # Add keyboard to ioConfig
-        if self.params['keyboardBackend'] == 'ioHub':
+        # Add keyboard and experiment handler filename to ioConfig
+        if self.needIoHub:
             code = (
                 "\n"
                 "# Setup iohub keyboard\n"
                 "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
-            )
-            buff.writeIndentedLines(code % inits)
-
-        if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
-            alert(code=4550)
-
-        # Add experiment handler filename to ioConfig
-        if self.needIoHub:
-            code = (
-                "\n"
                 "# Setup iohub experiment\n"
                 "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName)\n"
             )
@@ -1915,7 +1909,12 @@ class SettingsComponent:
             "    defaultKeyboard = deviceManager.addKeyboard(\n"
             "        deviceClass='keyboard',\n"
             "        deviceName='defaultKeyboard',\n"
+        )
+        if self.params['useLegacyKeyboard']:
+            code += (
             "        backend=%(keyboardBackend)s,\n"
+            )
+        code += (
             "    )\n"
             "# run a while loop while we wait to unpause\n"
             "while thisExp.status == PAUSED:\n"
@@ -1986,6 +1985,8 @@ class SettingsComponent:
             "    win.flip()\n"
             "# return console logger level to WARNING\n"
             "logging.console.setLevel(logging.WARNING)\n"
+            "# save data\n"
+            "saveData(thisExp)\n"
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# run any 'at exit' functions\n"
@@ -2088,11 +2089,15 @@ class SettingsComponent:
 
     @property
     def monitor(self):
-        """Stores a monitor object for the  experiment so that it
-        doesn't have to be fetched from disk repeatedly"""
+        """
+        Stores a monitor object for the  experiment so that it
+        doesn't have to be fetched from disk repeatedly
+        """
+        
         # remember to set _monitor to None periodically (start of script build?)
         # so that we do reload occasionally
         if not self._monitor:
+            from psychopy.monitors import Monitor
             self._monitor = Monitor(self.params['Monitor'].val)
         return self._monitor
 
@@ -2103,7 +2108,7 @@ class SettingsComponent:
     @property
     def needIoHub(self):
         # Needed for keyboard
-        kb = self.params['keyboardBackend'] == 'ioHub'
+        kb = self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == 'ioHub'
         # Needed for eyetracking
         et = self.params['eyetracker'] != 'None'
 

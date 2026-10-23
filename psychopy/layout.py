@@ -170,17 +170,19 @@ class Vector:
         else:
             self.valid = False
 
-        # Replace None with the matching window dimension
-        if (value == None).any() or np.isnan(value).any():  # noqa: E711
+        # Replace missing values with the matching window dimension. A `None`
+        # in the input has already become `nan` in the coercion above, which is
+        # why only `nan` is looked for here -- this runs on every position and
+        # size change, so the redundant `== None` comparison it used to also do
+        # is worth not paying for.
+        missing = np.isnan(value)
+        if missing.any():
             win = Vector((1, 1), units="norm", win=self.win)
             if len(value.shape) == 1:
-                value[value == None] = getattr(win, units)[value == None]  # noqa: E711
-                value[np.isnan(value)] = getattr(win, units)[np.isnan(value)]
+                value[missing] = getattr(win, units)[missing]
             else:
-                value[np.isnan(value[:, 0]), 0] = getattr(win, units)[0]
-                value[np.isnan(value[:, 1]), 1] = getattr(win, units)[1]
-                value[value[:, 0] == None, 0] = getattr(win, units)[0]  # noqa: E711
-                value[value[:, 1] == None, 1] = getattr(win, units)[1]  # noqa: E711
+                value[missing[:, 0], 0] = getattr(win, units)[0]
+                value[missing[:, 1], 1] = getattr(win, units)[1]
 
         assert self.valid, (f"Array of position/size values must be either "
                             f"Nx1, Nx2 or Nx3, not {value.shape}")
@@ -495,7 +497,7 @@ class Vector:
         # Otherwise, do conversion and cache
         buffer = np.ndarray(self.pix.shape, dtype=float)
         for i in range(self.dimensions):
-            u = self.win.useRetina + 1
+            u = self.win.pixScaleFactor
             if len(self) > 1:
                 buffer[:, i] = self.pix[:, i] / (self.win.size[i] / u) * 2
             else:
@@ -513,7 +515,7 @@ class Vector:
         # Convert and set
         buffer = np.ndarray(value.shape, dtype=float)
         for i in range(self.dimensions):
-            u = self.win.useRetina + 1
+            u = self.win.pixScaleFactor
             if len(self) > 1:
                 buffer[:, i] = value[:, i] * (self.win.size[i] / u) / 2
             else:
@@ -530,7 +532,7 @@ class Vector:
             return self._cache['height']
         # Otherwise, do conversion and cache
         self._cache['height'] = \
-            self.pix / (self.win.size[1] / (self.win.useRetina + 1))
+            self.pix / (self.win.size[1] / self.win.pixScaleFactor)
         # Return new cached value
         return self._cache['height']
 
@@ -539,7 +541,7 @@ class Vector:
         # Validate
         value, units = self.validate(value, 'height')
         # Convert and set
-        self.pix = value * (self.win.size[1] / (self.win.useRetina + 1))
+        self.pix = value * (self.win.size[1] / self.win.pixScaleFactor)
 
 
 class Position(Vector):

@@ -12,12 +12,10 @@ to JS (ES6/PsychoJS)
 import ast
 from pathlib import Path
 
-import astunparse
 import esprima
 from os import path
 from psychopy import logging
 
-from io import StringIO
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 
@@ -31,26 +29,6 @@ class TupleTransformer(ast.NodeTransformer):
     """
     def visit_Tuple(self, node):
         return ast.List(node.elts, node.ctx)
-
-
-class Unparser(astunparse.Unparser):
-    """astunparser had buried the future_imports option underneath its init()
-    so we need to override that method and change it."""
-
-    def __init__(self, tree, file):
-        """Unparser(tree, file=sys.stdout) -> None.
-         Print the source for tree to file."""
-        self.f = file
-        self.future_imports = ['unicode_literals']
-        self._indent = 0
-        self.dispatch(tree)
-        self.f.flush()
-
-
-def unparse(tree):
-    v = StringIO()
-    Unparser(tree, file=v)
-    return v.getvalue()
 
 
 def expression2js(expr):
@@ -73,14 +51,14 @@ def expression2js(expr):
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
         # for py2 using 'unicode_literals' we don't want
-        if isinstance(node, ast.Str) and type(node.s)==bytes:
-            node.s = str(node.s, 'utf-8')
-        elif isinstance(node, ast.Str) and node.s.startswith("u'"):
-            node.s = node.s[1:]
+        if isinstance(node, ast.Constant) and isinstance(node.value, bytes):
+            node.value = str(node.value, 'utf-8')
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value.startswith("u'"):
+            node.value = node.value[1:]
         if isinstance(node, ast.Name):
             if node.id == 'undefined':
                 continue
-    jsStr = unparse(syntaxTree).strip()
+    jsStr = ast.unparse(syntaxTree).strip()
     if not any(ch in jsStr for ch in ("=",";","\n")):
         try:
             jsStr = translatePythonToJavaScript(jsStr)

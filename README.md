@@ -26,7 +26,7 @@ There is a range of documentation at:
 
 * [PsychoPy Homepage](https://www.psychopy.org)
 * [Youtube](https://www.youtube.com/playlist?list=PLFB5A1BE51964D587)
-* The textbook, [Building Experiments in PsychoPy](https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480)
+* The textbook, [Building Experiments in PsychoPy](https://www.sagepub.com/shop/buy-a-book/building-experiments-in-psychopy-2-273700)
 * [The discourse user forum](https://discourse.psychopy.org)
 
 ## Contributions

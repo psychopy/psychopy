@@ -400,10 +400,12 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self, calibration_args={}):
+    def runSetupProcedure(self, calibration_args=None):
         """
         runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
+        if calibration_args is None:
+            calibration_args = {}
         calibration = MouseGazeCalibrationProcedure(self, calibration_args)
         cal_run = calibration.runCalibration()
         calibration.window.close()

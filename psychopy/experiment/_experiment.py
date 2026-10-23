@@ -17,16 +17,13 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 import collections
 import os
-import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy, copy
 from pathlib import Path
 from packaging.version import Version
 
-import psychopy
-from psychopy import data, __version__, logging
-from psychopy.tools import filetools as ft
+from psychopy import __version__, logging, prefs as preferences
 from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
@@ -35,7 +32,7 @@ from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator,
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
-from . import utils, py2js
+from . import utils
 from .components import getComponents, getAllComponents, getInitVals
 
 from psychopy.localization import _translate
@@ -116,7 +113,10 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
-    
+
+    # component/routine classes are scanned when needed, and shared accross Experiment instances
+    _allCompons = None
+    _allRoutines = None
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
@@ -125,7 +125,7 @@ class Experiment:
         self.routines = collections.OrderedDict()
         # get prefs (from app if poss or from cfg files)
         if prefs is None:
-            prefs = psychopy.prefs
+            prefs = preferences
         # deepCopy doesn't like the full prefs object to be stored, so store
         # each subset
         self.prefsAppDataCfg = prefs.appDataCfg
@@ -148,9 +148,8 @@ class Experiment:
 
         # what online resources are needed? (PsychoJS only)
         self.requiredResources = []
-
-        _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
-        self.settings = _settingsComp(parentName='', exp=self)
+        from psychopy.experiment.components.settings import SettingsComponent
+        self.settings = SettingsComponent(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
         self._doc = xml.ElementTree()
         self.namespace = NameSpace(self)  # manage variable names
@@ -165,10 +164,30 @@ class Experiment:
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
 
-        # get a local reference of all Components and Routines (refreshed on loading a new file)
-        self.allCompons = getAllComponents(
-            self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+        # get a local reference of all Components and Routines (populated on loading a new file)
+        self._allCompons = None
+        self._allRoutines = None
+
+    @property
+    def allCompons(self):
+        # populate if needed
+        if Experiment._allCompons is None:
+            Experiment._allCompons = getAllComponents(
+                self.prefsBuilder['componentsFolders'], 
+                fetchIcons=False
+            )
+
+        return Experiment._allCompons
+
+    @property
+    def allRoutines(self):
+        # populate if needed
+        if Experiment._allRoutines is None:
+            Experiment._allRoutines = getAllStandaloneRoutines(
+                fetchIcons=False
+            )
+
+        return Experiment._allRoutines
 
     def __eq__(self, other):
         if isinstance(other, Experiment):
@@ -232,7 +251,9 @@ class Experiment:
         """
         Variant of this experiment's filename with "_legacy" on the end
         """
-        return ft.constructLegacyFilename(self.filename)
+        from psychopy.tools.filetools import constructLegacyFilename
+
+        return constructLegacyFilename(self.filename)
 
     @property
     def runMode(self):
@@ -296,6 +317,9 @@ class Experiment:
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
+        from psychopy import data
+        from psychopy.experiment import py2js
+        
         # sanitize and store expPath
         if expPath is not None:
             # if there is an expPath, convert it to a Path
@@ -311,7 +335,7 @@ class Experiment:
         else:
             self.expPath = None
         # make sure is current
-        self.psychopyVersion = psychopy.__version__
+        self.psychopyVersion = __version__
         # set this so that params write for approp target
         utils.scriptTarget = target
         script = IndentingBuffer(target=target)  # a string buffer object
@@ -398,7 +422,6 @@ class Experiment:
                 "        win=win,\n"
                 "        globalClock=%(clockFormat)s\n"
                 "    )\n"
-                "    saveData(thisExp=thisExp)\n"
                 "    quit(thisExp=thisExp, win=win)\n"
             )
             script.writeIndentedLines(code % self.settings.params)
@@ -550,8 +573,10 @@ class Experiment:
         filename : str
             The filename which was eventually saved to
         """
+        from psychopy.tools.filetools import constructLegacyFilename
+
         # get current version
-        self.psychopyVersion = psychopy.__version__
+        self.psychopyVersion = __version__
         # make path object
         filename = Path(filename)
         # create the dom object
@@ -565,14 +590,14 @@ class Experiment:
         if filename.suffix != ".psyexp":
             filename = filename.parent / (filename.stem + ".psyexp")
         # write to file
-        with codecs.open(str(filename), 'wb', encoding='utf-8-sig') as f:
+        with open(filename, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(pretty)
         # if useVersion is less than current version, create a sanitized legacy variant
         if self.settings.params['Use version'].val not in (None, "", "latest") and makeLegacy:
             # create sanitized legacy experiment object
             legacy = self.sanitizeForVersion(self.settings.params['Use version'].val)
             # construct a legacy variant of the filename
-            legacyFilename = ft.constructLegacyFilename(filename)
+            legacyFilename = constructLegacyFilename(filename)
             # call save method from that experiment
             legacy.saveToXML(filename=str(legacyFilename), makeLegacy=False)
         # update internal reference to filename
@@ -740,7 +765,8 @@ class Experiment:
             elif name == 'Resources':
                 # if the xml import hasn't automatically converted from string?
                 if type(val) == str:
-                    resources = data.utils.listFromString(val)
+                    from psychopy.data.utils import listFromString
+                    resources = listFromString(val)
                 if self.psychopyVersion == '2020.2.5':
                     # in 2020.2.5 only, problems were:
                     #   a) resources list was saved as a string and
@@ -975,6 +1001,8 @@ class Experiment:
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
+        from psychopy.data import importConditions
+
         self._doc.parse(filename)
         root = self._doc.getroot()
 
@@ -991,10 +1019,10 @@ class Experiment:
             return
         self.psychopyVersion = root.get('version')
         # If running an experiment from a future version, send alert to change "Use Version"
-        if Version(psychopy.__version__) < Version(self.psychopyVersion):
+        if Version(__version__) < Version(self.psychopyVersion):
             alert(code=4051, strFields={'version': self.psychopyVersion})
         # If versions are either side of 2021, send alert
-        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
+        if Version(__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
             alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
@@ -1022,9 +1050,6 @@ class Experiment:
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
-        self.allCompons = allCompons = getAllComponents(
-            self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = allRoutines = getAllStandaloneRoutines(fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
             if routineNode.tag == "Routine":
@@ -1043,20 +1068,22 @@ class Experiment:
                     if componentType == "RoutineSettingsComponent":
                         # if settings, use existing component
                         component = routine.settings
-                    elif componentType in allCompons:
+                    elif componentType in self.allCompons:
                         # create an actual component of that type
-                        component = allCompons[componentType](
+                        component = self.allCompons[componentType](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
                     elif plugin:
+                        from psychopy.experiment.components.unknownPlugin import UnknownPluginComponent
                         # create UnknownPluginComponent instead
-                        component = allCompons['UnknownPluginComponent'](
+                        component = UnknownPluginComponent(
                             name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                         alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
+                        from psychopy.experiment.components.unknown import UnknownComponent
                         # create UnknownComponent instead
-                        component = allCompons['UnknownComponent'](
+                        component = UnknownComponent(
                             name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                     component.plugin = plugin
@@ -1097,12 +1124,13 @@ class Experiment:
                         routine.append(component)
             else:
                 routineGoodName = self._getValidRoutineName(routineNode, modifiedNames)
-                if routineNode.tag in allRoutines:
+                if routineNode.tag in self.allRoutines:
                     # If not a routine, may be a standalone routine
-                    routine = allRoutines[routineNode.tag](exp=self, name=routineGoodName)
+                    routine = self.allRoutines[routineNode.tag](exp=self, name=routineGoodName)
                 else:
+                    from psychopy.experiment.routines.unknown import UnknownRoutine
                     # Otherwise treat as unknown
-                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineGoodName)
+                    routine = UnknownRoutine(exp=self, name=routineGoodName)
                 # Apply all params
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
@@ -1194,7 +1222,7 @@ class Experiment:
                     conditionsFile = None
                 if conditionsFile:
                     try:
-                        trialList, fieldNames = data.importConditions(
+                        trialList, fieldNames = importConditions(
                             conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
@@ -1277,7 +1305,10 @@ class Experiment:
         for child in settings:
             if child.attrib['name'] == "runMode":
                 # get value
-                return int(child.attrib['val'])
+                if child.attrib['val'] in ["True", "true", "1", True, 1]:
+                    return 1
+                else:
+                    return 0
 
         return 1
 
@@ -1289,7 +1320,10 @@ class Experiment:
 
     @property
     def htmlFolder(self):
-        return self.settings.params['HTML path'].val
+        """
+        This was an alias for the HTML path param, which has been removed (2026.2.0). Now always returns a blank string for the points in the code still referring to it.
+        """
+        return ""
 
     def getRequiredDeviceNames(self):
         """
@@ -1373,6 +1407,9 @@ class Experiment:
         Interrogates each loop looking for conditions files and each
 
         """
+        from psychopy.data import importConditions
+        from psychopy.tools.filetools import defaultStim
+        
         join = os.path.join
         abspath = os.path.abspath
         srcRoot = os.path.split(self.filename)[0]
@@ -1393,9 +1430,9 @@ class Experiment:
             #    Path('C:/test/test.xlsx').is_absolute() returns False
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
-            if filePath in list(ft.defaultStim):
+            if filePath in list(defaultStim):
                 # Default/asset stim are a special case as the file doesn't exist in the usual path
-                thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
+                thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + defaultStim[filePath]
                 thisFile['name'] = filePath
                 return thisFile
             if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
@@ -1452,7 +1489,7 @@ class Experiment:
                     or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
                                                              '.xls']):
                 return paths
-            conds = data.importConditions(thisFile['abs'])  # load the abs path
+            conds = importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in list(thisCond.items()):
                     if isinstance(val, str) and len(val):
@@ -1526,7 +1563,7 @@ class Experiment:
             # exceptions to the rule...
             for thisFile in handledResources:
                 # still add default stim
-                if thisFile.get('name', False) in list(ft.defaultStim):
+                if thisFile.get('name', False) in list(defaultStim):
                     compResources.append(thisFile)
                 # still add survey ID
                 if 'surveyId' in thisFile:
@@ -1566,12 +1603,12 @@ class Experiment:
         resources = loopResources + compResources + chosenResources + self.requiredResources
         resources = [res for res in resources if res is not None]
         for res in resources:
-            if res in list(ft.defaultStim):
+            if res in list(defaultStim):
                 # Skip default stim here
                 continue
             if isinstance(res, dict) and 'abs' in res and 'rel' in res:
                 if srcRoot not in res['abs'] and 'https://' not in res['abs']:
-                    psychopy.logging.warning("{} is not in the experiment path and "
+                    logging.warning("{} is not in the experiment path and "
                                              "so will not be copied to Pavlovia"
                                              .format(res['rel']))
 

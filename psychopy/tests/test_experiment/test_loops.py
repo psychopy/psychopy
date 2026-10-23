@@ -1,4 +1,3 @@
-import codecs
 import shutil
 import sys
 from pathlib import Path
@@ -50,7 +49,7 @@ class TestLoops:
             # jsScript = exp.writeScript(target="PsychoJS")  # disabled until all loops work in JS
             # Save Python script to temp dir
             pyScriptFile = Path(cls.tempDir) / f"{filename}.py"
-            with codecs.open(str(pyScriptFile), 'w', 'utf-8-sig') as f:
+            with open(pyScriptFile, 'w', encoding='utf-8-sig', newline='') as f:
                 f.write(pyScript)
 
             # Run Python script to generate data file
@@ -93,7 +92,7 @@ class TestLoops:
         for filename, case in self.cases.items():
             if filename in answers:
                 assert len(case['data']) == answers[filename], (
-                    f"Expected array {answers[filename]} long, received:\n"
+                    f"Expected array {answers[filename]} long from {filename}, received:\n"
                     f"{case['data']}"
                 )
 

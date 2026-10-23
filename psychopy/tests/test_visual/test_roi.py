@@ -26,6 +26,9 @@ class TestROI(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
             autoLog=False
         )
 
+    def teardown_method(self):
+        self.win.close()
+
     @property
     def _eyeNoise(self):
         """

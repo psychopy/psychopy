@@ -11,7 +11,7 @@
 __all__ = ['Microphone']
 
 from pathlib import Path
-from psychopy import logging
+from psychopy import logging, clock
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import logAttrib
@@ -241,9 +241,13 @@ class Microphone:
 
         Parameters
         ----------
-        when : float or None
-            Time at which to start recording, in the timebase used by the microphone 
-            device. If None (the default), recording will start immediately.
+        when : float, `psychopy.visual.Window` or None
+            Time at which to start recording, as an absolute time in seconds on
+            the clock `psychopy.clock.getTime()` reads, the same as `when` for
+            `Sound.play()`. If a `psychopy.visual.Window`
+            is passed, recording starts at its next flip. If None (the
+            default), or a time which has already passed, recording will start
+            immediately.
         waitForStart : float
             If > 0, record() will block until the recording has actually started, and 
             will return the time at which recording started.
@@ -258,8 +262,15 @@ class Microphone:
             microphone device.
             
         """
+        # the device schedules in its own timebase, so convert to that
         now = self.getTime()
-        self._tRecordingStartRequested = now if when is None else now + when
+        if when is None:
+            self._tRecordingStartRequested = now
+        elif hasattr(when, 'getFutureFlipTime'):
+            self._tRecordingStartRequested = \
+                now + when.getFutureFlipTime(clock='now')
+        else:
+            self._tRecordingStartRequested = now + float(when) - clock.getTime()
         if stopTime is not None:
             self._tRecordingStopRequested = self._tRecordingStartRequested + stopTime
         

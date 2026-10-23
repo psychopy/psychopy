@@ -19,7 +19,7 @@ from ..colors import Color
 
 pyglet.options['debug_gl'] = False
 import ctypes
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -31,13 +31,13 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools import gltools as gt
-from psychopy.visual.helpers import setColor
+from psychopy.visual.helpers import setColor, callOnGLThread
 from psychopy.visual.basevisual import MinimalStim, TextureMixin, ColorMixin
 from . import globalVars
 
 import numpy
 
-USE_LEGACY_GL = pyglet.version < '2.0'
+USE_LEGACY_GL = GL.USE_LEGACY_GL
 
 
 class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
@@ -170,7 +170,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != globalVars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType in ('pyglet', 'glfw'):
             win.winHandle.switch_to()
             globalVars.currWindow = win
 
@@ -189,7 +189,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         if 'scalar' in acceptedInput and value.shape in [(), (1,), (2,)]:
             value = numpy.resize(value, [self.nElements, 2])
         elif 'Nx1' in acceptedInput and valShpElem:
-            value.shape = (self.nElements, 1)  # set to be 2D
+            value = value.reshape(self.nElements, 1)  # set to be 2D
             value = value.repeat(2, 1)  # repeat once on dim 1
         elif 'Nx2' in acceptedInput and value.shape == (self.nElements, 2):
             pass  # all is good
@@ -623,7 +623,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         gt.setUniformMatrix(
             _prog, 
             b'uModelViewMatrix', 
-            win._viewMatrix,
+            win._getPixViewMatrix(),
             transpose=True)
 
         verticesPix = self.verticesPix.reshape(-1, 3)
@@ -795,8 +795,10 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.mask = value
 
     def __del__(self):
-        # remove textures from graphics card to prevent OpenGl memory leak
+        # remove textures from graphics card to prevent OpenGl memory leak, on
+        # the thread with the window's OpenGL context, as the garbage collector
+        # may be running on any
         try:
-            self.clearTextures()
+            callOnGLThread(self.__dict__.get('win'), self.clearTextures)
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already

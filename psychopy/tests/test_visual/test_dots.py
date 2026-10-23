@@ -8,6 +8,9 @@ class TestDots:
     def setup_method(self):
         self.win = visual.Window([128, 128], monitor="testMonitor", pos=[50,50], allowGUI=False, autoLog=False)
 
+    def teardown_method(self):
+        self.win.close()
+
     def test_fieldSize(self):
         """
         Check that dot stim field size is interpreted correctly. Creates a dot stim at various sizes, and poygons at

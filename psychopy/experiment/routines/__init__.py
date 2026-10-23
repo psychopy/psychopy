@@ -7,7 +7,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from importlib import import_module
+import importlib, importlib.metadata
+import inspect
 from ._base import BaseStandaloneRoutine, BaseDeviceRoutine, BaseValidatorRoutine, Routine
 from .unknown import UnknownRoutine
 from pathlib import Path
@@ -17,6 +18,39 @@ from psychopy import logging
 # are added by calling `addStandaloneRoutine`. Plugins will always override
 # builtin components with the same name.
 pluginRoutines = {} 
+
+
+def filterRoutine(rt):
+    """
+    Function for filtering Routines to remove e.g. base classes.
+
+    Parameters
+    ----------
+    rt : BaseStandaloneRoutine
+        Class of the Routine to check
+    
+    Returns
+    -------
+    bool
+        True if Routine is fine to include
+    """
+    # filter non-classes
+    if not inspect.isclass(rt):
+        return False
+    # filter non-Routines
+    if not issubclass(rt, BaseStandaloneRoutine):
+        return False
+    # filter protected classes
+    if rt.__name__.startswith("_"):
+        return False
+    # filter base Routines
+    if rt.__name__.lower().startswith("base"):
+        return False
+    # filter unknown Routines
+    if rt.__name__.lower().startswith("unknown"):
+        return False
+
+    return True
 
 
 def addStandaloneRoutine(routineClass):
@@ -52,17 +86,13 @@ def addStandaloneRoutine(routineClass):
     pluginRoutines[routineName] = routineClass
 
 
-def getAllStandaloneRoutines(fetchIcons=True):
-    """Get a mapping of all standalone routines.
+def getAllStandaloneRoutines(fetchIcons=False):
+    """
+    Get a mapping of all standalone routines.
 
     This function will return a dictionary of all standalone routines
     available in Builder. The dictionary is indexed by the class name of the
     routine. The values are the routine classes themselves.
-
-    Parameters
-    ----------
-    fetchIcons : bool
-        If `True`, the routine classes will be asked to fetch their icons.
 
     Returns
     -------
@@ -71,37 +101,31 @@ def getAllStandaloneRoutines(fetchIcons=True):
         those added by plugins.
 
     """
-    # Safe import all modules within this folder (apart from protected ones with a _)
-    for loc in Path(__file__).parent.glob("*"):
-        if loc.is_dir() and not loc.name.startswith("_"):
-            import_module("." + loc.name, package="psychopy.experiment.routines")
-
-    # Get list of subclasses of BaseStandalone
-    def getSubclasses(cls, classList=None):
-        # create list if needed
-        if classList is None:
-            classList = []
-        # add to class list
-        classList.append(cls)
-        # recur for subclasses
-        for subcls in cls.__subclasses__():
-            getSubclasses(subcls, classList)
-
-        return classList
-    classList = getSubclasses(BaseStandaloneRoutine)
-    # Remove unknown
-    #if UnknownRoutine in classList:
-    #    classList.remove(UnknownRoutine)
-    # Get list indexed by class name with Routine removed
-    classDict = {c.__name__: c for c in classList}
-
-    # merge with plugin components
-    global pluginRoutines
-    if pluginRoutines:
-        logging.debug("Merging plugin routines with builtin Builder routines.")
-        classDict.update(pluginRoutines)
-
-    return classDict
+    # start with blank dict
+    routines = {}
+    # search folder for modules which look like they contain a Routine...
+    for subfolder in Path(__file__).parent.glob("*/__init__.py"):
+        # import each submodule
+        mod = importlib.import_module(
+            f"psychopy.experiment.routines.{subfolder.parent.stem}"
+        )
+        # go through members in module
+        for attrib in dir(mod):
+            # get member
+            member = getattr(mod, attrib)
+            # if member is a Routine, add it
+            if filterRoutine(member):
+                routines[member.__name__] = member
+    
+    # find plugin Routines...
+    for point in importlib.metadata.entry_points(group="psychopy.experiment.routines"):
+        # load entry point
+        member = point.load()
+        # if it's a Component, add it
+        if filterRoutine(member):
+            routines[member.__name__] = member
+    
+    return routines
 
 
 if __name__ == "__main__":

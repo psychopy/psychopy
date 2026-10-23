@@ -7,7 +7,7 @@ script, allowing you to draw anything that OpenGL can draw (i.e. anything).
 """
 
 from psychopy import visual, core
-from pyglet import gl
+import psychopy.tools.pygletgl as gl
 
 win = visual.Window([600, 600], units='norm', monitor='testMonitor')
 a_blob = visual.GratingStim(win, pos = [0.5, 0], mask='gauss', sf=3)

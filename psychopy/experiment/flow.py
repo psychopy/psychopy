@@ -13,7 +13,6 @@ from xml.etree.ElementTree import Element
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
-from psychopy.tools import filetools as ft
 from psychopy.preferences import prefs
 
 

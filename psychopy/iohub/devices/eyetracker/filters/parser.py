@@ -309,7 +309,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
         if self.isValidSample(sample):
             x_velocity_threshold = sample[self.io_event_ix('raw_x')]
             y_velocity_threshold = sample[self.io_event_ix('raw_y')]
-            if x_velocity_threshold == np.NaN:
+            if np.isnan(x_velocity_threshold):
                 return None
             sample_vx = sample[self.io_event_ix('velocity_x')]
             sample_vy = sample[self.io_event_ix('velocity_y')]
@@ -440,7 +440,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
                         pt_list.append(PT)
                     vthresh_values.append(PT)
             if len(vthresh_values) != v + 1:
-                vthresh_values.append(np.NaN)
+                vthresh_values.append(np.nan)
         return vthresh_values
 
     def reset(self):

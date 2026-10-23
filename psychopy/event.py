@@ -32,9 +32,10 @@ try:
 except ImportError:
     havePyglet = False
 try:
+    # GLFW isn't initialized here, whatever uses it does that (e.g., the GLFW
+    # window backend), since initializing it has side effects (e.g., on macOS it
+    # replaces the application delegate) which aren't wanted if it goes unused
     import glfw
-    if not glfw.init():
-        raise ImportError
     haveGLFW = True
 except ImportError:
     haveGLFW = False
@@ -393,6 +394,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         - 2016 modifiers code provided by 5AM Solutions
     """
     keys = []
+    windowSystem = None
 
     if havePygame and display.get_init():
         # see if pygame has anything instead (if it exists)
@@ -421,9 +423,8 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             keys = _keyBuffer
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
-    if haveGLFW:
+    if _pollGLFWEvents():
         windowSystem = 'glfw'
-        glfw.poll_events()
         if len(_keyBuffer) > 0:
             keys = _keyBuffer
 
@@ -584,12 +585,6 @@ class Mouse:
                               ' (need to create one first)')
                 self.win = None
 
-        # get the scaling factors for the display
-        if self.win is not None:
-            self._winScaleFactor = self.win.getContentScaleFactor()
-        else:
-            self._winScaleFactor = 1.0
-
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -616,6 +611,10 @@ class Mouse:
         """Sets the current position of the mouse,
         in the same units as the :class:`~visual.Window`. (0,0) is the center.
 
+        The mouse is moved to the nearest position the operating system
+        supports, which is a whole window coordinate (or point on high DPI
+        displays), so `getPos` may differ slightly from `newPos`.
+
         :Parameters:
             newPos : (x,y) or [x,y]
                 the new position on the screen
@@ -625,21 +624,11 @@ class Mouse:
             newPosPix[1] = self.win.size[1] / 2 - newPosPix[1]
             newPosPix[0] = self.win.size[0] / 2 + newPosPix[0]
             mouse.set_pos(newPosPix)
+        elif self.win is not None and self.win.winType in ('pyglet', 'glfw'):
+            # the backend converts framebuffer pixels to window coordinates
+            self.win.backend.setMousePos(newPosPix)
         else:
-            if hasattr(self.win.winHandle, 'set_mouse_position'):
-                if self.win.useRetina:
-                    newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
-                else:
-                    wsf = self._winScaleFactor 
-                    newPosPix = \
-                        numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
-                x, y = int(newPosPix[0]), int(newPosPix[1])
-                self.win.winHandle.set_mouse_position(x, y)
-                self.win.winHandle._mouse_x = x
-                self.win.winHandle._mouse_y = y
-            else:
-                msg = 'mouse position could not be set (pyglet %s)'
-                logging.error(msg % pyglet.version)
+            logging.error('mouse position could not be set')
 
     def getPos(self):
         """Returns the current position of the mouse,
@@ -652,31 +641,13 @@ class Mouse:
             lastPosPix[1] = self.win.size[1] / 2 - lastPosPix[1]
             lastPosPix[0] = lastPosPix[0] - self.win.size[0] / 2
             self.lastPos = self._pix2windowUnits(lastPosPix)
-        elif useGLFW and self.win.winType=='glfw':
+        elif self.win is None:
+            logging.warning("Called event.Mouse.getPos() for the mouse with no "
+                            "Window being opened")
+            return None
+        else:
+            # framebuffer pixels relative to the center of the window
             lastPosPix[:] = self.win.backend.getMousePos()
-            if self.win.useRetina:
-                lastPosPix *= 2.0
-        else:  # for pyglet bottom left is 0,0
-            # use default window if we don't have one
-            if self.win:
-                w = self.win.winHandle
-            else:
-
-                if psychopy.core.openWindows:
-                    w = psychopy.core.openWindows[0]()
-                else:
-                    logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
-                    return None
-
-            # get position in window
-            lastPosPix[:] = w._mouse_x, w._mouse_y
-
-            # set (0,0) to centre
-            if self.win.useRetina:
-                lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
-            else:
-                wsf = self._winScaleFactor 
-                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
@@ -919,9 +890,7 @@ class Mouse:
 
     def _pix2windowUnits(self, pos):
         if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos /= 2.0
-            return pos
+            return pos / self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
         elif self.win.units == 'cm':
@@ -932,8 +901,8 @@ class Mouse:
             return pos / float(self.win.size[1])
 
     def _windowUnits2pix(self, pos):
-        if self.win.units == 'pix':
-            return pos
+        if self.win.units == 'pix':  # inverse of `_pix2windowUnits`
+            return pos * self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
         elif self.win.units == 'cm':
@@ -999,8 +968,7 @@ def clearEvents(eventType=None):
             for win in pyglet.app.windows:
                 win.dispatch_events()  # pump events on pyglet windows
 
-        if haveGLFW:
-            glfw.poll_events()
+        _pollGLFWEvents()
 
         if eventType == 'mouse':
             pass
@@ -1217,6 +1185,32 @@ class _GlobalEventKeys(MutableMapping):
         del self[key, modifiers]
 
 
+def _pollGLFWEvents():
+    """Process pending events for GLFW windows, which passes them to the
+    `_onGLFW*` callbacks below.
+
+    Events are only polled while a GLFW window is open, otherwise there is
+    nothing to poll and GLFW may not have been initialized (see the import of
+    `glfw` at the top of this module).
+
+    Returns
+    -------
+    bool
+        `True` if events were polled.
+
+    """
+    if not haveGLFW:
+        return False
+
+    for ref in psychopy.core.openWindows:
+        win = ref()
+        if win is not None and win.winType == 'glfw' and not win._closed:
+            glfw.poll_events()
+            return True
+
+    return False
+
+
 def _onGLFWKey(*args, **kwargs):
     """Callback for key/character events for the GLFW backend.
 
@@ -1250,10 +1244,30 @@ def _onGLFWKey(*args, **kwargs):
     else:
         key_name = key_name.lower()
 
-    # TODO - modifier integration
+    # convert modifiers to pyglet's so they are handled the same way
+    modifiers = _glfwToPygletModifiers(modifiers)
     keySource = 'Keypress'
     _keyBuffer.append((key_name, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, key_name))
+    _process_global_event_key(key_name, modifiers)
+
+
+def _glfwToPygletModifiers(modifiers):
+    """Convert GLFW modifier key flags to pyglet's.
+    """
+    pygletModifiers = 0
+    for glfwMod, pygletMod in (
+            (glfw.MOD_SHIFT, MOD_SHIFT),
+            (glfw.MOD_CONTROL, MOD_CTRL),
+            (glfw.MOD_ALT, MOD_OPTION if sys.platform == 'darwin' else MOD_ALT),
+            (glfw.MOD_SUPER,
+             MOD_COMMAND if sys.platform == 'darwin' else MOD_WINDOWS),
+            (glfw.MOD_CAPS_LOCK, MOD_CAPSLOCK),
+            (glfw.MOD_NUM_LOCK, MOD_NUMLOCK)):
+        if modifiers & glfwMod:
+            pygletModifiers |= pygletMod
+
+    return pygletModifiers
 
 
 def _onGLFWText(*args, **kwargs):
@@ -1273,7 +1287,7 @@ def _onGLFWText(*args, **kwargs):
     if not useText:  # _onPygletKey has handled the input
         return
     keySource = 'KeyPress'
-    _keyBuffer.append((text, keyTime))
+    _keyBuffer.append((text, _glfwToPygletModifiers(modifiers), keyTime))
     logging.data("%s: %s" % (keySource, text))
 
 

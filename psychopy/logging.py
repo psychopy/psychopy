@@ -36,7 +36,6 @@ messages, (which PsychoPy doesn't use) using the commands::
 from os import path
 import atexit
 import sys
-import codecs
 import locale
 from pathlib import Path
 
@@ -172,7 +171,7 @@ class LogFile():
         elif hasattr(f, 'write'):
             self.stream = f
         elif isinstance(f, str):
-            self.stream = codecs.open(f, filemode, encoding)
+            self.stream = open(f, filemode, encoding=encoding, newline='')
         self.level = level
         if logger is None:
             logger = root

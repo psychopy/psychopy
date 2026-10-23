@@ -9,7 +9,6 @@ import sys
 import time
 import subprocess
 import json
-import signal
 import atexit
 from weakref import proxy
 
@@ -492,7 +491,7 @@ class ioHubConnection():
                                              msg_offset=offset,
                                              sec_time=sec_time))
 
-    def sendMessageEvents(self, messageList=[]):
+    def sendMessageEvents(self, messageList=None):
         if messageList:
             self.cacheMessageEvents(messageList)
         if self._message_cache:
@@ -957,8 +956,9 @@ class ioHubConnection():
 
         self._iohub_server_config = ioHubConfig
 
-        if sys.platform == 'darwin':
-            self._osxKillAndFreePort()
+        # stop any servers left running by psychopy processes that exited
+        # without shutting them down, as they keep the udp port bound
+        killOrphanedServers()
 
         # >>>> Start iohub subprocess
         run_script = os.path.join(IOHUB_DIRECTORY, 'start_iohub_process.py')
@@ -1016,7 +1016,12 @@ class ioHubConnection():
         # terminate process and exit the program.
         if self._waitForServerInit() is False:
             self._server_process.terminate()
-            return "ioHub startup failed."
+            from psychopy.preferences import prefs
+            logFilePath = os.path.join(
+                prefs.paths['userPrefsDir'], 'iohub_last_session.log')
+            return ("ioHub startup failed. Check that UDP port {} is not in "
+                    "use by another program, and see {} for details.".format(
+                        server_udp_port, logFilePath))
         
         # close and reopen blocking version of socket
         self.udp_client.close()
@@ -1061,13 +1066,29 @@ class ioHubConnection():
         timeout_duration = self._iohub_server_config.get('start_process_timeout', 30.0)
         timeout_time = Computer.getTime() + timeout_duration
         while hubonline is False and Computer.getTime() < timeout_time:
+            if self._server_process.poll() is not None:
+                # server exited, e.g. because the udp port is in use
+                break
             r = self._sendToHubServer(['GET_IOHUB_STATUS', ])
             if r:
-                hubonline = r[1] == 'RUNNING'
+                # ignore replies from any other server bound to the same port
+                hubonline = r[1] == 'RUNNING' and self._isServerPid(r[2])
             time.sleep(0.1)
         return hubonline
 
         # # <<<< Finished wait for iohub server ready signal ....
+
+    def _isServerPid(self, pid):
+        """Check whether pid is that of the iohub server process started by
+        this connection."""
+        if pid == self._server_process.pid:
+            return True
+        # on Windows the process started may be a venv launcher that runs the
+        # server in a child process
+        try:
+            return pid in [p.pid for p in Computer.iohub_process.children()]
+        except psutil.Error:
+            return False
 
     def _createDeviceList(self, monitor_devices_config):
         """Create client side iohub device views.
@@ -1367,19 +1388,6 @@ class ioHubConnection():
             return data #'Invalid Response Received from ioHub Server'
 
 
-    def _osxKillAndFreePort(self):
-        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
-        p = subprocess.Popen(['lsof', '-i:%d'%server_udp_port, '-P'],
-                             stdout=subprocess.PIPE,
-                             encoding='utf-8')
-        lines = p.communicate()[0]
-        for line in lines.splitlines():
-            if line.startswith('Python'):
-                PID, userID = line.split()[1:3]
-                # could verify same userID as current user, probably not needed
-                os.kill(int(PID), signal.SIGKILL)
-                print('Called  os.kill(int(PID),signal.SIGKILL): ', PID, userID)
-
     def __del__(self):
         try:
             self._shutDownServer()
@@ -1456,6 +1464,62 @@ class ioEvent():
         return 'time: %.3f, type: %s, id: %d' % (self.time,
                                                  self.type,
                                                  self.id)
+
+
+def killOrphanedServers():
+    """Stop any ioHub Server processes left running after the psychopy process
+    that started them exited.
+
+    ioHub Servers normally shut down by themselves when their psychopy process
+    exits, this cleans up any that could not (or are from older versions of
+    PsychoPy), as they keep the ioHub udp port bound. Servers belonging to a
+    psychopy process that is still running are left alone.
+
+    Returns:
+        list: The process IDs of the orphaned servers that were stopped.
+    """
+    stime = time.time()
+    orphans = []
+    for proc in psutil.process_iter(['cmdline', 'create_time'], ad_value=None):
+        if proc.pid == Computer.current_process.pid:
+            continue
+        psychopy_pid = Computer.parseIohubServerCmdline(proc.info['cmdline'])
+        if psychopy_pid is None:
+            continue
+        try:
+            if os.name == 'posix' and proc.ppid() == psychopy_pid:
+                # still a child of its psychopy process
+                continue
+        except psutil.Error:
+            continue
+        if Computer.isProcessGone(psychopy_pid,
+                                  createdBefore=proc.info['create_time']):
+            orphans.append(proc)
+
+    if orphans:
+        # give servers that are already shutting down a chance to finish
+        _, alive = psutil.wait_procs(orphans, timeout=3)
+        for proc in alive:
+            try:
+                proc.terminate()
+            except psutil.Error:
+                pass
+        _, alive = psutil.wait_procs(alive, timeout=2)
+        for proc in alive:
+            try:
+                proc.kill()
+            except psutil.Error:
+                pass
+        if psycho_logging:
+            psycho_logging.warning(
+                "Stopped orphaned ioHub Server process(es): {}".format(
+                    [proc.pid for proc in orphans]))
+
+    if psycho_logging:
+        psycho_logging.debug(
+            "Checked for orphaned ioHub Server processes in {:.3f} sec".format(
+                time.time() - stime))
+    return [proc.pid for proc in orphans]
 
 
 def shutdownActiveConnections():

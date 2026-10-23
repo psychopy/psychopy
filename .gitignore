@@ -104,6 +104,8 @@ sitePrefs.cfg
 appData.cfg
 gource_psychopy.mkv
 
+/building/.outputs
+
 *lastrun.py
 *.iohpid
 *.paths

@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.10, <3.13"
+requires-python = ">=3.10, <3.15"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -28,9 +28,12 @@ dependencies = [
     "numpy",
     "scipy",  # NB scipy 1.16 requires py311; 1.14 requires py310
     "matplotlib",
-    "pyglet == 1.4.11; platform_system == \"Windows\"",
-    "pyglet == 1.5.27; platform_system != \"Windows\"",
-    "pillow>=9.4.0",
+    "pyglet >= 2, < 3",
+    # pyGLFW for the GLFW window backend, published as `glfw` (the `pyglfw`
+    # package is another project). 2.5.7 added `PYGLFW_LIBRARY_VARIANT`, which
+    # `psychopy/__init__.py` uses to select the X11 build on Linux
+    "glfw>=2.5.7",
+    "pillow>=12.3.0",
     "pyqt6",
     "pandas>=1.5.3",
     "questplus>=2023.1",
@@ -39,14 +42,14 @@ dependencies = [
     # for core stimuli
     "soundfile",
     "sounddevice",
-    "psychtoolbox",
     "imageio",
     "imageio-ffmpeg",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
     "zope.interface==7.2",  # needed for gevent on macos
-    "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
+    "gevent",
+    "gevent==25.5.1; platform_system==\"Darwin\"",
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
@@ -64,14 +67,15 @@ dependencies = [
     # for translation
     "i18next",
     # psychoJS conversions
-    "astunparse",
     "esprima",
     "jedi >= 0.16",
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
+    "pynput; platform_system != \"Linux\"",
     # movie backends
-    "ffpyplayer",
+    "av",  # PyAV, also used to extract movie audio tracks
+    "ffpyplayer; python_version < \"3.14\"",
     "opencv-python",
     # platform specific
     "python-vlc >= 3.0.21203",
@@ -121,10 +125,10 @@ suggested = [
     "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",
+    "psychtoolbox",
 ]
 legacy = [
     "pyo>=1.0.3",
-    "pyglfw",
     "pygame",
 ]
 

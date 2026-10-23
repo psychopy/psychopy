@@ -26,6 +26,41 @@ __build_platform__ = 'n/a'
 __all__ = ["gui", "misc", "visual", "core",
            "event", "data", "sound", "microphone"]
 
+# Disable pyglet's GL error checking, which installs an `errcheck` hook that
+# calls `glGetError()` after every single GL call. This must happen before
+# anything imports `pyglet.gl`, since `pyglet.gl.lib` reads the option once at
+# import time and decorates the entry points there and then -- setting it later
+# (as the visual modules do) has no effect. Importing `pyglet` itself is cheap
+# and does not pull in `pyglet.gl`.
+#
+# `PYGLET_DEBUG_GL` in the environment is left alone, so anyone debugging GL
+# calls can still turn the checking back on.
+if 'PYGLET_DEBUG_GL' not in os.environ:
+    try:
+        import pyglet
+        pyglet.options['debug_gl'] = False
+    except ImportError:
+        pass  # pyglet isn't required to merely import psychopy
+
+# Use the X11 build of GLFW on Linux, even in Wayland sessions (via XWayland).
+# Pyglet is our OpenGL loader and uses GLX, which cannot be made current
+# alongside the EGL contexts GLFW creates under Wayland. pyGLFW picks the build
+# when first imported, so this must happen before anything imports `glfw`.
+# Setting `PYGLFW_LIBRARY_VARIANT` in the environment overrides this.
+if sys.platform.startswith('linux') and os.environ.get('DISPLAY'):
+    os.environ.setdefault('PYGLFW_LIBRARY_VARIANT', 'x11')
+
+# Pyglet 2+ creates a hidden "shadow" window when `pyglet.gl` is imported, and
+# on macOS its context is core profile, which PsychoPy's fixed-function OpenGL
+# can't use. Stop that here, before anything imports `pyglet.gl`, so that
+# `psychopy.tools.pygletgl` can create it with a legacy context instead.
+try:
+    import pyglet
+    if pyglet.version >= '2.0':
+        pyglet.options['shadow_window'] = False
+except ImportError:
+    pass
+
 # for developers the following allows access to the current git sha from
 # their repository
 if __git_sha__ == 'n/a':

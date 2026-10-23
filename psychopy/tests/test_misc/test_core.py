@@ -360,12 +360,14 @@ def test_StaticPeriod():
     assert static.complete()==0
 
     win = Window(autoLog=False)
-    static = StaticPeriod(screenHz=60, win=win)
-    static.start(.002)
-    assert win.recordFrameIntervals is False
-    static.complete()
-    assert static._winWasRecordingIntervals == win.recordFrameIntervals
-    win.close()
+    try:
+        static = StaticPeriod(screenHz=60, win=win)
+        static.start(.002)
+        assert win.recordFrameIntervals is False
+        static.complete()
+        assert static._winWasRecordingIntervals == win.recordFrameIntervals
+    finally:
+        win.close()
 
     # Test if screenHz parameter is respected, i.e., if after completion of the
     # StaticPeriod, 1/screenHz seconds are still remaining, so the period will
@@ -375,19 +377,21 @@ def test_StaticPeriod():
     timer = CountdownTimer()
     win = Window(autoLog=False)
 
-    static = StaticPeriod(screenHz=refresh_rate, win=win)
-    static.start(period_duration)
-    timer.reset(period_duration )
-    static.complete()
+    try:
+        static = StaticPeriod(screenHz=refresh_rate, win=win)
+        static.start(period_duration)
+        timer.reset(period_duration )
+        static.complete()
 
-    if systemtools.isVM_CI():
-        tolerance = 0.01  # without a proper screen timing might not eb sub-ms
-    else:
-        tolerance = 0.001
-    assert np.allclose(timer.getTime(),
-                       1.0/refresh_rate,
-                       atol=tolerance)
-    win.close()
+        if systemtools.isVM_CI():
+            tolerance = 0.01  # without a proper screen timing might not eb sub-ms
+        else:
+            tolerance = 0.001
+        assert np.allclose(timer.getTime(),
+                           1.0/refresh_rate,
+                           atol=tolerance)
+    finally:
+        win.close()
 
 
 @pytest.mark.quit

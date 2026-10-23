@@ -68,9 +68,9 @@ def setGamma(screenID=None, newGamma=1.0, rampType=None, rampSize=None,
         newGamma = numpy.tile(newGamma, [3, 1])
     elif type(newGamma) in [list, tuple]:
         newGamma = numpy.array(newGamma)
-        newGamma.shape = [3, 1]
+        newGamma = newGamma.reshape(3, 1)
     elif type(newGamma) is numpy.ndarray:
-        newGamma.shape = [3, 1]
+        newGamma = newGamma.reshape(3, 1)
     # create LUT from gamma values
     newLUT = numpy.tile(
         createLinearRamp(rampType=rampType, rampSize=rampSize, driver=driver),

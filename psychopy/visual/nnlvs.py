@@ -12,7 +12,7 @@ system.
 
 import ctypes
 import numpy as np
-import pyglet.gl as GL
+import psychopy.tools.pygletgl as GL
 from psychopy.visual import window
 from psychopy import logging
 import psychopy.tools.mathtools as mt
@@ -138,7 +138,8 @@ class VisualSystemHD(window.Window):
         # create scene light at the pivot point
         win.lights = [
             visual.LightSource(win, pos=(0.4, 4.0, -2.0), lightType='point',
-                        diffuseColor=(0, 0, 0), specularColor=(1, 1, 1))
+                        diffuseColor=(0, 0, 0), specularColor=(1, 1, 1),
+                        ambientColor=(0, 0, 0))
         ]
         win.ambientLight = (0.2, 0.2, 0.2)
 
@@ -705,11 +706,12 @@ class VisualSystemHD(window.Window):
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = \
-            vt.perspectiveProjectionMatrix(*frustum, dtype=np.float32)
+        # write in-place so `Window` doesn't have to re-derive the pointers it
+        # hands to the GL matrix calls
+        vt.perspectiveProjectionMatrix(*frustum, out=self._projectionMatrix)
 
         # translate away from screen
-        self._viewMatrix = np.identity(4, dtype=np.float32)
+        self._viewMatrix[:, :] = np.identity(4, dtype=np.float32)
         self._viewMatrix[0, 3] = -self._eyeOffsets[self.buffer]  # apply eye offset
         self._viewMatrix[2, 3] = -scrDist  # displace scene away from viewer
 

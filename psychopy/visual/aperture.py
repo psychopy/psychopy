@@ -16,7 +16,7 @@ import os
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
 pyglet.options['debug_gl'] = False
-GL = pyglet.gl
+import psychopy.tools.pygletgl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging, core
@@ -29,6 +29,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import ShapeStim, knownShapes
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
+from psychopy.visual.helpers import callOnGLThread
 
 import numpy
 from numpy import cos, sin, radians
@@ -328,6 +329,8 @@ class Aperture(MinimalStim, ContainerMixin):
 
     def __del__(self):
         try:
-            self.enabled = False
+            # turns the window's stencil test off, so on the thread with its
+            # OpenGL context, as the garbage collector may be running on any
+            callOnGLThread(self.__dict__.get('win'), self.disable)
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # trying to avoid 'Exception ignored in: ....' error from pyglet when experiment exits

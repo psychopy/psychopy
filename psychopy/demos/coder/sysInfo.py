@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
+from psychopy.tools.pygletgl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 from psychopy import visual, preferences
 import sys, platform
 
@@ -42,7 +42,7 @@ print("\nOpenGL info:")
 # get info about the graphics card and drivers
 print("vendor:", gl_info.get_vendor())
 print("rendering engine:", gl_info.get_renderer())
-print("OpenGL version:", gl_info.get_version())
+print("OpenGL version:", gl_info.get_version_string())
 print("(Selected) Extensions:")
 extensionsOfInterest = ['GL_ARB_multitexture',
                         'GL_EXT_framebuffer_object', 'GL_ARB_fragment_program',

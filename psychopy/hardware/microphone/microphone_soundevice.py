@@ -15,19 +15,14 @@ import sys
 import time
 from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
-from psychopy import logging as logging, prefs, core
+from psychopy import logging as logging
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
-from psychopy.constants import NOT_STARTED
-from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
-from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
-from psychopy.sound.audioclip import AudioClip
+from psychopy.hardware import BaseResponseDevice
+from psychopy.sound.audiodevice import AudioDeviceInfo
 from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInvalidDeviceError, \
-    AudioStreamError, AudioRecordingBufferFullError
+    AudioStreamError
 from psychopy.tools import systemtools as st
-from psychopy.tools.audiotools import SAMPLE_RATE_48kHz
-import atexit
-import re
 
     
 class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microphone"]):
@@ -162,47 +157,39 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         logging.debug('Set stream sample rate to {} Hz'.format(
             self._sampleRateHz))
 
-        # set the audio latency mode
-        if exclusive:
-            self._audioLatencyMode = 2
-        else:
-            self._audioLatencyMode = 1
+        # Latency to ask PortAudio for. This is not the same thing as
+        # Psychtoolbox's `audioLatencyMode`, which is an enum: `sounddevice`
+        # wants either one of its own names or a number of seconds, and passing
+        # the mode number through means asking for one or two *seconds* of
+        # input latency. PsychoPy wants samples as promptly as the device can
+        # give them, so ask for the low-latency setting either way.
+        self._audioLatencyMode = 2 if exclusive else 1
+        self._streamLatency = 'low'
         logging.debug(
-            'Set audio latency mode to {}'.format(self._audioLatencyMode)
-        )
+            'Set audio latency mode to {}, requesting {!r} stream '
+            'latency'.format(self._audioLatencyMode, self._streamLatency))
 
-        # internal recording buffer size in seconds
+        # Kept for signature compatibility with the other backends. This device
+        # hands samples straight to its clients from the stream callback rather
+        # than holding an internal buffer, so there is nothing to size here.
         assert isinstance(streamBufferSecs, (float, int))
         self._streamBufferSecs = float(streamBufferSecs)
 
-        # PTB specific stuff
-        self._mode = 2  # open a stream in capture mode
-
-        # get audio run mode
-        assert isinstance(audioRunMode, (float, int)) and \
-               (audioRunMode == 0 or audioRunMode == 1)
         self._audioRunMode = int(audioRunMode)
+
+        # listeners must exist before the stream opens, since the callback can
+        # start dispatching to them as soon as it does
+        self.listeners = []
 
         # open stream
         self._stream = None
         self._opening = self._closing = False
-        self._recording = False
-        self._tRecordingStartRequested = -1
-        self._recordingBuffer = []  # list of samples
-        self._nRecordedFrames = 0
-        self._streamReady = False  # True when the mic is actually getting data
-
-        self._microphones = []  # microphone objects bound to this device stream
-
-        # window for timing the recording to start
-        self.win = None
 
         self.open()
 
-        self.listeners = []  # list of microphone objects listening to this device for recording
-
     def __hash__(self):
-        # hash based on device index and name (which should be unique identifiers for the physical device)
+        # hash based on device index and name (which should be unique identifiers 
+        # for the physical device)
         return hash((self._device.deviceIndex, self._device.deviceName))
     
     @property
@@ -217,6 +204,19 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         """
         return self._sampleRateHz
+
+    @property
+    def channels(self):
+        """The number of audio channels in the input stream. This is determined by
+        the device and cannot be changed by the user.
+
+        Returns
+        -------
+        int
+            Number of audio channels in the input stream.
+
+        """
+        return self._channels
 
     def _callback(self, indata, frames, timedat, status):
         """Callback function for the sounddevice stream. This is called whenever
@@ -235,18 +235,25 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         """
         if self._closing or self._opening:
-            # if we're in the middle of opening or closing, ignore any callbacks as they may be unstable
+            # if we're in the middle of opening or closing, ignore any callbacks 
+            # as they may be unstable
             return
         
         timeAtADC = timedat.inputBufferAdcTime
 
         if status:
             logging.warning(f"SoundDevice stream callback returned with status: {status}")
+        
+        if len(indata):
+            # Keep the most recent block for `getCurrentVolume()`, which is used
+            # for volume meters and sound sensors. This is done for every block,
+            # whether or not anything is recording.
+            self._rtBuffer = indata.copy()
 
         if len(indata) and self._clients:
             # compute the absulute time of the end of the current recording pos
             absBlockStartTime = timeAtADC
-            absBlockEndTime = timeAtADC + (frames / self._sampleRateHz)
+            absBlockEndTime = absBlockStartTime + (frames / self._sampleRateHz)
             
             # iterate over attached microphone objects and write data to their 
             # recording buffers if we're past the requested start time
@@ -255,8 +262,22 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 reqStopTime = mic._tRecordingStopRequested
                 if reqStartTime < absBlockEndTime and (
                         reqStopTime is None or absBlockStartTime < reqStopTime):
+                    
+                    if not mic._isRecording:
+                        mic._startRecOffset = max(
+                            0, int((reqStartTime - absBlockStartTime) * self._sampleRateHz))
+                        mic._isRecording = True
                     mic._recordingBuffer.append(indata.copy())
                     mic._nRecordedFrames += frames
+
+                    if reqStopTime is not None and absBlockEndTime >= reqStopTime:
+                        mic._isRecording = False
+
+    @property
+    def index(self):
+        """Index of the device this microphone is using (`int` or `str`).
+        """
+        return self._device.deviceIndex
 
     def open(self):
         """Open the stream for this microphone device.
@@ -285,7 +306,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 samplerate=self._sampleRateHz,
                 channels=self._channels,
                 device=self._device.deviceIndex,
-                latency=self._audioLatencyMode,
+                latency=self._streamLatency,
                 callback=self._callback,
                 blocksize=0,  # use default blocksize
                 dtype='float32',  # use 32-bit float for recording
@@ -306,7 +327,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         if self._clients:
             return 
 
-        if self._stream is None or not self._stream.active:
+        if self._stream is None:
             logging.warning(
                 "Attempted to close microphone stream which is already closed."
             )
@@ -321,48 +342,26 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 "An error occurred while closing the microphone stream. See logs for details."
             ) from e
     
-    def _getSegment(self, startTime, endTime):
-        """Get a segment of the recorded audio data between `startTime` and `endTime`.
-
-        Parameters
-        ----------
-        startTime : float
-            Start time of the segment in seconds from the start of recording.
-        endTime : float
-            End time of the segment in seconds from the start of recording.
-
-        Returns
-        -------
-        ndarray
-            The audio data for the specified segment, with shape (n_samples, n_channels).
-
-        """
-        if not self._recordingBuffer:
-            return np.empty((0, self._channels), dtype=np.float32)
-
-        # concatenate all recorded blocks into a single array
-        self._recordingBuffer = [np.concatenate(self._recordingBuffer, axis=0)]
-
-        # calculate sample indices for the requested time range
-        startSample = int(startTime * self._sampleRateHz)
-        endSample = int(endTime * self._sampleRateHz)
-
-        # clip to available data
-        startSample = max(0, min(startSample, self._nRecordedFrames))
-        endSample = max(0, min(endSample, self._nRecordedFrames))
-
-        return self._recordingBuffer[0][startSample:endSample]
-
     def getRecording(self):
-        """Get the recorded audio data as a numpy array.
+        """Get the recorded audio data.
 
-        Returns
-        -------
-        ndarray
-            The recorded audio data, with shape (n_samples, n_channels).
+        **Not supported by this backend.** This device does not keep a recording
+        of its own: it writes samples straight into the buffer of each client
+        bound to it, each of which has its own recording window. Ask the client
+        for its recording instead, for example
+        `psychopy.sound.Microphone.getRecording()`.
+
+        Raises
+        ------
+        NotImplementedError
+            Always.
 
         """
-        return self._getSegment(0, self._nRecordedFrames / self._sampleRateHz)
+        raise NotImplementedError(
+            "`SoundDeviceMicrophoneDevice` does not hold a recording of its "
+            "own. Samples are written to the clients bound to this device, so "
+            "call `getRecording()` on the client (e.g. the `Microphone` or "
+            "`Camera` object) which requested the recording.")
 
     def _getTime(self):
         """Get current time from the same timebase as the stream.
@@ -376,18 +375,34 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         return time.monotonic()  # sounddevice uses monotonic timebase for its callbacks
     
     def record(self, when=None, waitForStart=0, stopTime=None):
+        """Start recording from the microphone. This method is an alias for `start()`.
+        
+        **Deprecated**: No longer in use. Recordings are now managed by the 
+        microphone objects attached to this device. Call `start()` on the 
+        microphone object to begin recording, and `stop()` to end recording.
+
+        """
         pass
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start recording from the microphone. Alias for `record()`.
+
+        **Deprecated**: No longer in use. Recordings are now managed by the 
+        microphone objects attached to this device. Call `start()` on the 
+        microphone object to begin recording, and `stop()` to end recording.
+
         """
         self.record(when=when, waitForStart=waitForStart, stopTime=stopTime)
     
     def stop(self, *args, **kwargs):
         """Stop recording from the microphone.
+
+        **Deprecated**: No longer in use. Recordings are now managed by the 
+        microphone objects attached to this device. Call `stop()` on the 
+        microphone object to end recording.
+
         """
-        self._tRecordingStartRequested = -1
-        self._recording = False
+        pass
 
     def pause(self):
         """Pause recording from the microphone. Can be resumed with `record()`."""
@@ -407,20 +422,17 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             Current volume level, typically in the range [0.0, 1.0].
 
         """
-        if not self._recordingBuffer:
-            return 0.0
+        # `_rtBuffer` holds the most recent block from the stream callback, and
+        # is empty until the first one arrives. Recorded audio is not used here:
+        # it belongs to the clients, and volume should be readable whether or
+        # not anything is recording.
+        latestBlock = self._rtBuffer
 
-        # get the most recent block of recorded audio
-        latestBlock = self._recordingBuffer[-1]
-
-        # make sure we have some data to compute volume from
-        if latestBlock.size == 0:
+        if latestBlock is None or not len(latestBlock):
             return 0.0
 
         # calculate RMS volume across all channels
-        rms = np.sqrt(np.mean(latestBlock ** 2))
-        
-        return rms
+        return float(np.sqrt(np.mean(np.square(latestBlock))))
 
     @staticmethod
     def queryDevices():
@@ -431,14 +443,6 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         list of dict 
             List of available microphone devices where configurations are given as
             dicts in a format similar to PTB.
-
-        """
-        """Query speaker devices using sounddevice.
-
-        Returns
-        -------
-        list of dicts
-            Device information.
 
         """
         try:
@@ -455,7 +459,8 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         devices = []
         for dev in sd.query_devices():
-            # skip input-only devices (microphones)
+            # skip devices with no input channels, i.e. anything we cannot
+            # capture from
             if dev['max_input_channels'] == 0:
                 continue
 
@@ -669,8 +674,11 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             useful if you're just sampling volume and aren't wanting to store the recording.
 
         """
-        # if mic is not recording, there's nothing to dispatch
-        if not self.isStarted:
+        # If the stream is not running there is nothing to report. This checks
+        # the stream rather than `isStarted`, which belongs to the backends that
+        # start and stop recording on the device itself; this one streams
+        # continuously from the moment it is opened.
+        if self._stream is None or not self._stream.active:
             return
         
         # create a response object

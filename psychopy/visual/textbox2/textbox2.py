@@ -20,7 +20,7 @@ from ast import literal_eval
 import numpy as np
 import sys
 from arabic_reshaper import ArabicReshaper
-from pyglet import gl
+import psychopy.tools.pygletgl as gl
 from bidi import algorithm as bidi
 import re
 
@@ -28,6 +28,7 @@ from ..aperture import Aperture
 from ..basevisual import (
     BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin, DraggingMixin, PointerMixin
 )
+from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
 from psychopy.colors import Color
@@ -39,9 +40,7 @@ from ... import core, alerts, layout
 
 from psychopy.tools.linebreak import get_breakable_points, break_units
 
-import pyglet
-USE_LEGACY_GL = pyglet.version < '2.0'
-import pyglet.gl as gl
+USE_LEGACY_GL = gl.USE_LEGACY_GL
 
 allFonts = FontManager()
 
@@ -95,6 +94,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         bold=False,
         italic=False,
         placeholder="Type here...",
+        hyphenate=True,
         lineSpacing=1.0,
         letterSpacing=None,
         padding=None,  # gap between box and text
@@ -138,6 +138,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         opacity
         bold
         italic
+        placeholder : str
+            Text to display when editable textbox is empty, default is "Type here..."
+        hyphenate : bool
+            Whether or not to add a hyphen when splitting a word at a line break
         lineSpacing
         padding
         speechPoint : list, tuple, np.ndarray or None
@@ -218,13 +222,20 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
         self.letterSpacing = letterSpacing
+        # store hyphen preference
+        self.hyphenate = hyphenate
         # If font not found, default to Noto Sans Regular and raise alert
         if not self.glFont:
-            alerts.alert(4325, self, {
-                'font': font,
-                'weight': 'bold' if self.bold is True else 'regular' if self.bold is False else self.bold,
-                'style': 'italic' if self.italic else '',
-                'name': self.name})
+            logging.warn(
+                (
+                    "Font `{font} {style}` not available in weight `{weight}`, component `{name}` will use default font."
+                ).format(
+                    font=font,
+                    weight='bold' if self.bold is True else 'regular' if self.bold is False else self.bold,
+                    style='italic' if self.italic else '',
+                    name=self.name
+                )
+            )
             self.bold = False
             self.italic = False
             self.font = "Noto Sans"
@@ -952,14 +963,15 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                     if wordsThisLine <= 1:
                         # if whole line is just 1 word, wrap regardless of presence of wordbreak
                         wordLen = 0
-                        charsThisLine += 1
                         wordsThisLine += 1
                         # add hyphen
-                        self._renderChars.append({
-                            "i": i,
-                            "current": (current[0], current[1]),
-                            "glyph": font["-"]
-                        })
+                        if self.hyphenate:
+                            charsThisLine += 1
+                            self._renderChars.append({
+                                "i": i,
+                                "current": (current[0], current[1]),
+                                "glyph": font["-"]
+                            })
                         # store linebreak point
                         lineBreakPt = current[0]
                     wordWidth = current[0] - lineBreakPt
@@ -1409,7 +1421,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             gt.setUniformMatrix(
                 prog, 
                 b'uModelViewMatrix', 
-                self.win._viewMatrix,
+                self.win._getPixViewMatrix(),
                 transpose=True)
             gt.setUniformMatrix(
                 prog, 
@@ -1829,7 +1841,7 @@ class Caret(ColorMixin):
         gt.setUniformMatrix(
             prog, 
             b'uModelViewMatrix', 
-            self.win.viewMatrix,
+            self.win._getPixViewMatrix(),
             transpose=True)
         gt.drawClientArrays({
             'gl_Vertex': self.vertices}, 'lines')

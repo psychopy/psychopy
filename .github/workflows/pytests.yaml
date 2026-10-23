@@ -19,33 +19,28 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-15-intel, ubuntu-24.04]
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.14']
 
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
         
+    - name: get_month
+      id: month
+      run: echo "month=$(date +'%Y-%m')" >> "$GITHUB_OUTPUT"
+
     - name: Install UV
       uses: astral-sh/setup-uv@v7
       with:
         activate-environment: true
-        enable-cache: true
+        enable-cache: auto
+        prune-cache: false
+        # rotate the cache monthly: bounds cache growth/staleness while still
+        # giving hits (and sparing extras.wxpython.org) within a given month
+        cache-suffix: ${{ steps.month.outputs.month }}
 
-    - name: get_month
-      if: runner.os=='Linux'
-      id: month
-      run: echo "month=$(date +'%Y-%m')" >> "$GITHUB_OUTPUT"
-  
-    # NB no effect if we use uv to do the installation, only affects pip installs
-    - name: cache wxPython for linux
-      if: runner.os=='Linux'
-      uses: actions/cache@v5
-      with:
-        path: ~/.cache/pip
-        key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.month.outputs.month }}
-        
     - name: Install Linux system dependencies
       if: runner.os=='Linux'
       run: |
@@ -79,6 +74,9 @@ jobs:
         then
           # for pocketsphinx we need this adapted package:
           brew install swig vlc portaudio portmidi liblo sdl2
+        elif [ "${{ runner.os }}" == "Linux" ]
+        then
+          sudo apt-get install vlc -y
         fi
     
     - name: Install
@@ -110,14 +108,14 @@ jobs:
       run: |
         if [ "${{ runner.os }}" == "Linux" ]
         then
-          xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
+          xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -W "ignore:Non-identical Builder Param:UserWarning" -v psychopy
         else
-          pytest --ignore="psychopy/tests/test_gui" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" --ignore="test_KeyboardComponent" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
+          pytest --ignore="psychopy/tests/test_gui" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" --ignore="test_KeyboardComponent" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -W "ignore:Non-identical Builder Param:UserWarning" -v psychopy
         fi
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: prefs_files_${{ matrix.os }}_${{ matrix.python-version }}
         path: |
@@ -127,7 +125,7 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: failed_test_data_${{ github.run_id }}_${{ matrix.python-version }}_${{ matrix.os }}
         path: |
@@ -138,6 +136,6 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: always()
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
       with:
         fail_ci_if_error: false

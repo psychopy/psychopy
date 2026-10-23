@@ -29,7 +29,7 @@ import os
 import platform
 import io
 
-from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
+from psychopy.tools.pygletgl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 import numpy
 import scipy
 import matplotlib
@@ -537,7 +537,7 @@ class RunTimeInfo(dict):
         # OpenGL info:
         self['openGLVendor'] = gl_info.get_vendor()
         self['openGLRenderingEngine'] = gl_info.get_renderer()
-        self['openGLVersion'] = gl_info.get_version()
+        self['openGLVersion'] = gl_info.get_version_string()
         GLextensionsOfInterest = ('GL_ARB_multitexture',
                                   'GL_EXT_framebuffer_object',
                                   'GL_ARB_fragment_program',
