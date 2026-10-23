@@ -266,7 +266,7 @@ class Flow(list):
                     "    "
                 )
             code += (
-                "core.rush(enable=True)\n"
+                "core.rush(True)\n"
             )
             script.writeIndentedLines(code)
         # initialisation
@@ -373,7 +373,7 @@ class Flow(list):
         if self.exp.settings.params['rush']:
             code = (
                 "# end 'rush' mode\n"
-                "core.rush(enable=False)\n"
+                "core.rush(False)\n"
             )
             script.writeIndentedLines(code)
 

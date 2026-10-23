@@ -171,6 +171,14 @@ class Test_utilsClass:
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6
 
+    def test_checkValidFilePath(self, tmp_path):
+        # creates the containing folder if needed and returns True
+        path = join(str(tmp_path), 'sub001', 'sub001-events.tsv')
+        assert utils.checkValidFilePath(path)
+        assert os.path.isdir(join(str(tmp_path), 'sub001'))
+        # an already existing folder is fine too
+        assert utils.checkValidFilePath(path)
+
 def test_listFromString():
     assert ['yes', 'no'] == utils.listFromString("yes, no")
     assert ['yes', 'no'] == utils.listFromString("[yes, no]")

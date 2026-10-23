@@ -1,45 +1,56 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Demonstrate sending flip-synchronized events to EGI NetStation.
+
+Install ``psychopy-egi-pynetstation`` from PsychoPy's Plugin/packages manager
+before running this example. Change the network addresses below to match the
+NetStation host and amplifier NTP server used by your lab.
 """
-This demo comes from the simple_distilled example provided with pynetstation.
 
-Note that egi pynetstation can also be used in a multi-threaded form.
-See the pynetstation documentation for further information.
-"""
+from psychopy import core, visual
+from psychopy_egi_pynetstation import EGINetStation
 
-# Set up:
 
-import egi.simple as egi
-# import egi.threaded as egi
+NETSTATION_IP = "10.10.10.42"
+AMPLIFIER_NTP_IP = "10.10.10.51"
+ECI_PORT = 55513
 
-# ms_localtime = egi.egi_internal.ms_localtime
-ms_localtime = egi.ms_localtime
 
-ns = egi.Netstation()
+win = visual.Window(fullscr=True, screen=0, color="black", units="height")
+fixation = visual.TextStim(win, text="+", color="white", height=0.08)
 
-# sample address and port; change according to your network settings
-ns.connect('11.0.0.42', 55513)
-# ns.initialize('11.0.0.42', 55513)
+ns = EGINetStation(
+    ip=NETSTATION_IP,
+    ntpIP=AMPLIFIER_NTP_IP,
+    port=ECI_PORT,
+)
 
-ns.BeginSession()
-ns.sync()
-ns.StartRecording()
+try:
+    ns.connect()
+    ns.beginRecording()
 
-# Send many events here:
+    for trial in range(10):
+        fixation.draw()
 
-# optionally can perform additional synchronization
-# ns.sync()
-ns.send_event('evt_', label="event", timestamp=egi.ms_localtime(),
-              table = {'fld1' : 123, 'fld2' : "abc", 'fld3' : 0.042} )
+        # Timestamp the event on the flip which presents the stimulus. Sending
+        # is asynchronous, so this callback does not block the display refresh.
+        win.callOnFlip(
+            ns.sendEvent,
+            eventType="stim",  # NetStation event types are exactly 4 characters
+            label="fixation",
+            duration=0.1,
+            data={"trl_": trial},  # data keys are also exactly 4 characters
+        )
+        win.flip()
+        core.wait(0.5)
 
-# We have sent all we wanted, time to go home:
-ns.StopRecording()
-ns.EndSession()
-ns.disconnect()
-
-# ns.EndSession()
-# ns.finalize()
+        win.flip()
+        core.wait(1.0)
+finally:
+    # Stops an active recording, flushes queued events, and disconnects.
+    ns.close()
+    win.close()
 
 
 # The contents of this file are in the public domain.

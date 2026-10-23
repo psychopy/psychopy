@@ -961,7 +961,6 @@ class TrialHandler2(_BaseTrialHandler, FileSaveMixin):
                 self.trialList[n] = TrialType(entry)
         self.nReps = int(nReps)
         self.nTotal = self.nReps * len(self.trialList)
-        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
@@ -1142,6 +1141,10 @@ class TrialHandler2(_BaseTrialHandler, FileSaveMixin):
             else:
                 return -1
         return self.thisTrial.thisRepN
+
+    @property
+    def nRemaining(self):
+        return self.nTotal - self.thisN
     
     def calculateUpcoming(self, fromIndex=-1):
         """Rebuild the sequence of trial/state info as if running the trials
@@ -1868,7 +1871,6 @@ class TrialHandlerExt(TrialHandler):
         else:
             self.trialWeights = [d['weight'] for d in trialList]
             self.nTotal = self.nReps * sum(self.trialWeights)
-        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
         self.thisRepN = 0  # records which repetition or pass we are on
         self.thisTrialN = -1  # records trial number within this repetition
@@ -1897,6 +1899,10 @@ class TrialHandlerExt(TrialHandler):
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None  # the experiment handler that owns me!
+
+    @property
+    def nRemaining(self):
+        return self.nTotal - self.thisN
 
     def _createSequence(self):
         """Pre-generates the sequence of trial presentations (for
@@ -2005,7 +2011,6 @@ class TrialHandlerExt(TrialHandler):
         # update pointer for next trials
         self.thisTrialN += 1  # number of trial this pass
         self.thisN += 1  # number of trial in total
-        self.nRemaining -= 1
 
         if self.trialWeights is None:
             if self.thisTrialN == len(self.trialList):

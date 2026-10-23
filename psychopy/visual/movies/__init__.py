@@ -512,6 +512,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._initParams = dir()
         self._initParams.remove('self')
 
+        self._player = None
+        self._isLoaded = False
+
         super(MovieStim, self).__init__(
             win, units=units, name=name, autoLog=False)
 
@@ -722,8 +725,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.loadMovie(value)
 
     def setMovie(self, value):
-        if self._isLoaded:
-            self.unload()
         self.loadMovie(value)
 
     @property
@@ -876,10 +877,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         # Set the movie file name, this handles normalizing the path and
         # checking if the file exists.
-
         self._setFileName(filename)
-
-        # Time opening the movie file
 
         t0 = time.time()  # time it
         logging.debug(
@@ -1391,7 +1389,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
-        self.setMovie(filename=filename)
+        self.setMovie(filename)
+
+    def _freePlayer(self):
+        """Free the player interface and associated resources.
+
+        This function closes the player and clears the player object.
+        """
+        if hasattr(self, '_player') and self._player is not None:
+            self._player.close()
+            self._player = None
 
     def unload(self, log=True):
         """Stop and unload the movie.
@@ -1402,8 +1409,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        if self._isLoaded:
-            self._player.close()
+        if getattr(self, '_isLoaded', False):
+            self._freePlayer()  # free the player if it is already open
             self._freeTextureBuffers()  # free buffer before creating a new one
             self._cleanupAudioTrack()
             self._isLoaded = False

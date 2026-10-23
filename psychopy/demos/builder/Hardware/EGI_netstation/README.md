@@ -6,6 +6,8 @@ In this task subjects must report the colour of the letters spelling each word, 
 
 This experiment has been modified from the original PsychoPy demo script to include calls for EGI EEG amplifiers. The program will connect, record, and send tags for each stimulus as well as each response.
 
+Install `psychopy-egi-pynetstation` from PsychoPy's Plugin/packages manager before running the demo. The package performs clock-drift sampling automatically in the background, so the experiment does not need to call `resync()` at the start of each Routine.
+
 ## Analysing your data:
 
 After you run the study, look in the data/ folder next to where the experiment was saved. There will be an xlsx file there that can be opened with Microsoft Excel or similar spreadsheet package. Each row represents one condition (trial type) and each column is one variable of your experiment or type of data collected. 

@@ -30,10 +30,12 @@ class Circle(Polygon):
         Number of edges to use to define the outline of the circle. The
         greater the number of edges, the 'rounder' the circle will appear.
     radius : float
-        Initial radius of the circle in `units`.
+        Radius of the circle, relative to its size (so 1 will make a circle whose radius 
+        is the same as `size`, .5 will make a circle which fits exactly inside a rect of 
+        the same size).
     units : str
         Units to use when drawing. This will affect how parameters and
-        attributes `pos`, `size` and `radius` are interpreted.
+        attributes `pos` and `size` are interpreted.
     lineWidth : float
         Width of the circle's outline.
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
