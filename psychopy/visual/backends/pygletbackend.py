@@ -344,32 +344,49 @@ class PygletBackend(BaseBackend):
             self.winHandle._nswindow.setFrameOrigin_(temp_origin)
 
             # create a display link
+            displayLinkObj = None
             try:
                 # bind the NSWindow pointer to the window handle, we use AppKit here
                 # because the ctypes bindings in cocoapy are incomplete
                 winNSObj = AppKit.NSWindow(c_void_p=self.winHandle._nswindow.ptr)
-                
-                # create a display link for the window
-                self.refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
-                displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
-                    self.refreshEventHandlerMacOS, 
-                    "displayRefreshed:")
 
-                # configure the preferred frame rate range hint for the display link
-                frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
-                frameRateMin = int(frameRateMax / 2)
-                displayLinkObj.setPreferredFrameRateRange_(
-                    (frameRateMin, 
-                    frameRateMax, 
-                    frameRateMax))
+                # `NSWindow.displayLinkWithTarget:selector:` is only available on
+                # macOS 14 (Sonoma) and later
+                if winNSObj.respondsToSelector_('displayLinkWithTarget:selector:'):
+                    # create a display link for the window
+                    refreshEventHandler = RefreshEventHandlerMacOS.alloc().init()
+                    displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
+                        refreshEventHandler,
+                        "displayRefreshed:")
 
-                # add the display link to the run loop, only works with 
-                # `NSRunLoopCommonModes` since we don't run a full app loop here
-                # and will pump our events manually in `swapBuffers()`
-                displayLinkObj.addToRunLoop_forMode_(
-                    AppKit.NSRunLoop.currentRunLoop(), 
-                    AppKit.NSRunLoopCommonModes)
+                    # configure the preferred frame rate range hint for the display link
+                    frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
+                    frameRateMin = int(frameRateMax / 2)
+                    displayLinkObj.setPreferredFrameRateRange_(
+                        (frameRateMin,
+                        frameRateMax,
+                        frameRateMax))
+
+                    # add the display link to the run loop, only works with
+                    # `NSRunLoopCommonModes` since we don't run a full app loop here
+                    # and will pump our events manually in `swapBuffers()`
+                    displayLinkObj.addToRunLoop_forMode_(
+                        AppKit.NSRunLoop.currentRunLoop(),
+                        AppKit.NSRunLoopCommonModes)
+
+                    # only enable display link sync in `swapBuffers()` once the
+                    # display link is fully set up, else flips wait for refresh
+                    # callbacks which never arrive
+                    self.refreshEventHandlerMacOS = refreshEventHandler
+                else:
+                    logging.debug(
+                        "DisplayLink for window synchronization requires macOS 14 "
+                        "or later; falling back to standard vsync timing.")
             except Exception:
+                # the run loop retains the link (and its target) unless it's
+                # invalidated
+                if displayLinkObj is not None:
+                    displayLinkObj.invalidate()
                 logging.error(
                     "Unable to create DisplayLink for screen. This may result in "
                     "less accurate timing of window flips.")
@@ -498,9 +515,13 @@ class PygletBackend(BaseBackend):
             # is presented at the correct time. This takes a few frames to 
             # 'settle' so there may be some initial jitter.
             if hasattr(self, 'refreshEventHandlerMacOS'):
-                # hold until released by callback
-                self.refreshEventHandlerMacOS.frameLock = True  
+                # hold until released by callback, but don't wait indefinitely
+                # if callbacks stop arriving (e.g. while the window is minimized)
+                deadline = time.perf_counter() + 0.1
+                self.refreshEventHandlerMacOS.frameLock = True
                 while self.refreshEventHandlerMacOS.frameLock:
+                    if time.perf_counter() > deadline:
+                        break
                     # keep pumping events until we get a refresh callback
                     self.winHandle.dispatch_events()
 
