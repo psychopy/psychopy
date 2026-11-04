@@ -123,6 +123,7 @@ class SettingsComponent:
             plCompanionPort=8080,
             ecSampleRate='default',
             keyboardBackend="PsychToolbox",
+            windowedKeyboard=True,
             filename=None, exportHTML='on Sync',
             endMessage=_translate("Thank you for your patience.")
     ):
@@ -559,7 +560,7 @@ class SettingsComponent:
                     'false': "hide",  # otherwise...
                 })
 
-        # Legacy
+        # Input
         self.params['useLegacyKeyboard'] = Param(
             not sysconfig.get_config_var("Py_GIL_DISABLED"),
             categ="Input",
@@ -583,6 +584,17 @@ class SettingsComponent:
             'true': "show",  # should...
             'false': "hide",  # otherwise...
         })
+        self.params['windowedKeyboard'] = Param(
+            windowedKeyboard,
+            categ="Input",
+            valType="bool", 
+            inputType="bool", 
+            updates="constant",
+            label=_translate("Ignore keypresses outside PsychoPy"),
+            hint=_translate(
+                "Only collect responses when the PsychoPy window has focus (this is better for security)"
+            )
+        )
     
     @classmethod
     def getTemplateJSON(cls):
@@ -1625,7 +1637,10 @@ class SettingsComponent:
             "# create a default keyboard (e.g. to check for escape)\n"
             "if deviceManager.getDevice('defaultKeyboard') is None:\n"
             "    deviceManager.addDevice(\n"
-            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "        deviceClass='keyboard', \n"
+            "        deviceName='defaultKeyboard', \n"
+            "        backend=%(keyboardBackend)s,\n"
+            "        muteOutsidePsychopy=%(windowedKeyboard)s,\n"
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
