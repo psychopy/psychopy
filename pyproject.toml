@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.10, <3.15"
+requires-python = ">=3.11, <3.15"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -17,9 +17,10 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ]
@@ -33,7 +34,7 @@ dependencies = [
     # package is another project). 2.5.7 added `PYGLFW_LIBRARY_VARIANT`, which
     # `psychopy/__init__.py` uses to select the X11 build on Linux
     "glfw>=2.5.7",
-    "pillow>=12.3.0",
+    "pillow>=13.0",
     "pyqt6",
     "pandas>=1.5.3",
     "questplus>=2023.1",
