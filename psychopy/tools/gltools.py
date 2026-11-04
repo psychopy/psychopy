@@ -254,7 +254,7 @@ def getIntegerv(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -273,7 +273,7 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : float
+    parName : int
         OpenGL property enum to query.
 
     Returns
@@ -292,7 +292,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns
@@ -7593,7 +7593,7 @@ def getIntegerv(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -7612,7 +7612,7 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : float
+    parName : int
         OpenGL property enum to query.
 
     Returns
@@ -7631,7 +7631,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns
