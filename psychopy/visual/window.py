@@ -2121,24 +2121,14 @@ class Window():
     def useLights(self, value):
         self._useLights = value
 
-        # DEPRECATED: this is not needed in modern OpenGL
-
-        # # Setup legacy lights, new spec shader programs should access the
-        # # `lights` attribute directly to setup lighting uniforms.
-        # if self._useLights and self._lights:
-        #     GL.glEnable(GL.GL_LIGHTING)
-        #     # make sure specular lights are computed relative to eye position,
-        #     # this is more realistic than the default. Does not affect shaders.
-        #     GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
-
-        #     # update light positions for current model matrix
-        #     for index, light in enumerate(self._lights):
-        #         enumLight = GL.GL_LIGHT0 + index
-        #         pos = numpy.ctypeslib.as_ctypes(light.pos)
-        #         GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-        # else:
-        #     # disable lights
-        #     GL.glDisable(GL.GL_LIGHTING)
+        # Light positions are transformed by the current modelview matrix when
+        # set, so update them for the current view. Shaders read positions from
+        # `gl_LightSource`, otherwise lights stay wherever the modelview put
+        # them when `lights` was assigned (eg. before `setPerspectiveView`).
+        if self._useLights and self._lights:
+            for index, light in enumerate(self._lights):
+                pos = numpy.ctypeslib.as_ctypes(light.pos)
+                GL.glLightfv(GL.GL_LIGHT0 + index, GL.GL_POSITION, pos)
 
     def updateLights(self, index=None):
         """Explicitly update scene lights if they were modified.
