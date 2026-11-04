@@ -9,12 +9,13 @@ objects in a scene.
 
 from psychopy import core, event
 import psychopy.visual as visual
-from psychopy.visual import SphereStim, LightSource, RigidBodyPose
+from psychopy.visual import (
+    SphereStim, LightSource, RigidBodyPose, BlinnPhongMaterial)
 
 win = visual.Window((600, 600), allowGUI=False, monitor='testMonitor')
 
 # create a rigid body defining the pivot point of objects in the scene
-pivotPose = RigidBodyPose((0, 0, -5))
+pivotPose = RigidBodyPose((0, 0, -3))
 
 # text to display
 instr = visual.TextStim(win, text="Any key to quit", pos=(0, -.7))
@@ -34,7 +35,9 @@ spherePose2 = RigidBodyPose((-0.1, 0.1, 0.1))
 spherePose3 = RigidBodyPose((0.1, -0.1 , -0.1))
 
 # create some sphere stim objects
-lightSphere = SphereStim(win, radius=0.05, color='white')
+lightSphere = SphereStim(win, radius=0.05)
+# unlit objects are black, so make the light sphere emissive to make it glow
+lightSphere.material = BlinnPhongMaterial(win, emissionColor='white')
 sphere1 = SphereStim(win, radius=0.05, color='red')
 sphere2 = SphereStim(win, radius=0.1, color='green')
 sphere3 = SphereStim(win, radius=0.075, color='blue')
@@ -52,7 +55,8 @@ while not event.getKeys():
     lightSphere.thePose = pivotPose
     lightSphere.draw()
 
-    # call after drawing `lightSphere` since we don't want it being shaded
+    # call after drawing `lightSphere` since we don't want it being shaded,
+    # light positions are transformed by the current view when set
     win.useLights = True
 
     # multiplying pose puts the first object in the reference frame of the
