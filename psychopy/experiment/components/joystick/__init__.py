@@ -287,14 +287,6 @@ class JoystickComponent(BaseDeviceComponent):
         forceEnd = self.params['forceEndRoutineOnPress'].val
         #routineClockName = self.exp.flow._currentRoutine._clockName
 
-        # only write code for cases where we are storing data as we go (each
-        # frame or each click)
-
-        # might not be saving clicks, but want it to force end of trial
-        if (self.params['saveJoystickState'].val not in
-                ['every frame', 'on click'] and forceEnd == 'never'):
-            return
-
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
         # writes an if statement to determine whether to draw etc
@@ -311,6 +303,13 @@ class JoystickComponent(BaseDeviceComponent):
         indented = self.writeStopTestCode(buff)
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
+
+        # start/stop code above is always needed so the routine can end, but
+        # only poll the joystick if we're storing data as we go (each frame or
+        # each click) or a press can force the end of the routine
+        if (self.params['saveJoystickState'].val not in
+                ['every frame', 'on click'] and forceEnd == 'never'):
+            return
 
         # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "
