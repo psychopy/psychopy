@@ -1,41 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Demo for the class psychopy.visual.Pie().
-
-Use the `Pie` class to create a Kanizsa figure which produces illusory
-contours.
 
 """
-from psychopy import core
-import psychopy.visual as visual
-from psychopy.visual import Pie
-from psychopy import event
+Demo of psychopy.visual.Pie: a Kanizsa figure
 
-# open a window to render the shape
-win = visual.Window((600, 600), allowGUI=False, monitor='testMonitor')
+Four "Pac-Man" shapes with their wedges facing inward produce the illusory
+contours of a square that is not actually drawn.
+"""
 
-# create the stimulus object
-pieStim = Pie(
-    win, radius=50, start=0., end=270., fillColor=(-1., -1., -1.), units='pix')
+from psychopy import visual, event, core
 
-message = visual.TextStim(
-    win, text='Any key to quit', pos=(0, -0.8), units='norm')
+win = visual.Window(size=(600, 600), monitor='testMonitor', units='height')
 
-# positions of the corners of the shapes
-pos = [(-100, 100), (100, 100), (-100, -100), (100, -100)]
+# centre of each inducer, at the corners of the illusory square
+offset = 0.16
+positions = [(-offset, offset), (offset, offset), (-offset, -offset), (offset, -offset)]
 
-# orientations of the shapes
-ori = [180., 270., 90., 0.]
+# orientation of each inducer, so that its missing wedge points at the centre
+orientations = [180, 270, 90, 0]
+
+# each Pie is filled from `start` to `end` degrees, leaving a 90 degree wedge
+inducers = [
+    visual.Pie(win, radius=0.08, start=0, end=270, pos=pos, ori=ori,
+               fillColor='black', lineColor=None)
+    for pos, ori in zip(positions, orientations)
+]
+
+msg = visual.TextStim(win, text='Press any key to quit', pos=(0, -0.4), height=0.03)
 
 while not event.getKeys():
+    for inducer in inducers:
+        inducer.draw()
+    msg.draw()
 
-    for i in range(4):
-        pieStim.pos = pos[i]
-        pieStim.ori = ori[i]
-        pieStim.draw()
-
-    message.draw()
     win.flip()
 
 win.close()
 core.quit()
+
+# The contents of this file are in the public domain.

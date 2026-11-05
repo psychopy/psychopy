@@ -62,6 +62,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 from collections import deque
+import os
 import sys
 import psychopy.clock
 from psychopy import logging
@@ -379,7 +380,10 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
             else:
                 allInds, allNames, allKBs = hid.get_keyboard_indices()
-                if device == -1:
+                if device == -1 and os.environ.get("XDG_SESSION_TYPE") == "wayland":
+                    # under XWayland, only the master keyboard receives key events
+                    self._ids = [-1]
+                elif device == -1:
                     self._ids = allInds
                 elif type(device) in [list, tuple]:
                     self._ids = device
