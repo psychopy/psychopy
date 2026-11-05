@@ -12,12 +12,18 @@ With the PTB backend you get some options about how aggressively you want to try
 for low latency, and there is also an option to pre-schedule a sound to play at
 a given time in the future.
 
-By default PsychoPy will try to use the following Libs, in this order, for
-sound reproduction but you can alter the order in
-preferences > hardware > audioLib:
-    ['sounddevice', 'pyo', 'pygame']
-For portaudio-based backends (all except for pygame) there is also a
-choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
+The built-in backends are 'ptb' (alias 'psychtoolbox') and 'sounddevice'
+(alias 'sd'). Plugins may register additional backends. The backend is
+chosen from the list in preferences > hardware > audioLib (default:
+['ptb', 'sounddevice', 'pyo', 'pygame']), and the first entry that names a
+known backend is used. Entries for removed backends, such as 'pyo' and
+'pygame', are skipped. To override the preference in a script, set
+`psychopy.sound.Sound.backend` to a backend name before creating any sounds.
+
+The backend is not imported until it is first needed, which is usually when
+the first `Sound` is created. With the PTB backend you can also choose the
+underlying sound driver (e.g. ASIO, CoreAudio etc) in
+preferences > hardware > audioDriver.
 
 The sound lib and driver being used can be queried as::
     `psychopy.sound.audioLib`
