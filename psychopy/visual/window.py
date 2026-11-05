@@ -4046,6 +4046,18 @@ class Window():
         self.color = self.color  # call attributeSetter
         GL.glClearDepth(1.0)
 
+        # widest line the driver draws, in framebuffer pixels, since wider
+        # lines are drawn this wide instead (e.g. Apple's drivers cap them at
+        # 16), smoothed or not
+        self._maxLineWidth = None
+        for name in (GL.GL_ALIASED_LINE_WIDTH_RANGE,
+                     GL.GL_SMOOTH_LINE_WIDTH_RANGE):
+            widthRange = (GL.GLfloat * 2)()
+            GL.glGetFloatv(name, widthRange)
+            if widthRange[1] > 0:
+                self._maxLineWidth = widthRange[1] if self._maxLineWidth is None \
+                    else min(self._maxLineWidth, widthRange[1])
+
         # viewport or drawable area of the framebuffer
         self.viewport = self.scissor = \
             (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
