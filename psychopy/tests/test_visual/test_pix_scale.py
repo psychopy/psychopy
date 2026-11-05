@@ -1,7 +1,7 @@
 """Tests for scaling 'pix' units to framebuffer pixels on high DPI (e.g.
 Retina) displays.
 """
-from psychopy import event, layout, visual
+from psychopy import event, layout, monitors, visual
 from psychopy.tools.monitorunittools import convertToPix
 import numpy as np
 import pytest
@@ -25,6 +25,22 @@ def scaledWin(win):
     yield win
     win.useRetina, win._contentScaleFactor, win.units = \
         useRetina, contentScale, units
+
+
+@pytest.fixture
+def monitorWin(scaledWin):
+    """`scaledWin` with a monitor whose dimensions are known, so that 'cm' and
+    'deg' units can be converted."""
+    monitor = scaledWin.monitor
+    scaledWin.monitor = monitors.Monitor(
+        'pixScaleTest', width=30.0, distance=57.0, autoLog=False)
+    scaledWin.monitor.setSizePix([1440, 900])
+    yield scaledWin
+    scaledWin.monitor = monitor
+
+
+# every unit the mouse classes convert between
+mouseUnits = ['pix', 'norm', 'height', 'cm', 'deg']
 
 
 def test_pixScaleFactor(win):
@@ -77,6 +93,18 @@ def test_event_mouse_units(scaledWin):
     m = event.Mouse(win=scaledWin)
     assert np.allclose(m._windowUnits2pix(np.array([10., -5.])), (30, -15))
     assert np.allclose(m._pix2windowUnits(np.array([30., -15.])), (10, -5))
+
+
+@pytest.mark.parametrize('units', mouseUnits)
+def test_event_mouse_matches_stimuli(monitorWin, units):
+    # the mouse keeps its position in framebuffer pixels, so a position in the
+    # window's units must land where a stimulus at that position is drawn
+    monitorWin.units = units
+    m = event.Mouse(win=monitorWin)
+    pos = np.array([.5, -.25])
+    bufferPix = convertToPix(np.zeros(2), pos, units, monitorWin) * 3.
+    assert np.allclose(m._windowUnits2pix(pos.copy()), bufferPix)
+    assert np.allclose(m._pix2windowUnits(bufferPix.copy()), pos)
 
 
 def test_hardware_mouse_units(scaledWin):
