@@ -8,6 +8,7 @@ Also inherited by various other stimulus types.
 """
 
 from psychopy import visual, event, core
+from psychopy.tools.monitorunittools import convertToPix
 
 win = visual.Window(size=(500, 500), monitor='testMonitor', units='norm')
 mouse = event.Mouse()
@@ -21,13 +22,14 @@ shape = visual.ShapeStim(win, fillColor='darkblue', lineColor=None,
 
 # define a buffer zone around the mouse for proximity detection:
 # use pix units just to show that it works to mix (shape and mouse use norm units)
-bufzone = visual.Circle(win, radius=30, edges=13, units='pix')
+bufzone = visual.Circle(win, size=60, edges=13, units='pix')
 
 # loop until detect a click inside the shape:
 while not mouse.isPressedIn(shape):
     instr.draw()
     # dynamic buffer zone around mouse pointer:
-    bufzone.pos = mouse.getPos() * win.size / 2  # follow the mouse
+    # follow the mouse (convert from window units to pix, accounting for retina scaling)
+    bufzone.pos = convertToPix([0, 0], mouse.getPos(), win.units, win)
     bufzone.size += mouse.getWheelRel()[1] / 20.0  # vert scroll adjusts radius
     # is the mouse inside the shape (hovering over it)?
     if shape.contains(mouse):

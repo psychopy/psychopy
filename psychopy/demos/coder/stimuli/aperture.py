@@ -27,7 +27,7 @@ gabor1 = visual.GratingStim(
     mask="circle", 
     sf=4, 
     size=1.2, 
-    color="lightpurple"
+    color="mediumpurple"
 )
 # make a different grating stim, this will be inside the aperture
 gabor2 = visual.GratingStim(
@@ -35,7 +35,7 @@ gabor2 = visual.GratingStim(
     mask='circle', 
     sf=4, 
     size=1.2, 
-    color="darkbrown"
+    color="saddlebrown"
 )
 # make an aperture (given it a funky shape here so it's easy to tell what it is)
 aperture = visual.Aperture(

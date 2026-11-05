@@ -591,6 +591,28 @@ class TestStim3DLighting(_Stim3DRenderTest):
         left = self._pixel(frame, -0.4, 0)
         assert right.sum() > left.sum() + 3 * 20, (left, right)
 
+    def test_light_position_follows_view(self):
+        # light positions are transformed by the view when `useLights` is set,
+        # so it doesn't matter if lights were assigned before the view was
+        plane = self._plane(self._material(diffuse=(1, 1, 1)))
+        light = self._light((0.75, 0, -2.9), lightType='point')
+        expected = self._render(plane, [light])
+
+        self.win.lights = [light]
+        self.win.setPerspectiveView()
+        self.win.useLights = True
+        plane.draw()
+        self.win.useLights = False
+        self.win.lights = []
+        self.win.resetEyeTransform()
+        frame = np.asarray(
+            self.win.getMovieFrame(buffer='back'), dtype=int)[:, :, :3]
+        self.win.movieFrames = []
+        self.win.flip()
+
+        for x in (-0.4, 0., 0.4):
+            self._assertColor(self._pixel(frame, x), self._pixel(expected, x))
+
     @pytest.mark.parametrize('attenuation', [
         (1, 0, 0),       # none
         (2, 0, 0),       # constant

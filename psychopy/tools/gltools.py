@@ -141,7 +141,6 @@ import sys
 import platform
 import warnings
 import psychopy.tools.mathtools as mt
-from psychopy.visual.helpers import setColor, findImageFile
 
 _thisPlatform = platform.system()
 
@@ -254,7 +253,7 @@ def getIntegerv(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -273,7 +272,7 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : float
+    parName : int
         OpenGL property enum to query.
 
     Returns
@@ -292,7 +291,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns
@@ -2802,6 +2801,9 @@ def createTexImage2dFromFile(imgFile, transpose=True):
         Texture descriptor.
 
     """
+    # imported here to avoid a circular import with `psychopy.visual`
+    from psychopy.visual.helpers import findImageFile
+
     # Attempt to find file with substitution (handles e.g. default.png)
     tryImg = findImageFile(imgFile, checkResources=True)
     if tryImg is not None:
@@ -5104,6 +5106,7 @@ class SimpleMaterial:
 
     @diffuseColor.setter
     def diffuseColor(self, value):
+        from psychopy.visual.helpers import setColor  # avoid circular import
         self._diffuseColor = np.asarray(value, np.float32)
         setColor(self, value, colorSpace=self.colorSpace, operation=None,
                  rgbAttrib='diffuseRGB', colorAttrib='diffuseColor',
@@ -5128,6 +5131,7 @@ class SimpleMaterial:
 
     @specularColor.setter
     def specularColor(self, value):
+        from psychopy.visual.helpers import setColor  # avoid circular import
         self._specularColor = np.asarray(value, np.float32)
         setColor(self, value, colorSpace=self.colorSpace, operation=None,
                  rgbAttrib='specularRGB', colorAttrib='specularColor',
@@ -5152,6 +5156,7 @@ class SimpleMaterial:
 
     @ambientColor.setter
     def ambientColor(self, value):
+        from psychopy.visual.helpers import setColor  # avoid circular import
         self._ambientColor = np.asarray(value, np.float32)
         setColor(self, value, colorSpace=self.colorSpace, operation=None,
                  rgbAttrib='ambientRGB', colorAttrib='ambientColor',
@@ -5176,6 +5181,7 @@ class SimpleMaterial:
 
     @emissionColor.setter
     def emissionColor(self, value):
+        from psychopy.visual.helpers import setColor  # avoid circular import
         self._emissionColor = np.asarray(value, np.float32)
         setColor(self, value, colorSpace=self.colorSpace, operation=None,
                  rgbAttrib='emissionRGB', colorAttrib='emissionColor',
@@ -7595,7 +7601,7 @@ def getIntegerv(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -7614,7 +7620,7 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : float
+    parName : int
         OpenGL property enum to query.
 
     Returns
@@ -7633,7 +7639,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns

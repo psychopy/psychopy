@@ -5,19 +5,25 @@
 Demo of ImageStim and GratingStim with image contents.
 """
 
+import os
 from psychopy import core, visual, event
+
+# locate files relative to this script, so the demo runs from any directory
+_thisDir = os.path.dirname(os.path.abspath(__file__))
+beachPath = os.path.join(_thisDir, 'beach.jpg')
+facePath = os.path.join(_thisDir, 'face.jpg')
 
 # Create a window to draw in
 win = visual.Window((800, 800), monitor='testMonitor', allowGUI=False, color='black')
 
 # Initialize some stimuli
-beach = visual.ImageStim(win, image='beach.jpg', flipHoriz=True, pos=(0, 4.50), units='deg')
-faceRGB = visual.ImageStim(win, image='face.jpg', mask=None,
+beach = visual.ImageStim(win, image=beachPath, flipHoriz=True, pos=(0, 4.50), units='deg')
+faceRGB = visual.ImageStim(win, image=facePath, mask=None,
     pos=(50, -50), size=None,  # will be the size of the original image in pixels
     units='pix', interpolate=True, autoLog=False)
 print("original image size:", faceRGB.size)
 faceALPHA = visual.GratingStim(win, pos=(-0.7, -0.2),
-    tex="sin", mask="face.jpg", color=[1.0, 1.0, -1.0],
+    tex="sin", mask=facePath, color=[1.0, 1.0, -1.0],
     size=(0.5, 0.5), units="norm", autoLog=False)
 message = visual.TextStim(win, pos=(-0.95, -0.95),
     text='[Esc] to quit', color='white',

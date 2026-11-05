@@ -75,22 +75,24 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
         self.pos = pos  # call attributeSetter
         self.image = image  # call attributeSetter
-        # check image size against window size
-        print(self.size)
-        if (self.size[0] > self.win.size[0] or
-                self.size[1] > self.win.size[1]):
+        # check image size against window size, both in framebuffer pixels
+        # (as drawn)
+        imSize = self._imPixSize
+        winSize = self.win.size
+        if imSize[0] > winSize[0] or imSize[1] > winSize[1]:
             msg = ("Image size (%s, %s)  was larger than window size "
                    "(%s, %s). Will draw black screen.")
-            logging.warning(msg % (self.size[0], self.size[1],
-                                   self.win.size[0], self.win.size[1]))
+            logging.warning(msg % (imSize[0], imSize[1],
+                                   winSize[0], winSize[1]))
 
         # check position with size, warn if stimuli not fully drawn
-        if ((self.pos[0] + self.size[0]/2) > self.win.size[0]/2 or
-                (self.pos[0] - self.size[0]/2) < -self.win.size[0]/2):
+        x, y = self._posFramebuffer()
+        if ((x + imSize[0]/2) > winSize[0]/2 or
+                (x - imSize[0]/2) < -winSize[0]/2):
             logging.warning("The image does not completely fit inside "
                             "the window in the X direction.")
-        if ((self.pos[1] + self.size[1]/2) > self.win.size[1]/2 or
-                (self.pos[1] - self.size[1]/2) < -self.win.size[1]/2):
+        if ((y + imSize[1]/2) > winSize[1]/2 or
+                (y - imSize[1]/2) < -winSize[1]/2):
             logging.warning("The image does not completely fit inside "
                             "the window in the Y direction.")
 
@@ -181,13 +183,15 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        # move to center of stimulus
-        x, y = self._posRendered[:2]
-        GL.glRasterPos2f(self.win.size[0]/2 - self._size.pix[0]/2 + x,
-                         self.win.size[1]/2 - self._size.pix[1]/2 + y)
+        # move to center of stimulus (the projection above is in framebuffer
+        # pixels, and the image is drawn one image pixel per framebuffer pixel)
+        x, y = self._posFramebuffer()
+        imW, imH = self._imPixSize
+        GL.glRasterPos2f(self.win.size[0]/2 - imW/2 + x,
+                         self.win.size[1]/2 - imH/2 + y)
 
         # GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
-        GL.glDrawPixels(int(self._size.pix[0]), int(self._size.pix[1]),
+        GL.glDrawPixels(int(imW), int(imH),
                         self.internalFormat, self.dataType, self._imStr)
         # return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode(GL.GL_PROJECTION)
@@ -252,6 +256,13 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                                          vertices=numpy.array([0, 0]),
                                          units=self.units, win=self.win)
 
+    def _posFramebuffer(self):
+        """Position of the stimulus centre in framebuffer pixels, relative to
+        the window centre. `_posRendered` is in 'pix' units, which are points
+        rather than framebuffer pixels on high-DPI (e.g. Retina) displays.
+        """
+        return self._posRendered[:2] * self.win.pixScaleFactor
+
     @attributeSetter
     def image(self, filename):
         """Filename, including relative or absolute path. The image
@@ -278,7 +289,13 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                 core.quit()
             self.filename = repr(filename)  # '<Image.Image image ...>'
 
-        self._size = Size(im.size, units='pix', win=self.win)
+        # image dimensions as drawn, i.e. framebuffer pixels (one per image
+        # pixel)
+        self._imPixSize = numpy.array(im.size)
+        # on-screen size; 'pix' units are points, so this is smaller than the
+        # image dimensions on high-DPI (e.g. Retina) displays
+        self._size = Size(self._imPixSize / self.win.pixScaleFactor,
+                          units='pix', win=self.win)
         # set correct formats for bytes/floats
         if im.mode == 'RGBA':
             self.imArray = numpy.array(im).astype(numpy.ubyte)

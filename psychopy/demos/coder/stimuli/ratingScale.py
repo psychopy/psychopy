@@ -68,7 +68,8 @@ myRatingScale = visual.RatingScale(win, low=0, high=50, precision=10, skipKeys=N
         marker='glow', markerExpansion=10, showValue=False, pos=[0, -200], name='Example2')
 
 # using a list is handy if you have a lot of items to rate on the same scale, eg personality adjectives or images:
-imageList = ['beach.jpg', 'face.jpg']
+_thisDir = os.path.dirname(os.path.abspath(__file__))  # so the demo runs from any directory
+imageList = [os.path.join(_thisDir, f) for f in ('beach.jpg', 'face.jpg')]
 
 data = []
 for image in imageList:

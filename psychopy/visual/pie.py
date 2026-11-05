@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy.visual.shape import BaseShapeStim
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, undefined
 import numpy as np
 
 
@@ -128,13 +128,13 @@ class Pie(BaseShapeStim):
                  name=None,
                  autoLog=None,
                  autoDraw=False,
-                 colorSpace=None,
+                 colorSpace='rgb',
                  # legacy
-                 color=False,
-                 fillColorSpace='rgb',
-                 lineColorSpace='rgb',
-                 lineRGB=False,
-                 fillRGB=False,
+                 color=undefined,
+                 fillColorSpace=undefined,
+                 lineColorSpace=undefined,
+                 lineRGB=undefined,
+                 fillRGB=undefined,
                  ):
 
         self.__dict__['radius'] = radius
