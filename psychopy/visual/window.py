@@ -2889,6 +2889,34 @@ class Window():
         # 'pix' units are window coordinates on high DPI (e.g. Retina) displays
         return pix * self.pixScaleFactor
 
+    def _pixRectToBufferRect(self, pos, size):
+        """Convert a region given in 'pix' units to the framebuffer pixels it
+        covers, as needed by :py:attr:`~Window._getPixels()`.
+
+        These differ from 'pix' units on high DPI (e.g. Retina) displays.
+
+        Parameters
+        ----------
+        pos : array_like
+            Position `(x, y)` of the center of the region in 'pix' units.
+        size : array_like
+            Size `(w, h)` of the region in 'pix' units.
+
+        Returns
+        -------
+        tuple
+            The region as `(left, bottom, w, h)` in framebuffer pixels, with
+            the origin at the bottom left of the window.
+
+        """
+        # 'pix' units are window coordinates on high DPI (e.g. Retina) displays
+        left, bottom = \
+            numpy.asarray(pos, dtype=float) * self.pixScaleFactor + \
+            numpy.asarray(self.size) / 2.0
+        w, h = numpy.asarray(size, dtype=float) * self.pixScaleFactor
+
+        return int(left - w / 2), int(bottom - h / 2), int(w), int(h)
+
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
 

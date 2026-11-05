@@ -132,3 +132,50 @@ def test_hardware_mouse_matches_stimuli(monitorWin, units):
     bufferPix = convertToPix(np.zeros(2), pos, units, monitorWin) * 3.
     assert np.allclose(m._windowUnitsToPix(pos), bufferPix)
     assert np.allclose(m._pixToWindowUnits(bufferPix), pos)
+
+
+def test_pixRectToBufferRect(scaledWin):
+    # a region centred on (10, -5) 'pix' and 4x2 'pix' in size is 12x6
+    # framebuffer pixels, centred 30 pixels right of and 15 below the middle
+    w, h = scaledWin.size
+    assert scaledWin._pixRectToBufferRect((10, -5), (4, 2)) == \
+        (int(w / 2 + 30 - 6), int(h / 2 - 15 - 3), 12, 6)
+
+
+@pytest.fixture
+def patchWin(win):
+    """`win` showing a white patch on black, centred on (40, 20) 'pix'."""
+    units = win.units
+    win.units = 'pix'
+    win.color = 'black'
+    win.flip()  # the back buffer is cleared to the new color by a flip
+    patch = visual.Rect(win, pos=(40, 20), size=(10, 10), units='pix',
+                        fillColor='white', lineWidth=0, autoLog=False)
+    patch.draw()
+    win.flip()
+    yield win
+    win.units = units
+    win.color = (0, 0, 0)
+    win.flip()
+
+
+def test_photometer_reads_patch(patchWin):
+    from psychopy.hardware.photometer import ScreenBufferPhotometerDevice
+
+    # the photometer must look where the patch is drawn
+    onPatch = ScreenBufferPhotometerDevice(
+        patchWin, pos=(40, 20), size=(4, 4), units='pix')
+    offPatch = ScreenBufferPhotometerDevice(
+        patchWin, pos=(-40, -20), size=(4, 4), units='pix')
+    assert onPatch.getLum() == pytest.approx(1.0, abs=.02)
+    assert offPatch.getLum() == pytest.approx(0.0, abs=.02)
+
+
+def test_lightSensor_reads_patch(patchWin):
+    from psychopy.hardware.lightsensor import ScreenBufferSampler
+
+    # the light sensor must look where the patch is drawn
+    onPatch = ScreenBufferSampler(
+        patchWin, pos=(40, 20), size=(4, 4), units='pix')
+    onPatch.dispatchMessages()
+    assert onPatch.responses and onPatch.responses[-1].value
