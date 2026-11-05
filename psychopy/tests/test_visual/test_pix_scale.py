@@ -179,3 +179,40 @@ def test_lightSensor_reads_patch(patchWin):
         patchWin, pos=(40, 20), size=(4, 4), units='pix')
     onPatch.dispatchMessages()
     assert onPatch.responses and onPatch.responses[-1].value
+
+
+def test_dotSize(scaledWin):
+    # `dotSize` is in 'pix' units, and reads back as it was set
+    dots = visual.DotStim(scaledWin, nDots=1, dotSize=4, autoLog=False)
+    assert dots.dotSize == 4
+    dots.dotSize = 6
+    assert dots.dotSize == 6
+
+
+def test_dotSize_drawn(win):
+    # a single white dot, in the middle of the window on a black background
+    units = win.units
+    win.units = 'pix'
+    win.color = 'black'
+    win.flip()  # the back buffer is cleared to the new color by a flip
+    dots = visual.DotStim(
+        win, nDots=1, fieldSize=(.01, .01), dotSize=10, speed=0,
+        color='white', units='pix', autoLog=False)
+
+    def drawnWidth():
+        """Width of the dot as drawn, in 'pix'."""
+        win.clearBuffer()
+        dots.draw()
+        lum = win._getPixels(buffer='back', makeLum=True)
+        cols = np.nonzero((lum > 127).any(axis=0))[0]
+        return (cols.max() - cols.min() + 1) / win.pixScaleFactor
+
+    try:
+        assert drawnWidth() == pytest.approx(10, abs=1)
+        # setting the size after the dots are made gives the same size
+        dots.dotSize = 10
+        assert drawnWidth() == pytest.approx(10, abs=1)
+    finally:
+        win.units = units
+        win.color = (0, 0, 0)
+        win.flip()
