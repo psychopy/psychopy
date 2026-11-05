@@ -315,11 +315,17 @@ def _crop(frame, box):
     return frame[y:y + height, x:x + width]
 
 
+def _inPix(win, length):
+    """Convert lengths in framebuffer pixels (as measured from captured frames)
+    to 'pix' units, which are bigger on high-DPI (e.g. Retina) displays."""
+    return tuple(np.asarray(length) / win.pixScaleFactor)
+
+
 def _drawnSize(win, mov):
-    """Get the on-screen size `(w, h)` in pixels of the drawn movie."""
+    """Get the on-screen size `(w, h)` in 'pix' units of the drawn movie."""
     box = _boundingBox(_drawnRegion(win, mov)[0])
 
-    return (0, 0) if box is None else (box[2], box[3])
+    return (0, 0) if box is None else _inPix(win, box[2:])
 
 
 def _dilate(mask, n=1):
@@ -535,8 +541,8 @@ class TestMovieStimDecoding:
 
             # each is drawn at its own size, in its own half of the window,
             # without straying into the other's
-            assert leftBox[2:] == pytest.approx(size, abs=1)
-            assert rightBox[2:] == pytest.approx(size, abs=1)
+            assert _inPix(win, leftBox[2:]) == pytest.approx(size, abs=1)
+            assert _inPix(win, rightBox[2:]) == pytest.approx(size, abs=1)
             assert leftBox[0] < rightBox[0]
             assert not (leftMask & rightMask).any()
 
@@ -2162,6 +2168,18 @@ def _drawUntilFrameSize(win, mov, size, timeout=3.0, interval=1 / 60.):
 SCALING_BACKENDS = ('pyav', 'opencv')
 
 
+def _decodedSize(win, size, clip=True):
+    """Size `(w, h)` frames of a movie drawn at `size` ('pix' units) are
+    decoded at by the backends which scale them: the framebuffer pixels it
+    covers, which on high-DPI (e.g. Retina) displays are more than its size,
+    and (with `clip`) never more than the movie's own."""
+    decoded = [int(math.ceil(n * win.pixScaleFactor)) for n in size]
+    if clip:
+        decoded = [min(n, m) for n, m in zip(decoded, MOVIE_SIZE)]
+
+    return tuple(decoded)
+
+
 class TestMovieStimDownscaling:
     """Tests for decoding frames at the size the movie is drawn at."""
 
@@ -2172,10 +2190,11 @@ class TestMovieStimDownscaling:
             pytest.skip('{} does not scale frames'.format(movieLib))
 
         drawnSize = (MOVIE_SIZE[0] // 4, MOVIE_SIZE[1] // 4)
+        decodedSize = _decodedSize(win, drawnSize)
         with movieStim(win, movieLib, size=drawnSize, units='pix') as mov:
-            assert mov._player.outputFrameSize == drawnSize
-            assert tuple(mov._recentFrameSize) == drawnSize
-            assert (mov._vidWidth, mov._vidHeight) == drawnSize
+            assert mov._player.outputFrameSize == decodedSize
+            assert tuple(mov._recentFrameSize) == decodedSize
+            assert (mov._vidWidth, mov._vidHeight) == decodedSize
             assert mov._recentFrame.size >= _frameBytesExpected(mov)
 
             # and still draws to the size asked for
@@ -2192,10 +2211,10 @@ class TestMovieStimDownscaling:
     def test_framesNeverScaledUp(self, win, movieLib):
         """A movie drawn larger than its own size is decoded at its own size
         (in each dimension), rather than scaled up for nothing."""
-        with movieStim(win, movieLib, units='pix',
-                       size=(MOVIE_SIZE[0] * 2, MOVIE_SIZE[1] // 2)) as mov:
+        size = (MOVIE_SIZE[0] * 2, MOVIE_SIZE[1] // 2)
+        with movieStim(win, movieLib, units='pix', size=size) as mov:
             expected = MOVIE_SIZE if movieLib not in SCALING_BACKENDS else \
-                (MOVIE_SIZE[0], MOVIE_SIZE[1] // 2)
+                _decodedSize(win, size)
             assert tuple(mov._recentFrameSize) == expected
 
     def test_sizeChangeFollowedByFrames(self, win, movieLib):
@@ -2204,12 +2223,13 @@ class TestMovieStimDownscaling:
         if movieLib not in SCALING_BACKENDS:
             pytest.skip('{} does not scale frames'.format(movieLib))
 
+        decodedSize = _decodedSize(win, (40, 30))
         with movieStim(win, movieLib, size=(64, 64), units='pix') as mov:
             mov.size = (40, 30)
-            assert mov._player.outputFrameSize == (40, 30)
+            assert mov._player.outputFrameSize == decodedSize
 
-            assert _drawUntilFrameSize(win, mov, (40, 30))
-            assert (mov._vidWidth, mov._vidHeight) == (40, 30)
+            assert _drawUntilFrameSize(win, mov, decodedSize)
+            assert (mov._vidWidth, mov._vidHeight) == decodedSize
 
     def test_sizeFromMovieAspect(self, win, movieLib):
         """With one dimension left to the movie's aspect ratio, frames come
@@ -2218,10 +2238,12 @@ class TestMovieStimDownscaling:
             pytest.skip('{} does not scale frames'.format(movieLib))
 
         width = MOVIE_SIZE[0] // 2
-        height = int(math.ceil(width * MOVIE_SIZE[1] / MOVIE_SIZE[0]))
+        height = width * MOVIE_SIZE[1] / MOVIE_SIZE[0]
         with movieStim(win, movieLib, size=(width, None), units='pix') as mov:
-            assert mov._player.outputFrameSize == (width, height)
-            assert _drawUntilFrameSize(win, mov, (width, height))
+            assert mov._player.outputFrameSize == \
+                _decodedSize(win, (width, height), clip=False)
+            assert _drawUntilFrameSize(
+                win, mov, _decodedSize(win, (width, height)))
 
     def test_interpolateChoosesFilter(self, win, movieLib):
         """Frames are scaled down with a box filter, or nearest neighbour when
@@ -2321,8 +2343,9 @@ def _writeTaggedMovie(path, pixelFormat='yuv444p', colorspace=1, colorRange=1,
 
 
 def _movieRegion(win, size, inset=2):
-    """Index of the part of a captured window a movie of `size` drawn in the
-    middle of it covers, `inset` pixels in from its edges."""
+    """Index of the part of a captured window a movie of `size` (in framebuffer
+    pixels) drawn in the middle of it covers, `inset` pixels in from its
+    edges."""
     x0 = (win.size[0] - size[0]) // 2
     y0 = (win.size[1] - size[1]) // 2
 
@@ -2336,6 +2359,20 @@ def _readTexture(textureId, width, height):
 
     data = (GL.GLubyte * (width * height * 4))()
     GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
+
+    # `glGetTexImage` writes the whole texture, so one bigger than `data` would
+    # write past the end of it
+    actualSize = []
+    for name in (GL.GL_TEXTURE_WIDTH, GL.GL_TEXTURE_HEIGHT):
+        value = GL.GLint()
+        GL.glGetTexLevelParameteriv(GL.GL_TEXTURE_2D, 0, name, value)
+        actualSize.append(value.value)
+    if tuple(actualSize) != (width, height):
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        raise AssertionError(
+            "texture is {} rather than {}".format(
+                tuple(actualSize), (width, height)))
+
     GL.glGetTexImage(
         GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data)
     GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
@@ -2497,7 +2534,8 @@ class TestMovieStimGPUColorConversion:
                            size=size, gpuColorConversion=gpu) as mov:
                 drawn[gpu], _ = _drawToBackBuffer(win, mov)
 
-        region = _movieRegion(win, size)
+        region = _movieRegion(
+            win, [int(round(n * win.pixScaleFactor)) for n in size])
         difference = np.abs(drawn[True][region] - drawn[False][region])
         assert difference.mean() < 1.0
         assert difference.max() <= 3
@@ -2531,8 +2569,9 @@ class TestMovieStimGPUColorConversion:
             (yuv - np.array(offset)) @ np.array(matrix).reshape(3, 3).T,
             0.0, 1.0) * 255.0
 
+        # drawn a framebuffer pixel per movie pixel, to compare with the planes
         with movieStim(win, movieLib, filename=path, units='pix',
-                       size=size) as mov:
+                       size=_inPix(win, size)) as mov:
             drawn, _ = _drawToBackBuffer(win, mov)
 
         region = _movieRegion(win, size)
@@ -2575,14 +2614,15 @@ class TestMovieStimGPUColorConversion:
             pytest.skip('only pyav keeps frames as YUV')
 
         drawnSize = (MOVIE_SIZE[0] // 4, MOVIE_SIZE[1] // 4)
+        decodedSize = _decodedSize(win, drawnSize)
         with movieStim(win, movieLib, size=drawnSize, units='pix') as mov:
             image = mov._recentFrameImage
-            assert image.size == drawnSize
+            assert image.size == decodedSize
             lumaSize = image.planes[0][1:3]
             chromaSize = image.planes[1][1:3]
-            assert tuple(lumaSize) == drawnSize
+            assert tuple(lumaSize) == decodedSize
             assert tuple(chromaSize) == tuple(
-                (val + 1) // 2 for val in drawnSize)  # the movie is 4:2:0
+                (val + 1) // 2 for val in decodedSize)  # the movie is 4:2:0
 
     def test_otherFormatsConvertedAsDecoded(self, win, movieLib, tmp_path):
         """Frames in a format the shader doesn't take (here greyscale) are
@@ -2640,13 +2680,15 @@ class TestMovieStimGPUColorConversion:
 
         with movieStim(win, movieLib, size=(64, 64), units='pix') as mov:
             textureId = mov.frameTexture.value
-            first = _readTexture(mov.frameTexture, 64, 64)
+            # frames are decoded at the size drawn at, in framebuffer pixels
+            size = _decodedSize(win, (64, 64))
+            first = _readTexture(mov.frameTexture, *size)
 
             mov.play()
             _drawFrames(win, mov, count=10, interval=0.02)
 
             assert mov.frameTexture.value == textureId
-            assert np.any(_readTexture(mov.frameTexture, 64, 64) != first)
+            assert np.any(_readTexture(mov.frameTexture, *size) != first)
 
     @pytest.mark.parametrize('useFBO', [False, True])
     def test_conversionLeavesGLStateAlone(self, movieLib, useFBO):
