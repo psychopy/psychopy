@@ -118,7 +118,6 @@ lazy_import(globals(), "import pygame")
 
 DEBUG = False
 IOHUB_ACTIVE = False
-retinaContext = None  # only needed for retina-ready displays
 IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix to copy
 
 # values for `Window.depthFunc`
