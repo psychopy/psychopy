@@ -5,6 +5,7 @@ from psychopy.hardware.base import BaseResponseDevice, BaseResponse
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from collections import deque
 import sys
+import os
 import time
 import enum
 
@@ -160,7 +161,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     "`muteOutsidePsychopy=True` to collect keyboard responses."
                 ))
             # warn about pynput being unreliable on Linux (Wayland)
-            if sys.platform == "linux":
+            if sys.platform == "linux" and os.environ.get("XDG_SESSION_TYPE") == "wayland":
                 logging.warn((
                     "Collecting keypresses outside of PsychoPy is reliant on the `pynput` module, "
                     "which has known issues under Wayland on Linux. If using Linux with Wayland, "
