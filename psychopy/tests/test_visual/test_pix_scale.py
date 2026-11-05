@@ -352,3 +352,37 @@ def test_viewPos_resize(scaledWin):
     finally:
         scaledWin.viewport = viewport
         scaledWin.viewPos = None
+
+
+@pytest.fixture
+def screenWin(scaledWin):
+    """`scaledWin` (not fullscreen) on a 30 cm wide, 1440 'pix' wide screen,
+    viewed from 57 cm."""
+    saved = (scaledWin.scrWidthCM, scaledWin.scrDistCM, scaledWin.scrWidthPIX)
+    scaledWin.scrWidthCM, scaledWin.scrDistCM, scaledWin.scrWidthPIX = \
+        30., 57., 1440
+    yield scaledWin
+    scaledWin.scrWidthCM, scaledWin.scrDistCM, scaledWin.scrWidthPIX = saved
+    scaledWin.setDefaultView()
+
+
+viewMethods = ['setPerspectiveView', 'setOffAxisView', 'setToeInView']
+
+
+@pytest.mark.parametrize('method', viewMethods)
+def test_frustum_width(screenWin, method):
+    # The window covers as much of the screen as its width in 'pix' is of the
+    # screen's, so that is how much of the 30 cm the frustum is across. The
+    # projection's horizontal scale is then twice the distance over that.
+    getattr(screenWin, method)(applyTransform=False)
+    widthPix = screenWin.size[0] / 3.
+    widthM = widthPix / 1440 * .30
+    assert screenWin.projectionMatrix[0, 0] == pytest.approx(2 * .57 / widthM)
+
+
+@pytest.mark.parametrize('method', viewMethods)
+def test_frustum_width_unknown_resolution(screenWin, method):
+    # without the screen's resolution the window is taken to fill the screen
+    screenWin.scrWidthPIX = None
+    getattr(screenWin, method)(applyTransform=False)
+    assert screenWin.projectionMatrix[0, 0] == pytest.approx(2 * .57 / .30)
