@@ -9,9 +9,13 @@ from pathlib import Path
 
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
 from psychopy.experiment.components.polygon import PolygonComponent
+from psychopy.experiment.devices import DeviceMixin
+from psychopy.experiment.eyetracking import (
+    MouseGazeEyetrackerDeviceBackend, getEyetrackerDeviceCode
+)
 
 
-class RegionOfInterestComponent(PolygonComponent):
+class RegionOfInterestComponent(PolygonComponent, DeviceMixin):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
@@ -31,7 +35,8 @@ class RegionOfInterestComponent(PolygonComponent):
                  startEstim='', durationEstim='',
                  timeRelativeTo='roi onset',
                  lookDur=0.1, debug=False,
-                 save='every look'):
+                 save='every look',
+                 deviceLabel=""):
 
         PolygonComponent.__init__(self, exp, parentName, name=name,
                  units=units,
@@ -45,6 +50,12 @@ class RegionOfInterestComponent(PolygonComponent):
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
         # params
         self.order += ['config']  # first param after the name
+        # eyetracker to use
+        self.addDeviceParams(defaultLabel=deviceLabel)
+        self.params['deviceLabel'].hint = _translate(
+            "The eyetracker from Device Manager to use. Leave blank to use the eyetracker set in "
+            "Experiment Settings."
+        )
 
         # Delete all appearance parameters
         for param in list(self.params).copy():
@@ -121,9 +132,11 @@ class RegionOfInterestComponent(PolygonComponent):
         inits['depth'] = -self.getPosInRoutine()
 
         code = (
-            "%(name)s = visual.ROI(win, name='%(name)s', device=eyetracker,\n"
+            "%(name)s = visual.ROI(win, name='%(name)s', device=%(tracker)s,\n"
         )
-        buff.writeIndentedLines(code % inits)
+        buff.writeIndentedLines(code % dict(
+            inits, tracker=getEyetrackerDeviceCode(self.params['deviceLabel'])
+        ))
         buff.setIndentLevel(1, relative=True)
         code = (
                 "debug=%(debug)s,\n"
@@ -315,3 +328,6 @@ class RegionOfInterestComponent(PolygonComponent):
 
     def writeExperimentEndCode(self, buff):
         pass
+
+
+RegionOfInterestComponent.registerBackend(MouseGazeEyetrackerDeviceBackend)

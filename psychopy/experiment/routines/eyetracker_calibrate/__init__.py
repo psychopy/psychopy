@@ -1,11 +1,14 @@
-from .. import BaseStandaloneRoutine
+from .. import BaseDeviceRoutine
 from psychopy.localization import _translate
+from psychopy.experiment.eyetracking import (
+    MouseGazeEyetrackerDeviceBackend, getEyetrackerDeviceCode
+)
 from psychopy.experiment import Param
 from pathlib import Path
 from psychopy.alerts import alert
 
 
-class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
+class EyetrackerCalibrationRoutine(BaseDeviceRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
     version = "2021.2.0"
@@ -22,10 +25,17 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  fillColor='', borderColor="black", borderWidth=2, outerRadius=0.01,
                  colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True, textColor='white',
+                 deviceLabel="",
                  disabled=False
                  ):
         # Initialise base routine
-        BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
+        BaseDeviceRoutine.__init__(
+            self, exp, name=name, deviceLabel=deviceLabel, disabled=disabled
+        )
+        self.params['deviceLabel'].hint = _translate(
+            "The eyetracker from Device Manager to calibrate. Leave blank to use the eyetracker "
+            "set in Experiment Settings."
+        )
         self.url = "https://psychopy.org/builder/components/eyetracker_calibration.html"
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
@@ -264,7 +274,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
     def writeMainCode(self, buff):
         # Alert user if eyetracking isn't setup
-        if self.exp.eyetracking == "None":
+        if not self.exp.usesEyetracker(self):
             alert(code=4505)
         # Get inits
         inits = self.params
@@ -282,7 +292,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         else:
             inits['movementDur'] = inits['targetDelay']
 
-        BaseStandaloneRoutine.writeMainCode(self, buff)
+        BaseDeviceRoutine.writeMainCode(self, buff)
 
         # make target
         code = (
@@ -317,13 +327,15 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "eyetracker, %(name)sTarget,\n"
+                "%(tracker)s, %(name)sTarget,\n"
                 "units=%(units)s, colorSpace=%(colorSpace)s,\n"
                 "progressMode=%(progressMode)s, targetDur=%(targetDur)s, expandScale=%(expandScale)s,\n"
                 "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s, textColor=%(textColor)s,\n"
                 "movementAnimation=%(movementAnimation)s, targetDelay=%(targetDelay)s\n"
         )
-        buff.writeIndentedLines(code % inits)
+        buff.writeIndentedLines(code % dict(
+            inits, tracker=getEyetrackerDeviceCode(self.params['deviceLabel'])
+        ))
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
@@ -333,3 +345,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             "defaultKeyboard.clearEvents()\n"
         )
         buff.writeIndentedLines(code % inits)
+
+
+EyetrackerCalibrationRoutine.registerBackend(MouseGazeEyetrackerDeviceBackend)
