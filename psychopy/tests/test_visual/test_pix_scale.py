@@ -116,3 +116,19 @@ def test_hardware_mouse_units(scaledWin):
     m.win = scaledWin
     assert np.allclose(m._windowUnitsToPix((10., -5.)), (30, -15))
     assert np.allclose(m._pixToWindowUnits((30., -15.)), (10, -5))
+
+
+@pytest.mark.parametrize('units', mouseUnits)
+def test_hardware_mouse_matches_stimuli(monitorWin, units):
+    from psychopy.hardware import mouse
+
+    # the mouse keeps its position in framebuffer pixels, so a position in the
+    # window's units must land where a stimulus at that position is drawn
+    monitorWin.units = units
+    # `Mouse` is a singleton, so convert without creating an instance
+    m = object.__new__(mouse.Mouse)
+    m.win = monitorWin
+    pos = np.array([.5, -.25])
+    bufferPix = convertToPix(np.zeros(2), pos, units, monitorWin) * 3.
+    assert np.allclose(m._windowUnitsToPix(pos), bufferPix)
+    assert np.allclose(m._pixToWindowUnits(bufferPix), pos)
