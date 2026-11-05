@@ -9,14 +9,18 @@ Demo of class psychopy.visual.BufferImageStim()
 - report speed of BufferImageStim to speed of drawing each item separately
 """
 
+import os
 from psychopy import visual, event, core
+
+# locate files relative to this script, so the demo runs from any directory
+_thisDir = os.path.dirname(os.path.abspath(__file__))
 
 # need a window and clock:
 win = visual.Window(fullscr=False, monitor='testMonitor')
 clock = core.Clock()
 
 # first define a list of various slow, static stim
-imageList = ['face.jpg', 'beach.jpg']
+imageList = [os.path.join(_thisDir, f) for f in ('face.jpg', 'beach.jpg')]
 imageStim = visual.SimpleImageStim(win, imageList[0])
 imageStim2 = visual.SimpleImageStim(win, imageList[1], pos=(.300, .20))
 wordStim = visual.TextStim(win,

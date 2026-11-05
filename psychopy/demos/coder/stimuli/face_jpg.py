@@ -8,19 +8,23 @@ types.
 """
 
 # Import the modules that we need in this script
+import os
 from psychopy import core, visual, event
+
+# locate files relative to this script, so the demo runs from any directory
+facePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'face.jpg')
 
 # Create a window to draw in
 win = visual.Window(size=(600, 600), color='black')
 
 # An image using ImageStim.
-image = visual.ImageStim(win, image='face.jpg')
+image = visual.ImageStim(win, image=facePath)
 
 # We can also use the image as a mask (mask="face.jpg") for other stimuli!
 grating = visual.GratingStim(win,
     pos=(-0.5, 0),
     tex='sin',
-    mask='face.jpg',
+    mask=facePath,
     color='green')
 grating.size = (0.5, 0.5)  # attributes can be changed after initialization
 grating.sf = 1.0
