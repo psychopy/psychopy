@@ -268,8 +268,13 @@ def createLinearRamp(rampType=None, rampSize=256, driver=None):
             # driver provided
             if driver is not None:
 
+                # Apple silicon GPUs (e.g. 'Apple M2') take a plain 0:1 table
+                # of whatever size the display's is (e.g. 1024)
+                if driver.startswith('Apple'):
+                    rampType = 0
+
                 # nvidia
-                if 'NVIDIA' in driver:
+                elif 'NVIDIA' in driver:
                     # leopard nVidia cards don't finish at 1.0!
                     if _versionTuple("10.5") < osxVerTuple < _versionTuple("10.6"):
                         rampType = 2
