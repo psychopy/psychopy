@@ -2418,6 +2418,32 @@ class Window():
         if oldDepthMask is False:   # return to old state if needed
             GL.glDepthMask(GL.GL_FALSE)
 
+    def _getFrustumScreen(self):
+        """Get the physical size of the area being drawn to, for computing
+        perspective projections.
+
+        Returns
+        -------
+        tuple
+            Distance to the screen and width of the area being drawn to in
+            meters, and the aspect ratio of the area.
+
+        """
+        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
+        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        # The width of the screen in pixels is in 'pix' units, which are bigger
+        # than the framebuffer pixels `size` is in on high DPI (e.g. Retina)
+        # displays. If it isn't known, the window is taken to fill the screen.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr and self.scrWidthPIX:
+            widthPix = self.size[0] / self.pixScaleFactor
+            scrWidthM = (widthPix / self.scrWidthPIX) * scrWidthM
+
+        return scrDistM, scrWidthM, aspect
+
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
         """Set an off-axis projection.
 
@@ -2440,14 +2466,7 @@ class Window():
             Clear the depth buffer.
 
         """
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+        scrDistM, scrWidthM, aspect = self._getFrustumScreen()
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -2503,14 +2522,7 @@ class Window():
           something the viewer can look around the screen comfortably.
 
         """
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+        scrDistM, scrWidthM, aspect = self._getFrustumScreen()
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -2561,14 +2573,7 @@ class Window():
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
         #
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+        scrDistM, scrWidthM, aspect = self._getFrustumScreen()
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
