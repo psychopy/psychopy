@@ -386,3 +386,13 @@ def test_frustum_width_unknown_resolution(screenWin, method):
     screenWin.scrWidthPIX = None
     getattr(screenWin, method)(applyTransform=False)
     assert screenWin.projectionMatrix[0, 0] == pytest.approx(2 * .57 / .30)
+
+
+def test_iohub_windowInfoDict(scaledWin):
+    from psychopy.iohub.client import windowInfoDict
+
+    # the ioHub server needs the scale factor to know how big the window is in
+    # 'pix' units, which is what the desktop is measured in
+    info = windowInfoDict(scaledWin)
+    assert info['pixScaleFactor'] == 3.0
+    assert isinstance(info['pixScaleFactor'], float)
