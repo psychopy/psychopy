@@ -43,9 +43,12 @@ class Test_Win_Scale_Pos_Ori:
                 if ori and (offset[0] or offset[1]):
                     continue  # this combination is NotImplemented
                 else:  # NB assumes test win is in pixels!
-                    # convert from normalised offset to pixels
+                    # convert from normalised offset to pixels ('pix' units
+                    # are bigger than the framebuffer pixels `size` is in on
+                    # high DPI displays)
+                    winSizePix = self.win.size / self.win.pixScaleFactor
                     offset_pix = (round(offs * siz / 2.) for offs, siz in
-                                  zip(offset, self.win.size))
+                                  zip(offset, winSizePix))
 
                     self.win.viewPos = offset_pix
 

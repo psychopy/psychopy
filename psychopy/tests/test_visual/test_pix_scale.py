@@ -216,3 +216,50 @@ def test_dotSize_drawn(win):
         win.units = units
         win.color = (0, 0, 0)
         win.flip()
+
+
+@pytest.mark.parametrize('units, viewPos', [
+    ('pix', (30, -15)), ('height', (.2, -.1)), ('norm', (.3, -.2))])
+def test_viewPos(scaledWin, units, viewPos):
+    # the view is translated in normalised units, so by the position in 'norm'
+    scaledWin.units = units
+    try:
+        scaledWin.viewPos = viewPos
+        assert np.allclose(
+            scaledWin._viewPosNorm,
+            layout.Position(viewPos, units, scaledWin).norm)
+    finally:
+        scaledWin.viewPos = None
+
+
+def test_viewPos_drawn(win):
+    # a white square in the middle of the window, on a black background
+    units = win.units
+    win.units = 'pix'
+    win.color = 'black'
+    win.flip()  # the back buffer is cleared to the new color by a flip
+    square = visual.Rect(win, size=(10, 10), fillColor='white', lineWidth=0,
+                         units='pix', autoLog=False)
+
+    def drawnX():
+        """Horizontal position of the center of the square as drawn, in
+        'pix'."""
+        win.clearBuffer()
+        square.draw()
+        lum = win._getPixels(buffer='back', makeLum=True)
+        cols = np.nonzero((lum > 127).any(axis=0))[0]
+        center = (cols.min() + cols.max() + 1) / 2. - win.size[0] / 2.
+        return center / win.pixScaleFactor
+
+    try:
+        assert drawnX() == pytest.approx(0, abs=1)
+        win.viewPos = (30, 0)
+        win.setOrthographicView()  # the view matrix is updated by this
+        assert abs(drawnX()) == pytest.approx(30, abs=1)
+    finally:
+        win.viewPos = None
+        win._viewMatrixNeedsUpdate = True
+        win.setOrthographicView()
+        win.units = units
+        win.color = (0, 0, 0)
+        win.flip()

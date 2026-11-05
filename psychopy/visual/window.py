@@ -925,9 +925,9 @@ class Window():
     @attributeSetter
     def _viewPosNorm(self, value):
         """Normalised value of viewPos, hidden from user view."""
-        # first convert to pixels, then normalise to window units
-        viewPos_pix = convertToPix([0, 0], list(value),
-                                   units=self.units, win=self)[:2]
+        # first convert to framebuffer pixels, then normalise to window units
+        # ('pix' units are bigger than framebuffer pixels on high DPI displays)
+        viewPos_pix = self._windowUnitsToBufferPix(list(value))
         viewPos_norm = viewPos_pix / (self.size / 2.0)
         # Clip to +/- 1; should going out-of-window raise an exception?
         viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
