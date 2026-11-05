@@ -34,6 +34,30 @@ class Sound:
 
     @classmethod
     def resolveBackend(cls):
+        """
+        Get the module for the selected Sound backend, importing it if needed.
+
+        Returns
+        -------
+        module
+            The backend module (e.g. `psychopy.sound.backend_ptb`).
+        """
+        return cls.backends[cls.resolveBackendName()].load()
+
+    @classmethod
+    def resolveBackendName(cls):
+        """
+        Get the name of the selected Sound backend without importing it.
+
+        The backend is taken from `Sound.backend` if set, otherwise from
+        `prefs.hardware['audioLib']`. Aliases (e.g. 'psychtoolbox') are
+        resolved to their canonical name (e.g. 'ptb').
+
+        Returns
+        -------
+        str
+            Name of the selected backend.
+        """
         backend = cls.backend
         # if backend is None, get from prefs
         if backend is None:
@@ -54,8 +78,8 @@ class Sound:
                 f"Invalid value '{backend}' for {cls.__name__}.backend, known backends are: {list(cls.backends)}"
             )
 
-        # import backend
-        return cls.backends[backend].load()
+        # use the entry point name so aliases map to the canonical name
+        return cls.backends[backend].name
     
     @classmethod
     def getBackends(cls):

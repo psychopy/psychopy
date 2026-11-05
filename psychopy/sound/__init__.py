@@ -19,9 +19,12 @@ preferences > hardware > audioLib:
 For portaudio-based backends (all except for pygame) there is also a
 choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
 
-After importing sound, the sound lib and driver being used will be stored as::
+The sound lib and driver being used can be queried as::
     `psychopy.sound.audioLib`
     `psychopy.sound.audioDriver`
+
+These are resolved lazily on first access, so the audio backend is not
+imported until it is needed. Accessing `audioDriver` will import the backend.
 
 .. PTB
 
@@ -47,4 +50,28 @@ __all__ = [
 
 # used to check if we are on 64-bit Python
 bits32 = sys.maxsize == 2 ** 32
+
+
+def __getattr__(name):
+    """Provide legacy module-level attributes, resolved lazily.
+
+    Previously the audio backend was loaded when `psychopy.sound` was
+    imported, and `audioLib`, `audioDriver`, `backend` and `pyoSndServer`
+    were set as module globals. The backend is now only loaded when needed,
+    so these are computed on access to keep existing code working.
+    """
+    if name == "audioLib":
+        # name of the selected backend (e.g. 'ptb'), without importing it
+        return Sound.resolveBackendName()
+    if name == "audioDriver":
+        # driver used by the backend, if it defines one
+        return getattr(Sound.resolveBackend(), "audioDriver", None)
+    if name == "backend":
+        # the backend module itself
+        return Sound.resolveBackend()
+    if name == "pyoSndServer":
+        # the pyo backend has been removed, so there is never a pyo server
+        return None
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
