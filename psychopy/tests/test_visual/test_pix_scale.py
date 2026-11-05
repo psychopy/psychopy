@@ -263,3 +263,92 @@ def test_viewPos_drawn(win):
         win.units = units
         win.color = (0, 0, 0)
         win.flip()
+
+
+@pytest.mark.parametrize('viewPos', [
+    (30, -15), [30, -15], np.array([30, -15]), (v for v in (30, -15))])
+def test_viewPos_stored(win, viewPos):
+    # `viewPos` is kept as an array, whatever it was given as (a generator
+    # would otherwise be stored after being used up)
+    units = win.units
+    win.units = 'pix'
+    try:
+        win.viewPos = viewPos
+        assert isinstance(win.viewPos, np.ndarray)
+        assert np.allclose(win.viewPos, (30, -15))
+    finally:
+        win.viewPos = None
+        win.units = units
+
+
+@pytest.mark.parametrize('units, viewPos', [('pix', (30, -15)),
+                                            ('norm', (.3, -.2))])
+def test_viewPos_on_init(units, viewPos):
+    # `viewPos` given when the window is made is converted like any other
+    win = visual.Window((200, 150), units=units, viewPos=viewPos,
+                        allowGUI=False, autoLog=False)
+    try:
+        assert np.allclose(
+            win._viewPosNorm, layout.Position(viewPos, units, win).norm)
+    finally:
+        win.close()
+
+
+def test_viewPos_units_change(scaledWin):
+    # changing the window's units leaves the view where it is, and gives
+    # `viewPos` in the new units
+    scaledWin.units = 'pix'
+    try:
+        scaledWin.viewPos = (30, -15)
+        viewPosNorm = scaledWin._viewPosNorm.copy()
+        scaledWin.units = 'norm'
+        assert np.allclose(scaledWin._viewPosNorm, viewPosNorm)
+        assert np.allclose(scaledWin.viewPos, viewPosNorm)
+        scaledWin.units = 'height'
+        assert np.allclose(
+            scaledWin.viewPos,
+            layout.Position((30, -15), 'pix', scaledWin).height)
+        scaledWin.units = 'pix'
+        assert np.allclose(scaledWin.viewPos, (30, -15))
+        assert np.allclose(scaledWin._viewPosNorm, viewPosNorm)
+    finally:
+        scaledWin.viewPos = None
+
+
+def test_viewPos_units_change_unconvertible(scaledWin, monkeypatch):
+    from psychopy import logging
+
+    # `scaledWin` has no monitor dimensions, so nothing can be given in 'deg'
+    warnings = []
+    monkeypatch.setattr(logging, 'warning', warnings.append)
+    scaledWin.units = 'pix'
+    try:
+        scaledWin.viewPos = (30, -15)
+        viewPosNorm = scaledWin._viewPosNorm.copy()
+        scaledWin.units = 'deg'
+        # the view is left where it is, and the user told why `viewPos` is not
+        # in the new units
+        assert np.allclose(scaledWin._viewPosNorm, viewPosNorm)
+        assert np.allclose(scaledWin.viewPos, (30, -15))
+        assert any('viewPos' in msg for msg in warnings)
+    finally:
+        scaledWin.viewPos = None
+        scaledWin.units = 'pix'
+
+
+def test_viewPos_resize(scaledWin):
+    # `viewPos` keeps its meaning when the size of the window changes, so
+    # (30, -15) 'pix' is still 30 'pix' across in a window half as wide
+    scaledWin.units = 'pix'
+    viewport = scaledWin.viewport.copy()
+    try:
+        scaledWin.viewPos = (30, -15)
+        x, y, w, h = viewport
+        scaledWin.viewport = (x, y, w // 2, h)
+        assert np.allclose(
+            scaledWin._viewPosNorm,
+            layout.Position((30, -15), 'pix', scaledWin).norm)
+        assert np.allclose(scaledWin.viewPos, (30, -15))
+    finally:
+        scaledWin.viewport = viewport
+        scaledWin.viewPos = None

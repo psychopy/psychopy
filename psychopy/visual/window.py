@@ -76,7 +76,7 @@ if sys.platform == 'win32':
             haveAvbin = False
 
 import psychopy  # so we can get the __path__
-from psychopy import core, platform_specific, logging, prefs, monitors
+from psychopy import core, platform_specific, logging, prefs, monitors, layout
 import psychopy.event
 from . import backends, image
 from .backends._base import closeOnInitError
@@ -637,13 +637,15 @@ class Window():
         # now that we have a window handle, set title
         self.title = title
 
+        # scaling factor for HiDPI displays, `None` until initialized (this is
+        # done before `viewPos` is set, since converting it to framebuffer
+        # pixels needs the scaling factor)
+        self._contentScaleFactor = None
+
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
-
-        # scaling factor for HiDPI displays, `None` until initialized
-        self._contentScaleFactor = None
 
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
@@ -897,10 +899,26 @@ class Window():
 
         See :ref:`units` for explanation of options.
 
+        Changing units does not move the view either, so if
+        :py:attr:`~Window.viewPos` is set it is given in the new units.
+
         """
         if value is None:
             value = prefs.general['units']
+        oldUnits = self.__dict__.get('units')
         self.__dict__['units'] = value
+
+        # leave the view where it is, giving its position in the new units
+        viewPos = self.__dict__.get('viewPos')
+        if viewPos is not None and oldUnits not in (None, value):
+            try:
+                self.__dict__['viewPos'] = getattr(
+                    layout.Position(viewPos, oldUnits, self), value)
+            except Exception as err:
+                logging.warning(
+                    "Window: the view has not moved, but its position could "
+                    "not be given in '{}' units ({}), so `viewPos` is still "
+                    "{} in '{}' units.".format(value, err, viewPos, oldUnits))
 
     def setUnits(self, value, log=True):
         setAttribute(self, 'units', value, log=log)
@@ -917,6 +935,11 @@ class Window():
             win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
 
         """
+        if value is not None:
+            # kept as an array, as `__init__` does, whatever it was given as
+            # (`list` first, since a generator would otherwise be stored after
+            # being used up)
+            value = val2array(list(value), withScalar=False)
         self.__dict__['viewPos'] = value
         if value is not None:
             # let setter take care of normalisation
@@ -2229,8 +2252,18 @@ class Window():
         # for redundancy checks because several places (the legacy `TextBox`,
         # the backend resize handler, `gltools`) call `glViewport` directly.
         x, y, w, h = (int(i) for i in value)
+        # (the backend may set the viewport before `__init__` has made this)
+        lastViewport = getattr(self, '_viewport', None)
+        resized = lastViewport is None or \
+            (lastViewport[2], lastViewport[3]) != (w, h)
         self._viewport = numpy.array((x, y, w, h), int)
         GL.glViewport(x, y, w, h)
+
+        # The view is offset in normalised units, which depend on the size of
+        # the window, so the offset is worked out again to keep `viewPos`
+        # meaning the same thing in the window's units.
+        if resized and self.__dict__.get('viewPos') is not None:
+            self._viewPosNorm = self.viewPos
 
     @property
     def scissor(self):
