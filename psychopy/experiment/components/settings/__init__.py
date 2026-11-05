@@ -536,9 +536,12 @@ class SettingsComponent:
             eyetracker, valType='str', inputType="choice",
             allowedVals=backendValues,
             allowedLabels=backendLabels,
-            hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
-                            "the mouse to simulate eye movement (for debugging without a tracker connected)"),
-            label=_translate("Eyetracker device"), categ="Eyetracking"
+            hint=_translate("What kind of eye tracker should PsychoPy use? (Legacy) Eyetrackers should "
+                            "now be set up in Device Manager and selected in the eyetracking "
+                            "Components and Routines; this setting is only used if none are. Select "
+                            "'MouseGaze' to use the mouse to simulate eye movement (for debugging "
+                            "without a tracker connected)"),
+            label=_translate("Eyetracker device (legacy)"), categ="Eyetracking"
         )
 
         # add params from backends
@@ -798,9 +801,7 @@ class SettingsComponent:
             "\n"
         )
 
-        if not self.params['eyetracker'] == "None" or (
-            self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == "ioHub"
-        ):
+        if self.needIoHub:
             code = (
                 "import psychopy.iohub as io\n"
             )
@@ -1324,8 +1325,45 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code % inits)
 
-        # add eyetracker config
-        if self.params['eyetracker'] != "None":
+        # get eyetrackers configured in Device Manager
+        etDevices = self.getEyetrackerDevices()
+        legacyEyetracker = self.params['eyetracker'] != "None"
+        if etDevices:
+            # alert user if more than one eyetracker is configured, as ioHub only supports one
+            etNames = list(etDevices)
+            if legacyEyetracker:
+                etNames.append("%s (Experiment Settings)" % self.params['eyetracker'].val)
+            if len(etNames) > 1:
+                alert(code=4555, strFields={
+                    'eyetrackers': ", ".join(etNames), 'eyetracker': etNames[0]
+                })
+            # use the first eyetracker from Device Manager
+            etName, etBackend = next(iter(etDevices.items()))
+            # alert user if there's no monitor config
+            if self.params['Monitor'].val in ["", None, "None"]:
+                alert(code=4545)
+            # alert user if they need fullscreen and don't have it
+            if etBackend.needsFullscreen and not self.params['Full-screen window'].val:
+                alert(code=4540)
+            # alert user if they need calibration and don't have it
+            if etBackend.needsCalibration and not any(
+                isinstance(rt, EyetrackerCalibrationRoutine) for rt in self.exp.flow
+            ):
+                alert(code=4510, strFields={'eyetracker': etBackend.backendLabel or etName})
+            # write any code the eyetracker needs before devices are set up (e.g. ioHub config);
+            # the device itself is added along with other devices from Device Manager, below
+            code = (
+                "# setup eyetracking\n"
+            )
+            buff.writeIndentedLines(code)
+            etBackend.writePreDeviceCode(buff)
+            # eyetracker from Device Manager takes precedence over Experiment Settings
+            legacyEyetracker = False
+
+        # add eyetracker config from Experiment Settings (legacy)
+        if legacyEyetracker:
+            # let user know that Device Manager is now the preferred way to setup eyetrackers
+            alert(code=4560, strFields={'eyetracker': self.params['eyetracker'].val})
             # alert user if there's no monitor config
             if self.params['Monitor'].val in ["", None, "None"]:
                 alert(code=4545)
@@ -1625,10 +1663,15 @@ class SettingsComponent:
             "deviceManager.ioServer = ioServer\n"
         )
         buff.writeIndentedLines(code % inits)
-        # add eyetracker to DeviceManager
-        if self.params['eyetracker'] != "None":
+        # add eyetracker from Experiment Settings (legacy) to DeviceManager (eyetrackers from
+        # Device Manager are added along with other devices from Device Manager, below)
+        if legacyEyetracker:
             code = (
-                "deviceManager.devices['eyetracker'] = ioServer.getDevice('tracker')\n"
+                "deviceManager.addDevice(\n"
+                "    deviceClass='psychopy.hardware.eyetracker.IoHubEyetrackerDevice',\n"
+                "    deviceName='eyetracker',\n"
+                "    ioServer=ioServer,\n"
+                ")\n"
             )
             buff.writeIndentedLines(code % inits)
         # make default keyboard
@@ -2124,7 +2167,39 @@ class SettingsComponent:
     def needIoHub(self):
         # Needed for keyboard
         kb = self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == 'ioHub'
-        # Needed for eyetracking
-        et = self.params['eyetracker'] != 'None'
+        # Needed for eyetracking (from Device Manager if any, otherwise Experiment Settings)
+        etDevices = self.getEyetrackerDevices()
+        if etDevices:
+            # only the first eyetracker from Device Manager is used
+            et = next(iter(etDevices.values())).needsIoHub
+        else:
+            et = self.params['eyetracker'] != 'None'
 
         return any((kb, et))
+
+    def getEyetrackerDevices(self):
+        """
+        Get any eyetrackers from Device Manager which are used by this experiment.
+
+        Returns
+        -------
+        dict[str: psychopy.experiment.eyetracking.EyetrackerDeviceBackend]
+            Eyetracker device backends from Device Manager, by device name
+        """
+        from psychopy.experiment.eyetracking import EyetrackerDeviceBackend
+
+        devices = {}
+        if getattr(self, "exp", None) is None:
+            return devices
+        try:
+            deviceNames = self.exp.getRequiredDeviceNames()
+        except Exception as err:
+            logging.debug(f"Could not get required device names: {err}")
+            return devices
+        for deviceName in deviceNames:
+            if deviceName in prefs.devices and isinstance(
+                prefs.devices[deviceName], EyetrackerDeviceBackend
+            ):
+                devices[deviceName] = prefs.devices[deviceName]
+
+        return devices

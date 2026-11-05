@@ -1,0 +1,21 @@
+code: 4555
+cat: Eyetracking
+msg: More than one eyetracker is configured ({eyetrackers}), but only one can be used at a time. Only {eyetracker} will be used.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: More than one eyetracker configured
+
+synopsis: |
+  Eyetrackers run using ioHub, which can only use one eyetracker per session. The experiment refers to more than one
+  eyetracker, either because different eyetracking Components / Routines name different eyetrackers from Device Manager,
+  or because an eyetracker is set both in Device Manager and in the (legacy) Eyetracking settings of Experiment Settings.
+
+details: |
+  When an eyetracker from Device Manager is used, it takes precedence over the eyetracker set in Experiment Settings.
+
+solutions: |
+  Make sure all eyetracking Components and Routines use the same eyetracker from Device Manager, and set the
+  Eyetracking -> Eyetracker device setting in Experiment Settings to "None".
+
+versions: |
+  >=2027.1.0

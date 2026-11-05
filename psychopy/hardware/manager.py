@@ -178,6 +178,28 @@ class DeviceManager:
         return cls
 
     @staticmethod
+    def getDeviceClass(deviceClass):
+        """
+        Get a device class from its import path or a registered alias, e.g. to call class methods
+        on it before any device is created.
+
+        Parameters
+        ----------
+        deviceClass : str or type
+            Full import path for the class, in PsychoPy, of the device (e.g.
+            `psychopy.hardware.keyboard.Keyboard`), or an alias registered for it (e.g.
+            "keyboard").
+
+        Returns
+        -------
+        type
+            The device class
+        """
+        return DeviceManager._resolveClassString(
+            DeviceManager._resolveAlias(deviceClass)
+        )
+
+    @staticmethod
     def _resolveInstanceClass(deviceClass):
         """
         Get the class which devices of a given type are instances of, for checking a device's type.

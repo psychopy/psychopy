@@ -1,3 +1,11 @@
+"""
+Eyetracker backends for the (legacy) Eyetracking settings in Experiment Settings.
+
+Eyetrackers should now be set up in Device Manager instead - see
+`psychopy.experiment.eyetracking.EyetrackerDeviceBackend`. These backends are kept so that
+experiments which set their eyetracker in Experiment Settings keep working.
+"""
+
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
