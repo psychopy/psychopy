@@ -1776,7 +1776,7 @@ class Caret(ColorMixin):
         """Legacy drawing code for older GL versions.
         """
         # If no override and conditions are met, or override is True, draw
-        gl.glLineWidth(self.width)
+        gl.glLineWidth(self.width * self.textbox.win.pixScaleFactor)
         gl.glColor4f(
             *self._foreColor.rgba1
         )

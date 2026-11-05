@@ -370,7 +370,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
-            GL.glLineWidth(self.lineWidth)
+            GL.glLineWidth(self.lineWidth * self.win.pixScaleFactor)
             if self.opacity is not None:
                 borderRGBA = self._borderColor.render('rgba1')
                 borderRGBA[-1] = self.opacity  # override opacity
@@ -799,7 +799,7 @@ class ShapeStim(BaseShapeStim):
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
-            GL.glLineWidth(self.lineWidth)
+            GL.glLineWidth(self.lineWidth * self.win.pixScaleFactor)
             GL.glColor4f(*self._borderColor.render('rgba1'))
             if self.closeShape:
                 gl_line = GL.GL_LINE_LOOP
@@ -877,7 +877,7 @@ class ShapeStim(BaseShapeStim):
 
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
-            GL.glLineWidth(self.lineWidth)
+            GL.glLineWidth(self.lineWidth * self.win.pixScaleFactor)
             gt.setUniformValue(
                 _prog, b'uColor', self._borderColor.render('rgba1'))
             gt.setUniformMatrix(
