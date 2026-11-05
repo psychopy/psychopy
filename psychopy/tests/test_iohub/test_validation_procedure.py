@@ -92,7 +92,8 @@ def _makeProcedure(position_sample_times):
     procedure._validation_results = None
     procedure.targetsequence = renderer
     procedure.io = FakeIo()
-    procedure.win = types.SimpleNamespace(units='norm', size=(1920, 1080))
+    procedure.win = types.SimpleNamespace(
+        units='norm', size=np.array([1920, 1080]), pixScaleFactor=1.0)
     procedure.positions = renderer.positions
     procedure.results_in_degrees = False
     procedure.accuracy_period_start = 0.55
@@ -128,3 +129,76 @@ def testValidationEqualSampleCounts():
 
     results = procedure._createValidationResults()
     assert len(results['position_results']) == 2
+
+
+class FakeStim:
+    """Stand-in for a stimulus class, which keeps the arguments each stimulus
+    was made with."""
+
+    made = []
+
+    def __init__(self, win, **kwargs):
+        self.kwargs = kwargs
+        FakeStim.made.append(self)
+
+    def draw(self):
+        pass
+
+
+def _hiDpiProcedure(monkeypatch):
+    """A procedure with a 1920x1080 'pix' window on a display with a scale
+    factor of 2, and stimuli replaced by `FakeStim`."""
+    from psychopy.iohub.client.eyetracker.validation import procedure as module
+
+    FakeStim.made = []
+    monkeypatch.setattr(module, 'visual', types.SimpleNamespace(
+        TextStim=FakeStim, Circle=FakeStim))
+    monkeypatch.setattr(module, 'deg2pix', lambda *args, **kwargs: 10.)
+
+    procedure = _makeProcedure([[], []])
+    procedure.win = types.SimpleNamespace(
+        units='norm', size=np.array([3840, 2160]), pixScaleFactor=2.0,
+        monitor=None, flip=lambda: None)
+    procedure.targetsequence.target = types.SimpleNamespace(
+        pos=None, draw=lambda: None)
+    procedure.targetsequence.display_gaze = False
+    procedure.text_color = 'white'
+    procedure.text_color_space = 'named'
+    return procedure
+
+
+def testResultsDisplayPix(monkeypatch):
+    """The size of the display is reported in 'pix' units, like the other
+    results, rather than in framebuffer pixels."""
+    procedure = _hiDpiProcedure(monkeypatch)
+    results = procedure._createValidationResults()
+    assert np.array_equal(results['display_pix'], [1920, 1080])
+    assert results['display_pix'].dtype.kind == 'i'
+
+
+def testResultScreenText(monkeypatch):
+    """Text on the results screen is laid out in 'pix' units, so in the size
+    of the window in 'pix' rather than in framebuffer pixels (which would put
+    it off the screen on high DPI displays)."""
+    procedure = _hiDpiProcedure(monkeypatch)
+    procedure._createValidationResults()  # as a validation run does first
+    procedure.drawResultScreen()
+
+    title, exitText = FakeStim.made[:2]  # made before the positions' stimuli
+    assert title.kwargs['units'] == exitText.kwargs['units'] == 'pix'
+    assert title.kwargs['pos'] == (0.0, 1080 / 2. * .95)
+    assert exitText.kwargs['pos'] == (0.0, -1080 / 2. * .95)
+    assert title.kwargs['wrapWidth'] == exitText.kwargs['wrapWidth'] == \
+        1920 * .8
+
+
+def testIntroScreenText(monkeypatch):
+    """The intro text wraps at the width of the window in 'pix' units."""
+    procedure = _hiDpiProcedure(monkeypatch)
+    procedure.intro_text = 'Hello'
+    procedure.intro_text_stim = None
+    procedure.showIntroScreen()
+
+    intro, = FakeStim.made
+    assert intro.kwargs['units'] == 'pix'
+    assert intro.kwargs['wrapWidth'] == 1920 * .8
