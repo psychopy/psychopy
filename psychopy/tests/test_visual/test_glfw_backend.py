@@ -61,3 +61,31 @@ def test_glfw_draw_position(useRetina):
             assert np.allclose(center, np.multiply(pos, pixScale)), pos
     finally:
         win.close()
+
+
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+def test_glfw_display_change():
+    """When the framebuffer changes size without the window doing so (as on
+    moving to a display with a different pixel density), the size of the
+    framebuffer, the scale factor and the viewport are updated."""
+    import glfw
+    from psychopy.visual.window import Window
+
+    win = Window((200, 150), winType='glfw', autoLog=False)
+    try:
+        handle = win.winHandle.handle
+        scale = win.getContentScaleFactor()
+        w, h = (int(v) for v in win.frameBufferSize)
+
+        # as if the window had moved to a display with half the density
+        win.backend._onFrameBufferSize(handle, w // 2, h // 2)
+        assert tuple(win.frameBufferSize) == (w // 2, h // 2)
+        assert tuple(win.viewport) == (0, 0, w // 2, h // 2)
+        assert win.getContentScaleFactor() == scale / 2.
+
+        # a minimised window has an empty framebuffer, which is ignored
+        win.backend._onFrameBufferSize(handle, 0, 0)
+        assert tuple(win.frameBufferSize) == (w // 2, h // 2)
+    finally:
+        win.backend._onFrameBufferSize(handle, *glfw.get_framebuffer_size(handle))
+        win.close()

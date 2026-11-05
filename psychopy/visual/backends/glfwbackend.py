@@ -618,6 +618,9 @@ class GLFWBackend(BaseBackend):
         # Assign event callbacks, these are dispatched when `glfw.poll_events`
         # is called.
         glfw.set_window_size_callback(handle, self._onWindowSize)
+        # the framebuffer changes size on resizing, and without the window
+        # doing so on moving to a display with a different pixel density
+        glfw.set_framebuffer_size_callback(handle, self._onFrameBufferSize)
         glfw.set_window_pos_callback(handle, self._onWindowPos)
         glfw.set_key_callback(handle, self.onKey)
         glfw.set_char_callback(handle, self.onText)
@@ -787,6 +790,32 @@ class GLFWBackend(BaseBackend):
         self.onMove(posX, posY)
 
     @_requiresOpenWindow
+    def _onFrameBufferSize(self, handle, width, height):
+        """Callback for GLFW framebuffer size events.
+
+        These happen when the window is resized, but also when it moves to a
+        display with a different pixel density, which changes the size of the
+        framebuffer (and so the scale factor) without changing the size of the
+        window.
+
+        """
+        if self._updateWindowSizes(glfw.get_window_size(handle),
+                                   (width, height)):
+            self._resetViewport()
+
+    def _resetViewport(self):
+        """Make the viewport and scissor cover the whole framebuffer, in this
+        window's context."""
+        backWidth, backHeight = (int(v) for v in self._frameBufferSize)
+
+        # events may be processed while another window's context is current
+        lastContext = glfw.get_current_context()
+        glfw.make_context_current(self.winHandle.handle)
+        self.win.viewport = (0, 0, backWidth, backHeight)
+        self.win.scissor = (0, 0, backWidth, backHeight)
+        glfw.make_context_current(lastContext)
+
+    @_requiresOpenWindow
     def onResize(self, width, height):
         """A method that will be called if the window detects a resize event.
 
@@ -795,16 +824,9 @@ class GLFWBackend(BaseBackend):
 
         """
         handle = self.winHandle.handle
-        self.win.clientSize[:] = (width, height)
-        self._frameBufferSize[:] = glfw.get_framebuffer_size(handle)
-        backWidth, backHeight = self._frameBufferSize
-
-        # events may be processed while another window's context is current
-        lastContext = glfw.get_current_context()
-        glfw.make_context_current(handle)
-        self.win.viewport = (0, 0, backWidth, backHeight)
-        self.win.scissor = (0, 0, backWidth, backHeight)
-        glfw.make_context_current(lastContext)
+        if self._updateWindowSizes(
+                (width, height), glfw.get_framebuffer_size(handle)):
+            self._resetViewport()
 
         if self._onResizeCallback is not None:
             self._onResizeCallback(self.win, width, height)
@@ -1065,8 +1087,8 @@ class GLFWBackend(BaseBackend):
             glfw.wait_events_timeout(0.01)
 
         # get the reported client size
-        self.win.clientSize[:] = glfw.get_window_size(handle)
-        self._frameBufferSize[:] = glfw.get_framebuffer_size(handle)
+        self._updateWindowSizes(
+            glfw.get_window_size(handle), glfw.get_framebuffer_size(handle))
         backWidth, backHeight = self._frameBufferSize
         self.win.viewport = (0, 0, backWidth, backHeight)
         self.win.scissor = (0, 0, backWidth, backHeight)

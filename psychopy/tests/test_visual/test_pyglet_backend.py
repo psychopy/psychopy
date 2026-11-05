@@ -129,3 +129,50 @@ def test_pyglet_set_size_two_windows():
     finally:
         second.close()
         first.close()
+
+
+@skip_under_vm(reason="Pyglet doesn't work on (macOS) virtual machine")
+def test_pyglet_resize_updates_sizes():
+    """After a resize the window knows its new size, the size of its
+    framebuffer, and draws to all of it."""
+    from psychopy import core, visual
+
+    win = visual.Window((200, 150), winType='pyglet', autoLog=False)
+    try:
+        scale = win.getContentScaleFactor()
+        win.winHandle.set_size(260, 180)  # in window coordinates
+        for _ in range(10):  # let pyglet dispatch the resize
+            win.backend.dispatchEvents()
+            core.wait(.02)
+
+        bufferSize = (int(260 * scale), int(180 * scale))
+        assert tuple(win.clientSize) == (260, 180)
+        assert tuple(win.frameBufferSize) == bufferSize
+        assert tuple(win.viewport) == (0, 0) + bufferSize
+        assert win.getContentScaleFactor() == scale
+        assert _glViewport(win) == (0, 0) + bufferSize
+    finally:
+        win.close()
+
+
+@skip_under_vm(reason="Pyglet doesn't work on (macOS) virtual machine")
+def test_pyglet_display_change(monkeypatch):
+    """When the framebuffer changes size without the window doing so (as on
+    moving to a display with a different pixel density), the scale factor is
+    worked out again."""
+    from psychopy import visual
+
+    win = visual.Window((200, 150), winType='pyglet', autoLog=False)
+    try:
+        # as if the window had moved to a display with 3 times the density
+        monkeypatch.setattr(
+            win.backend, '_getWindowSizes',
+            lambda: ((200, 150), (600, 450)))
+        win.backend.onResize(200, 150)
+        assert tuple(win.frameBufferSize) == (600, 450)
+        assert tuple(win.viewport) == (0, 0, 600, 450)
+        assert win.getContentScaleFactor() == 3.
+    finally:
+        monkeypatch.undo()
+        win.backend.onResize(200, 150)
+        win.close()
