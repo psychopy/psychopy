@@ -10,9 +10,10 @@ from psychopy.tools import systemtools
 from psychopy.preferences import prefs
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageFilter
 except ImportError:
     import Image
+    import ImageFilter
 
 import pytest
 
@@ -180,15 +181,27 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
                 "client size of %s, so they cannot be compared. The exemplar is "
                 "most likely stale and needs regenerating."
                 % (basename(fileName), expected.size, clientSize))
+        compareExpected = expected
         if frame.size != expected.size:
             # high-DPI display, bring the framebuffer down to client pixels
             frame = frame.resize(expected.size, resample=Image.Resampling.LANCZOS)
             crit += 5  # be more relaxed because of the interpolation
+            # Detail finer than a pixel (e.g. text) is drawn differently at the
+            # higher resolution, so compare both slightly blurred. A shift of
+            # even a pixel still makes a much bigger difference.
+            blur = ImageFilter.GaussianBlur(1)
+            try:
+                compareFrame = frame.filter(blur)
+                compareExpected = expected.filter(blur)
+            except ValueError:  # an image mode that can't be filtered
+                compareFrame, compareExpected = frame, expected
+        else:
+            compareFrame = frame
         # as floats, so the difference below doesn't wrap around like uint8
         # would, and read straight from the image buffers since going through
         # `getdata()` builds a Python tuple for every pixel, which is slow
-        expDat = np.asarray(expected, dtype=float)
-        imgDat = np.asarray(frame, dtype=float)
+        expDat = np.asarray(compareExpected, dtype=float)
+        imgDat = np.asarray(compareFrame, dtype=float)
         rms = np.std(imgDat-expDat)
         localFileName, exemplarFileName = getFailFilenames(fileName, tag=tag)
         if rms >= crit/2:
@@ -202,6 +215,36 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
             logging.warning('PsychoPyTests: Saving local copy into %s' % localFileName)
         assert rms<crit, \
             "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, localFileName)
+
+
+def skipIfLinesTooWide(win, lineWidth):
+    """Skip the test if the OpenGL driver can't draw lines `lineWidth` wide.
+
+    Line widths are in 'pix' units, so on high-DPI (e.g. Retina) displays the
+    lines are drawn wider in framebuffer pixels, which drivers cap (Apple's at
+    16). Lines wider than that come out narrower than asked, so wouldn't match
+    exemplars made where they could be drawn.
+
+    Parameters
+    ----------
+    win : psychopy.visual.Window
+        Window the lines are drawn in.
+    lineWidth : float
+        Width of the widest line drawn, in 'pix' units.
+
+    """
+    GL = win.backend.GL
+    widest = 0.0
+    for name in ('GL_ALIASED_LINE_WIDTH_RANGE', 'GL_SMOOTH_LINE_WIDTH_RANGE'):
+        widthRange = (GL.GLfloat * 2)()
+        GL.glGetFloatv(getattr(GL, name), widthRange)
+        widest = min(widest or widthRange[1], widthRange[1])
+
+    if lineWidth * win.pixScaleFactor > widest:
+        pytest.skip(
+            "Lines {:g} pix wide are {:g} framebuffer pixels, wider than the "
+            "OpenGL driver draws ({:g})".format(
+                lineWidth, lineWidth * win.pixScaleFactor, widest))
 
 
 def compareTextFiles(pathToActual, pathToCorrect, delim=None,
