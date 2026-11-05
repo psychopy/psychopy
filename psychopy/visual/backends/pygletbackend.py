@@ -15,6 +15,7 @@ and initialize an instance using the attributes of the Window.
 
 import sys
 import os
+from contextlib import contextmanager
 import platform
 import numpy as np
 
@@ -43,8 +44,6 @@ if pyglet.version < '2.1':
     import pyglet.canvas as pyglet_display
 else:
     import pyglet.display as pyglet_display
-
-retinaContext = None  # it will be set to an actual context if needed
 
 # get the default display
 if pyglet.version < '1.4':
@@ -146,6 +145,9 @@ class PygletBackend(BaseBackend):
         # macOS only, set once the window is created
         self._displayLinkMacOS = None
         self._appNapActivityMacOS = None
+        # this window's own context on high DPI (e.g. Retina) displays, to get
+        # the size of its framebuffer from
+        self._retinaContext = None
 
         vsync = 0
 
@@ -308,14 +310,11 @@ class PygletBackend(BaseBackend):
             self._frameBufferSize = win.clientSize
         elif sys.platform == 'darwin':
             if win.useRetina:
-                global retinaContext
-                retinaContext = self.winHandle.context._nscontext
-                view = retinaContext.view()
-                bounds = view.convertRectToBacking_(view.bounds()).size
-                if win.clientSize[0] == bounds.width:
-                    win.useRetina = False  # the screen is not a retina display
+                self._retinaContext = self.winHandle.context._nscontext
                 self._frameBufferSize = np.array(
-                    [int(bounds.width), int(bounds.height)])
+                    self._getFrameBufferSize(*win.clientSize))
+                if win.clientSize[0] == self._frameBufferSize[0]:
+                    win.useRetina = False  # the screen is not a retina display
             else:
                 self._frameBufferSize = win.clientSize
             try:
@@ -377,6 +376,11 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_text = self.onText
         self.winHandle.on_move = self.onMove
         self.winHandle.on_resize = self.onResize
+        # pyglet 2+ sets the viewport in whichever context is current before
+        # dispatching `on_resize`, which may be another window's
+        if hasattr(self.winHandle, '_on_internal_resize'):
+            self._pygletInternalResize = self.winHandle._on_internal_resize
+            self.winHandle._on_internal_resize = self._onInternalResize
         self.winHandle.on_text_motion = self.onCursorKey
         self.winHandle.on_key_press = self.onKey
         self.winHandle.on_mouse_press = self.onMouseButtonPress
@@ -521,6 +525,63 @@ class PygletBackend(BaseBackend):
         for win in wins:
             win.dispatch_events()
 
+    def _getFrameBufferSize(self, width, height):
+        """Size of the framebuffer of this window, for a given window size.
+
+        On high DPI (e.g. Retina) displays on macOS, the framebuffer is bigger
+        than the window, so its size is got from this window's own context.
+
+        Parameters
+        ----------
+        width, height : int
+            Size of the window in window coordinates.
+
+        Returns
+        -------
+        tuple
+            Size `(w, h)` of the framebuffer in pixels.
+
+        """
+        if self._retinaContext is None:
+            return int(width), int(height)
+
+        view = self._retinaContext.view()
+        bounds = view.convertRectToBacking_(view.bounds()).size
+
+        return int(bounds.width), int(bounds.height)
+
+    @contextmanager
+    def _contextCurrent(self):
+        """Make this window's context current for the duration of a `with`
+        block, then make the one that was current before current again.
+
+        Window events may be dispatched while another window's context is
+        current, so handlers which change OpenGL state use this to change this
+        window's. (`win._setCurrent()` is not used for this window since events
+        may be dispatched before `win.backend` is set.)
+
+        """
+        lastCurrent = globalVars.currWindow
+        self.setCurrent()
+        try:
+            yield
+        finally:
+            if lastCurrent is not None and lastCurrent is not self and \
+                    lastCurrent is not self.win:
+                globalVars.currWindow = None  # force the switch back
+                # `currWindow` may be set to either a window or its backend
+                if hasattr(lastCurrent, 'backend'):
+                    lastCurrent._setCurrent()
+                else:
+                    lastCurrent.setCurrent()
+
+    def _onInternalResize(self, width, height):
+        """Run pyglet's own resize handler (pyglet 2+) in this window's
+        context, since it sets the viewport of whichever context is current
+        before dispatching `on_resize`."""
+        with self._contextCurrent():
+            self._pygletInternalResize(width, height)
+
     def onResize(self, width, height):
         """A method that will be called if the window detects a resize event.
 
@@ -528,8 +589,20 @@ class PygletBackend(BaseBackend):
         formatted and forwarded to the user's callback function.
 
         """
-        # Call original _onResize handler
-        _onResize(width, height)
+        if height == 0:
+            height = 1
+        backWidth, backHeight = self._getFrameBufferSize(width, height)
+
+        with self._contextCurrent():
+            GL.glViewport(0, 0, backWidth, backHeight)
+
+            # DEPRECATED - this is now done with matrices we compute
+            if USE_LEGACY_GL:
+                GL.glMatrixMode(GL.GL_PROJECTION)
+                GL.glLoadIdentity()
+                GL.glOrtho(-1, 1, -1, 1, -1, 1)
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glLoadIdentity()
 
         if self._onResizeCallback is not None:
             self._onResizeCallback(self.win, width, height)
@@ -722,14 +795,7 @@ class PygletBackend(BaseBackend):
         self.winHandle.set_fullscreen(value)
         self.win.clientSize[:] = (self.winHandle.width, self.winHandle.height)
 
-        # special handling for retina displays, if needed
-        global retinaContext
-        if retinaContext is not None:
-            view = retinaContext.view()
-            bounds = view.convertRectToBacking_(view.bounds()).size
-            backWidth, backHeight = (int(bounds.width), int(bounds.height))
-        else:
-            backWidth, backHeight = self.win.clientSize
+        backWidth, backHeight = self._getFrameBufferSize(*self.win.clientSize)
 
         self._frameBufferSize[:] = (backWidth, backHeight)
         self.win.viewport = (0, 0, backWidth, backHeight)
@@ -1067,38 +1133,3 @@ class PygletBackend(BaseBackend):
         self.winHandle._mouse_x = int(round(x * scale))
         self.winHandle._mouse_y = int(round(y * scale))
 
-
-def _onResize(width, height):
-    """A default resize event handler.
-
-    This default handler updates the GL viewport to cover the entire
-    window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
-    window space.  The bottom-left corner is (0, 0) and the top-right
-    corner is the width and height of the :class:`~psychopy.visual.Window`
-    in pixels.
-
-    Override this event handler with your own to create another
-    projection, for example in perspective.
-    """
-    global retinaContext
-
-    if height == 0:
-        height = 1
-
-    if retinaContext is not None:
-        view = retinaContext.view()
-        bounds = view.convertRectToBacking_(view.bounds()).size
-        back_width, back_height = (int(bounds.width), int(bounds.height))
-    else:
-        back_width, back_height = width, height
-
-    GL.glViewport(0, 0, back_width, back_height)
-
-    # DEPRECATED - this is now done with matrices we compute
-    if USE_LEGACY_GL:
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
