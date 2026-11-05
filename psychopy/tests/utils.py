@@ -233,14 +233,8 @@ def skipIfLinesTooWide(win, lineWidth):
         Width of the widest line drawn, in 'pix' units.
 
     """
-    GL = win.backend.GL
-    widest = 0.0
-    for name in ('GL_ALIASED_LINE_WIDTH_RANGE', 'GL_SMOOTH_LINE_WIDTH_RANGE'):
-        widthRange = (GL.GLfloat * 2)()
-        GL.glGetFloatv(getattr(GL, name), widthRange)
-        widest = min(widest or widthRange[1], widthRange[1])
-
-    if lineWidth * win.pixScaleFactor > widest:
+    widest = win._maxLineWidth  # in framebuffer pixels
+    if widest and lineWidth * win.pixScaleFactor > widest:
         pytest.skip(
             "Lines {:g} pix wide are {:g} framebuffer pixels, wider than the "
             "OpenGL driver draws ({:g})".format(
