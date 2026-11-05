@@ -3854,7 +3854,10 @@ class Window():
 
         # If value is scaleDown or alias, set to None or "contain" based on relative size
         if value in ("scaleDown", "scale-down", "scaledown"):
-            overflow = numpy.asarray(self._backgroundImage._origSize) > numpy.asarray(self.size)
+            # the image's own size is drawn in 'pix' units, which are bigger
+            # than framebuffer pixels on high-DPI (e.g. Retina) displays
+            overflow = numpy.asarray(self._backgroundImage._origSize) > \
+                numpy.asarray(self.size) / self.pixScaleFactor
             if overflow.any():
                 value = "contain"
             else:
