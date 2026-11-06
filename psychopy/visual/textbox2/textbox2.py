@@ -388,12 +388,16 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.__dict__['font'] = fontName.name
         else:
             self.__dict__['font'] = fontName
+            # Glyphs are rendered at the resolution of the framebuffer, which
+            # is higher than 'pix' units on high DPI (e.g. Retina) displays,
+            # so the text is drawn sharply. They're still measured in 'pix'.
             self.glFont = allFonts.getFont(
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold,
                     italic=self.italic,
-                    lineSpacing=self.lineSpacing)
+                    lineSpacing=self.lineSpacing,
+                    rasterScale=self.win.pixScaleFactor)
 
     @attributeSetter
     def overflow(self, value):

@@ -396,3 +396,71 @@ def test_iohub_windowInfoDict(scaledWin):
     info = windowInfoDict(scaledWin)
     assert info['pixScaleFactor'] == 3.0
     assert isinstance(info['pixScaleFactor'], float)
+
+
+def _fontPath():
+    """Path of a font which can be rendered on this machine."""
+    from psychopy.tools.fontmanager import FontManager
+
+    return FontManager().getFontsMatching('Arial', fallback=True)[0].path
+
+
+def test_glFont_rasterScale():
+    # glyphs are rendered at a higher resolution, but measured in the same
+    # units, so text is laid out the same but drawn more sharply
+    from psychopy.tools.fontmanager import GLFont
+
+    path = _fontPath()
+    plain = GLFont(path, 30)
+    sharp = GLFont(path, 30, rasterScale=2.)
+    # what text is laid out by is exactly the same
+    for attr in ('size', 'ascender', 'descender', 'height'):
+        assert getattr(sharp, attr) == getattr(plain, attr), attr
+
+    # (glyphs are rendered for LCD subpixels, so are 3 texels wide to each
+    # pixel, which is corrected for when they're drawn)
+    drawnSize = lambda glyph: (glyph.size[0] / 3., glyph.size[1])
+    for char in 'Ag.':
+        plainGlyph, sharpGlyph = plain[char], sharp[char]
+        # sizes can differ by a pixel, since glyphs are hinted to whole pixels
+        # of the resolution they're rendered at, and half as much again across,
+        # since LCD rendering pads glyphs by a pixel of that resolution each side
+        assert np.allclose(
+            drawnSize(sharpGlyph), drawnSize(plainGlyph), atol=1.5), char
+        assert np.allclose(sharpGlyph.offset, plainGlyph.offset, atol=1), char
+        assert sharpGlyph.advance == plainGlyph.advance, char
+        # twice as many texels across the glyph in the texture
+        u0, v0, u1, v1 = sharpGlyph.texcoords
+        texels = ((u1 - u0) * sharp.atlas.width, (v1 - v0) * sharp.atlas.height)
+        assert np.allclose(texels, np.asarray(sharpGlyph.size) * 2, atol=1), \
+            char
+
+
+def test_glFont_rasterScale_atlas():
+    # the texture fits as many glyphs as it would without scaling, without
+    # growing for fonts small enough to fit plenty anyway
+    from psychopy.tools.fontmanager import GLFont
+
+    path = _fontPath()
+    assert GLFont(path, 30, rasterScale=2.).atlas.width == 2048
+    assert GLFont(path, 200).atlas.width == 2048
+    assert GLFont(path, 200, rasterScale=2.).atlas.width == 4096
+
+
+def test_fontManager_rasterScale():
+    # fonts rendered at different resolutions are kept separately
+    from psychopy.tools.fontmanager import FontManager
+
+    fm = FontManager()
+    plain = fm.getFont('Arial', size=30)
+    sharp = fm.getFont('Arial', size=30, rasterScale=2.)
+    assert plain is not sharp
+    assert sharp is fm.getFont('Arial', size=30, rasterScale=2.)
+    assert (plain.rasterScale, sharp.rasterScale) == (1., 2.)
+
+
+def test_textBox2_rasterScale(scaledWin):
+    # text is rendered at the resolution of the framebuffer
+    textBox = visual.TextBox2(scaledWin, 'Hello', letterHeight=20,
+                              units='pix', autoLog=False)
+    assert textBox.glFont.rasterScale == 3.
