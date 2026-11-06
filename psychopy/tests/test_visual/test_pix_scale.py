@@ -464,3 +464,24 @@ def test_textBox2_rasterScale(scaledWin):
     textBox = visual.TextBox2(scaledWin, 'Hello', letterHeight=20,
                               units='pix', autoLog=False)
     assert textBox.glFont.rasterScale == 3.
+
+
+def test_cursorToRay(scaledWin):
+    # As in the example in the docstring of `cursorToRay`, a position in 'pix'
+    # is converted to framebuffer pixels, so a ray through the right edge of
+    # the window runs along the right edge of the view (where x / -z is 1 over
+    # the horizontal scale of the projection), as does one from `coordToRay`.
+    from psychopy.tools import viewtools
+
+    scaledWin.units = 'pix'
+    scaledWin.setPerspectiveView(applyTransform=False)
+    try:
+        rightEdge = np.array([scaledWin.size[0] / 3. / 2., 0.])
+        ray = viewtools.cursorToRay(
+            *(rightEdge * scaledWin.pixScaleFactor), scaledWin.size,
+            scaledWin.viewport, scaledWin.projectionMatrix)
+        assert ray[0] / -ray[2] == pytest.approx(
+            1. / scaledWin.projectionMatrix[0, 0])
+        assert np.allclose(ray, scaledWin.coordToRay(rightEdge))
+    finally:
+        scaledWin.setDefaultView()
