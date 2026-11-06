@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from .test_base_components import _find_global_resource_in_js_experiment
 from psychopy import experiment
 from ...utils import TESTS_DATA_PATH
@@ -79,6 +81,7 @@ class TestSettingsComponent:
             )
             i += 1
 
+    @pytest.mark.components
     def test_flip_before_shutdown(self):
         """
         Check that the script flips one final time before shutting down
