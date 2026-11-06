@@ -3,7 +3,8 @@ import os
 import io
 
 from packaging.version import Version
-import wx
+import pytest
+wx = pytest.importorskip("wx")
 
 if Version(wx.__version__) < Version('2.9'):
     tmpApp = wx.PySimpleApp()
@@ -25,7 +26,7 @@ ignoreObjectAttribs = True
 try:
     allComp = getAllComponents(fetchIcons=False)
 except Exception:
-    import wx
+    wx = pytest.importorskip("wx")
     if Version(wx.__version__) < Version('2.9'):
         tmpApp = wx.PySimpleApp()
     else:

@@ -43,7 +43,7 @@ class TestComponents():
         try:
             cls.allComp = getAllComponents(fetchIcons=False)
         except Exception:
-            import wx
+            wx = pytest.importorskip("wx")
             if Version(wx.__version__) < Version('2.9'):
                 tmpApp = wx.PySimpleApp()
             else:
