@@ -143,8 +143,14 @@ def test_pixRectToBufferRect(scaledWin):
 
 
 @pytest.fixture
-def patchWin(win):
-    """`win` showing a white patch on black, centred on (40, 20) 'pix'."""
+def patchWin(win, monkeypatch):
+    """`win` with a white patch on black, centred on (40, 20) 'pix', in its
+    back buffer.
+
+    The screen buffer sensors read the front buffer, which reads as black on
+    virtual machines (e.g. CI runners), so they're made to read the back buffer
+    instead. What's being tested is where in the window they read.
+    """
     units = win.units
     win.units = 'pix'
     win.color = 'black'
@@ -152,7 +158,12 @@ def patchWin(win):
     patch = visual.Rect(win, pos=(40, 20), size=(10, 10), units='pix',
                         fillColor='white', lineWidth=0, autoLog=False)
     patch.draw()
-    win.flip()
+
+    getPixels = win._getPixels
+    monkeypatch.setattr(
+        win, '_getPixels',
+        lambda *args, buffer='front', **kwargs: getPixels(
+            *args, buffer='back', **kwargs))
     yield win
     win.units = units
     win.color = (0, 0, 0)
@@ -338,17 +349,20 @@ def test_viewPos_units_change_unconvertible(scaledWin, monkeypatch):
 
 def test_viewPos_resize(scaledWin):
     # `viewPos` keeps its meaning when the size of the window changes, so
-    # (30, -15) 'pix' is still 30 'pix' across in a window half as wide
+    # (10, -5) 'pix' is still 10 'pix' across in a window half as wide. (Small
+    # enough to be in the window, which is only 33 'pix' wide when halved on a
+    # display with a scale factor of 1, since `scaledWin` pretends it's 3.
+    # The view isn't moved further than the edge of the window.)
     scaledWin.units = 'pix'
     viewport = scaledWin.viewport.copy()
     try:
-        scaledWin.viewPos = (30, -15)
+        scaledWin.viewPos = (10, -5)
         x, y, w, h = viewport
         scaledWin.viewport = (x, y, w // 2, h)
         assert np.allclose(
             scaledWin._viewPosNorm,
-            layout.Position((30, -15), 'pix', scaledWin).norm)
-        assert np.allclose(scaledWin.viewPos, (30, -15))
+            layout.Position((10, -5), 'pix', scaledWin).norm)
+        assert np.allclose(scaledWin.viewPos, (10, -5))
     finally:
         scaledWin.viewport = viewport
         scaledWin.viewPos = None
