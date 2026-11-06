@@ -1,6 +1,7 @@
 # Provisional (super simple) test file which doesn't really test anything else
 # besides simply opening a `pyGLFW` window. Add more complete `glfw` backend
 # tests to other scripts ASAP, then remove this file.
+import sys
 from psychopy.tests import skip_under_vm
 import numpy as np
 import pytest
@@ -88,4 +89,52 @@ def test_glfw_display_change():
         assert tuple(win.frameBufferSize) == (w // 2, h // 2)
     finally:
         win.backend._onFrameBufferSize(handle, *glfw.get_framebuffer_size(handle))
+        win.close()
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason="macOS only")
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+@pytest.mark.parametrize('how', ['create', 'switch'])
+def test_glfw_fullscreen_keeps_display_mode_macos(how):
+    """On macOS GLFW only knows of display modes which aren't high DPI, so full
+    screen windows must not be handed to it, or the display is switched to
+    another mode (e.g. 1920x1200 at 1x from 1440x900 at 2x). They should cover
+    the display at its current mode instead, above the menu bar and Dock."""
+    import AppKit
+    import Quartz
+    import glfw
+    import objc
+    from psychopy.visual.window import Window
+
+    def displayMode():
+        mode = Quartz.CGDisplayCopyDisplayMode(Quartz.CGMainDisplayID())
+        return (Quartz.CGDisplayModeGetPixelWidth(mode),
+                Quartz.CGDisplayModeGetPixelHeight(mode))
+
+    modeBefore = displayMode()
+    if how == 'create':
+        win = Window(fullscr=True, winType='glfw', autoLog=False)
+    else:
+        win = Window((200, 150), winType='glfw', autoLog=False)
+        win.fullscr = True
+    try:
+        handle = win.winHandle.handle
+        assert displayMode() == modeBefore
+        assert tuple(win.frameBufferSize) == modeBefore
+        assert not glfw.get_window_monitor(handle)  # a NULL pointer
+
+        nsWindow = objc.objc_object(c_void_p=glfw.get_cocoa_window(handle))
+        frame = nsWindow.frame()
+        screen = nsWindow.screen().frame()
+        assert (frame.origin.x, frame.origin.y, frame.size.width,
+                frame.size.height) == (screen.origin.x, screen.origin.y,
+                                       screen.size.width, screen.size.height)
+        assert nsWindow.level() > AppKit.NSMainMenuWindowLevel
+
+        if how == 'switch':
+            win.fullscr = False
+            assert tuple(win.clientSize) == (200, 150)
+            assert nsWindow.level() == AppKit.NSNormalWindowLevel
+            assert glfw.get_window_attrib(handle, glfw.DECORATED)
+    finally:
         win.close()

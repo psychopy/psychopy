@@ -373,6 +373,8 @@ class GLFWBackend(BaseBackend):
         * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
         * `refreshHz` (`int`) Refresh rate to request for full screen windows.
           If not specified, the current refresh rate of the display is used.
+          Ignored on macOS, where full screen windows keep the display's
+          current mode (changing it would also change its resolution).
         * `swapInterval` (`int`) Swap interval for the OpenGL context.
 
     Examples
@@ -467,6 +469,16 @@ class GLFWBackend(BaseBackend):
             useMonitor = self._monitor
             refreshHz = int(
                 backendConf.get('refreshHz', nativeVidmode.refresh_rate))
+            if sys.platform == 'darwin':
+                # see `_fullScrMacOS`, the display's mode is kept as it is
+                if refreshHz != nativeVidmode.refresh_rate:
+                    logging.warning(
+                        "Ignoring `refreshHz={}`, full screen windows on "
+                        "macOS use the display's current refresh rate "
+                        "({} Hz).".format(
+                            refreshHz, nativeVidmode.refresh_rate))
+                useMonitor = None
+                refreshHz = glfw.DONT_CARE
         else:
             useMonitor = None
             refreshHz = glfw.DONT_CARE
@@ -486,7 +498,9 @@ class GLFWBackend(BaseBackend):
         # window appearance and behaviour hints
         glfw.window_hint(glfw.VISIBLE, glfw.FALSE)  # shown once positioned
         glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
-        glfw.window_hint(glfw.DECORATED, int(bool(win.allowGUI)))
+        glfw.window_hint(glfw.DECORATED, int(
+            bool(win.allowGUI) and not (
+                win._isFullScr and sys.platform == 'darwin')))
         glfw.window_hint(glfw.AUTO_ICONIFY, glfw.FALSE)  # for multi-display
         if sys.platform == 'darwin':
             glfw.window_hint(
@@ -527,8 +541,11 @@ class GLFWBackend(BaseBackend):
             px, py = glfw.get_monitor_pos(self._monitor)
             self.winHandle.set_location(win.pos[0] + px, win.pos[1] + py)
 
-        elif win.pos is not None:
-            logging.warn("Ignoring window 'pos' in fullscreen mode.")
+        else:
+            if win.pos is not None:
+                logging.warn("Ignoring window 'pos' in fullscreen mode.")
+            if sys.platform == 'darwin':
+                self._fullScrMacOS(True)
 
         self._setIcon()
         glfw.show_window(handle)
@@ -651,6 +668,43 @@ class GLFWBackend(BaseBackend):
             glfw.set_window_icon(self.winHandle.handle, len(icons), icons)
         except Exception:
             pass  # doesn't matter
+
+    def _fullScrMacOS(self, value):
+        """Make the window cover its display, or stop it doing so, on macOS.
+
+        GLFW only lists display modes which aren't high DPI (e.g. Retina) on
+        macOS, so giving it the display for a full screen window switches the
+        display to whichever of those is closest to its current mode (e.g. from
+        1440x900 points at 2x to 1920x1200 at 1x). Images are then scaled by
+        the display, and sizes in 'cm' and 'deg' are wrong. Full screen windows
+        are instead borderless windows covering the display, at the level GLFW
+        puts its own full screen windows (above the menu bar and Dock), which
+        keeps the display's mode as it is.
+
+        Parameters
+        ----------
+        value : bool
+            `True` to make the window cover the display, `False` to make it an
+            ordinary window again (which the caller then sizes and positions).
+
+        """
+        import objc
+        import AppKit
+
+        handle = self.winHandle.handle
+        nsWindow = objc.objc_object(c_void_p=glfw.get_cocoa_window(handle))
+
+        if value:
+            glfw.set_window_attrib(handle, glfw.DECORATED, glfw.FALSE)
+            px, py = glfw.get_monitor_pos(self._monitor)
+            scrWidth, scrHeight = glfw.get_video_mode(self._monitor).size
+            glfw.set_window_monitor(
+                handle, None, px, py, scrWidth, scrHeight, glfw.DONT_CARE)
+            nsWindow.setLevel_(AppKit.NSMainMenuWindowLevel + 1)
+        else:
+            nsWindow.setLevel_(AppKit.NSNormalWindowLevel)
+            glfw.set_window_attrib(
+                handle, glfw.DECORATED, int(bool(self.win.allowGUI)))
 
     def _getNativeHandle(self):
         """Get the native window handle for the platform (HWND on Windows,
@@ -1060,10 +1114,15 @@ class GLFWBackend(BaseBackend):
 
         if value:
             winWidth, winHeight = scrWidth, scrHeight
-            glfw.set_window_monitor(
-                handle, self._monitor, 0, 0, scrWidth, scrHeight,
-                nativeVidmode.refresh_rate)
+            if sys.platform == 'darwin':
+                self._fullScrMacOS(True)
+            else:
+                glfw.set_window_monitor(
+                    handle, self._monitor, 0, 0, scrWidth, scrHeight,
+                    nativeVidmode.refresh_rate)
         else:
+            if sys.platform == 'darwin':
+                self._fullScrMacOS(False)
             winWidth, winHeight = (int(v) for v in self.win.windowedSize)
             # if no window position is specified, centre it on-screen
             if self.win.pos is None:
