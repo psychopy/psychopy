@@ -5,6 +5,7 @@ from psychopy import experiment
 from psychopy.experiment.routines import Routine
 from psychopy.experiment.components.unknown import UnknownComponent
 from psychopy.experiment.routines.unknown import UnknownRoutine
+from psychopy.tests.utils import checkSyntax
 
 
 def test_plugin_components_indicated():
@@ -50,3 +51,23 @@ def test_pilot_mode():
             "Builder demos should be saved in Pilot mode, so that they start off piloting when "
             "users unpack them. Please change run mode on {}".format(file.name)
         )
+
+
+def test_load_save_compile(tmp_path):
+    """
+    Checks that all Builder demos survive a load-save-load round trip and write valid Python
+    syntax both before and after.
+    """
+    # root Builder demos folder
+    demosDir = Path(builder.__file__).parent
+    # for all psyexp files in builder demos folder...
+    for file in demosDir.glob("**/*.psyexp"):
+        # load experiment and check its syntax
+        exp = experiment.Experiment.fromFile(file)
+        checkSyntax(exp, targets=("PsychoPy",))
+        # save it to a temp file
+        resaved = tmp_path / file.name
+        exp.saveToXML(str(resaved), makeLegacy=False)
+        # reload and check syntax again
+        exp2 = experiment.Experiment.fromFile(resaved)
+        checkSyntax(exp2, targets=("PsychoPy",))

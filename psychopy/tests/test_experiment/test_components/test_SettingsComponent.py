@@ -78,3 +78,12 @@ class TestSettingsComponent:
                 f"```"
             )
             i += 1
+
+    def test_flip_before_shutdown(self):
+        """
+        Check that the script flips one final time before shutting down
+        """
+        exp = experiment.Experiment()
+        script = exp.writeScript()
+
+        assert 'Flip one final time' in script
