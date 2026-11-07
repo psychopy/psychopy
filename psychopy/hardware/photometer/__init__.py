@@ -101,17 +101,10 @@ class ScreenBufferPhotometerDevice(BasePhotometerDevice):
         """
         When called, dispatch a single reading.
         """
-        # get rect
-        left, bottom = self._pos.pix + self.win.size / 2
-        w, h = self._size.pix
-        left = int(left - w / 2)
-        bottom = int(bottom - h / 2)
-        w = int(w)
-        h = int(h)
         # read front buffer luminances for specified area
         pixels = self.win._getPixels(
             buffer="front",
-            rect=(left, bottom, w, h),
+            rect=self.win._pixRectToBufferRect(self._pos.pix, self._size.pix),
             makeLum=True
         )
         # dispatch a message

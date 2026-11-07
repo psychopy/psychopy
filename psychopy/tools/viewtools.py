@@ -795,12 +795,17 @@ def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix,
     Parameters
     ----------
     cursorX, cursorY :  float or int
-        Window coordinates. These need to be scaled if you are using a
-        framebuffer that does not have 1:1 pixel mapping (i.e. retina display).
+        Position of the cursor in framebuffer pixels, relative to the center of
+        the window. These are the pixels `winSize` and `viewport` are in. On
+        high DPI (e.g. Retina) displays they are smaller than 'pix' units, so a
+        position in 'pix' must be multiplied by `win.pixScaleFactor` first.
     winSize : array_like
-        Size of the window client area [w, h].
+        Size of the window's framebuffer [w, h] in pixels (e.g. `win.size`),
+        which is bigger than the size of the window in 'pix' units on high DPI
+        displays.
     viewport : array_like
-        Viewport rectangle [x, y, w, h] being used.
+        Viewport rectangle [x, y, w, h] being used, in framebuffer pixels (e.g.
+        `win.viewport`).
     projectionMatrix : ndarray
         4x4 projection matrix being used.
     normalize : bool
@@ -818,6 +823,13 @@ def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix,
     ndarray
         Direction vector (x, y, z).
 
+    See Also
+    --------
+    psychopy.visual.Window.coordToRay : Get the ray through a position given in
+        the units of the window, without converting it to framebuffer pixels.
+    psychopy.visual.Window.getMouseRay : Get the ray through the mouse cursor
+        in scene coordinates.
+
     Examples
     --------
     Place a 3D stim at the mouse location 5.0 scene units (meters) away::
@@ -825,10 +837,13 @@ def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix,
         # define camera
         camera = RigidBodyPose((-3.0, 5.0, 3.5))
         camera.alignTo((0, 0, 0))
+        mouse = event.Mouse(win=win)  # with `win.units='pix'`
 
         # in the render loop
 
         dist = 5.0
+        # the mouse position in framebuffer pixels, from 'pix' units
+        x, y = mouse.getPos() * win.pixScaleFactor
         mouseRay = vt.cursorToRay(x, y, win.size, win.viewport, win.projectionMatrix)
         mouseRay *= dist  # scale the vector
 

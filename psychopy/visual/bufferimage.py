@@ -8,32 +8,13 @@ RBGA object.`"""
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
-pyglet.options['debug_gl'] = False
-import psychopy.tools.pygletgl as GL
-
-import psychopy  # so we can get the __path__
 from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.tools.typetools import float_uint8
+from psychopy.tools.attributetools import setAttribute
+from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.image import ImageStim
-from psychopy.tools import mathtools as mt
-from psychopy.tools import gltools as gt
-
-try:
-    from PIL import Image
-except ImportError:
-    from . import Image
 
 import numpy
 
@@ -54,12 +35,10 @@ class BufferImageStim(ImageStim):
 
     You specify the part of the screen to capture (in norm units), and
     optionally the stimuli themselves (as a list of items to be drawn).
-    You get a screenshot of those pixels. If your OpenGL does not support
-    arbitrary sizes, the image will be larger, using square powers of two
-    if needed, with the excess image being invisible (using alpha). The
+    You get a screenshot of those pixels, drawn at the size they were
+    captured at. With `sqPower2=True` the image is padded to a square power
+    of two in size, with the excess image being invisible (using alpha). The
     aim is to preserve the buffer contents as rendered.
-
-    Checks for OpenGL 2.1+, or uses square-power-of-2 images.
 
     **Example**::
 
@@ -108,12 +87,17 @@ class BufferImageStim(ImageStim):
                 whether to use interpolation (default = True, generally good,
                 especially if you change the orientation)
             sqPower2 :
-                - False (default) = use rect for size if OpenGL = 2.1+
-                - True = use square, power-of-two image sizes
+                - False (default) = use rect for size
+                - True = use square, power-of-two image sizes (only needed
+                  for very old OpenGL drivers)
             flipHoriz :
                 horizontally flip (mirror) the captured image, default = False
             flipVert :
                 vertically flip (mirror) the captured image; default = False
+            pos :
+                position of the center of the image, in the units of the
+                window; default = (0, 0). The stimulus itself uses 'pix'
+                units, so `pos` and `size` are in 'pix' once it is made.
         """
         # depends on: window._getRegionOfFrame
 
@@ -143,34 +127,25 @@ class BufferImageStim(ImageStim):
                 raise ValueError('Stim is not iterable in BufferImageStim. '
                                  'It should be a list of stimuli.')
 
-        # take a screenshot of the buffer using win._getRegionOfFrame():
-        glversion = GL.gl_info.get_version()
-        if not sqPower2:
-            region = win._getRegionOfFrame(buffer=buffer, rect=rect)
-        else:
-            if not sqPower2:
-                msg = ('BufferImageStim.__init__: defaulting to square '
-                       'power-of-2 sized image (%s)')
-                logging.debug(msg % glversion)
-            region = win._getRegionOfFrame(buffer=buffer, rect=rect,
-                                           squarePower2=True)
+        # take a screenshot of the buffer, in framebuffer pixels
+        region = win._getRegionOfFrame(
+            buffer=buffer, rect=rect, squarePower2=sqPower2)
         if stim:
             win.clearBuffer()
 
-        # turn the RGBA region into an ImageStim() object:
-        if win.units in ['norm']:
-            pos *= win.size / 2.
-
-        size = region.size / win.size / 2.
+        # Drawn as an `ImageStim` in 'pix' units, so it can be moved, resized,
+        # rotated and flipped like one. 'pix' units are window coordinates,
+        # which are bigger than framebuffer pixels on high DPI (e.g. Retina)
+        # displays, so the image is sized to be drawn at the size it was
+        # captured at. `pos` is given in the units of the window.
+        pos = convertToPix(
+            numpy.zeros((2,)), numpy.asarray(pos, dtype=float),
+            units=win.units, win=win)[:2]
+        size = numpy.asarray(region.size, dtype=float) / win.pixScaleFactor
         super(BufferImageStim, self).__init__(
-            win, image=region, units='pix', mask=mask, pos=pos,
-            size=size, interpolate=interpolate, name=name, autoLog=False)
-        self.size = region.size
-
-        # to improve drawing speed, move these out of draw:
-        self.thisScale = numpy.array([4, 4])
-        self.flipHoriz = flipHoriz
-        self.flipVert = flipVert
+            win, image=region, units='pix', mask=mask, pos=pos, size=size,
+            interpolate=interpolate, flipHoriz=flipHoriz, flipVert=flipVert,
+            name=name, autoLog=False)
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -180,132 +155,14 @@ class BufferImageStim(ImageStim):
             msg = 'BufferImageStim %s: took %.1fms to initialize'
             logging.exp(msg % (name, 1000 * _clock.getTime()))
 
-    @attributeSetter
-    def flipHoriz(self, flipHoriz):
-        """If set to True then the image will be flipped horizontally
-        (left-to-right). Note that this is relative to the original image,
-        not relative to the current state.
-        """
-        self.__dict__['flipHoriz'] = flipHoriz
-
-    @attributeSetter
-    def flipVert(self, flipVert):
-        """If set to True then the image will be flipped vertically
-        (left-to-right). Note that this is relative to the original image,
-        not relative to the current state.
-        """
-        self.__dict__['flipVert'] = flipVert
-
     def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        setAttribute(self, 'flipHoriz', newVal, log)  # call attributeSetter
+        setAttribute(self, 'flipHoriz', newVal, log)
 
     def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        setAttribute(self, 'flipVert', newVal, log)  # call attributeSetter
-
-    def _drawLegacyGL(self, win):
-        """Legacy draw method for OpenGL 2.x."""
-        GL.glPushMatrix()  # preserve state
-        # GL.glLoadIdentity()
-
-        # dynamic flip
-        GL.glScalef(self.thisScale[0] * (1, -1)[self.flipHoriz],
-                    self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
-
-        # enable dynamic position, orientation, opacity; depth not working?
-        GL.glColor4f(*self._foreColor.render('rgba1'))
-
-        GL.glCallList(self._listID)  # make it happen
-        GL.glPopMatrix()  # return the view to previous state
-
-    def draw(self, win=None):
-        """Draws the BufferImage on the screen, similar to
-        :class:`~psychopy.visual.ImageStim` `.draw()`.
-        Allows dynamic position, size, rotation, mirroring, and opacity.
-        Limitations / bugs: not sure what happens with shaders and
-        self._updateList()
-        """
-        if win is None:
-            win = self.win
-        self._selectWindow(win)
-
-        if win.USE_LEGACY_GL:
-            self._drawLegacyGL(win)
-            return
-
-        win.setScale('pix')
-        win.setOrthographicView()
-
-        # dynamic flip
-        # GL.glScalef(self.thisScale[0] * (1, -1)[self.flipHoriz],
-        #             self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
-        # enable dynamic position, orientation, opacity; depth not working?
-        # GL.glColor4f(*self._foreColor.render('rgba1'))
-
-        if self._needTextureUpdate:
-            self.setImage(value=self._imName, log=False)
-
-        if self.isLumImage:  # select the appropriate shader
-            # for a luminance image do recoloring
-            _prog = self.win._progSignedTexMask
-        else:
-            # for an rgb image there is no recoloring
-            _prog = self.win._progImageStim
-
-        gt.useProgram(_prog)
-
-        # bind textures
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glActiveTexture(GL.GL_TEXTURE1)  # mask
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-
-        scaleMat = mt.scaleMatrix(
-            (self.thisScale[0] * (1, -1)[self.flipHoriz], 
-             self.thisScale[1] * (1, -1)[self.flipVert],
-             1.0)
-        )
-        modelViewMatrix = mt.multMatrix((win.viewMatrix, scaleMat))
-
-        # set the shader uniforms
-        gt.setUniformValue(_prog, b'uTexture', 0, 'int')  # is texture unit 0
-        gt.setUniformValue(_prog, b'uMask', 1, 'int')  # mask is texture unit 1
-        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
-        gt.setUniformValue(
-            _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
-        gt.setUniformMatrix(
-            _prog, 
-            'uModelViewMatrix', 
-            modelViewMatrix,
-            transpose=True)
-        gt.setUniformMatrix(
-            _prog, 
-            b'uProjectionMatrix', 
-            win.projectionMatrix,
-            transpose=True)
-
-        # draw the image
-        gt.drawClientArrays({
-            'gl_Vertex': self.verticesPix,
-            'gl_MultiTexCoord0': self._texCoords,
-            'gl_MultiTexCoord1': self._maskCoords}, 
-            'GL_QUADS')
-        
-        gt.useProgram(None)
-
-        # unbind the textures
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-
-        # GL.glCallList(self._listID)  # make it happen
-        # GL.glPopMatrix()  # return the view to previous state
+        setAttribute(self, 'flipVert', newVal, log)

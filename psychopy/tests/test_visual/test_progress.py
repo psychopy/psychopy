@@ -49,6 +49,7 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
         """
         Check that setting the value of progress has the desired effect
         """
+        utils.skipIfLinesTooWide(self.win, self.obj.lineWidth)
         # Values to test
         vals = [0, 0.3, 0.6, 1]
         # Layouts to test them in

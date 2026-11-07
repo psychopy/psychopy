@@ -350,16 +350,18 @@ class Mouse(AttributeGetSetMixin):
         self._mouseScrollPos[:] = pos
 
     def _pixToWindowUnits(self, pos):
-        """Conversion from 'pix' units to window units.
+        """Conversion from framebuffer pixels to window units.
 
-        The mouse class stores mouse positions in 'pix' units. This function is
-        used by getter and setter methods to convert position values to the
-        units specified by the window.
+        The mouse class stores mouse positions in framebuffer pixels relative
+        to the center of the window. These differ from 'pix' units on high DPI
+        (e.g. Retina) displays, where 'pix' units are window coordinates. This
+        function is used by getter and setter methods to convert position
+        values to the units specified by the window.
 
         Parameters
         ----------
         pos : ArrayLike
-            Position `(x, y)` in 'pix' coordinates to convert.
+            Position `(x, y)` in framebuffer pixels to convert.
 
         Returns
         -------
@@ -372,30 +374,32 @@ class Mouse(AttributeGetSetMixin):
         if self.win is None:
             return pos
 
+        # 'cm' and 'deg' are converted through 'pix' units
         if self.win.units == 'pix':
             return pos / self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
         elif self.win.units == 'cm':
-            return pix2cm(pos, self.win.monitor)
+            return pix2cm(pos / self.win.pixScaleFactor, self.win.monitor)
         elif self.win.units == 'deg':
-            return pix2deg(pos, self.win.monitor)
+            return pix2deg(pos / self.win.pixScaleFactor, self.win.monitor)
         elif self.win.units == 'height':
             return pos / float(self.win.size[1])
 
     def _windowUnitsToPix(self, pos):
-        """Convert user specified window units to 'pix'. This method is the
-        inverse of `_pixToWindowUnits`.
+        """Convert user specified window units to framebuffer pixels. This
+        method is the inverse of `_pixToWindowUnits`.
 
         Parameters
         ----------
         pos : ArrayLike
-            Position `(x, y)` in 'pix' coordinates to convert.
+            Position `(x, y)` in window units to convert.
 
         Returns
         -------
         ndarray
-            Position `(x, y)` in window units.
+            Position `(x, y)` in framebuffer pixels, relative to the center of
+            the window.
 
         """
         pos = np.asarray(pos, dtype=np.float32)
@@ -403,14 +407,15 @@ class Mouse(AttributeGetSetMixin):
         if self.win is None:
             return pos
 
+        # 'cm' and 'deg' are converted through 'pix' units
         if self.win.units == 'pix':
             return pos * self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
         elif self.win.units == 'cm':
-            return cm2pix(pos, self.win.monitor)
+            return cm2pix(pos, self.win.monitor) * self.win.pixScaleFactor
         elif self.win.units == 'deg':
-            return deg2pix(pos, self.win.monitor)
+            return deg2pix(pos, self.win.monitor) * self.win.pixScaleFactor
         elif self.win.units == 'height':
             return pos * float(self.win.size[1])
 

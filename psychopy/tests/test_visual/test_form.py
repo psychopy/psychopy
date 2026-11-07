@@ -62,9 +62,11 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
         self.win = Window(units='height', allowStencil=True, autoLog=False)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         self.obj = self.survey
-        # Pixel coord of top left corner
-        tl = (round(self.obj.win.size[0]/2 - 1*self.obj.win.size[1]/2),
-              round(self.obj.win.size[1]/2 - 0.3*self.obj.win.size[1]/2))
+        # Pixel coord of top left corner, in window (not framebuffer) pixels as
+        # `comparePixelColor` scales them for high-DPI displays
+        winW, winH = self.obj.win.clientSize
+        tl = (round(winW/2 - 1*winH/2),
+              round(winH/2 - 0.3*winH/2))
         # Pixel which is the border color
         self.obj.border.lineWidth = 2
         self.borderPoint = (tl[1], tl[0])

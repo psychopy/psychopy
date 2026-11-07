@@ -687,13 +687,10 @@ class Display(Device):
 
                     def height2pix(self, x, y, display_index=None):
                         if display_index == self.getIndex():
-                            if False: #TODO: Deal with win.useRetina when we don't have a win.
-                                x = x * h / 2.0
-                                y = y * h / 2.0
-                            else:
-                                x = x * h
-                                y = y * h
-                            return psychopy2displayPix(x, y)
+                            # The display's bounds are in window coordinates
+                            # (points on high DPI, e.g. Retina, displays), as
+                            # 'pix' units are, so no scaling is needed.
+                            return psychopy2displayPix(x * h, y * h)
 
                         return x, y
                     self._coord2pix = height2pix
@@ -712,7 +709,7 @@ class Display(Device):
                         if display_index == self.getIndex():
                             return psychopy2displayPix(
                                 misc.deg2pix(
-                                    degx, self._psychopy_monitor), misc.cm2pix(
+                                    degx, self._psychopy_monitor), misc.deg2pix(
                                     degy, self._psychopy_monitor))
                         return degx, degy
                     self._coord2pix = degcoord2pix

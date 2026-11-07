@@ -17,6 +17,36 @@ currentSec = Computer.getTime
 
 # OS 'independent' view of the Mouse Device
 
+def _windowSizePix(winfo):
+    """Size of a PsychoPy window in 'pix' units, from the information about it
+    PsychoPy sends to the ioHub server.
+
+    Mouse positions on the desktop are in window coordinates, which is what
+    'pix' units are. The size of the window is sent in framebuffer pixels,
+    which there are `pixScaleFactor` of to each 'pix' on high DPI (e.g. Retina)
+    displays.
+
+    Parameters
+    ----------
+    winfo : dict
+        Window information, as made by
+        :func:`psychopy.iohub.client.windowInfoDict`.
+
+    Returns
+    -------
+    ndarray
+        Size `(w, h)` of the window in 'pix' units.
+
+    """
+    scale = winfo.get('pixScaleFactor')
+    if scale is None:
+        # sent by a version of PsychoPy which only said whether the window
+        # used Retina scaling, which was then always taken to be 2
+        scale = 2.0 if winfo.get('useRetina') else 1.0
+
+    return np.asarray(winfo['size'], dtype=float) / scale
+
+
 class MouseDevice(Device):
     """
     """
@@ -173,10 +203,7 @@ class MouseDevice(Device):
         for w in winfos.values():
             mx, my = dpos
             wx, wy = w['pos'][0],  w['pos'][1]
-            ww, wh = w['size'][0], w['size'][1]
-            if w['useRetina']:
-                ww = ww / 2
-                wh = wh / 2
+            ww, wh = _windowSizePix(w)
             if wx <= mx <= wx+ww:
                 if wy <= my <= wy + wh:
                     return w['handle'], mx - wx - ww/2, -(my - wy - wh/2)
@@ -190,7 +217,7 @@ class MouseDevice(Device):
         if win_units == 'pix':
             return pos
         elif win_units == 'norm':
-            return pos * 2.0 / win['size']
+            return pos * 2.0 / _windowSizePix(win)
         elif win_units == 'cm':
             if monitor:
                 return pix2cm(pos, monitor['monitor'])
@@ -204,7 +231,7 @@ class MouseDevice(Device):
                 # should raise exception?
                 print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
         elif win_units == 'height':
-            return pos / float(win['size'][1])
+            return pos / _windowSizePix(win)[1]
 
     def _windowUnits2pix(self, win_handle, pos):
         win = self._iohub_server._psychopy_windows.get(win_handle)
@@ -214,7 +241,7 @@ class MouseDevice(Device):
         if win_units == 'pix':
             return pos
         elif win_units == 'norm':
-            return pos * win['size'] / 2.0
+            return pos * _windowSizePix(win) / 2.0
         elif win_units == 'cm':
             if monitor:
                 return cm2pix(pos, monitor['monitor'])
@@ -229,7 +256,7 @@ class MouseDevice(Device):
                 # should raise exception
                 print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
         elif win_units == 'height':
-            return pos * float(win['size'][1])
+            return pos * _windowSizePix(win)[1]
 
     def getDisplayIndex(self):
         """

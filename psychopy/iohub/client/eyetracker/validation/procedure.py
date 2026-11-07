@@ -383,7 +383,7 @@ class ValidationProcedure:
                                                    colorSpace=self.text_color_space, opacity=1.0, contrast=1.0, units='pix',
                                                    ori=0.0, antialias=True, bold=False, italic=False,
                                                    anchorHoriz='center', anchorVert='center',
-                                                   wrapWidth=self.win.size[0] * .8)
+                                                   wrapWidth=windowSizePix(self.win)[0] * .8)
 
         self.intro_text_stim.draw()
         self.win.flip()
@@ -503,7 +503,7 @@ class ValidationProcedure:
 
         self.io.sendMessageEvent('Results', 'VALIDATION')
         results = dict(display_units=self.win.units, display_bounds=self.positions.bounds,
-                       display_pix=self.win.size, position_count=len(sample_array),
+                       display_pix=windowSizePix(self.win), position_count=len(sample_array),
                        target_positions=target_positions_used)
 
         for k, v in results.items():
@@ -668,15 +668,17 @@ class ValidationProcedure:
         title_txt = 'Validation Results\nMin: %.4f, Max: %.4f,' \
                     ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
                                                results['mean_error'], results['reporting_unit_type'])
-        title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .95),
+        # the text is in 'pix' units, so is laid out in the size of the window in them
+        winWidth, winHeight = windowSizePix(self.win)
+        title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (winHeight / 2.0) * .95),
                                      color=self.text_color, colorSpace=self.text_color_space, units='pix', antialias=True,
-                                     anchorVert='center', anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
+                                     anchorVert='center', anchorHoriz='center', wrapWidth=winWidth * .8)
         title_stim.draw()
 
         exit_text = visual.TextStim(self.win, text='Press SPACE to continue.', opacity=1.0, units='pix', height=None,
-                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=self.text_color, colorSpace=self.text_color_space,
+                                    pos=(0.0, -(winHeight / 2.0) * .95), color=self.text_color, colorSpace=self.text_color_space,
                                     antialias=True, bold=True, anchorVert='center', anchorHoriz='center',
-                                    wrapWidth=self.win.size[0] * .8)
+                                    wrapWidth=winWidth * .8)
         exit_text.draw()
 
         color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
@@ -1283,6 +1285,27 @@ class ValidationTargetRenderer:
         pos_samples_array = np.empty(len(target_pos_samples), dtype=object)
         pos_samples_array[:] = target_pos_samples
         return pos_samples_array
+
+
+def windowSizePix(win):
+    """Size of the window in 'pix' units.
+
+    This is the size of the window in framebuffer pixels (`win.size`) on most
+    displays, but smaller on high DPI (e.g. Retina) displays, where 'pix' units
+    are window coordinates.
+
+    Parameters
+    ----------
+    win : psychopy.visual.Window
+        Window to get the size of.
+
+    Returns
+    -------
+    ndarray
+        Size `(w, h)` of the window in 'pix' units, as integers.
+
+    """
+    return np.round(np.asarray(win.size) / win.pixScaleFactor).astype(int)
 
 
 def toPix(win, x, y):

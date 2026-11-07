@@ -246,7 +246,9 @@ class TextGrid:
                 dl_index = glGenLists(1)
                 glNewList(dl_index, GL_COMPILE)
 
-                glLineWidth(self._line_width)
+                # in 'pix', drawn in framebuffer pixels
+                glLineWidth(self._line_width *
+                            self._text_box.getWindow().pixScaleFactor)
                 glColor4f(*self._text_box._toRGBA(self._line_color))
                 glBegin(GL_LINES)
                 for x in self._col_lines:

@@ -887,26 +887,30 @@ class Mouse:
         return any(wanted & pressed) and shape.contains(self)
 
     def _pix2windowUnits(self, pos):
+        # `pos` is in framebuffer pixels, whereas 'pix' units (which 'cm' and
+        # 'deg' are converted through) are window coordinates, which are
+        # bigger on high DPI (e.g. Retina) displays
         if self.win.units == 'pix':
             return pos / self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
         elif self.win.units == 'cm':
-            return pix2cm(pos, self.win.monitor)
+            return pix2cm(pos / self.win.pixScaleFactor, self.win.monitor)
         elif self.win.units == 'deg':
-            return pix2deg(pos, self.win.monitor)
+            return pix2deg(pos / self.win.pixScaleFactor, self.win.monitor)
         elif self.win.units == 'height':
             return pos / float(self.win.size[1])
 
     def _windowUnits2pix(self, pos):
-        if self.win.units == 'pix':  # inverse of `_pix2windowUnits`
+        # inverse of `_pix2windowUnits`, giving framebuffer pixels
+        if self.win.units == 'pix':
             return pos * self.win.pixScaleFactor
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
         elif self.win.units == 'cm':
-            return cm2pix(pos, self.win.monitor)
+            return cm2pix(pos, self.win.monitor) * self.win.pixScaleFactor
         elif self.win.units == 'deg':
-            return deg2pix(pos, self.win.monitor)
+            return deg2pix(pos, self.win.monitor) * self.win.pixScaleFactor
         elif self.win.units == 'height':
             return pos * float(self.win.size[1])
 

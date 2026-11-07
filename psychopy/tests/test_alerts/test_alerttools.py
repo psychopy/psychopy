@@ -1,4 +1,5 @@
 import sys
+import pytest
 from psychopy.alerts import addAlertHandler, alerttools
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.experiment import getAllComponents, Experiment
@@ -103,6 +104,37 @@ class TestAlertTools():
         self.polygonComp.params['startType'].val = "duration (frames)"
         self.exp.integrityCheck()
         assert ("Your stimulus start type \'duration (frames)\' must be expressed as a whole number" in self.error.alerts[0].msg)
+
+    # Sizes and positions either side of the edges of the default 1024x768
+    # window, in each unit, as `(param, units, value, alert code or None)`.
+    # The size alert is for a stimulus bigger than the window, and the position
+    # alert for one centered outside of it, so beyond half of the window.
+    boundaryCases = [
+        ('size', 'pix', [1000, 700], None),
+        ('size', 'pix', [1100, 700], 2115),
+        ('size', 'pix', [0.6, 10], 2120),
+        ('size', 'norm', [1.9, 1.9], None),
+        ('size', 'norm', [2.1, 1], 2115),
+        ('size', 'height', [1.3, .9], None),  # 998 pix wide
+        ('size', 'height', [1.4, .9], 2115),  # 1075 pix wide
+        ('pos', 'pix', [500, 0], None),
+        ('pos', 'pix', [520, 0], 2155),
+        ('pos', 'norm', [.9, 0], None),
+        ('pos', 'norm', [1.1, 0], 2155),
+        ('pos', 'height', [.6, 0], None),  # 461 pix right
+        ('pos', 'height', [.7, 0], 2155),  # 538 pix right
+    ]
+
+    @pytest.mark.parametrize('param, units, value, code', boundaryCases)
+    def test_window_boundaries(self, param, units, value, code):
+        self.polygonComp.params['units'].val = units
+        self.polygonComp.params['size'].val = \
+            [50, 50] if units == 'pix' else [.1, .1]
+        self.polygonComp.params['pos'].val = [0, 0]
+        self.polygonComp.params[param].val = value
+        self.exp.integrityCheck()
+        codes = {alert.code for alert in self.error.alerts} & {2115, 2120, 2155}
+        assert codes == ({code} if code else set())
 
     def test_python_syntax(self):
         alerttools.checkPythonSyntax(self.codeComp, 'Begin Experiment')

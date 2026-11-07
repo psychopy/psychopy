@@ -429,9 +429,9 @@ class _Stim3DRenderTest:
         cls.win = visual.Window(
             [128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
         # needed by `setPerspectiveView`, which sizes the frustum using the
-        # ratio of `win.size` (framebuffer pixels) to this, so match it to keep
+        # ratio of the window's width in 'pix' to this, so match it to keep
         # the view the same regardless of the display's pixel scale (Retina)
-        cls.win.scrWidthPIX = cls.win.size[0]
+        cls.win.scrWidthPIX = cls.win.size[0] / cls.win.pixScaleFactor
 
     @classmethod
     def teardown_class(cls):
