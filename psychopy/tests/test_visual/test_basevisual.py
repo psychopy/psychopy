@@ -1,6 +1,7 @@
 import json
 import pytest
 import importlib
+import numbers
 from copy import copy
 from pathlib import Path
 from psychopy import visual, layout, event, colors
@@ -361,7 +362,8 @@ class _TestUnitsMixin:
         win = visual.Window(size=(256, 128), monitor=monitor,
                             title=f"{type(self).__name__}::test_pos_size")
         try:
-            win.useRetina = False
+            # Exemplars are in window pixels, as 'pix' units are with
+            # `useRetina` (so it isn't turned off on high-DPI displays)
             # Setup object for this test
             obj = copy(self.obj)
             obj.win = win
@@ -373,6 +375,10 @@ class _TestUnitsMixin:
                 obj.borderColor = 'green'
             if hasattr(obj, 'opacity'):
                 obj.opacity = 1
+            # (some stimuli have a `lineWidth` attribute but no lines)
+            lineWidth = getattr(obj, 'lineWidth', None)
+            if isinstance(lineWidth, numbers.Real):
+                utils.skipIfLinesTooWide(win, lineWidth)
             # Run positions through each size exemplar
             for size in self.sizeExemplars + self.sizeTykes:
                 for pos in self.posExemplars + self.posTykes:

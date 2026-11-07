@@ -223,30 +223,33 @@ class CustomMouse(MinimalStim):
                  rightLimit=None, bottomLimit=None):
         """Set the mouse's bounding box by specifying the edges.
         """
+        # size of the window in 'pix' units, which on high-DPI (e.g. Retina)
+        # displays is smaller than its size in framebuffer pixels
+        winSize = self.win.size / self.win.pixScaleFactor
         if type(leftLimit) in (int, float):
             self.leftLimit = leftLimit
         elif self.leftLimit is None:
             self.leftLimit = -1
             if self.win.units == 'pix':
-                self.leftLimit = self.win.size[0] / -2.
+                self.leftLimit = winSize[0] / -2.
         if type(rightLimit) in (int, float):
             self.rightLimit = rightLimit
         elif self.rightLimit is None:
             self.rightLimit = .99
             if self.win.units == 'pix':
-                self.rightLimit = self.win.size[0] / 2.0 - 5
+                self.rightLimit = winSize[0] / 2.0 - 5
         if type(topLimit) in (int, float):
             self.topLimit = topLimit
         elif self.topLimit is None:
             self.topLimit = 1
             if self.win.units == 'pix':
-                self.topLimit = self.win.size[1] / 2.0
+                self.topLimit = winSize[1] / 2.0
         if type(bottomLimit) in (int, float):
             self.bottomLimit = bottomLimit
         elif self.bottomLimit is None:
             self.bottomLimit = -0.98
             if self.win.units == 'pix':
-                self.bottomLimit = self.win.size[1] / -2.0 + 10
+                self.bottomLimit = winSize[1] / -2.0 + 10
 
         self.box = psychopy.visual.ShapeStim(
             self.win, vertices=[[self.leftLimit, self.topLimit],

@@ -1008,10 +1008,12 @@ class TextBox:
             glNewList(dl_index, GL_COMPILE)
 
             # draw textbox_background and outline
-            border_thickness = self._border_stroke_width
             size = self._getPixelSize()
             if self._border_stroke_width is None:
                 border_thickness = 0
+            else:  # in 'pix', drawn in framebuffer pixels
+                border_thickness = \
+                    self._border_stroke_width * self._window.pixScaleFactor
             if self._background_color:
                 bcolor = self._toRGBA(self._background_color)
                 glColor4f(*bcolor)
@@ -1089,12 +1091,18 @@ class TextBox:
         if not isinstance(xy[0], numbers.Number) or not isinstance(xy[1], numbers.Number):
             return ValueError("TextBox: coord variables must only contain numbers. Invalid: %s" % (str(xy)))
 
+        # `TextBox` draws in framebuffer pixels, which 'pix' units (and so 'deg'
+        # and 'cm', which are converted through them) are bigger than on high
+        # DPI (e.g. Retina) displays
+        scale = window.pixScaleFactor
         if units in ('pix', 'pixs'):
-            return xy
+            return xy[0] * scale, xy[1] * scale
         if units in ['deg', 'degs']:
-            return misc.deg2pix(xy[0], window.monitor), misc.deg2pix(xy[1], window.monitor)
+            return (misc.deg2pix(xy[0], window.monitor) * scale,
+                    misc.deg2pix(xy[1], window.monitor) * scale)
         if units in ['cm']:
-            return misc.cm2pix(xy[0], window.monitor), misc.cm2pix(xy[1], window.monitor)
+            return (misc.cm2pix(xy[0], window.monitor) * scale,
+                    misc.cm2pix(xy[1], window.monitor) * scale)
         if units in ['norm']:
             # -1.0 to 1.0
             if xy[0] <= 1.0 and xy[0] >= -1.0 and xy[1] <= 1.0 and xy[1] >= -1.0:
@@ -1126,12 +1134,16 @@ class TextBox:
         if is_position:
             # convert to psychopy pix, origin is center of monitor.
             x, y = int(x - ww / 2), int(y - wh / 2)
+        # the inverse of `_toPix`, from framebuffer pixels
+        scale = window.pixScaleFactor
         if units in ('pix', 'pixs'):
-            return x, y
+            return x / scale, y / scale
         if units in ['deg', 'degs']:
-            return misc.pix2deg(x, window.monitor), misc.deg2pix(y, window.monitor)
+            return (misc.pix2deg(x / scale, window.monitor),
+                    misc.pix2deg(y / scale, window.monitor))
         if units in ['cm']:
-            return misc.pix2cm(x, window.monitor), misc.cm2pix(y, window.monitor)
+            return (misc.pix2cm(x / scale, window.monitor),
+                    misc.pix2cm(y / scale, window.monitor))
         if units in ['norm']:
             return x / ww * 2.0, y / wh * 2.0
 
@@ -1222,15 +1234,17 @@ class TextBox:
         return [int(x) for x in self._toPix(self._size, self._units, self._window)]
 
     def _setSize(self, pix_sz):
+        # `pix_sz` is in framebuffer pixels (see `_toPix`)
         units = self._units
+        scale = self._window.pixScaleFactor
         if units in ('pix', 'pixs'):
-            self._size = list(pix_sz)
+            self._size = [v / scale for v in pix_sz]
         if units in ['deg', 'degs']:
-            self._size = misc.pix2deg(pix_sz[0], self._window.monitor), misc.pix2deg(
-                pix_sz[1], self._window.monitor)
+            self._size = misc.pix2deg(pix_sz[0] / scale, self._window.monitor), misc.pix2deg(
+                pix_sz[1] / scale, self._window.monitor)
         if units in ['cm']:
-            self._size = misc.pix2cm(pix_sz[0], self._window.monitor), misc.pix2cm(
-                pix_sz[1], self._window.monitor)
+            self._size = misc.pix2cm(pix_sz[0] / scale, self._window.monitor), misc.pix2cm(
+                pix_sz[1] / scale, self._window.monitor)
         if units in ['norm']:
             pw, ph = pix_sz
             dw, dh = self._window.size
@@ -1249,11 +1263,11 @@ class TextBox:
             line_spacing_height = self._line_spacing
 
             if line_spacing_units == 'ratio':
-                # run though _toPix to validate line_spacing value type only
-                r = self._toPix(line_spacing_height, 'pix', self._window)[0]
-                return int(max_size[1] * r)
+                return int(max_size[1] * float(line_spacing_height))
 
-            return self._toPix(line_spacing_height, line_spacing_units, self._window)
+            # the vertical spacing, in framebuffer pixels
+            return int(self._toPix(
+                line_spacing_height, line_spacing_units, self._window)[1])
         return 0
 
     def _getTopLeftPixPos(self):

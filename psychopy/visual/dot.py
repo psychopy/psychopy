@@ -249,8 +249,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.dotSize = np.array(dotSize)
         else:
             self.dotSize = dotSize
-        # dot sizes are in 'pix' units, but drawn in framebuffer pixels
-        self.dotSize *= self.win.pixScaleFactor
         self.fieldShape = fieldShape
         self.__dict__['dir'] = dir
         self.speed = speed
@@ -501,7 +499,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # draw the dots
         if self.element is None:
             win.setScale('pix')
-            GL.glPointSize(self.dotSize)
+            # dot sizes are in 'pix' units, but drawn in framebuffer pixels
+            GL.glPointSize(self.dotSize * win.pixScaleFactor)
 
             # load Null textures into multitexteureARB - they modulate with
             # glColor
@@ -567,8 +566,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             _prog = win._shaders['signedColor']
             gt.useProgram(_prog)
-            
-            GL.glPointSize(self.dotSize)
+
+            # dot sizes are in 'pix' units, but drawn in framebuffer pixels
+            GL.glPointSize(self.dotSize * win.pixScaleFactor)
             projectionMatrix = win._projectionMatrix
             modelViewMatrix = win._getPixViewMatrix()
 

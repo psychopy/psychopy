@@ -285,6 +285,10 @@ class _baseVisualTest():
         grat2.draw()
         if systemtools.isVM_CI():
             pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
+        if self.contextName == 'pix' and win.pixScaleFactor != 1:
+            # in 'pix' units the gratings have many cycles per pixel, so what's
+            # drawn is aliasing, which differs at a high-DPI resolution
+            pytest.skip("Gratings alias differently on high-DPI displays")
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
                                     win, crit=20)

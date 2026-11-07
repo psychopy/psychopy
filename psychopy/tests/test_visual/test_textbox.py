@@ -383,18 +383,38 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
                             # Draw textbox to refresh verts
                             textbox.draw()
                             textbox.caret.draw()
-                            # Compare bottom vert of caret to bottom right vert of character (within 1 px)
+                            # The caret should be between the bottom right of the character before
+                            # it and the bottom left of the one after it (within 1 px). These don't
+                            # quite meet, since characters are drawn as wide as their glyph's
+                            # bitmap, which varies with the resolution it's rendered at, rather
+                            # than as far as the next character along. It should also be level
+                            # with the character before it (characters' bottoms differ, e.g. for
+                            # descenders, so aren't level with the caret's).
                             caretVerts = textbox.caret.vertices
                             charVerts = textbox._vertices.pix[range((i-1) * 4, (i-1) * 4 + 4)]
-                            assert all(np.isclose(caretVerts[0], charVerts[2], 1)), (
-                                f"Textbox caret at index {i} didn't align with bottom right corner of "
-                                f"matching char when:\n"
+                            nextVerts = textbox._vertices.pix[range(i * 4, i * 4 + 4)]
+                            caretX = caretVerts[0, 0]
+                            prevX = charVerts[2, 0]
+                            nextX = nextVerts[1, 0]
+                            caretLow, caretHigh = min(caretVerts[:, 1]), max(caretVerts[:, 1])
+                            charLow, charHigh = min(charVerts[:, 1]), max(charVerts[:, 1])
+                            msg = (
+                                f"Textbox caret at index {i} wasn't between the characters either "
+                                f"side of it when:\n"
                                 f"anchor={anchor}, alignment={align}, flipHoriz={flipHoriz}, flipVert={flipVert}.\n"
                                 f"Caret vertices were:\n"
                                 f"{caretVerts}\n"
                                 f"Char verts were \n"
                                 f"{charVerts}\n"
+                                f"Next char verts were \n"
+                                f"{nextVerts}\n"
                             )
+                            # the characters either side are next to each other...
+                            assert abs(nextX - prevX) <= 4, msg
+                            # ...with the caret between them...
+                            assert min(prevX, nextX) - 1 <= caretX <= max(prevX, nextX) + 1, msg
+                            # ...and on their line
+                            assert caretLow < charHigh and charLow < caretHigh, msg
 
     def test_typing(self):
         """Check that continuous typing doesn't break anything"""
