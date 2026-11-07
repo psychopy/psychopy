@@ -320,6 +320,39 @@ class _TextureAtlas:
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
 
+def _atlasSize(size, rasterScale, baseSize=2048):
+    """Width and height of the texture to store a font's glyphs in.
+
+    Glyphs rendered at `rasterScale` take up `rasterScale` squared times as
+    much of the texture, so for big fonts the texture is made bigger to fit as
+    many as it would without scaling. Fonts small enough to fit plenty anyway
+    (a 16x16 grid of glyphs) keep the size they'd have without scaling, rather
+    than using several times the memory for room they don't need.
+
+    Parameters
+    ----------
+    size : float
+        Font size, in the units glyphs are measured in.
+    rasterScale : float
+        Resolution glyphs are rendered at, relative to `size`.
+    baseSize : int
+        Size of the texture without scaling.
+
+    Returns
+    -------
+    int
+        Width and height of the texture.
+
+    """
+    if rasterScale <= 1:
+        return baseSize
+
+    # room for a 16x16 grid of glyphs, as a power of 2
+    needed = 2 ** int(np.ceil(np.log2(max(size * rasterScale * 16, 1))))
+
+    return int(min(baseSize * rasterScale, max(baseSize, needed)))
+
+
 class GLFont:
     """
     A GLFont gathers a set of glyphs for a given font filename and size.
@@ -346,16 +379,14 @@ class GLFont:
             Position of the tops of the next line's ascenders relative to this line's baseline
     """
 
-    def __init__(self, filename, size, lineSpacing=1, textureSize=2048):
+    def __init__(self, filename, size, lineSpacing=1, textureSize=None,
+                 rasterScale=1.0):
         """
         Initialize font
 
         Parameters:
         -----------
 
-        atlas: TextureAtlas
-            Texture atlas where glyph texture will be stored
-        
         filename: str
             Font filename
 
@@ -364,8 +395,22 @@ class GLFont:
 
         lineSpacing : float
             Leading between lines, proportional to font size
+
+        textureSize : int or None
+            Width and height of the texture glyphs are stored in. If `None`,
+            this is 2048, or more for big fonts with `rasterScale` above 1, so
+            that it fits as many glyphs as it would without scaling.
+
+        rasterScale : float
+            Resolution to render glyphs at, relative to `size`. Sizes and
+            positions of the font and its glyphs are given at `size` whatever
+            this is. Text drawn on high DPI (e.g. Retina) displays is sharp if
+            this is the number of framebuffer pixels per unit of `size`.
         """
         self.scale = 64.0
+        self.rasterScale = float(rasterScale)
+        if textureSize is None:
+            textureSize = _atlasSize(size, self.rasterScale)
         self.atlas = _TextureAtlas(textureSize, textureSize, format='alpha')
         self.format = self.atlas.format
         self.filename = filename
@@ -392,6 +437,8 @@ class GLFont:
 
     def __str__(self):
         """Returns a string rep of the font, such as 'Arial_24_bold' """
+        if self.rasterScale != 1:
+            return "{}_{}_x{}".format(self.info, self.size, self.rasterScale)
         return "{}_{}".format(self.info, self.size)
 
     @property
@@ -508,6 +555,16 @@ class GLFont:
             flags |= ft.FT_LOAD_TARGET_LCD
 
             face.load_char(charcode, flags)
+            # How far the next glyph is along is always from the glyph at
+            # `size`, so text is laid out (e.g. wrapped) the same whatever
+            # resolution it's rendered at. Hinted at a higher resolution, the
+            # advances would add up differently along a line.
+            advance = (face.glyph.advance.x / self.scale,
+                       face.glyph.advance.y / self.scale)
+            if self.rasterScale != 1:
+                rasterSize = int(self.size * self.rasterScale)
+                face.set_pixel_sizes(rasterSize, rasterSize)
+                face.load_char(charcode, flags)
             bitmap = face.glyph.bitmap
             # check if this looks like a blank (same as a prev glyph)
             if bitmap.buffer == lastGlyph:
@@ -542,11 +599,10 @@ class GLFont:
                 Z = (((data / 255.0) ** 1.5) * 255).astype(np.ubyte)
             self.atlas.set_region((x, y, w, h), data)
 
-            # Build glyph
-            size = w, h
-            offset = left, top
-            advance = (face.glyph.advance.x / self.scale,
-                       face.glyph.advance.y / self.scale)
+            # Build glyph, measured at `size` (rather than in texels, which
+            # there are `rasterScale` of to each unit)
+            size = w / self.rasterScale, h / self.rasterScale
+            offset = left / self.rasterScale, top / self.rasterScale
 
             u0 = (x + 0.0) / float(self.atlas.width)
             v0 = (y + 0.0) / float(self.atlas.height)
@@ -962,7 +1018,7 @@ class FontManager():
     # used by user scripts in most situations. Accessing them is okay.
 
     def getFont(self, name, size=32, bold=False, italic=False, lineSpacing=1,
-                monospace=False):
+                monospace=False, rasterScale=1.0):
         """
         Return a FontAtlas object that matches the family name, style info,
         and size provided. FontAtlas objects are cached, so if multiple
@@ -980,10 +1036,12 @@ class FontManager():
         fontInfos.sort(key=lambda info : info.label)
         # make glfont from first of those found
         fontInfo = fontInfos[0]
-        identifier = "{}_{}_{}".format(str(fontInfo), size, lineSpacing)
+        identifier = "{}_{}_{}_{}".format(
+            str(fontInfo), size, lineSpacing, float(rasterScale))
         glFont = self._glFonts.get(identifier)
         if glFont is None:
-            glFont = GLFont(fontInfo.path, size, lineSpacing=lineSpacing)
+            glFont = GLFont(fontInfo.path, size, lineSpacing=lineSpacing,
+                            rasterScale=rasterScale)
             self._glFonts[identifier] = glFont
 
         return glFont

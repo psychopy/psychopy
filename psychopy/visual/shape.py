@@ -209,9 +209,22 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not isinstance(value, (float, int)):
             value = float(value)
 
-        if isinstance(self, psychopy.visual.Line):
-            if value > 127:
-                logging.warning("lineWidth is greater than max width supported by OpenGL. For lines thicker than 127px, please use a filled Rect instead.")
+        # Lines wider than the OpenGL driver draws are drawn narrower than
+        # asked, as wide as it does (e.g. Apple's drivers cap lines at 16
+        # framebuffer pixels, which is 8 'pix' on Retina displays). Warned
+        # about as the width goes over, rather than every time it's set.
+        maxWidth = getattr(self.win, '_maxLineWidth', None)
+        if maxWidth:
+            maxWidthPix = maxWidth / self.win.pixScaleFactor
+            if value > maxWidthPix >= self.__dict__.get('lineWidth', 0):
+                logging.warning(
+                    "{}: lineWidth of {:g} pix is wider than lines can be "
+                    "drawn on this computer ({:g} pix), so lines will be drawn "
+                    "{:g} pix wide. For thicker lines, use a filled shape "
+                    "(e.g. a Rect) instead.".format(
+                        self.name, value, maxWidthPix, maxWidthPix))
+        elif isinstance(self, psychopy.visual.Line) and value > 127:
+            logging.warning("lineWidth is greater than max width supported by OpenGL. For lines thicker than 127px, please use a filled Rect instead.")
         self.__dict__['lineWidth'] = value
 
     def setLineWidth(self, value, operation='', log=None):
@@ -364,7 +377,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
-            GL.glLineWidth(self.lineWidth)
+            GL.glLineWidth(self.lineWidth * self.win.pixScaleFactor)
             if self.opacity is not None:
                 borderRGBA = self._borderColor.render('rgba1')
                 borderRGBA[-1] = self.opacity  # override opacity
@@ -793,7 +806,7 @@ class ShapeStim(BaseShapeStim):
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
-            GL.glLineWidth(self.lineWidth)
+            GL.glLineWidth(self.lineWidth * self.win.pixScaleFactor)
             GL.glColor4f(*self._borderColor.render('rgba1'))
             if self.closeShape:
                 gl_line = GL.GL_LINE_LOOP
@@ -871,7 +884,7 @@ class ShapeStim(BaseShapeStim):
 
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
-            GL.glLineWidth(self.lineWidth)
+            GL.glLineWidth(self.lineWidth * self.win.pixScaleFactor)
             gt.setUniformValue(
                 _prog, b'uColor', self._borderColor.render('rgba1'))
             gt.setUniformMatrix(

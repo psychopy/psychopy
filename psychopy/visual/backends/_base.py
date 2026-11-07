@@ -227,6 +227,38 @@ class BaseBackend(ABC):
         if self._onResizeCallback is not None:
             self._onResizeCallback(self.win, width, height)
 
+    def _updateWindowSizes(self, clientSize, frameBufferSize):
+        """Record new sizes of the window and its framebuffer.
+
+        Backends call this when the window is resized or goes to or from
+        fullscreen, and when its framebuffer changes size without the window
+        doing so (as on moving to a display with a different pixel density).
+        The viewport is left for the backend to set, in this window's context.
+
+        Parameters
+        ----------
+        clientSize : ArrayLike
+            Size `(w, h)` of the window in window coordinates.
+        frameBufferSize : ArrayLike
+            Size `(w, h)` of the framebuffer in pixels.
+
+        Returns
+        -------
+        bool
+            `True` if the sizes were updated, `False` if they were ignored for
+            being empty, as they are while a window is minimized.
+
+        """
+        if 0 in tuple(clientSize) or 0 in tuple(frameBufferSize):
+            return False
+
+        self.win.clientSize[:] = clientSize
+        self._frameBufferSize[:] = frameBufferSize
+        # the scale factor is the ratio of these, so is worked out again
+        self.win._contentScaleFactor = None
+
+        return True
+
     def onMove(self, posX, posY):
         """A method called when the window is moved by the user.
 

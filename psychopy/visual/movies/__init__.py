@@ -1506,8 +1506,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         Parameters
         ----------
         sizePix : ArrayLike or None
-            Size `(w, h)` in pixels the movie is drawn at, or `None` to go by
-            `size`.
+            Size `(w, h)` in 'pix' units the movie is drawn at, or `None` to go
+            by `size`.
 
         """
         player = getattr(self, '_player', None)
@@ -1518,8 +1518,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._downscaleFrames:
             if sizePix is None:
                 sizePix = self._size.pix
+            # in framebuffer pixels, of which there are more than 'pix' units
+            # on high-DPI (e.g. Retina) displays
+            scale = self.win.pixScaleFactor
             outputSize = tuple(
-                max(1, int(math.ceil(abs(val)))) for val in sizePix)
+                max(1, int(math.ceil(abs(val) * scale))) for val in sizePix)
 
         # nearest neighbour when not interpolating, as the GPU does
         outputFormat = (outputSize, 'AREA' if self._interpolate else 'POINT')

@@ -10,8 +10,12 @@ class TestWin:
     Parameters to pixels.
     """
     def __init__(self, exp):
-        self.useRetina = True
-        self.pixScaleFactor = 2.0
+        # `size` is the window size from the experiment settings, which is
+        # the size of the window in 'pix' units whatever the display. So there
+        # is no scaling between 'pix' and the size of this window, as there is
+        # between 'pix' and framebuffer pixels on high DPI (e.g. Retina)
+        # displays.
+        self.pixScaleFactor = 1.0
         self.exp = exp
         self.monitor = self.exp.settings.monitor
         winSize = self.exp.settings.params['Window size (pixels)'].val
@@ -57,7 +61,7 @@ def convertParamToPix(value, win, units):
     else:
         value = array(value)
     
-    return monitorunittools.convertToPix(value, array([0, 0]), units=units, win=win) * 2
+    return monitorunittools.convertToPix(value, array([0, 0]), units=units, win=win)
 
 
 def testFloat(val):
@@ -127,11 +131,13 @@ def testPos(component, win, units):
     except Exception:  # Use of variables fails check
         return
 
+    # Positions are from the center of the window, so a stimulus is centered
+    # outside of the window when it is more than half of the window away.
     # Test X position
-    if abs(pos[0]) > win.size[0]:
+    if abs(pos[0]) > win.size[0] / 2:
         alert(2155, component, {'dimension': 'X'})
     # Test Y position
-    if abs(pos[1]) > win.size[1]:
+    if abs(pos[1]) > win.size[1] / 2:
         alert(2155, component, {'dimension': 'Y'})
 
 def testStartEndTiming(component):
