@@ -23,7 +23,7 @@ from PIL import Image
 
 import numpy as np
 
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 # classes moved out of this module
 RigidBodyPose = mt.RigidBodyPose

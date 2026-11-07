@@ -19,14 +19,8 @@ determines how they change on every call to the .draw() method.
 # Provide a visible wrapper function to refresh all the dot locations so that 
 # the whole field can be more easily refreshed between trials.
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
-pyglet.options['debug_gl'] = False
 import ctypes
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging

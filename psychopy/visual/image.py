@@ -7,17 +7,11 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
 
 from psychopy.layout import Size
 
-pyglet.options['debug_gl'] = False
 import ctypes
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 import numpy
 from fractions import Fraction
@@ -370,7 +364,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             # the garbage collector may be running on any thread, so these
             # are freed on the one with the window's OpenGL context
             callOnGLThread(self.__dict__.get('win'), self.clearTextures)
-        except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
+        except (ImportError, ModuleNotFoundError, TypeError, GL.GLException):
             pass  # has probably been garbage-collected already
 
     def _updateListShaders(self):
@@ -1007,7 +1001,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         Parameters
         ----------
-        texID : int or :class:`~pyglet.gl.GLuint`
+        texID : int or :class:`~psychopy.tools.opengl.GLuint`
             Texture being created.
 
         Returns

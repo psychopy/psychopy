@@ -30,7 +30,7 @@ import math
 from ..colors import Color, colorSpaces
 from .textbox2 import TextBox2
 
-import psychopy.tools.pygletgl as pygletgl
+import psychopy.tools.opengl as GL
 
 
 haveAvbin = False
@@ -105,7 +105,6 @@ from psychopy.core import rush
 
 reportNDroppedFrames = 5  # stop raising warning after this
 
-# import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 from . import shaders as _shaders
 try:
     from pyglet import media
@@ -122,10 +121,10 @@ IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix
 
 # values for `Window.depthFunc`
 _DEPTH_FUNCS = {
-    'never': pygletgl.GL_NEVER, 'less': pygletgl.GL_LESS,
-    'equal': pygletgl.GL_EQUAL, 'lequal': pygletgl.GL_LEQUAL,
-    'greater': pygletgl.GL_GREATER, 'notequal': pygletgl.GL_NOTEQUAL,
-    'gequal': pygletgl.GL_GEQUAL, 'always': pygletgl.GL_ALWAYS}
+    'never': GL.GL_NEVER, 'less': GL.GL_LESS,
+    'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
+    'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
+    'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
 
 # File extensions `Window.saveMovieFrames()` encodes with a `MovieWriter` from
 # `psychopy.tools.movietools`. Anything else is written by Pillow, either as an
@@ -270,7 +269,7 @@ class Window():
     project (we won't be fixing pygame-specific bugs).
 
     """
-    USE_LEGACY_GL = pygletgl.USE_LEGACY_GL
+    USE_LEGACY_GL = GL.USE_LEGACY_GL
 
     @closeOnInitError
     def __init__(self,
@@ -1704,6 +1703,13 @@ class Window():
         # draw piloting indicator (if piloting) for next frame
         if self._showPilotingIndicator:
             self._pilotingIndicator.draw()
+
+        # raise any OpenGL errors from this frame, after the timing-sensitive
+        # work above since reading them may wait for the graphics card (the
+        # `GL` of a backend from a plugin may not check)
+        checkErrors = getattr(GL, 'checkErrors', None)
+        if checkErrors is not None:
+            checkErrors('during the last frame')
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise

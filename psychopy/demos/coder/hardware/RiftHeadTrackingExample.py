@@ -6,7 +6,7 @@
 #
 from psychopy import visual, event, core
 from psychopy.tools import arraytools, rifttools
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 # Create a VR session, treat the returned object just like a regular window.
 # Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or
@@ -22,7 +22,7 @@ trianglePose = rifttools.LibOVRPose(trianglePosition)
 # convert the pose to a view transformation matrix
 translationMatrix = trianglePose.getModelMatrix()
 
-# convert to format Pyglet's GL libraries accept
+# convert to a format the OpenGL functions accept
 translationMatrix = arraytools.array2pointer(translationMatrix)
 
 # uncomment the line below to show a performance HUD

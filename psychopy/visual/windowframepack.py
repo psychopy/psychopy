@@ -15,7 +15,7 @@ with this program. If not, see http://www.gnu.org/licenses/
 """
 
 import pyglet
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 
 class ProjectorFramePacker:

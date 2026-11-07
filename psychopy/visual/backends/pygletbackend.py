@@ -32,12 +32,21 @@ from ._base import BaseBackend, closeOnInitError
 import pyglet
 import pyglet.window as pyglet_window
 import pyglet.window.mouse as pyglet_mouse
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-pyglet.options['debug_gl'] = False
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
+
+# Pyglet's GLX contexts (via XWayland) can't be current on the same thread as
+# the EGL contexts GLFW creates under Wayland, and importing `pygletgl` makes
+# one current
+_glfwBackend = sys.modules.get('psychopy.visual.backends.glfwbackend')
+if (_glfwBackend is not None and _glfwBackend._isWayland() and
+        _glfwBackend._shadowWindow is not None):
+    raise RuntimeError(
+        "Pyglet windows can't be used alongside GLFW windows under Wayland. "
+        "Use one window type, or set the environment variable "
+        "`PYGLFW_LIBRARY_VARIANT=x11` (before importing PsychoPy) to use GLFW "
+        "through XWayland.")
+
+import psychopy.tools.pygletgl as pygletgl  # pyglet windows with legacy contexts
 
 # `pyglet.canvas` was renamed `pyglet.display` in pyglet 2.1
 if pyglet.version < '2.1':
@@ -229,7 +238,7 @@ class PygletBackend(BaseBackend):
                 logging.info('configured pyglet screen %i' % win.screen)
 
         # configure the window context
-        config = GL.createConfig(
+        config = pygletgl.createConfig(
             depth_size=win.depthBits,
             double_buffer=True,
             sample_buffers=sample_buffers,
@@ -263,17 +272,17 @@ class PygletBackend(BaseBackend):
 
         # create the window
         try:
-            self.winHandle = GL.Window(
+            self.winHandle = pygletgl.Window(
                 width=w, height=h,
                 caption="PsychoPy",
                 fullscreen=win._isFullScr,
                 config=config,
                 screen=thisScreen,
                 style=style)
-        except GL.ContextException:
+        except pygletgl.ContextException:
             # turn off the shadow window an try again
             pyglet.options['shadow_window'] = False
-            self.winHandle = GL.Window(
+            self.winHandle = pygletgl.Window(
                 width=w, height=h,
                 caption="PsychoPy",
                 fullscreen=win._isFullScr,

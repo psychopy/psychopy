@@ -737,7 +737,7 @@ class TestMovieStimWithOtherStimuli:
         """Drawing a playing movie, uploading new frames as it goes, leaves the
         GL state as it found it, including pixel store settings other than the
         defaults which another stimulus may have left set to upload with."""
-        import psychopy.tools.pygletgl as GL
+        import psychopy.tools.opengl as GL
 
         grating = _grating(win, ori=30)
 
@@ -2355,7 +2355,7 @@ def _movieRegion(win, size, inset=2):
 
 def _readTexture(textureId, width, height):
     """Read an RGBA texture back from the GPU, its first row first."""
-    import psychopy.tools.pygletgl as GL
+    import psychopy.tools.opengl as GL
 
     data = (GL.GLubyte * (width * height * 4))()
     GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
@@ -2383,7 +2383,7 @@ def _readTexture(textureId, width, height):
 def _glState():
     """The parts of the GL state converting a frame on the GPU changes."""
     import ctypes
-    import psychopy.tools.pygletgl as GL
+    import psychopy.tools.opengl as GL
 
     state = {}
     for name in ('GL_FRAMEBUFFER_BINDING', 'GL_CURRENT_PROGRAM',
