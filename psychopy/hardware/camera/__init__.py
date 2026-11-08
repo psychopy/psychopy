@@ -2929,7 +2929,7 @@ class PyAVCameraDevice(CameraDevice):
         allCaps = [cap for cap in allCaps if cap.get('frameSize')]
 
         if not allCaps:
-            logging.warning(
+            logging.debug(
                 "Camera '{}' reports no capture formats, letting FFmpeg select "
                 "one.".format(self._device))
             return
@@ -7650,10 +7650,8 @@ def _getCameraInfoWindows(cameraLib=CAMERA_LIB_FFPYPLAYER):
         if cameraLib != CAMERA_LIB_PYAV:
             raise
 
-        logging.warning(
-            "`ffpyplayer` is not installed, falling back to enumerating "
-            "cameras with PyAV. Camera formats will not be reported.")
-
+        # without `ffpyplayer`, cameras are enumerated by name only and their
+        # formats are left for FFmpeg to pick when the stream is opened
         videoDevices = {}
         for devIndex, cameraName in enumerate(_getDShowDevicesPyAV()):
             videoDevices[cameraName] = [CameraInfo(
