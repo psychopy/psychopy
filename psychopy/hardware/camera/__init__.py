@@ -2923,6 +2923,11 @@ class PyAVCameraDevice(CameraDevice):
                 "FFmpeg select a capture format.".format(self._device, err))
             return
 
+        # Drop placeholder descriptors which carry no format details, such as
+        # those returned when cameras are enumerated by name only (e.g. by PyAV
+        # on Windows when `ffpyplayer` is not installed).
+        allCaps = [cap for cap in allCaps if cap.get('frameSize')]
+
         if not allCaps:
             logging.warning(
                 "Camera '{}' reports no capture formats, letting FFmpeg select "
@@ -7553,6 +7558,12 @@ def _getDShowDevicesPyAV():
     import av
 
     deviceNames = []
+
+    # PyAV (>=13) does not forward FFmpeg's log messages unless a log level is
+    # set, in which case nothing would be captured below. Temporarily raise the
+    # level so the device list (logged at INFO) comes through.
+    prevLogLevel = av.logging.get_level()
+    av.logging.set_level(av.logging.INFO)
     try:
         with av.logging.Capture(local=True) as logs:
             try:
@@ -7567,12 +7578,20 @@ def _getDShowDevicesPyAV():
         logging.error(
             "Could not enumerate DirectShow cameras with PyAV: {}".format(err))
         return deviceNames
+    finally:
+        av.logging.set_level(prevLogLevel)
+
+    # FFmpeg emits each line in fragments (e.g. '"Integrated Camera"',
+    # ' (video', ')', '\n'), so join the messages back up and split them into
+    # whole lines before parsing.
+    logText = ''.join(
+        message for _, name, message in logs if name == 'dshow')
 
     # Lines naming a device look like '"Integrated Camera" (video)' on modern
     # FFmpeg. Older builds omit the '(video)' suffix and instead group devices
     # under a 'DirectShow video devices' heading.
     inVideoSection = True
-    for _, _, message in logs:
+    for message in logText.splitlines():
         message = message.strip()
 
         if message.startswith('DirectShow'):
