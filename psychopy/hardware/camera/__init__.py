@@ -40,6 +40,7 @@ __all__ = [
     'Camera',
     'CameraInfo',
     'CameraFrame',
+    'BaseCameraDevice',
     'FFPyPlayerCameraDevice',
     'PyAVCameraDevice',
     'OpenCVCameraDevice',
@@ -69,6 +70,7 @@ import numpy as np
 import threading
 
 from psychopy.constants import NOT_STARTED
+from psychopy.preferences import prefs
 from psychopy.hardware import DeviceManager, BaseDevice
 from psychopy.sound.audioclip import AudioClip
 from psychopy.sound.microphone import Microphone
@@ -239,13 +241,50 @@ CAMERA_LIBS = [  # list of supported camera libraries
     CAMERA_LIB_PYAV,
     CAMERA_LIB_OPENCV]  
 
-# used to determine which video backend to use when opening camera interfaces,
-# when cameraLib is None.
-backend = PREFERED_CAMERA_LIB  
+# Camera library to use when `cameraLib` is None. Leave as None to go by the
+# `cameraLib` preference (`prefs.hardware['cameraLib']`); setting it overrides
+# the preference for this session.
+backend = None
 
 # ------------------------------------------------------------------------------
 # Helper functions
 #
+
+def _resolveCameraLib(cameraLib=None):
+    """Work out which camera library to use when one may not have been named.
+
+    Parameters
+    ----------
+    cameraLib : str or None
+        Library asked for. If `None`, `camera.backend` is used if it has been
+        set, otherwise the `cameraLib` preference.
+
+    Returns
+    -------
+    str
+        Name of the camera library to use. Falls back to `PREFERED_CAMERA_LIB`
+        if the preference names a library there is no interface for.
+
+    """
+    if cameraLib is not None:
+        return cameraLib
+
+    if backend is not None:  # set in code, which takes precedence over prefs
+        return backend
+
+    cameraLib = prefs.hardware.get('cameraLib', None)
+    if cameraLib in CAMERA_LIBS:
+        return cameraLib
+
+    if cameraLib:
+        logging.warning(
+            "Preference `cameraLib` is set to '{}', which is not a supported "
+            "camera library (expected one of {}). Using '{}' instead.".format(
+                cameraLib, ", ".join(repr(k) for k in CAMERA_LIBS),
+                PREFERED_CAMERA_LIB))
+
+    return PREFERED_CAMERA_LIB
+
 
 def _isSameSetting(current, requested):
     """Compare a setting a camera is using against one which was requested.
@@ -1178,10 +1217,24 @@ class CameraFrame:
             for recogName, recog in zip(recogNames, recognizer)}
 
 
-class CameraDevice(BaseDevice):
+class BaseCameraDevice(BaseDevice):
     """Class providing an interface with a camera attached to the system.
     
     This interface handles the opening, closing, and reading of camera streams.
+
+    This class is both the base class for the camera backends and the class
+    which picks between them. Making a `BaseCameraDevice` directly gives back
+    a device from the backend for `cameraLib`. If that isn't given, the
+    preferred library is used: `camera.backend` if it has been set, otherwise
+    the `cameraLib` preference::
+
+        cam = BaseCameraDevice("Webcam")                     # preferred library
+        cam = BaseCameraDevice("Webcam", cameraLib="opencv")  # OpenCV
+
+    The backends don't register with DeviceManager themselves, so it lists
+    each camera once, as a `BaseCameraDevice`, whichever backend is used.
+    Because the backends subclass this class, `isinstance(cam,
+    BaseCameraDevice)` holds for every camera device.
 
     A camera can only be streamed from once, so there is at most one device
     object per camera however many clients are reading from it. Creating a
@@ -1201,6 +1254,11 @@ class CameraDevice(BaseDevice):
         Interval in seconds to poll the camera stream for new frames. If `None`,
         the default polling interval is used which is equal to the frame rate. 
         The default value is `None`.
+    cameraLib : str or None
+        Only used when making a `BaseCameraDevice` directly. Camera library
+        the device should use, one of `'ffpyplayer'`, `'pyav'` or `'opencv'`.
+        If `None`, the preferred library is used: `camera.backend` if it has
+        been set, otherwise the `cameraLib` preference.
 
     """
     _captureLib = ''
@@ -1235,6 +1293,10 @@ class CameraDevice(BaseDevice):
         straight away in that case, see `_isReusedInstance()`, leaving the
         running stream and the clients already bound to it untouched.
 
+        Called on `BaseCameraDevice` itself, this makes the device with the
+        backend picked by `resolveBackend()` instead. Python then calls that
+        backend's `__init__()`, once, as the object is an instance of it.
+
         Parameters
         ----------
         device : int, str, dict or None
@@ -1242,11 +1304,15 @@ class CameraDevice(BaseDevice):
 
         Returns
         -------
-        CameraDevice
+        BaseCameraDevice
             Device object for the camera, either newly created or the one
             already streaming from that camera.
 
         """
+        if cls is BaseCameraDevice:
+            backendCls = cls.resolveBackend(kwargs.get('cameraLib', None))
+            return backendCls.__new__(backendCls, device, *args, **kwargs)
+
         profile = None
         try:
             profile = cls._resolveDeviceProfile(device)
@@ -1468,22 +1534,66 @@ class CameraDevice(BaseDevice):
 
         self.close()
 
-    @staticmethod
-    def getCameras():
-        """Get a list of available camera devices on the system.
+    @classmethod
+    def resolveBackend(cls, cameraLib=None):
+        """Get the backend class for a camera library.
+
+        `DeviceManager` also uses this, to know that a device made as a
+        `BaseCameraDevice` is an instance of one of its backends.
+
+        Parameters
+        ----------
+        cameraLib : str or None
+            Camera library to use, one of `'ffpyplayer'`, `'pyav'` or
+            `'opencv'`. If `None`, the preferred library is used:
+            `camera.backend` if it has been set, otherwise the `cameraLib`
+            preference.
 
         Returns
         -------
-        list[CameraInfo]
-            List of available camera devices on the system.
+        type
+            Subclass of `BaseCameraDevice` which opens camera streams using
+            `cameraLib`.
 
         """
-        raise NotImplementedError(
-            "This method must be implemented by subclasses.")
+        return getCameraDeviceClass(cameraLib)
 
-    @staticmethod
-    def getAvailableDevices(best=False):
+    @classmethod
+    def getCameras(cls, cameraLib=None):
         """Get a list of available camera devices on the system.
+
+        Backends must override this. Called on `BaseCameraDevice`, it gives
+        the cameras found by the backend for `cameraLib`.
+
+        Parameters
+        ----------
+        cameraLib : str or None
+            Only used on `BaseCameraDevice`: camera library to find cameras
+            with. If `None`, the preferred library is used: `camera.backend`
+            if it has been set, otherwise the `cameraLib` preference.
+
+        Returns
+        -------
+        dict
+            Formats each camera supports, keyed by camera.
+
+        """
+        if cls is not BaseCameraDevice:
+            raise NotImplementedError(
+                "{} must implement getCameras()".format(cls.__name__))
+
+        return cls.resolveBackend(cameraLib).getCameras()
+
+    @classmethod
+    def getAvailableDevices(cls, best=False):
+        """Get a list of available camera devices on the system.
+
+        Backends must override this. Called on `BaseCameraDevice`, it gives
+        the cameras found by the backend for the preferred library
+        (`camera.backend` if it has been set, otherwise the `cameraLib`
+        preference), with
+        `deviceClass` set to `BaseCameraDevice` so that a device made from one
+        of them uses whichever backend is selected when it is made.
 
         Parameters
         ----------
@@ -1495,12 +1605,20 @@ class CameraDevice(BaseDevice):
 
         Returns
         -------
-        list[CameraInfo]
-            List of available camera devices on the system.
+        list[dict]
+            List of dictionaries containing the parameters needed to initialise
+            each device.
 
         """
-        raise NotImplementedError(
-            "This method must be implemented by subclasses.")
+        if cls is not BaseCameraDevice:
+            raise NotImplementedError(
+                "{} must implement getAvailableDevices()".format(cls.__name__))
+
+        profiles = cls.resolveBackend().getAvailableDevices(best=best)
+        for profile in profiles:
+            profile['deviceClass'] = "psychopy.hardware.camera.BaseCameraDevice"
+
+        return profiles
 
     @property
     def captureLib(self):
@@ -2099,7 +2217,7 @@ class CameraDevice(BaseDevice):
 
 # ~~~ Library specific camera device classes ~~~
 
-class FFPyPlayerCameraDevice(CameraDevice):
+class FFPyPlayerCameraDevice(BaseCameraDevice, isBackend=True):
     """Class providing an interface with a camera attached to the system 
     using FFmpeg (ffpyplayer).
     
@@ -2726,7 +2844,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         return getCamerasFunc()
 
 
-class PyAVCameraDevice(CameraDevice):
+class PyAVCameraDevice(BaseCameraDevice, isBackend=True):
     """Class providing an interface with a camera attached to the system using
     FFmpeg by way of PyAV (the `av` package).
 
@@ -3628,7 +3746,7 @@ class PyAVCameraDevice(CameraDevice):
         return profiles
 
 
-class OpenCVCameraDevice(CameraDevice):
+class OpenCVCameraDevice(BaseCameraDevice, isBackend=True):
     """Class providing an interface with a camera attached to the system using
     OpenCV (the `cv2` package).
 
@@ -4715,12 +4833,9 @@ class OpenCVCameraDevice(CameraDevice):
         return profiles
 
 
-# Base class for all camera interfaces, kept under its own name because the
-# `CameraDevice` name below is taken by the legacy alias for the `ffpyplayer`
-# interface.
-BaseCameraDevice = CameraDevice
-
-# class name alias for legacy support
+# class name alias for legacy support. NB devices saved with the deviceClass
+# `psychopy.hardware.camera.CameraDevice` use `ffpyplayer`, so this can't be
+# made to mean `BaseCameraDevice`.
 CameraDevice = CameraInterface = FFPyPlayerCameraDevice
 
 # Camera interface to use for each supported capture library.
@@ -4738,8 +4853,9 @@ def getCameraDeviceClass(cameraLib=None):
     ----------
     cameraLib : str or None
         Capture library the interface should use, one of `'ffpyplayer'`,
-        `'pyav'` or `'opencv'`. If `None`, the library named by
-        `camera.backend` is used.
+        `'pyav'` or `'opencv'`. If `None`, the preferred library is used:
+        `camera.backend` if it has been set, otherwise the `cameraLib`
+        preference.
 
     Returns
     -------
@@ -4748,10 +4864,9 @@ def getCameraDeviceClass(cameraLib=None):
         `cameraLib`.
 
     """
-    global backend, _cameraDeviceLibTbl
+    global _cameraDeviceLibTbl
 
-    if cameraLib is None:
-        cameraLib = backend
+    cameraLib = _resolveCameraLib(cameraLib)
 
     try:
         return _cameraDeviceLibTbl[cameraLib]
@@ -4778,8 +4893,9 @@ def getMovieWriterClass(encoderLib=None):
     ----------
     encoderLib : str or None
         Encoder library the writer should use, one of `'ffpyplayer'`, `'pyav'`
-        or `'opencv'`. If `None`, the library named by `camera.backend` is
-        used.
+        or `'opencv'`. If `None`, the preferred camera library is used:
+        `camera.backend` if it has been set, otherwise the `cameraLib`
+        preference.
 
     Returns
     -------
@@ -4787,10 +4903,9 @@ def getMovieWriterClass(encoderLib=None):
         Subclass of `MovieWriter` which encodes movie files using `encoderLib`.
 
     """
-    global backend, _movieWriterLibTbl
+    global _movieWriterLibTbl
 
-    if encoderLib is None:
-        encoderLib = backend
+    encoderLib = _resolveCameraLib(encoderLib)
 
     try:
         return _movieWriterLibTbl[encoderLib]  # these match constants `MOVIE_WRITER_LIB_*`
@@ -4859,8 +4974,8 @@ class Camera:
         worth reaching for when neither FFmpeg binding can be installed or when
         the experiment is using OpenCV for computer vision work anyway; note
         that it gives less control over how the video is encoded. If `None`
-        (the default), the preferred library is used, as named by
-        `camera.backend` (`PREFERED_CAMERA_LIB` unless it has been changed).
+        (the default), the preferred library is used: `camera.backend` if it
+        has been set, otherwise the `cameraLib` preference.
         Switching camera libraries could help resolve issues with camera
         compatibility. More camera libraries may be installed via extension
         packages.
@@ -4997,10 +5112,7 @@ class Camera:
         # the library asked for, or `None` if it was left to us; the device this
         # camera ends up reading has the final say, see `_resolveCaptureDevice()`
         self._cameraLibRequested = cameraLib
-        if cameraLib is None:
-            cameraLib = backend
-
-        self._cameraLib = cameraLib
+        self._cameraLib = _resolveCameraLib(cameraLib)
 
         # transform frameSize if string
         if isinstance(frameSize, str):
@@ -5352,7 +5464,8 @@ class Camera:
         cameraLib : str or None
             Capture library the cameras are to be opened with, either
             `'ffpyplayer'` or `'pyav'`. If `None`, the preferred library is
-            used, as named by `camera.backend`.
+            used: `camera.backend` if it has been set, otherwise the
+            `cameraLib` preference.
 
         Returns
         -------
@@ -5373,7 +5486,8 @@ class Camera:
         cameraLib : str or None
             Capture library the cameras are to be opened with, either
             `'ffpyplayer'` or `'pyav'`. If `None`, the preferred library is
-            used, as named by `camera.backend`.
+            used: `camera.backend` if it has been set, otherwise the
+            `cameraLib` preference.
 
         Returns
         -------
@@ -5410,7 +5524,8 @@ class Camera:
         cameraLib : str or None
             Capture library the cameras are to be opened with, either
             `'ffpyplayer'` or `'pyav'`. If `None`, the preferred library is
-            used, as named by `camera.backend`.
+            used: `camera.backend` if it has been set, otherwise the
+            `cameraLib` preference.
 
         Returns
         -------
@@ -5585,7 +5700,8 @@ class Camera:
         self._capture = None
         if isinstance(device, BaseCameraDevice):
             # if given a device object, use it, whichever library it captures
-            # with (`CameraDevice` names only the FFPyPlayer one)
+            # with (`CameraDevice` names only the FFPyPlayer one, every backend
+            # subclasses `BaseCameraDevice`)
             self._capture = device
         elif device is None:
             # if given None, get the first available device
@@ -7838,8 +7954,7 @@ def getCameras(cameraLib=None):
         `CameraInfo` objects.
 
     """
-    if cameraLib is None:
-        cameraLib = backend
+    cameraLib = _resolveCameraLib(cameraLib)
 
     systemName = platform.system()  # get the system name
 
@@ -7889,8 +8004,7 @@ def getCameraDescriptions(collapse=False, cameraLib=None):
         formats from a single GUI list control.
 
     """
-    if cameraLib is None:
-        cameraLib = backend
+    cameraLib = _resolveCameraLib(cameraLib)
 
     connectedCameras = getCameras(cameraLib=cameraLib)
 
@@ -7927,8 +8041,7 @@ def getFormatsForDevice(device, cameraLib=None):
         List of formats, specified as strings in the format 
         `{width}x{height}@{frame rate}fps`
     """
-    if cameraLib is None:
-        cameraLib = backend
+    cameraLib = _resolveCameraLib(cameraLib)
 
     # get all devices
     connectedCameras = getCameras(cameraLib=cameraLib)
