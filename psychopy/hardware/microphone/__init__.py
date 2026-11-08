@@ -65,7 +65,11 @@ class MicrophoneDevice:
 
         # import backend
         try:
-            return cls.backends[backend].load()
+            loaded = cls.backends[backend].load()
+            # some backends import without their audio library, and only fail when used
+            if hasattr(loaded, "isAvailable") and not loaded.isAvailable():
+                raise ImportError(f"The {backend} microphone backend is not available.")
+            return loaded
         except ImportError:
             # if backend fails to import, remove it from .backends
             del cls.backends[backend]
@@ -86,7 +90,7 @@ class MicrophoneDevice:
                 # nothing requested is left, so use any backend which is
                 cls.backend = list(cls.backends)[0]
             # log
-            logging.error(
+            logging.warning(
                 f"Failed to load {backend} microphone backend, trying the next one..."
             )
 

@@ -18,9 +18,24 @@ from psychopy.hardware import BaseDevice
 
 
 class BaseSpeakerDevice(BaseDevice):
-    """Base class for speaker devices. Not intended to be used directly; use one of the subclasses 
+    """Base class for speaker devices. Not intended to be used directly; use one of the subclasses
     instead.
     """
+
+    @staticmethod
+    def isAvailable():
+        """Whether the audio library this backend uses can be loaded.
+
+        `SpeakerDevice` skips backends which aren't available, moving on to the
+        next one in the `audioLib` preference.
+
+        Returns
+        -------
+        bool
+            True if the backend can be used.
+        """
+        return True
+
     """Class for managing a physical speaker device for audio playback.
 
     Parameters

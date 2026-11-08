@@ -44,6 +44,20 @@ class BaseMicrophoneDevice(BaseDevice):
     # other instances of MicrophoneDevice, stored by index
     _streams = {}
 
+    @staticmethod
+    def isAvailable():
+        """Whether the audio library this backend uses can be loaded.
+
+        `MicrophoneDevice` skips backends which aren't available, moving on to
+        the next one in the `audioLib` preference.
+
+        Returns
+        -------
+        bool
+            True if the backend can be used.
+        """
+        return True
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._recording = None

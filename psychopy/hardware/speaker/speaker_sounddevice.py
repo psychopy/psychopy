@@ -13,6 +13,7 @@ from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy import logging
 from psychopy.tools import systemtools
+from psychopy.sound.audiodevice import getSoundDeviceHostAPI
 
 
 class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
@@ -68,8 +69,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
                 # Leaving the name as None plays on whatever the default is, should
                 # sounddevice be unable to say which device that is.
                 try:
-                    import sounddevice as sd
-                    name = sd.query_devices(kind='output')['name']
+                    name = self.getDefaultDeviceName()
                 except Exception:
                     name = None
                 logging.info(
@@ -90,6 +90,29 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.stream = None
         self.resample = resample
         self.latencyClass = latencyClass
+
+    @staticmethod
+    def getDefaultDeviceName():
+        """
+        Get the name of the system's default output device, as it's listed by `queryDevices`.
+
+        Returns
+        -------
+        str or None
+            Name of the default output device, or None if there isn't one.
+        """
+        import sounddevice as sd
+
+        hostAPI = getSoundDeviceHostAPI()
+        if hostAPI is None:
+            return sd.query_devices(kind='output')['name']
+        # use the host API's own default, as the overall default may be from another host API
+        # (MME, on Windows, which also cuts names short so they don't match the full name)
+        index = sd.query_hostapis(hostAPI)['default_output_device']
+        if index < 0:
+            return None
+
+        return sd.query_devices(index)['name']
 
     @staticmethod
     def getNumericIndex(index):
@@ -229,17 +252,23 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
                 _translate(msg),
                 deviceClass=SoundDeviceSpeakerDevice)
 
+        # only list devices from one host API (WASAPI on Windows), so that a name means one device
+        hostAPI = getSoundDeviceHostAPI()
+        hostAPINames = [api['name'] for api in sd.query_hostapis()]
+
         devices = []
         for dev in sd.query_devices():
             # skip input-only devices (microphones)
             if dev['max_output_channels'] == 0:
+                continue
+            if hostAPI is not None and dev['hostapi'] != hostAPI:
                 continue
 
             # build a dict with the same keys as psychtoolbox for consistency
             devDict = {
                 'DeviceIndex': dev['index'],
                 'HostAudioAPIId': dev['hostapi'],
-                'HostAudioAPIName': sd.query_hostapis(dev['hostapi'])['name'],
+                'HostAudioAPIName': hostAPINames[dev['hostapi']],
                 'DeviceName': dev['name'],
                 'NrInputChannels': dev['max_input_channels'],
                 'NrOutputChannels': dev['max_output_channels'],
@@ -252,6 +281,17 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             devices.append(devDict)
 
         return devices
+
+    @staticmethod
+    def isAvailable():
+        """Whether `sounddevice` can be imported, which this backend needs.
+        """
+        try:
+            import sounddevice  # noqa: F401
+        except (ImportError, OSError):  # OSError if PortAudio itself is missing
+            return False
+
+        return True
 
     @staticmethod
     def getAvailableDevices():

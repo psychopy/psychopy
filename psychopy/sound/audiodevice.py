@@ -41,9 +41,11 @@ __all__ = [
     'AUDIO_PTB_RUN_MODE1',
     'AUDIO_PTB_RUN_MODE_STANDBY',
     'AUDIO_PTB_RUN_MODE_KEEP_HOT',
-    'AUDIO_LIBRARY_PTB'
+    'AUDIO_LIBRARY_PTB',
+    'getSoundDeviceHostAPI',
 ]
 
+import sys
 from psychopy.tools.audiotools import *
 
 # audio library identifiers
@@ -77,6 +79,45 @@ runModeLevels = {
     0: (AUDIO_PTB_RUN_MODE0, 'Standby (low resource use, higher latency)'),
     1: (AUDIO_PTB_RUN_MODE1, 'Keep hot (higher resource use, low latency)')
 }
+
+
+def getSoundDeviceHostAPI():
+    """Get the host API whose devices the `sounddevice` backends should use.
+
+    PortAudio lists each physical device once per host API (on Windows: MME,
+    DirectSound, WASAPI and WDM-KS), all under the same name, so a device name
+    alone doesn't say which of them to open. Like the Psychtoolbox backends,
+    only WASAPI devices are used on Windows, unless the `audioForceWASAPI`
+    preference is off.
+
+    Returns
+    -------
+    int or None
+        Index of the host API, according to `sounddevice`, or None to use
+        devices from every host API.
+
+    """
+    if sys.platform != 'win32':
+        return None
+
+    from psychopy.preferences import prefs
+    try:
+        enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
+    except KeyError:
+        enforceWASAPI = True  # use default if option not present in settings
+    if not enforceWASAPI:
+        return None
+
+    try:
+        import sounddevice as sd
+        hostAPIs = sd.query_hostapis()
+    except Exception:
+        return None
+    for i, api in enumerate(hostAPIs):
+        if api['name'] == 'Windows WASAPI':
+            return i
+
+    return None  # no WASAPI on this system, so use whatever there is
 
 
 class AudioDeviceInfo:

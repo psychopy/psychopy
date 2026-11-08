@@ -15,11 +15,11 @@ import sys
 import time
 from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
-from psychopy import logging as logging, prefs
+from psychopy import logging as logging
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.hardware import BaseResponseDevice
-from psychopy.sound.audiodevice import AudioDeviceInfo
+from psychopy.sound.audiodevice import AudioDeviceInfo, getSoundDeviceHostAPI
 from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInvalidDeviceError, \
     AudioStreamError
 from psychopy.tools import systemtools as st
@@ -457,18 +457,10 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 _translate(msg),
                 deviceClass=SoundDeviceMicrophoneDevice)
 
-        # The same physical device is listed once per host API (on Windows,
-        # MME, DirectSound, WASAPI and WDM-KS), all under the same name. Like
-        # the Psychtoolbox backend, only use WASAPI devices on Windows unless
-        # the `audioForceWASAPI` preference is off, so a name means one device.
-        try:
-            enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
-        except KeyError:
-            enforceWASAPI = True  # use default if option not present in settings
+        # only list devices from one host API (WASAPI on Windows), so that a
+        # name means one device
+        hostAPI = getSoundDeviceHostAPI()
         hostAPINames = [api['name'] for api in sd.query_hostapis()]
-        onlyWASAPI = (
-            enforceWASAPI and sys.platform == 'win32'
-            and 'Windows WASAPI' in hostAPINames)
 
         devices = []
         for dev in sd.query_devices():
@@ -476,10 +468,10 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             # capture from
             if dev['max_input_channels'] == 0:
                 continue
+            if hostAPI is not None and dev['hostapi'] != hostAPI:
+                continue
 
             hostAPIName = hostAPINames[dev['hostapi']]
-            if onlyWASAPI and hostAPIName != 'Windows WASAPI':
-                continue
 
             # build a dict with the same keys as psychtoolbox for consistency
             devDict = {
@@ -618,6 +610,17 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         inputDevices = [desc for desc in devObjs if desc.isCapture]
 
         return inputDevices
+
+    @staticmethod
+    def isAvailable():
+        """Whether `sounddevice` can be imported, which this backend needs.
+        """
+        try:
+            import sounddevice  # noqa: F401
+        except (ImportError, OSError):  # OSError if PortAudio itself is missing
+            return False
+
+        return True
 
     @staticmethod
     def getAvailableDevices():
