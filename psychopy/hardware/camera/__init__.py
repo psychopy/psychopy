@@ -57,6 +57,7 @@ __all__ = [
 
 import os
 import os.path
+import re
 import sys
 import platform
 import inspect
@@ -3041,8 +3042,13 @@ class PyAVCameraDevice(BaseCameraDevice, isBackend=True):
                 "FFmpeg select a capture format.".format(self._device, err))
             return
 
+        # Drop placeholder descriptors which carry no format details, such as
+        # those returned when cameras are enumerated by name only (e.g. by PyAV
+        # on Windows when `ffpyplayer` is not installed).
+        allCaps = [cap for cap in allCaps if cap.get('frameSize')]
+
         if not allCaps:
-            logging.warning(
+            logging.debug(
                 "Camera '{}' reports no capture formats, letting FFmpeg select "
                 "one.".format(self._device))
             return
@@ -7656,9 +7662,8 @@ def _getDShowDevicesPyAV():
     no API for listing devices, it only writes them to its log, so the device
     list is recovered by capturing that log.
 
-    Only device names are recovered this way, not the formats each device
-    supports, so a single descriptor with unknown settings is returned per
-    camera. Install `ffpyplayer` to get the full format list.
+    Only device names are recovered this way, see `_getDShowFormatsPyAV()`
+    for the formats each device supports.
 
     Returns
     -------
@@ -7669,6 +7674,12 @@ def _getDShowDevicesPyAV():
     import av
 
     deviceNames = []
+
+    # PyAV (>=13) does not forward FFmpeg's log messages unless a log level is
+    # set, in which case nothing would be captured below. Temporarily raise the
+    # level so the device list (logged at INFO) comes through.
+    prevLogLevel = av.logging.get_level()
+    av.logging.set_level(av.logging.INFO)
     try:
         with av.logging.Capture(local=True) as logs:
             try:
@@ -7683,12 +7694,20 @@ def _getDShowDevicesPyAV():
         logging.error(
             "Could not enumerate DirectShow cameras with PyAV: {}".format(err))
         return deviceNames
+    finally:
+        av.logging.set_level(prevLogLevel)
+
+    # FFmpeg emits each line in fragments (e.g. '"Integrated Camera"',
+    # ' (video', ')', '\n'), so join the messages back up and split them into
+    # whole lines before parsing.
+    logText = ''.join(
+        message for _, name, message in logs if name == 'dshow')
 
     # Lines naming a device look like '"Integrated Camera" (video)' on modern
     # FFmpeg. Older builds omit the '(video)' suffix and instead group devices
     # under a 'DirectShow video devices' heading.
     inVideoSection = True
-    for _, _, message in logs:
+    for message in logText.splitlines():
         message = message.strip()
 
         if message.startswith('DirectShow'):
@@ -7715,7 +7734,107 @@ def _getDShowDevicesPyAV():
     return deviceNames
 
 
-def _getCameraInfoWindows(cameraLib=CAMERA_LIB_FFPYPLAYER):
+# A capture mode as FFmpeg lists it for a DirectShow camera, e.g.
+# '  vcodec=mjpeg  min s=640x480 fps=30 max s=640x480 fps=30' or
+# '  pixel_format=yuyv422  min s=640x480 fps=5 max s=640x480 fps=30 (tv, ...)'
+_dshowModePattern = re.compile(
+    r'(?:vcodec=(?P<codecFormat>\S+)|pixel_format=(?P<pixelFormat>\S+))\s+'
+    r'min s=\d+x\d+ fps=[\d.]+\s+'
+    r'max s=(?P<width>\d+)x(?P<height>\d+) fps=(?P<frameRate>[\d.]+)')
+
+
+def _getDShowFormatsPyAV(deviceName):
+    """Get the capture modes a DirectShow camera supports, using PyAV.
+
+    Like `_getDShowDevicesPyAV()`, this recovers what FFmpeg writes to its log,
+    here when asked to list the options for a device. Each mode is reported at
+    its largest frame size and highest frame rate, as `ffpyplayer` reports
+    them.
+
+    Parameters
+    ----------
+    deviceName : str
+        Name of the camera, as `_getDShowDevicesPyAV()` gives it.
+
+    Returns
+    -------
+    list of tuple
+        Modes the camera supports, each as `(pixelFormat, codecFormat,
+        (width, height), frameRate)`, in the order FFmpeg lists them. Whichever
+        of `pixelFormat` and `codecFormat` does not apply is
+        `CAMERA_NULL_VALUE`. Empty if the modes could not be found, for
+        example because the camera is in use.
+
+    """
+    import av
+
+    # see `_getDShowDevicesPyAV()`, the options are logged at INFO and only
+    # come through if a log level is set
+    prevLogLevel = av.logging.get_level()
+    av.logging.set_level(av.logging.INFO)
+    try:
+        with av.logging.Capture(local=True) as logs:
+            try:
+                av.open(
+                    'video={}'.format(deviceName), format='dshow',
+                    options={'list_options': 'true'})
+            except av.FFmpegError:
+                # FFmpeg always exits after listing the options, rather than
+                # opening the device
+                pass
+    except Exception as err:
+        logging.error(
+            "Could not get the formats for camera '{}' with PyAV: {}".format(
+                deviceName, err))
+        return []
+    finally:
+        av.logging.set_level(prevLogLevel)
+
+    # see `_getDShowDevicesPyAV()`, the log comes in fragments
+    logText = ''.join(
+        message for _, name, message in logs if name == 'dshow')
+
+    return _parseDShowModes(logText)
+
+
+def _parseDShowModes(logText):
+    """Read the capture modes out of FFmpeg's DirectShow option listing.
+
+    Parameters
+    ----------
+    logText : str
+        What FFmpeg logged when asked to list a camera's options.
+
+    Returns
+    -------
+    list of tuple
+        Modes listed, see `_getDShowFormatsPyAV()`.
+
+    """
+    modes = []
+    for line in logText.splitlines():
+        match = _dshowModePattern.search(line)
+        if match is None:
+            continue
+
+        frameRate = float(match.group('frameRate'))
+        if frameRate.is_integer():
+            frameRate = int(frameRate)
+
+        mode = (
+            match.group('pixelFormat') or CAMERA_NULL_VALUE,
+            match.group('codecFormat') or CAMERA_NULL_VALUE,
+            (int(match.group('width')), int(match.group('height'))),
+            frameRate)
+        # each mode is listed again for every colour space it supports, which
+        # makes no difference to how it's opened
+        if mode not in modes:
+            modes.append(mode)
+
+    return modes
+
+
+def _getCameraInfoWindows(cameraLib=CAMERA_LIB_PYAV):
     """Get a list of capabilities for the specified associated with a camera
     attached to the system.
 
@@ -7726,7 +7845,7 @@ def _getCameraInfoWindows(cameraLib=CAMERA_LIB_FFPYPLAYER):
     ----------
     cameraLib : str
         Capture library to record against the returned descriptors, one of
-        `'ffpyplayer'` or `'pyav'`.
+        `'ffpyplayer'`, `'pyav'` or `'opencv'`.
 
     Returns
     -------
@@ -7739,29 +7858,44 @@ def _getCameraInfoWindows(cameraLib=CAMERA_LIB_FFPYPLAYER):
             "Cannot query cameras with this function, platform not 'Windows'.")
 
     # FFPyPlayer can query the OS via DirectShow for Windows cameras. It is used
-    # here even when the caller wants to capture with PyAV, since it is the only
-    # one of the two which reports the formats each camera supports.
+    # here even when the caller wants to capture with another library if it's
+    # installed, otherwise PyAV (which PsychoPy always has) gets the same
+    # details from FFmpeg's log. FFmpeg lists cameras in the same order either
+    # way, which OpenCV relies on to work out a camera's index.
     try:
         from ffpyplayer.tools import list_dshow_devices
     except ImportError:
-        if cameraLib != CAMERA_LIB_PYAV:
-            raise
-
-        logging.warning(
-            "`ffpyplayer` is not installed, falling back to enumerating "
-            "cameras with PyAV. Camera formats will not be reported.")
+        if cameraLib == CAMERA_LIB_FFPYPLAYER:
+            raise  # can't capture with it anyway
 
         videoDevices = {}
         for devIndex, cameraName in enumerate(_getDShowDevicesPyAV()):
-            videoDevices[cameraName] = [CameraInfo(
-                index=devIndex,
-                name=cameraName,
-                pixelFormat=CAMERA_UNKNOWN_VALUE,
-                codecFormat=CAMERA_UNKNOWN_VALUE,
-                frameSize=None,
-                frameRate=CAMERA_NULL_FRAMERATE,
-                cameraAPI=u'DirectShow',
-                cameraLib=cameraLib)]
+            modes = _getDShowFormatsPyAV(cameraName)
+            if not modes:
+                # the camera is still listed by name, with its format left
+                # for FFmpeg to pick when the stream is opened
+                videoDevices[cameraName] = [CameraInfo(
+                    index=devIndex,
+                    name=cameraName,
+                    pixelFormat=CAMERA_UNKNOWN_VALUE,
+                    codecFormat=CAMERA_UNKNOWN_VALUE,
+                    frameSize=None,
+                    frameRate=CAMERA_NULL_FRAMERATE,
+                    cameraAPI=u'DirectShow',
+                    cameraLib=cameraLib)]
+                continue
+
+            videoDevices[cameraName] = [
+                CameraInfo(
+                    index=devIndex,
+                    name=cameraName,
+                    pixelFormat=pixelFormat,
+                    codecFormat=codecFormat,
+                    frameSize=frameSize,
+                    frameRate=frameRate,
+                    cameraAPI=u'DirectShow',
+                    cameraLib=cameraLib)
+                for pixelFormat, codecFormat, frameSize, frameRate in modes]
 
         return videoDevices
 
@@ -7940,12 +8074,12 @@ def getCameras(cameraLib=None):
     Parameters
     ----------
     cameraLib : str or None
-        Capture library the cameras are to be opened with, either
-        `'ffpyplayer'` or `'pyav'`. Cameras are enumerated the same way for
-        both; this only sets the `cameraLib` field of the descriptors returned,
-        except on Windows where it decides whether enumeration may fall back to
-        PyAV when `ffpyplayer` is not installed. If None, the default backend 
-        will be used.
+        Capture library the cameras are to be opened with, one of
+        `'ffpyplayer'`, `'pyav'` or `'opencv'`. Cameras are enumerated the same
+        way for all of them; this only sets the `cameraLib` field of the
+        descriptors returned, except on Windows where enumeration falls back to
+        PyAV when `ffpyplayer` is not installed, unless it is `'ffpyplayer'`.
+        If None, the default backend will be used.
 
     Returns
     -------
