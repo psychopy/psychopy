@@ -15,7 +15,7 @@ import sys
 import time
 from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
-from psychopy import logging as logging
+from psychopy import logging as logging, prefs
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.hardware import BaseResponseDevice
@@ -457,6 +457,19 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 _translate(msg),
                 deviceClass=SoundDeviceMicrophoneDevice)
 
+        # The same physical device is listed once per host API (on Windows,
+        # MME, DirectSound, WASAPI and WDM-KS), all under the same name. Like
+        # the Psychtoolbox backend, only use WASAPI devices on Windows unless
+        # the `audioForceWASAPI` preference is off, so a name means one device.
+        try:
+            enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
+        except KeyError:
+            enforceWASAPI = True  # use default if option not present in settings
+        hostAPINames = [api['name'] for api in sd.query_hostapis()]
+        onlyWASAPI = (
+            enforceWASAPI and sys.platform == 'win32'
+            and 'Windows WASAPI' in hostAPINames)
+
         devices = []
         for dev in sd.query_devices():
             # skip devices with no input channels, i.e. anything we cannot
@@ -464,11 +477,15 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             if dev['max_input_channels'] == 0:
                 continue
 
+            hostAPIName = hostAPINames[dev['hostapi']]
+            if onlyWASAPI and hostAPIName != 'Windows WASAPI':
+                continue
+
             # build a dict with the same keys as psychtoolbox for consistency
             devDict = {
                 'DeviceIndex': dev['index'],
                 'HostAudioAPIId': dev['hostapi'],
-                'HostAudioAPIName': sd.query_hostapis(dev['hostapi'])['name'],
+                'HostAudioAPIName': hostAPIName,
                 'DeviceName': dev['name'],
                 'NrInputChannels': dev['max_input_channels'],
                 'NrOutputChannels': dev['max_output_channels'],
@@ -513,8 +530,8 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         chosenDevice = None
         # iterate through device profiles
         for profile in self.getDevices():
-            # if same index, keep as fallback
-            if index in (profile.deviceIndex, profile.deviceName):
+            # if same index, keep as fallback (the first, if a name matches several)
+            if fallbackDevice is None and index in (profile.deviceIndex, profile.deviceName):
                 fallbackDevice = profile
             # if same everything, we got it!
             if all((
@@ -592,7 +609,12 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
 
         # create list of descriptors only for capture devices
-        devObjs = [AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
+        devObjs = []
+        for dev in allDevs:
+            # descriptors share PTB's format, but were queried with sounddevice
+            desc = AudioDeviceInfo.createFromPTBDesc(dev)
+            desc.audioLib = 'sounddevice'
+            devObjs.append(desc)
         inputDevices = [desc for desc in devObjs if desc.isCapture]
 
         return inputDevices
@@ -600,7 +622,10 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
     @staticmethod
     def getAvailableDevices():
         """Get available microphone devices using sounddevice.
-        
+
+        Devices are listed by sounddevice itself rather than by Psychtoolbox, so
+        names, sample rates and channels are those this backend will open.
+
         Returns
         -------
         list of dict
@@ -608,18 +633,19 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             dicts in a format similar to PTB.
 
         """
+        # skip in vm
+        if st.isVM_CI():  # GitHub actions VM does not have a sound device
+            return []
+
         devices = []
-        for profile in st.getAudioCaptureDevices():
-            # get index as a name if possible
-            index = profile.get('device_name', None)
-            if index is None:
-                index = profile.get('index', None)
+        for profile in SoundDeviceMicrophoneDevice.getDevices():
             device = {
-                'deviceName': profile.get('device_name', "Unknown Microphone"),
+                'deviceName': profile.deviceName,
                 'deviceClass': "psychopy.hardware.microphone.MicrophoneDevice",
-                'index': index,
-                'sampleRateHz': profile.get('defaultSampleRate', None),
-                'channels': profile.get('inputChannels', None),
+                # use the name as index, which is stable between sessions
+                'index': profile.deviceName,
+                'sampleRateHz': profile.defaultSampleRate,
+                'channels': profile.inputChannels,
             }
             devices.append(device)
 

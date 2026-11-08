@@ -23,17 +23,6 @@ from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
 from psychopy.tools import systemtools as st
 from psychopy.tools.audiotools import SAMPLE_RATE_48kHz
 
-# set the audio backend from preferences
-try:
-    backend = prefs.hardware['audioLib'][0]
-except (KeyError, IndexError):
-    logging.warning(
-        "Audio library preference not found or empty, defaulting to 'sounddevice' for "
-        "audio capture. To specify a different library, set the 'audioLib' preference "
-        "to a list with the desired library name as the first element."
-    )
-    backend = 'sounddevice'
-
 
 class MicrophoneResponse(BaseResponse):
     """Base class for microphone responses, used by listeners attached to MicrophoneDevice 
