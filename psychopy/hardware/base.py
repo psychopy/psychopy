@@ -89,7 +89,24 @@ class BaseDevice:
     # start off with no cached profile
     _profile = None
     
-    def __init_subclass__(cls, aliases=None):
+    def __init_subclass__(cls, aliases=None, isBackend=False):
+        """Register a device class with DeviceManager.
+
+        Parameters
+        ----------
+        aliases : list[str] or None
+            Short names which can be used to refer to this class in
+            DeviceManager, for example "keyboard".
+        isBackend : bool
+            Whether this class is one backend of a device class which picks its
+            backend when a device is made (e.g. `BaseCameraDevice`). Backends
+            are left out of `DeviceManager.deviceClasses`, so each physical
+            device is listed once, under the class which picks the backend,
+            rather than once per backend. They can still be used by their
+            import path. This isn't inherited, so a subclass of a backend has
+            to pass it again.
+
+        """
         from psychopy.hardware.manager import DeviceManager
         # handle no aliases
         if aliases is None:
@@ -99,8 +116,10 @@ class BaseDevice:
         # register aliases
         for alias in aliases:
             DeviceManager.registerClassAlias(alias, mro)
-        # store class string
-        DeviceManager.deviceClasses.append(mro)
+        # store class string, unless devices of this class are listed through
+        # the class which picks the backend
+        if not isBackend:
+            DeviceManager.deviceClasses.append(mro)
 
         return cls
 
