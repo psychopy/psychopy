@@ -32,11 +32,28 @@ def _call(function=lambda: None, *args):
 @pytest.mark.parametrize("wait", [0.005, 0.02])
 def test_waiter_wakes_at_deadline(wait):
     """The OS deadline sleep wakes at the deadline, not early, and soon after
-    (generously, for loaded test machines)."""
-    waitUntil = _presentcalls.makeWaiter()
-    deadline = clock.getTime() + wait
-    waitUntil(deadline)
-    woke = clock.getTime()
+    (generously, for loaded test machines).
+
+    It waits on a thread of its own with its priority raised, as the
+    scheduler's is: without that, macOS coalesces the thread's timer wake-ups,
+    so it wakes late (by tens of milliseconds on CI virtual machines). The
+    test's own thread isn't raised, as that would last for the rest of the
+    test session.
+    """
+    times = {}
+
+    def waitForDeadline():
+        _presentcalls.raiseThreadPriority()
+        waitUntil = _presentcalls.makeWaiter()
+        times['deadline'] = deadline = clock.getTime() + wait
+        waitUntil(deadline)
+        times['woke'] = clock.getTime()
+
+    thread = threading.Thread(target=waitForDeadline, daemon=True)
+    thread.start()
+    thread.join(5.0)
+    assert 'woke' in times, "the waiter didn't wake"
+    deadline, woke = times['deadline'], times['woke']
     assert woke >= deadline - 0.0002
     assert woke - deadline < 0.005
 
