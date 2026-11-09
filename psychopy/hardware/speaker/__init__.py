@@ -66,7 +66,11 @@ class SpeakerDevice:
 
         # import backend
         try:
-            return cls.backends[backend].load()
+            loaded = cls.backends[backend].load()
+            # some backends import without their audio library, and only fail when used
+            if hasattr(loaded, "isAvailable") and not loaded.isAvailable():
+                raise ImportError(f"The {backend} speaker backend is not available.")
+            return loaded
         except ImportError:
             # if backend fails to import, remove it from .backends
             del cls.backends[backend]
@@ -75,11 +79,20 @@ class SpeakerDevice:
                 raise ImportError(
                     "All audio backends failed to load."
                 )
-            # try next option
-            cls.backend = list(cls.backends)[0]
+            # try next option: the failed backend is no longer in .backends, so if following the
+            # `audioLib` pref (or a list) resolving again gets the next one in that order
+            requested = cls.backend
+            if requested is None:
+                requested = prefs.hardware['audioLib']
+            if not (
+                isinstance(requested, (list, tuple))
+                and any(val in cls.backends for val in requested)
+            ):
+                # nothing requested is left, so use any backend which is
+                cls.backend = list(cls.backends)[0]
             # log
-            logging.error(
-                f"Failed to load {backend} backend, trying {cls.backend}..."
+            logging.warning(
+                f"Failed to load {backend} speaker backend, trying the next one..."
             )
 
             return cls.resolveBackend()
