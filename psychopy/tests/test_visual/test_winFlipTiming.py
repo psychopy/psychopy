@@ -82,13 +82,23 @@ class Test_WinFlipTiming():
         predictedFrames = []
         print('now={:.5f}, lastFrame={:.5f}'.format(now, self.win._frameTimes[-1]))
         print('delay requestT expectT diff'.format(now, self.win._frameTimes[-1]))
+        diffs = []
         for requested in np.arange(0, 0.04, 0.001):
-            expect = self.win.getFutureFlipTime(requested)
+            # relative to when it's asked for, which is later each time
+            now = clock.monotonicClock.getTime()
+            # on the same clock (the default, the logging clock, may have
+            # been reset by other tests)
+            expect = self.win.getFutureFlipTime(
+                requested, clock=clock.monotonicClock)
             diff = expect-(now+requested)
+            diffs.append(diff)
             print("{:.4f}, {:.5f} {:.5f} {:.5f}".format(requested, requested, expect, diff))
-            # should always be within 1/2 frame
+        # each should be the first flip at or after the time requested, so
+        # within a frame after it
         if self.testOutputs and sys.platform != 'darwin':
-            assert abs(diff) < self.win.monitorFramePeriod/2.0
+            tolerance = 0.001  # for the time taken to make the predictions
+            assert min(diffs) > -tolerance
+            assert max(diffs) < self.win.monitorFramePeriod + tolerance
 
 
 if __name__ == "__main__":
