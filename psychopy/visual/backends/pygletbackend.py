@@ -93,6 +93,37 @@ if sys.platform == 'darwin':
 from . import _linux, _win32
 
 
+def _handlePaintWhileQueuing():
+    """Have pyglet handle `WM_PAINT` even for windows which aren't dispatching
+    events, on Windows.
+
+    `dispatch_events()` on one window takes messages for every window of the
+    thread. Those for other windows are queued until they dispatch their own,
+    and Windows is told they were handled. But a window's `WM_PAINT` is sent
+    until it's validated, which only pyglet's handler does (by leaving it to
+    `DefWindowProc`), so with another window to paint, `dispatch_events()`
+    takes `WM_PAINT` for it forever and never returns. Messages in
+    `_priority_events` are always handled, and the handler for `WM_PAINT`
+    queues the `on_expose` event for the window to dispatch itself.
+    """
+    if sys.platform != 'win32':
+        return
+    try:
+        from pyglet.window import win32 as pygletWin32
+        from pyglet.libs.win32 import constants as win32Constants
+        priorityEvents = pygletWin32._priority_events
+        if win32Constants.WM_PAINT not in priorityEvents:
+            priorityEvents.append(win32Constants.WM_PAINT)
+    except (ImportError, AttributeError) as err:
+        logging.debug(
+            "Unable to have pyglet handle WM_PAINT while queuing events, so "
+            "dispatching events with more than one window open may hang: "
+            "{}".format(err))
+
+
+_handlePaintWhileQueuing()
+
+
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
     or C libs that need compiling, but may not be as fast or efficient as libs
@@ -377,6 +408,13 @@ class PygletBackend(BaseBackend):
         self.winHandle.setGammaRamp = setGammaRamp
         self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
+        if sys.platform == 'win32' and not win._isFullScr:
+            # On Windows 8 and later, pyglet (as of 2.1) turns off vsync for
+            # windows which aren't full screen, leaving them to be synced by
+            # the DWM, but then doesn't wait for the DWM in `flip()`, so they
+            # aren't synced at all. Sync them with the swap interval instead,
+            # as the GLFW backend does.
+            self.winHandle.context.set_vsync(True)
         self.winHandle.on_text = self.onText
         self.winHandle.on_move = self.onMove
         self.winHandle.on_resize = self.onResize
