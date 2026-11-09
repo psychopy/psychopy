@@ -4,8 +4,8 @@ from math import sin, pi, cos
 
 win = visual.Window(size=(128,128), units='pix')
 
-resourcesFolder = Path(prefs.paths['resources'])
-psychopyIcon = resourcesFolder / "psychopy.png"
+assetsFolder = Path(prefs.paths['assets'])
+psychopyIcon = assetsFolder / "psychopy.png"
 img = visual.ImageStim(win, psychopyIcon)
 img.autoDraw = True
 

@@ -111,6 +111,7 @@ class BaseStandaloneRoutine:
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
             '__name__': cls.__name__,
             "categories": cls.categories,
+            "tooltip": cls.tooltip,
             "targets": cls.targets,
             "plugin": cls.plugin,
             "legacyParams": cls.legacyParams,

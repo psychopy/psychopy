@@ -35,6 +35,8 @@ class CameraComponent(BaseDeviceComponent):
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = False
     deviceClasses = [
+        # picks between the backends below when the device is made
+        "psychopy.hardware.camera.BaseCameraDevice",
         "psychopy.hardware.camera.FFPyPlayerCameraDevice",
         "psychopy.hardware.camera.PyAVCameraDevice",
         "psychopy.hardware.camera.OpenCVCameraDevice",
@@ -377,31 +379,52 @@ class BaseCameraDeviceBackend(DeviceBackend):
         return params, order
 
 
+class PreferredCameraDeviceBackend(BaseCameraDeviceBackend):
+    """
+    Camera read with whichever library the `cameraLib` preference names.
+
+    This is the backend new cameras are added with. The library is looked up
+    when the device is made, so changing the preference changes it for every
+    camera added this way.
+    """
+    # name of this backend to display in Device Manager
+    backendLabel = "Camera"
+    # class of the device which this backend corresponds to
+    deviceClass = "psychopy.hardware.camera.BaseCameraDevice"
+
+
 class CameraDeviceBackend(BaseCameraDeviceBackend):
     """
     Camera read using FFmpeg by way of `ffpyplayer`.
+
+    Legacy: kept so that cameras which were added with it still work, new
+    cameras are added with `PreferredCameraDeviceBackend`.
     """
     # name of this backend to display in Device Manager
     backendLabel = "Camera (FFPyPlayer)"
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.camera.CameraDevice"
+    # don't offer when adding new devices
+    legacy = True
 
 
 class PyAVCameraDeviceBackend(BaseCameraDeviceBackend):
     """
     Camera read using FFmpeg by way of PyAV (the `av` package).
 
-    This uses the same underlying libraries as the `ffpyplayer` backend, but
-    binds to them directly. It is the one to use on Python versions which
-    `ffpyplayer` has no wheels for.
+    Legacy: kept so that cameras which were added with it still work, new
+    cameras are added with `PreferredCameraDeviceBackend`.
     """
     # name of this backend to display in Device Manager
     backendLabel = "Camera (PyAV)"
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.camera.PyAVCameraDevice"
+    # don't offer when adding new devices
+    legacy = True
 
 
 # register backends with Component
+CameraComponent.registerBackend(PreferredCameraDeviceBackend)
 CameraComponent.registerBackend(CameraDeviceBackend)
 CameraComponent.registerBackend(PyAVCameraDeviceBackend)
 

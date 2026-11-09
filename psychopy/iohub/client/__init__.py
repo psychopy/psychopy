@@ -36,8 +36,12 @@ SHUTDOWN_FUNCS = []
 _currentSessionInfo = None
 
 def windowInfoDict(win):
+    # `size` is in framebuffer pixels, which 'pix' units (and the desktop
+    # coordinates the ioHub mouse reports) are bigger than by `pixScaleFactor`
+    # on high DPI (e.g. Retina) displays
     windict = dict(handle=win._hw_handle, pos=win.pos, size=win.size,
-                   units=win.units, useRetina=win.useRetina, monitor=None)
+                   units=win.units, useRetina=win.useRetina,
+                   pixScaleFactor=float(win.pixScaleFactor), monitor=None)
     if win.monitor:
         windict['monitor'] = dict(resolution=win.monitor.getSizePix(),
                                   width=win.monitor.getWidth(),

@@ -93,6 +93,9 @@ class DeviceBackend:
     icon = None
     # class of the device which this backend corresponds to
     deviceClass = None
+    # legacy backends are kept so that devices which were set up with them still load, but new
+    # devices can't be added with them
+    legacy = False
 
     plugin = None
       
@@ -132,6 +135,7 @@ class DeviceBackend:
             '__name__': cls.__name__,
             'label': cls.backendLabel,
             'device': cls.deviceClass,
+            'legacy': cls.legacy,
             'plugin': cls.plugin,
             'profile': {},
             'params': {}

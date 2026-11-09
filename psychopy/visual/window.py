@@ -76,7 +76,7 @@ if sys.platform == 'win32':
             haveAvbin = False
 
 import psychopy  # so we can get the __path__
-from psychopy import core, platform_specific, logging, prefs, monitors
+from psychopy import core, platform_specific, logging, prefs, monitors, layout
 import psychopy.event
 from . import backends, image
 from ._presentcalls import PresentCall, PresentCallScheduler
@@ -119,7 +119,6 @@ lazy_import(globals(), "import pygame")
 
 DEBUG = False
 IOHUB_ACTIVE = False
-retinaContext = None  # only needed for retina-ready displays
 IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix to copy
 
 # values for `Window.depthFunc`
@@ -654,13 +653,15 @@ class Window():
         # now that we have a window handle, set title
         self.title = title
 
+        # scaling factor for HiDPI displays, `None` until initialized (this is
+        # done before `viewPos` is set, since converting it to framebuffer
+        # pixels needs the scaling factor)
+        self._contentScaleFactor = None
+
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
-
-        # scaling factor for HiDPI displays, `None` until initialized
-        self._contentScaleFactor = None
 
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
@@ -929,10 +930,26 @@ class Window():
 
         See :ref:`units` for explanation of options.
 
+        Changing units does not move the view either, so if
+        :py:attr:`~Window.viewPos` is set it is given in the new units.
+
         """
         if value is None:
             value = prefs.general['units']
+        oldUnits = self.__dict__.get('units')
         self.__dict__['units'] = value
+
+        # leave the view where it is, giving its position in the new units
+        viewPos = self.__dict__.get('viewPos')
+        if viewPos is not None and oldUnits not in (None, value):
+            try:
+                self.__dict__['viewPos'] = getattr(
+                    layout.Position(viewPos, oldUnits, self), value)
+            except Exception as err:
+                logging.warning(
+                    "Window: the view has not moved, but its position could "
+                    "not be given in '{}' units ({}), so `viewPos` is still "
+                    "{} in '{}' units.".format(value, err, viewPos, oldUnits))
 
     def setUnits(self, value, log=True):
         setAttribute(self, 'units', value, log=log)
@@ -949,6 +966,11 @@ class Window():
             win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
 
         """
+        if value is not None:
+            # kept as an array, as `__init__` does, whatever it was given as
+            # (`list` first, since a generator would otherwise be stored after
+            # being used up)
+            value = val2array(list(value), withScalar=False)
         self.__dict__['viewPos'] = value
         if value is not None:
             # let setter take care of normalisation
@@ -957,9 +979,9 @@ class Window():
     @attributeSetter
     def _viewPosNorm(self, value):
         """Normalised value of viewPos, hidden from user view."""
-        # first convert to pixels, then normalise to window units
-        viewPos_pix = convertToPix([0, 0], list(value),
-                                   units=self.units, win=self)[:2]
+        # first convert to framebuffer pixels, then normalise to window units
+        # ('pix' units are bigger than framebuffer pixels on high DPI displays)
+        viewPos_pix = self._windowUnitsToBufferPix(list(value))
         viewPos_norm = viewPos_pix / (self.size / 2.0)
         # Clip to +/- 1; should going out-of-window raise an exception?
         viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
@@ -2356,24 +2378,14 @@ class Window():
     def useLights(self, value):
         self._useLights = value
 
-        # DEPRECATED: this is not needed in modern OpenGL
-
-        # # Setup legacy lights, new spec shader programs should access the
-        # # `lights` attribute directly to setup lighting uniforms.
-        # if self._useLights and self._lights:
-        #     GL.glEnable(GL.GL_LIGHTING)
-        #     # make sure specular lights are computed relative to eye position,
-        #     # this is more realistic than the default. Does not affect shaders.
-        #     GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
-
-        #     # update light positions for current model matrix
-        #     for index, light in enumerate(self._lights):
-        #         enumLight = GL.GL_LIGHT0 + index
-        #         pos = numpy.ctypeslib.as_ctypes(light.pos)
-        #         GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-        # else:
-        #     # disable lights
-        #     GL.glDisable(GL.GL_LIGHTING)
+        # Light positions are transformed by the current modelview matrix when
+        # set, so update them for the current view. Shaders read positions from
+        # `gl_LightSource`, otherwise lights stay wherever the modelview put
+        # them when `lights` was assigned (eg. before `setPerspectiveView`).
+        if self._useLights and self._lights:
+            for index, light in enumerate(self._lights):
+                pos = numpy.ctypeslib.as_ctypes(light.pos)
+                GL.glLightfv(GL.GL_LIGHT0 + index, GL.GL_POSITION, pos)
 
     def updateLights(self, index=None):
         """Explicitly update scene lights if they were modified.
@@ -2474,8 +2486,18 @@ class Window():
         # for redundancy checks because several places (the legacy `TextBox`,
         # the backend resize handler, `gltools`) call `glViewport` directly.
         x, y, w, h = (int(i) for i in value)
+        # (the backend may set the viewport before `__init__` has made this)
+        lastViewport = getattr(self, '_viewport', None)
+        resized = lastViewport is None or \
+            (lastViewport[2], lastViewport[3]) != (w, h)
         self._viewport = numpy.array((x, y, w, h), int)
         GL.glViewport(x, y, w, h)
+
+        # The view is offset in normalised units, which depend on the size of
+        # the window, so the offset is worked out again to keep `viewPos`
+        # meaning the same thing in the window's units.
+        if resized and self.__dict__.get('viewPos') is not None:
+            self._viewPosNorm = self.viewPos
 
     @property
     def scissor(self):
@@ -2630,6 +2652,32 @@ class Window():
         if oldDepthMask is False:   # return to old state if needed
             GL.glDepthMask(GL.GL_FALSE)
 
+    def _getFrustumScreen(self):
+        """Get the physical size of the area being drawn to, for computing
+        perspective projections.
+
+        Returns
+        -------
+        tuple
+            Distance to the screen and width of the area being drawn to in
+            meters, and the aspect ratio of the area.
+
+        """
+        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
+        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        # The width of the screen in pixels is in 'pix' units, which are bigger
+        # than the framebuffer pixels `size` is in on high DPI (e.g. Retina)
+        # displays. If it isn't known, the window is taken to fill the screen.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr and self.scrWidthPIX:
+            widthPix = self.size[0] / self.pixScaleFactor
+            scrWidthM = (widthPix / self.scrWidthPIX) * scrWidthM
+
+        return scrDistM, scrWidthM, aspect
+
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
         """Set an off-axis projection.
 
@@ -2652,14 +2700,7 @@ class Window():
             Clear the depth buffer.
 
         """
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+        scrDistM, scrWidthM, aspect = self._getFrustumScreen()
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -2715,14 +2756,7 @@ class Window():
           something the viewer can look around the screen comfortably.
 
         """
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+        scrDistM, scrWidthM, aspect = self._getFrustumScreen()
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -2773,14 +2807,7 @@ class Window():
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
         #
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+        scrDistM, scrWidthM, aspect = self._getFrustumScreen()
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -3133,6 +3160,34 @@ class Window():
 
         # 'pix' units are window coordinates on high DPI (e.g. Retina) displays
         return pix * self.pixScaleFactor
+
+    def _pixRectToBufferRect(self, pos, size):
+        """Convert a region given in 'pix' units to the framebuffer pixels it
+        covers, as needed by :py:attr:`~Window._getPixels()`.
+
+        These differ from 'pix' units on high DPI (e.g. Retina) displays.
+
+        Parameters
+        ----------
+        pos : array_like
+            Position `(x, y)` of the center of the region in 'pix' units.
+        size : array_like
+            Size `(w, h)` of the region in 'pix' units.
+
+        Returns
+        -------
+        tuple
+            The region as `(left, bottom, w, h)` in framebuffer pixels, with
+            the origin at the bottom left of the window.
+
+        """
+        # 'pix' units are window coordinates on high DPI (e.g. Retina) displays
+        left, bottom = \
+            numpy.asarray(pos, dtype=float) * self.pixScaleFactor + \
+            numpy.asarray(self.size) / 2.0
+        w, h = numpy.asarray(size, dtype=float) * self.pixScaleFactor
+
+        return int(left - w / 2), int(bottom - h / 2), int(w), int(h)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
@@ -4103,7 +4158,10 @@ class Window():
 
         # If value is scaleDown or alias, set to None or "contain" based on relative size
         if value in ("scaleDown", "scale-down", "scaledown"):
-            overflow = numpy.asarray(self._backgroundImage._origSize) > numpy.asarray(self.size)
+            # the image's own size is drawn in 'pix' units, which are bigger
+            # than framebuffer pixels on high-DPI (e.g. Retina) displays
+            overflow = numpy.asarray(self._backgroundImage._origSize) > \
+                numpy.asarray(self.size) / self.pixScaleFactor
             if overflow.any():
                 value = "contain"
             else:
@@ -4291,6 +4349,18 @@ class Window():
         # setup screen color
         self.color = self.color  # call attributeSetter
         GL.glClearDepth(1.0)
+
+        # widest line the driver draws, in framebuffer pixels, since wider
+        # lines are drawn this wide instead (e.g. Apple's drivers cap them at
+        # 16), smoothed or not
+        self._maxLineWidth = None
+        for name in (GL.GL_ALIASED_LINE_WIDTH_RANGE,
+                     GL.GL_SMOOTH_LINE_WIDTH_RANGE):
+            widthRange = (GL.GLfloat * 2)()
+            GL.glGetFloatv(name, widthRange)
+            if widthRange[1] > 0:
+                self._maxLineWidth = widthRange[1] if self._maxLineWidth is None \
+                    else min(self._maxLineWidth, widthRange[1])
 
         # viewport or drawable area of the framebuffer
         self.viewport = self.scissor = \

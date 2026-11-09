@@ -558,7 +558,7 @@ class VisualSystemHD(window.Window):
             GL.glTexParameteri(GL.GL_TEXTURE_2D,
                                GL.GL_TEXTURE_MIN_FILTER,
                                GL.GL_LINEAR)
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F,
                             int(width), int(height), 0,
                             GL.GL_RGBA, GL.GL_FLOAT, None)
             GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,

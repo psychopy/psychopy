@@ -388,12 +388,16 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.__dict__['font'] = fontName.name
         else:
             self.__dict__['font'] = fontName
+            # Glyphs are rendered at the resolution of the framebuffer, which
+            # is higher than 'pix' units on high DPI (e.g. Retina) displays,
+            # so the text is drawn sharply. They're still measured in 'pix'.
             self.glFont = allFonts.getFont(
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold,
                     italic=self.italic,
-                    lineSpacing=self.lineSpacing)
+                    lineSpacing=self.lineSpacing,
+                    rasterScale=self.win.pixScaleFactor)
 
     @attributeSetter
     def overflow(self, value):
@@ -1776,7 +1780,7 @@ class Caret(ColorMixin):
         """Legacy drawing code for older GL versions.
         """
         # If no override and conditions are met, or override is True, draw
-        gl.glLineWidth(self.width)
+        gl.glLineWidth(self.width * self.textbox.win.pixScaleFactor)
         gl.glColor4f(
             *self._foreColor.rgba1
         )

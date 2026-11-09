@@ -189,6 +189,9 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
         """
         Test that images set with one or both dimensions as None maintain their aspect ratio
         """
+        # size of the window in 'pix' units, which is smaller than its size in
+        # framebuffer pixels on high-DPI (e.g. Retina) displays
+        pixSize = self.win.size / self.win.pixScaleFactor
         cases = [
             # norm 1:1
             {"img": "default.png", "aspect": (1, 1),
@@ -218,10 +221,10 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
              "tag": "default_None"},
             # pix 1:1
             {"img": "default.png", "aspect": (1, 1),
-             "size": (None, self.win.size[1]), "units": "pix",
+             "size": (None, pixSize[1]), "units": "pix",
              "tag": "default_xNone_yFull"},
             {"img": "default.png", "aspect": (1, 1),
-             "size": (self.win.size[0], None), "units": "pix",
+             "size": (pixSize[0], None), "units": "pix",
              "tag": "default_xFull_yNone"},
             {"img": "default.png", "aspect": (1, 1),
              "size": (None, None), "units": "pix",

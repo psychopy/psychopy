@@ -47,7 +47,8 @@ class DeviceManager:
 
     Any subclass of BaseDevice is added to DeviceManager's `.deviceClasses` list upon import,
     so devices matching that class become available through `DeviceManager.getAvailableDevices(
-    "*")`.
+    "*")`. Classes declared with `isBackend=True` are left out, as their devices are listed
+    through the class which picks between backends (e.g. `BaseCameraDevice`).
 
     """
     _instance = None  # singleton instance
@@ -204,7 +205,7 @@ class DeviceManager:
                 # if no backend can be loaded, no devices of this type can exist
                 return cls
             # only device backends are classes (e.g. sound.Sound resolves to a module)
-            if isinstance(backend, type):
+            if isinstance(backend, type) and not issubclass(backend, cls):
                 cls = backend
 
         return cls

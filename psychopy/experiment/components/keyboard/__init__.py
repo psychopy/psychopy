@@ -27,7 +27,7 @@ class KeyboardComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='key_resp', deviceLabel="",
                  allowedKeys="'y','n','left','right','space'", registerOn="press",
-                 store='last key', forceEndRoutine=True, muteOutsidePsychopy=True,
+                 store='last key', forceEndRoutine=True,
                  storeCorrect=False,
                  correctAns="", discardPrev=True,
                  startType='time (s)', startVal=0.0,
@@ -57,22 +57,9 @@ class KeyboardComponent(BaseComponent):
         # --- Basic ---
         self.order += [
             "forceEndRoutine",
-            "muteOutsidePsychopy",
             "registerOn",
             "allowedKeys",
         ]
-
-        self.params['muteOutsidePsychopy'] = Param(
-            muteOutsidePsychopy,
-            categ="Basic",
-            valType="bool", 
-            inputType="bool", 
-            updates="constant",
-            label=_translate("Ignore keypresses outside PsychoPy"),
-            hint=_translate(
-                "Only collect responses when the PsychoPy window has focus (this is better for security)"
-            )
-        )
 
         msg = _translate(
             "When should the keypress be registered? As soon as pressed, or when released?")
@@ -171,7 +158,6 @@ class KeyboardComponent(BaseComponent):
             "%(name)s = keyboard.Keyboard(\n"
             "    deviceName='defaultKeyboard', \n"
             "    backend={keyboardBackend},\n"
-            "    muteOutsidePsychopy=%(muteOutsidePsychopy)s\n"
             ")\n"
         ).format(
             keyboardBackend=self.exp.settings.params['keyboardBackend'] if self.exp.settings.params['useLegacyKeyboard'] else "None"

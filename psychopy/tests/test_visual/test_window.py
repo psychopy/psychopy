@@ -58,6 +58,16 @@ def _decodeMovieFrames(filename):
     return frames
 
 
+def _frameSize(win):
+    """Size of the frames captured from a window, `(width, height)`.
+
+    Frames are captured at the size of the window's framebuffer, which on a
+    high-DPI (e.g. Retina) display is bigger than the window.
+
+    """
+    return tuple(int(s) for s in win.frameBufferSize)
+
+
 def _assertCenterColor(frame, colorName, context):
     """Check the middle of a captured frame is the colour drawn there.
 
@@ -558,7 +568,7 @@ class TestWindowMovieFrames:
             imageFile)
 
         with Image.open(imageFile) as image:
-            assert image.size == self.WIN_SIZE
+            assert image.size == _frameSize(captureWin)
             frame = np.asarray(image.convert('RGB'))
 
         _assertCenterColor(frame, drawn[0], 'the saved image')
@@ -576,7 +586,7 @@ class TestWindowMovieFrames:
         # the numbering runs in the order the frames were captured
         for frameN, (imageFile, color) in enumerate(zip(written, drawn)):
             with Image.open(imageFile) as image:
-                assert image.size == self.WIN_SIZE
+                assert image.size == _frameSize(captureWin)
                 frame = np.asarray(image.convert('RGB'))
 
             _assertCenterColor(frame, color, 'image {}'.format(imageFile.name))
@@ -608,6 +618,7 @@ class TestWindowMovieFrames:
             try:
                 drawn = self._captureColorCycle(captureWin, self.N_FRAMES)
                 assert len(captureWin.movieFrames) == self.N_FRAMES
+                frameSize = _frameSize(captureWin)
 
                 captureWin.saveMovieFrames(str(movieFile), fps=self.FPS)
             finally:
@@ -624,9 +635,9 @@ class TestWindowMovieFrames:
                     self.N_FRAMES, len(frames)))
 
             for frameN, (frame, color) in enumerate(zip(frames, drawn)):
-                assert frame.shape[:2] == self.WIN_SIZE[::-1], (
-                    "frame {} is {} rather than the window's {}".format(
-                        frameN, frame.shape[:2], self.WIN_SIZE[::-1]))
+                assert frame.shape[:2] == frameSize[::-1], (
+                    "frame {} is {} rather than the window's framebuffer "
+                    "{}".format(frameN, frame.shape[:2], frameSize[::-1]))
                 _assertCenterColor(
                     frame, color, 'frame {} of the movie'.format(frameN))
 
@@ -635,7 +646,7 @@ class TestWindowMovieFrames:
                 playbackWin, str(movieFile), noAudio=True, autoStart=False,
                 loop=False, size=self.WIN_SIZE, autoLog=False)
             try:
-                assert tuple(movie.frameSize) == self.WIN_SIZE
+                assert tuple(movie.frameSize) == frameSize
                 assert movie.duration == pytest.approx(
                     self.N_FRAMES / self.FPS, abs=1.0 / self.FPS)
 
