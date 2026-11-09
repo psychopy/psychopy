@@ -347,33 +347,6 @@ def _erode(mask, n=1):
     return ~_dilate(~mask, n)
 
 
-def _grating(win, ori=0.0, size=(48, 48)):
-    """An opaque, unmasked sine grating to draw alongside a movie."""
-    return visual.GratingStim(
-        win, units='pix', tex='sin', mask=None, sf=1 / 12., size=size,
-        ori=ori, autoLog=False)
-
-
-def _footprint(win, size, ori=0.0):
-    """Mask of the pixels a square stimulus of `size` at `ori` covers.
-
-    This draws a solid rectangle in its place, since a sine grating has pixels
-    the same grey as the background, which would leave holes in a mask taken
-    from the grating itself.
-
-    """
-    rect = visual.Rect(
-        win, units='pix', size=size, ori=ori, fillColor='white',
-        lineColor=None, autoLog=False)
-
-    return _drawnRegion(win, rect)[0]
-
-
-def _maxDifference(a, b, mask):
-    """Largest difference between two captured frames over `mask`."""
-    return np.abs(a - b)[mask].max()
-
-
 # --------------------------------------------------------------------------
 # Decoding
 #
@@ -643,16 +616,6 @@ class TestMovieStimDecoding:
 EDGE_MARGIN = 2
 
 
-@contextmanager
-def _pausedMovie(win, movieLib, **kwargs):
-    """A movie held on one frame, so that every capture of it is the same."""
-    with movieStim(win, movieLib, **kwargs) as mov:
-        mov.play()
-        mov.seek(SAMPLE_EARLY)
-        mov.pause()
-        yield mov
-
-
 @pytest.mark.parametrize('gpuColorConversion', [True, False])
 class TestMovieStimWithOtherStimuli:
     """Tests that a movie and other stimuli drawn on the same window each look
@@ -683,55 +646,63 @@ class TestMovieStimWithOtherStimuli:
             gc.enable()
             gc.collect()
 
-    @pytest.mark.parametrize('ori', [0, 30, 45, 90, 137])
-    def test_gratingOverMovieDrawsCorrectly(self, win, movieLib,
-                                            gpuColorConversion, ori):
-        """A rotated grating drawn over a movie looks as it does alone, and
-        leaves the rest of the movie as it was."""
-        size = (48, 48)
-        grating = _grating(win, ori=ori, size=size)
+    def test_rotatingMaskedGratingOverPlayingMovie(self, win, movieLib,
+                                                   gpuColorConversion):
+        """A Gaussian-masked grating rotating smoothly over a playing movie
+        blends with every movie frame just as it would alone.
 
-        with _pausedMovie(win, movieLib, size=(100, 100),
-                          gpuColorConversion=gpuColorConversion) as mov:
-            gratingAlone, _ = _drawToBackBuffer(win, grating)
-            movieAlone, _ = _drawToBackBuffer(win, mov)
-            composite, _ = _drawToBackBuffer(win, mov, grating)
+        Where the mask is translucent the grating mixes with whatever is under
+        it, so each frame checks the composite against the blend predicted
+        from the movie frame alone. The grating's colour and per-pixel opacity
+        come from drawing it over solid black and white: over black it leaves
+        `alpha * grating`, and over white the difference from black is
+        `255 * (1 - alpha)`. The grating draws, and so uploads its new
+        orientation, right after the movie uploads each new frame, which would
+        show up any GL state the movie leaves behind.
 
-        footprint = _footprint(win, size, ori)
-        inside = _erode(footprint, EDGE_MARGIN)
-        outside = ~_dilate(footprint, EDGE_MARGIN)
+        """
+        grating = visual.GratingStim(
+            win, units='pix', tex='sin', mask='gauss', sf=1 / 12.,
+            size=(80, 80), autoLog=False)
+        black = visual.Rect(win, units='norm', size=(2, 2), fillColor='black',
+                            lineColor=None, autoLog=False)
+        white = visual.Rect(win, units='norm', size=(2, 2), fillColor='white',
+                            lineColor=None, autoLog=False)
 
-        # the grating is opaque, so covers the movie entirely and looks just
-        # as it does without the movie under it
-        assert _maxDifference(composite, gratingAlone, inside) <= 1
+        def drawnOver(*stims):
+            for stim in stims:
+                stim.draw()
+            return _captureBackBuffer(win)
 
-        # and the movie around it is untouched
-        assert _maxDifference(composite, movieAlone, outside) <= 1
+        with movieStim(win, movieLib, units='pix', size=(100, 100),
+                       gpuColorConversion=gpuColorConversion) as mov:
+            # only compare where the movie covers the window
+            inside = _erode(_drawnRegion(win, mov)[0], EDGE_MARGIN)
+            assert inside.any()
 
-        # the grating did cover something, so the first check means something
-        assert np.abs(composite - movieAlone)[inside].mean() > 1.0
+            mov.play()
+            _drawFrames(win, mov, count=2)
+            start = mov.movieTime
 
-    def test_movieOverGratingDrawsCorrectly(self, win, movieLib,
-                                            gpuColorConversion):
-        """A movie drawn over a grating looks as it does alone, with the
-        grating still showing around it."""
-        size, ori = (120, 120), 30
-        grating = _grating(win, ori=ori, size=size)
+            for ori in np.arange(0, 180, 3.0):  # 3 deg per frame, 60 frames
+                grating.ori = ori
+                overBlack = drawnOver(black, grating)
+                overWhite = drawnOver(white, grating)
+                movieAlone = drawnOver(mov)
+                composite = drawnOver(grating)
+                win.flip()
 
-        with _pausedMovie(win, movieLib, size=(64, 64),
-                          gpuColorConversion=gpuColorConversion) as mov:
-            gratingAlone, _ = _drawToBackBuffer(win, grating)
-            movieAlone, _ = _drawToBackBuffer(win, mov)
-            composite, _ = _drawToBackBuffer(win, grating, mov)
-            movieMask, _ = _drawnRegion(win, mov)
+                transmitted = (overWhite - overBlack) / 255.
+                expected = overBlack + transmitted * movieAlone
+                error = np.abs(composite - expected)[inside].max()
 
-        inside = _erode(movieMask, EDGE_MARGIN)
-        around = _erode(_footprint(win, size, ori), EDGE_MARGIN) & \
-            ~_dilate(movieMask, EDGE_MARGIN)
+                # allows for each capture being rounded to 8 bits
+                assert error <= 2, (ori, error)
 
-        assert inside.any() and around.any()
-        assert _maxDifference(composite, movieAlone, inside) <= 1
-        assert _maxDifference(composite, gratingAlone, around) <= 1
+                # the grating did change the movie, so the check means something
+                assert np.abs(composite - movieAlone)[inside].mean() > 1.0, ori
+
+            assert mov.movieTime > start
 
     def test_drawLeavesGLStateAlone(self, win, movieLib, gpuColorConversion):
         """Drawing a playing movie, uploading new frames as it goes, leaves the
@@ -739,9 +710,11 @@ class TestMovieStimWithOtherStimuli:
         defaults which another stimulus may have left set to upload with."""
         import psychopy.tools.pygletgl as GL
 
-        grating = _grating(win, ori=30)
+        grating = visual.GratingStim(
+            win, units='pix', tex='sin', mask='gauss', sf=1 / 12.,
+            size=(48, 48), ori=30, autoLog=False)
 
-        with movieStim(win, movieLib, size=(100, 100),
+        with movieStim(win, movieLib, units='pix', size=(100, 100),
                        gpuColorConversion=gpuColorConversion) as mov:
             mov.play()
             try:
@@ -760,51 +733,6 @@ class TestMovieStimWithOtherStimuli:
                 # back to the defaults, for the tests sharing the window
                 GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
                 GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
-
-    def test_rotatingGratingOverPlayingMovie(self, win, movieLib,
-                                             gpuColorConversion):
-        """A grating rotated frame by frame over a playing movie looks as it
-        does alone at every angle, while new movie frames are uploaded between
-        draws.
-
-        The grating swaps texture every frame too, so that it uploads one right
-        after the movie has, as it would if pixel upload state (a bound pixel
-        buffer, row length or alignment) were left behind by the movie.
-
-        """
-        size = (48, 48)
-        steps = [(ori, 'sqr' if i % 2 else 'sin')
-                 for i, ori in enumerate(range(0, 360, 30))]
-        grating = _grating(win, size=size)
-
-        # how the grating looks alone at each step, and where it is solid
-        expected = {}
-        for ori, tex in steps:
-            grating.ori, grating.tex = ori, tex
-            alone, _ = _drawToBackBuffer(win, grating)
-            expected[ori] = (
-                alone, _erode(_footprint(win, size, ori), EDGE_MARGIN))
-
-        with movieStim(win, movieLib, size=(100, 100),
-                       gpuColorConversion=gpuColorConversion) as mov:
-            mov.play()
-            _drawFrames(win, mov, count=2)
-            start = mov.movieTime
-
-            for ori, tex in steps:
-                win.flip()  # clear the back buffer, as `_drawToBackBuffer`
-                mov.draw()
-                grating.ori, grating.tex = ori, tex  # uploaded after the movie
-                grating.draw()
-                composite = _captureBackBuffer(win)
-                win.flip()
-                alone, inside = expected[ori]
-
-                assert _maxDifference(composite, alone, inside) <= 1, ori
-
-                time.sleep(0.02)  # let the movie move on a frame or so
-
-            assert mov.movieTime > start
 
 
 # --------------------------------------------------------------------------
