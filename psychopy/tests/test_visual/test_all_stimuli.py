@@ -272,13 +272,20 @@ class _baseVisualTest():
         # getting back to 'add' if we want it
         win = self.win
         text = visual.TextStim(win, pos=[0, 0.9])
+        # In 'pix' units, scaling the spatial frequency up would put many
+        # cycles in each pixel, which only draws aliasing (differently on each
+        # graphics card), so it's scaled down instead, to as many cycles as in
+        # 'norm' units
+        if self.contextName == 'pix':
+            sf = 2 / self.scaleFactor
+        else:
+            sf = 2 * self.scaleFactor
         grat1 = visual.GratingStim(win, size=2*self.scaleFactor,
                                    opacity=0.5,
-                                   pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
+                                   pos=[0.3,0.0], ori=45, sf=sf)
         grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
                                    opacity=0.5,
-                                   pos=[-0.3, 0.0], ori=-45,
-                                   sf=2*self.scaleFactor)
+                                   pos=[-0.3, 0.0], ori=-45, sf=sf)
 
         text.draw()
         grat1.draw()
