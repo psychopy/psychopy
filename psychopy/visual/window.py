@@ -491,7 +491,7 @@ class Window():
         # and those of the last frame flipped, to check once they've been made
         self._presentCalls = []
         self._presentCallsFlipped = []
-        self._presentScheduler = None  # started when first needed
+        self._presentScheduler = None  # started once the window is open
         self.nEarlyPresentCalls = 0
         # time from the reported presentation of a frame to it being on screen
         # (e.g. the response time of the display), see `presentationLatency`
@@ -775,6 +775,7 @@ class Window():
         # where the time of the last flip came from, see `lastFlipTimeSource`
         self._lastFlipTimeSource = None
         # whether a reported flip time has been rejected, to warn just once
+        # (not while measuring the refresh rate, see below)
         self._warnedFlipTimestamp = False
         if flipTimestamps == 'auto':
             logging.info(
@@ -786,6 +787,13 @@ class Window():
         # set the swap interval if using GLFW
         if self.winType == 'glfw':
             self.backend.setSwapInterval(int(waitBlanking))
+
+        # Start the thread which makes calls on presentation (see
+        # `callOnPresent`) now, rather than on the frame of the first call, as
+        # starting a thread can hold up the next flip by a couple of refreshes.
+        # It waits without using the CPU until it's given calls.
+        self._presentScheduler = PresentCallScheduler()
+        self._presentScheduler.start()
 
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
@@ -838,7 +846,13 @@ class Window():
         # for testing when to stop drawing a stim:
         self.monitorFramePeriod = 0.0
         if checkTiming:
+            # The first flips can return before their frames are presented
+            # (e.g. while the driver lets swaps queue up), so a presentation
+            # time can't be used for them. That's not worth warning of.
+            warned = self._warnedFlipTimestamp
+            self._warnedFlipTimestamp = True
             self._monitorFrameRate = self.getActualFrameRate(infoMsg=infoMsg)
+            self._warnedFlipTimestamp = warned
 
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
