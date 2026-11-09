@@ -14,6 +14,7 @@
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
 #
+import glob
 import re
 import sys, os
 import math
@@ -923,7 +924,18 @@ class FontManager():
         return similar
 
     def addGoogleFont(self, fontName):
-        """Add a font directly from the Google Font repository, saving it to the user prefs folder"""
+        """Add a font directly from the Google Font repository, saving it to the user prefs folder.
+
+        If the font has already been saved there, that copy is used. It
+        can't be replaced while it's in use anyway: on Windows, a font file
+        loaded by FreeType can't be written to.
+        """
+        # Use the font if it's already been retrieved
+        fontsDir = Path(prefs.paths['fonts'])
+        for fileName in sorted(fontsDir.glob(f"{glob.escape(fontName)}.*")):
+            fontInfo = self.addFontFile(fileName)
+            if fontInfo:
+                return fontInfo
 
         # Construct and send Google Font url from name
         repoURL = f"https://fonts.googleapis.com/css2?family={ fontName.replace(' ', '+') }&display=swap"
@@ -939,7 +951,7 @@ class FontManager():
             # If font file is not available, raise error
             raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
         # Save retrieved font as an OST file
-        fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
+        fileName = fontsDir / f"{fontName}.{fileFormat}"
         logging.info("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
