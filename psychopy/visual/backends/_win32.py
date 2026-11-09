@@ -6,8 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Windows specific functionality shared by window backends (e.g., Pyglet and
-GLFW). This includes timing when buffer swaps are presented on screen, using
-the timing information of the Desktop Window Manager (DWM).
+GLFW). This includes timing when buffer swaps are presented on screen, from
+the refresh timing of the Desktop Window Manager (DWM).
 
 This module can be imported on any platform, so that its calculations can be
 tested, but :meth:`DwmSwapTimer.create` only gives a timer on Windows.
@@ -19,7 +19,6 @@ __all__ = [
 
 import ctypes
 import sys
-import time
 
 from psychopy import logging
 from psychopy.clock import measureClockOffset
@@ -85,18 +84,20 @@ class DwmTimingInfo(ctypes.Structure):
     ]
 
 
-def presentationTicks(info):
-    """When the last confirmed present was presented, from DWM timing
-    information, in QPC ticks.
+def lastVBlankTicks(info, nowTicks):
+    """The last vertical blank at or before a time, on the grid of refreshes
+    given by DWM timing information, in QPC ticks.
 
-    That's the refresh the DWM confirmed the present at, which is
-    `cDXRefresh - cDXRefreshConfirmed` refreshes before the one at
-    `qpcVBlank`.
+    The DWM reports one vertical blank (`qpcVBlank`, which may be the last or
+    the next) and the refresh period, which together give the time of every
+    other, as long as the reported one is recent.
 
     Parameters
     ----------
     info : DwmTimingInfo
         Timing information from `DwmGetCompositionTimingInfo`.
+    nowTicks : int
+        Time in QPC ticks.
 
     Returns
     -------
@@ -104,38 +105,60 @@ def presentationTicks(info):
         QPC ticks.
 
     """
-    refreshesSince = (info.cDXRefresh - info.cDXRefreshConfirmed) & 0xFFFFFFFF
-
-    return info.qpcVBlank - refreshesSince * info.qpcRefreshPeriod
+    period = info.qpcRefreshPeriod
+    # floor division, so a time before `qpcVBlank` goes to the one before it
+    return info.qpcVBlank + ((nowTicks - info.qpcVBlank) // period) * period
 
 
 class DwmSwapTimer:
-    """Times when buffer swaps are presented on screen, from the timing
-    information of the Desktop Window Manager (DWM), which composites every
-    window.
+    """Times when buffer swaps are presented on screen, as the vertical blank
+    each swap completed at, from the refresh timing of the Desktop Window
+    Manager (DWM), which composites every window.
 
-    After each swap, :meth:`afterSwap` waits for the DWM to confirm the
-    present the swap led to, and works out the refresh that happened at.
-    This relies on the most recent present being the one for our window, so
-    it's only used with a single display, and works best with nothing else
-    on screen changing.
+    With vertical sync, a swap completes at a vertical blank, and the flip
+    which made it returns shortly after (well within a refresh). The time of
+    the swap is taken to be the last vertical blank, on the DWM's grid of
+    refreshes, before its time is read (give or take `_readMargin`). So this
+    must be read (as `Window` does) once the swap has completed, which the
+    backend doesn't wait for.
+
+    This is when the swap was presented to the display, from when it's
+    scanned out. Where the DWM composites the window (rather than letting it
+    flip directly, as it can for a full screen window), it may be scanned out
+    a refresh later, which can be allowed for with the window's
+    `presentationLatency`.
+
+    The DWM's counts of frames and refreshes aren't used, as on recent
+    versions of Windows they count calls to `DwmGetCompositionTimingInfo`
+    rather than refreshes. Its timing information isn't for any one display,
+    so it's only used with a single display.
 
     Use :meth:`create` to get an instance, which returns `None` where the
     DWM's timing information can't be used.
 
     """
     source = 'dwm'
-    # longest to wait for a present to be confirmed, in refreshes
-    _maxWaitRefreshes = 2
+    # oldest the DWM's last reported vertical blank can be to extrapolate the
+    # grid of refreshes from, in seconds (the reported period is rounded to a
+    # QPC tick, so the error grows by up to half a tick a refresh)
+    _maxVBlankAge = 1.0
+    # The vertical blanks the DWM reports can be a few tenths of a millisecond
+    # later than when swaps complete (measured on Windows 11, full screen),
+    # and the flip of a swap can return sooner after it than that, so the
+    # swap is timed at the last vertical blank before this long after its
+    # time is read. A swap whose flip returns this long or less before a
+    # vertical blank is most likely presented at that one.
+    _readMargin = 0.001
 
-    def __init__(self, dwmapi, qpcFrequency, qpcSeconds):
+    def __init__(self, dwmapi, qpcFrequency, qpcTicks):
         self._dwmapi = dwmapi
         self._qpcFrequency = qpcFrequency
-        self._qpcSeconds = qpcSeconds
+        self._qpcTicks = qpcTicks
         # offset from QPC seconds to `psychopy.clock.getTime()`, which
         # shares the QPC counter so doesn't change
-        self._clockOffset = measureClockOffset(qpcSeconds)
-        self.lastTimestamp = None
+        self._clockOffset = measureClockOffset(self._qpcSeconds)
+        self._swapPending = False
+        self._lastTimestamp = None
 
     @classmethod
     def create(cls):
@@ -170,52 +193,67 @@ class DwmSwapTimer:
             kernel32 = ctypes.windll.kernel32
             frequency = ctypes.c_int64()
             kernel32.QueryPerformanceFrequency(ctypes.byref(frequency))
-            frequency = float(frequency.value)
             counter = ctypes.c_int64()
 
-            def qpcSeconds():
+            def qpcTicks():
                 kernel32.QueryPerformanceCounter(ctypes.byref(counter))
-                return counter.value / frequency
+                return counter.value
 
-            return cls(dwmapi, frequency, qpcSeconds)
+            timer = cls(dwmapi, frequency.value, qpcTicks)
+            if timer._getTimingInfo() is None:
+                return None
+
+            return timer
         except Exception as err:
             logging.debug(
                 "Unable to get presentation times from the DWM: {}".format(err))
 
         return None
 
+    def _qpcSeconds(self):
+        return self._qpcTicks() / self._qpcFrequency
+
     def _getTimingInfo(self):
         info = DwmTimingInfo()
         info.cbSize = ctypes.sizeof(DwmTimingInfo)
         if self._dwmapi.DwmGetCompositionTimingInfo(
-                None, ctypes.byref(info)) != 0:
+                None, ctypes.byref(info)) != 0 or info.qpcRefreshPeriod <= 0:
             return None
 
         return info
 
     def afterSwap(self):
-        """Wait for the DWM to confirm presenting the swap just made, and
-        record when that was in `lastTimestamp` (`None` if it couldn't be
-        told).
+        """Note a swap has just been made, to be timed when `lastTimestamp`
+        is next read. This doesn't wait for the swap to complete.
         """
-        self.lastTimestamp = None
-        # the DWM presents our swap as part of its next composition
-        self._dwmapi.DwmFlush()
+        self._swapPending = True
+        self._lastTimestamp = None
 
+    @property
+    def lastTimestamp(self):
+        """When the last swap was presented, as the last vertical blank
+        before this is first read after the swap, on the raw clock
+        (`None` if it couldn't be told). Read this once the swap has
+        completed.
+        """
+        if self._swapPending:
+            self._swapPending = False
+            self._lastTimestamp = self._timeSwap()
+
+        return self._lastTimestamp
+
+    def _timeSwap(self):
         info = self._getTimingInfo()
         if info is None:
-            return
-        target = info.cDXPresentSubmitted
-        maxWait = self._maxWaitRefreshes * info.qpcRefreshPeriod / \
-            self._qpcFrequency
-        deadline = self._qpcSeconds() + maxWait
-        while info.cDXPresentConfirmed != target:
-            if self._qpcSeconds() > deadline:
-                return
-            time.sleep(0.0005)
-            info = self._getTimingInfo()
-            if info is None:
-                return
+            return None
+        nowTicks = self._qpcTicks()
+        # the grid of refreshes can only be extrapolated from a recent
+        # vertical blank (the DWM stops reporting them when it's idle)
+        if abs(nowTicks - info.qpcVBlank) > \
+                self._maxVBlankAge * self._qpcFrequency:
+            return None
 
-        self.lastTimestamp = \
-            presentationTicks(info) / self._qpcFrequency + self._clockOffset
+        marginTicks = int(self._readMargin * self._qpcFrequency)
+
+        return lastVBlankTicks(info, nowTicks + marginTicks) / \
+            self._qpcFrequency + self._clockOffset
