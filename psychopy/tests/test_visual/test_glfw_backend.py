@@ -138,3 +138,44 @@ def test_glfw_fullscreen_keeps_display_mode_macos(how):
             assert glfw.get_window_attrib(handle, glfw.DECORATED)
     finally:
         win.close()
+
+
+def _solidTextFraction(win, text):
+    """Draw `text` in `win` and return the fraction of the area around it
+    which is solid white. Glyphs drawn as solid rectangles (as when the font's
+    texture isn't one the window's context has) fill several times more of it
+    than the outlines of letters."""
+    from psychopy import visual
+    stim = visual.TextBox2(win, text, font='Arial', letterHeight=40,
+                           color='white', size=(380, None),
+                           alignment='center', autoLog=False)
+    stim.draw()
+    frame = np.asarray(win._getFrame(buffer='back').convert('L'), float)
+    win.flip()
+    h, w = frame.shape
+    return (frame[h // 2 - 30:h // 2 + 30, 20:w - 20] > 250).mean(), stim.glFont
+
+
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+@pytest.mark.parametrize('order', [('pyglet', 'glfw'), ('glfw', 'pyglet')])
+def test_text_after_another_backend(order):
+    """Text is drawn properly in a window of one backend after the same font
+    was drawn in a window of another. Pyglet's and GLFW's windows don't share
+    OpenGL objects, so each needs its own copy of the font's texture, rather
+    than drawing its glyphs as solid rectangles with the other's."""
+    from psychopy import visual
+    solid, fonts = [], []
+    for winType in order:
+        win = visual.Window((400, 200), winType=winType, color='black',
+                            units='pix', checkTiming=False, autoLog=False)
+        try:
+            fraction, glFont = _solidTextFraction(win, "Hello World")
+        finally:
+            win.close()
+        solid.append(fraction)
+        fonts.append(glFont)
+
+    # outlines of letters, each about as much as the other (either could have
+    # been drawn with a font cached by an earlier test in the other backend)
+    assert solid[1] == pytest.approx(solid[0], abs=0.03)
+    assert fonts[0] is not fonts[1]
