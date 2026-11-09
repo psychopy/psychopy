@@ -486,9 +486,22 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         return inputDevices
 
     @staticmethod
+    def isAvailable():
+        """Whether `psychtoolbox` could be imported, which this backend needs.
+        """
+        return _hasPTB
+
+    @staticmethod
     def getAvailableDevices():
+        try:
+            found = st.getAudioCaptureDevices()
+        except ImportError as err:
+            # without psychtoolbox there are no microphones this backend can record from
+            logging.debug(f"Can't list psychtoolbox microphones: {err}")
+            return []
+
         devices = []
-        for profile in st.getAudioCaptureDevices():
+        for profile in found:
             # get index as a name if possible
             index = profile.get('device_name', None)
             if index is None:

@@ -164,6 +164,35 @@ def _getOutputDevice(speaker):
         deviceClass=type(speaker))
 
 
+def _getExtraSettings(device):
+    """Host API specific settings to open an output stream on a device with.
+
+    In shared mode, WASAPI only takes streams in the format of the system mixer,
+    so a stereo stream on a surround device would fail to open. Letting WASAPI
+    convert the stream, as MME and DirectSound always do, avoids this.
+
+    Parameters
+    ----------
+    device : int, str or None
+        The device, as `_getOutputDevice()` returns it.
+
+    Returns
+    -------
+    sounddevice.WasapiSettings or None
+        Settings for the stream, or None if there are none to give.
+
+    """
+    try:
+        info = sd.query_devices(device, 'output')
+        if sd.query_hostapis(info['hostapi'])['name'] != 'Windows WASAPI':
+            return None
+        return sd.WasapiSettings(auto_convert=True)
+    except Exception:
+        # older sounddevice without `auto_convert`, or device not found (which
+        # opening the stream reports better)
+        return None
+
+
 class _StreamsDict(dict):
     """Keeps track of what streams have been created, one per output device.
     On macOS we can have multiple streams under portaudio but under windows we
@@ -287,7 +316,8 @@ class _SoundStream:
                                              latency='low',
                                              device=device,
                                              channels=self.channels,
-                                             callback=self._callback)
+                                             callback=self._callback,
+                                             extra_settings=_getExtraSettings(device))
             self._sdStream.start()
             self.device = self._sdStream.device
             self.latency = self._sdStream.latency
