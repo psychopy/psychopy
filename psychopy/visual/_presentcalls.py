@@ -302,13 +302,15 @@ class PresentCall:
 
 class PresentCallScheduler:
     """Calls functions at the predicted presentation times of their frames,
-    on a thread of its own, which is started when first needed.
+    on a thread of its own, which is started by :meth:`start`, or when first
+    needed.
 
-    While it's running, the interval at which CPython hands the GIL between
-    threads is lowered to `SWITCH_INTERVAL`, so a call isn't held up waiting
-    for the main thread to let go of it.
+    Once it has been given calls to make, the interval at which CPython hands
+    the GIL between threads is lowered to `SWITCH_INTERVAL`, so a call isn't
+    held up waiting for the main thread to let go of it.
     """
-    # number of schedulers running, and the switch interval before the first
+    # number of schedulers which have lowered the switch interval, and what it
+    # was before the first did
     _nRunning = 0
     _savedSwitchInterval = None
     _runningLock = threading.Lock()
@@ -318,7 +320,20 @@ class PresentCallScheduler:
         self._condition = threading.Condition()
         self._thread = None
         self._stopped = False
+        self._switchIntervalLowered = False
         self._waitUntil = None
+
+    def start(self):
+        """Start the thread which makes the calls, if it isn't running yet.
+
+        Starting a thread can hold up the next buffer swap (by a couple of
+        refreshes, measured on Windows with NVIDIA graphics, the first time a
+        thread is started), so `Window` starts it when it's created rather
+        than on the frame of the first call.
+        """
+        with self._condition:
+            if self._thread is None and not self._stopped:
+                self._start()
 
     def schedule(self, calls, tTarget):
         """Call functions at a time.
@@ -335,6 +350,8 @@ class PresentCallScheduler:
         with self._condition:
             if self._stopped:
                 return
+            if calls and not self._switchIntervalLowered:
+                self._lowerSwitchInterval()
             for call in calls:
                 call._tTargetRaw = tTarget
                 self._queue.append(call)
@@ -342,13 +359,16 @@ class PresentCallScheduler:
                 self._start()
             self._condition.notify()
 
-    def _start(self):
+    def _lowerSwitchInterval(self):
         with PresentCallScheduler._runningLock:
             if PresentCallScheduler._nRunning == 0:
                 PresentCallScheduler._savedSwitchInterval = sys.getswitchinterval()
                 sys.setswitchinterval(
                     min(SWITCH_INTERVAL, PresentCallScheduler._savedSwitchInterval))
             PresentCallScheduler._nRunning += 1
+        self._switchIntervalLowered = True
+
+    def _start(self):
         self._thread = threading.Thread(
             target=self._run, name="PresentCallScheduler", daemon=True)
         self._thread.start()
@@ -376,10 +396,11 @@ class PresentCallScheduler:
             self._queue.clear()
             self._condition.notify()
             thread = self._thread
-        if thread is None:
-            return
-        if thread is not threading.current_thread():
+        if thread is not None and thread is not threading.current_thread():
             thread.join(timeout)
+        if not self._switchIntervalLowered:
+            return
+        self._switchIntervalLowered = False
         with PresentCallScheduler._runningLock:
             PresentCallScheduler._nRunning -= 1
             if PresentCallScheduler._nRunning == 0:
