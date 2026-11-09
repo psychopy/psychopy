@@ -169,8 +169,106 @@ class _SoundBase(AttributeGetSetMixin):
 
     preBuffer = -1
     autoLog = True
-    startTime = 0 
-    stopTime = 0  
+    startTime = 0
+    stopTime = 0
+    # onset of the last `play()`, as raw times (on the clock
+    # `psychopy.clock.getTime()` reads), see `tStartActual`
+    _tStartRequestedRaw = None
+    _tStartActualRaw = None
+    _startTimesKnown = True  # nothing to look up until `play()` is called
+
+    def _resetStartTimes(self):
+        """Forget the onset of the previous `play()`, to look up the onset of
+        the one being made. Backends call this from `play()`, before playback
+        can start."""
+        self._tStartRequestedRaw = None
+        self._tStartActualRaw = None
+        self._startTimesKnown = False
+
+    def _getStartTimesRaw(self):
+        """When the last `play()` asked for the sound to start, and when the
+        driver says its first sample reaches the speaker, as raw times.
+
+        Backends which can report the onset override this.
+
+        Returns
+        -------
+        tuple
+            Requested start time, or `None` if playback was to start
+            immediately, and actual start time, or `None` if not known (yet).
+
+        """
+        return None, None
+
+    def _updateStartTimes(self):
+        """Look up the onset of the last `play()` if it isn't known yet, and
+        log it once it is, with a warning if it was later than requested.
+        """
+        if self._startTimesKnown:
+            return
+
+        requested, actual = self._getStartTimesRaw()
+        if actual is None:
+            return
+
+        self._tStartRequestedRaw = requested
+        self._tStartActualRaw = actual
+        self._startTimesKnown = True
+
+        if self.autoLog:
+            logging.exp(
+                u"Sound %s started" % self.name, obj=self,
+                t=float(logging.defaultClock.timestampFromRaw(actual)))
+
+        # A sound which starts on time starts within a sample of when it was
+        # asked to, so anything more than that means its start was missed,
+        # e.g. because it was scheduled less than the output latency ahead.
+        delay = self.startDelay
+        sampleRate = getattr(self, 'sampleRate', None) or 44100
+        if delay is not None and delay > 1.0 / sampleRate + 1e-6:
+            logging.warning(
+                u"Sound %s started %.3f ms later than requested. Schedule "
+                u"it further ahead of its start time than the output "
+                u"latency of the speaker." % (self.name, delay * 1000.0))
+
+    @property
+    def tStartActual(self):
+        """When the first sample of the last `play()` reached the speaker,
+        according to the audio driver (`Timestamp` on the clock used for
+        logging, or `None` if not known (yet)).
+
+        This includes the speaker's `latencyBias`. It isn't known until
+        playback has actually started, a little after the start time.
+        """
+        self._updateStartTimes()
+        if self._tStartActualRaw is None:
+            return None
+
+        return logging.defaultClock.timestampFromRaw(self._tStartActualRaw)
+
+    @property
+    def tStartRequested(self):
+        """When the last `play()` asked for playback to start (`Timestamp`
+        on the clock used for logging, or `None` if it was to start
+        immediately or isn't known yet).
+        """
+        self._updateStartTimes()
+        if self._tStartRequestedRaw is None:
+            return None
+
+        return logging.defaultClock.timestampFromRaw(self._tStartRequestedRaw)
+
+    @property
+    def startDelay(self):
+        """How much later than requested the last `play()` actually started,
+        in seconds (`None` if it was to start immediately, or either time
+        isn't known yet).
+        """
+        self._updateStartTimes()
+        if self._tStartRequestedRaw is None or self._tStartActualRaw is None:
+            return None
+
+        return self._tStartActualRaw - self._tStartRequestedRaw
 
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.

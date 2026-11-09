@@ -57,14 +57,21 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         prioritise resources towards playing sounds on this speaker for absolute minimum 
         latency, and raise an error if the system rejects this.
     resample : bool, optional
-        If the sample rate of an audio clip doesn't match the sample rate of the speaker, should 
+        If the sample rate of an audio clip doesn't match the sample rate of the speaker, should
         PsychoPy resample the sound on load?
+    latencyBias : float or None, optional
+        Output latency of the speaker in seconds, on top of what its driver reports, as measured
+        e.g. with a sound sensor. Sounds are started this much earlier to reach the speaker on
+        time, and their reported start times include it. It applies to every `SpeakerDevice` for
+        the same physical speaker, so leave as None to keep the speaker's current setting (0 if
+        not set).
     """
     backend = 'ptb'
     # dict of extant streams, by numeric index
     streams = {}
 
-    def __init__(self, index=None, name=None, latencyClass=1, resample=True):
+    def __init__(self, index=None, name=None, latencyClass=1, resample=True,
+                 latencyBias=None):
         if index is not None and name is not None:
             logging.warn(
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
@@ -109,6 +116,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         # store playback prefs
         self.resample = resample
         self.latencyClass = latencyClass
+        self._latencyBias = latencyBias
         # find the device and start a stream on it straight away, since some outputs (such as
         # HDMI audio) take a second or so to start playing a new stream, which would cut off
         # the start of the first sound. Sounds are only ever mono or stereo, so open as many
@@ -351,7 +359,48 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         self.createStream(channels=channels)
         if not self.isOpen:
             self.stream.start(0, 0, 1)
-    
+        self._applyLatencyBias()
+
+    @property
+    def latencyBias(self):
+        """
+        Output latency of the speaker in seconds, on top of what its driver reports (`float`).
+
+        Sounds are started this much earlier to reach the speaker on time, and their reported
+        start times include it. Setting it applies to every `SpeakerDevice` for the same physical
+        speaker.
+        """
+        if self.stream is not None and isinstance(self.stream.status, dict):
+            return self.stream.latency_bias
+
+        return self._latencyBias or 0.0
+
+    @latencyBias.setter
+    def latencyBias(self, value):
+        self._latencyBias = float(value)
+        self._applyLatencyBias()
+
+    def _applyLatencyBias(self):
+        """
+        Set the latency bias given for this speaker on its stream, if one was given and the stream
+        is open. It's set on the stream sounds play through as tracks, which PTB takes the timing
+        of every track from.
+        """
+        if self._latencyBias is None:
+            return
+        if self.stream is None or not isinstance(self.stream.status, dict):
+            return
+
+        current = self.stream.latency_bias
+        if current == self._latencyBias:
+            return
+        if current != 0:
+            logging.warning(
+                f"Changing the latency bias of speaker {self.name} from {current} s to "
+                f"{self._latencyBias} s, for every SpeakerDevice playing on it."
+            )
+        self.stream.latency_bias = self._latencyBias
+
     def close(self):
         """
         Close the audio stream for this speaker.

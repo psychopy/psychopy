@@ -209,7 +209,7 @@ class JoyButtonsComponent(BaseDeviceComponent):
 
             if store != 'nothing':
                 if self.params['syncScreenRefresh'].val:
-                    code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
+                    code = ("win.resetClockOnFlip(%(name)s.clock)  # t=0 on next"
                             " screen flip\n") % self.params
                 else:
                     code = "%(name)s.clock.reset()  # now t=0\n" % self.params

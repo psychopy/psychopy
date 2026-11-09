@@ -31,6 +31,7 @@ from ._base import BaseBackend, closeOnInitError
 
 if sys.platform == 'darwin':
     from . import _macos
+from . import _linux, _win32
 
 import pyglet
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -412,6 +413,10 @@ class GLFWBackend(BaseBackend):
         # macOS only, set once the window is created
         self._displayLinkMacOS = None
         self._appNapActivityMacOS = None
+        # times presentation of swaps on Windows and Linux, made when first
+        # needed (see `_getSwapTimer`)
+        self._swapTimer = None
+        self._swapTimerMade = False
 
         # All windows share a context with the hidden shadow window, so objects
         # are shared between windows and outlive them. The `share` option
@@ -759,12 +764,10 @@ class GLFWBackend(BaseBackend):
         return self._glVersion[0] >= 2
 
     def getFutureFlipTimestamp(self):
-        """The WindowServer's own predicted presentation time for the frame
-        it's currently compositing, when a macOS DisplayLink is active for
-        this window (see `_macos.DisplayLinkMacOS`). Unlike simply assuming
-        one frame period of latency after the last flip, this reflects
-        whatever buffering depth (e.g. triple buffering) the compositor is
-        actually using, since it comes from the compositor itself.
+        """When a frame submitted now is due to be presented, as reported by
+        a macOS DisplayLink for this window (see `_macos.DisplayLinkMacOS`).
+        Unlike assuming one frame period after the last flip returned, this
+        is tied to the display's actual refresh cycle.
 
         Returns `None` if unavailable, e.g. on non-macOS platforms, macOS
         versions prior to 14, if vertical synchronization is disabled, or if
@@ -776,6 +779,70 @@ class GLFWBackend(BaseBackend):
             return None
 
         return self._displayLinkMacOS.getFutureFlipTimestamp()
+
+    def _getSwapTimer(self):
+        """The timer of when swaps are presented on Windows or Linux
+        (`_win32.DwmSwapTimer` or `_linux.OMLSwapTimer`), made the first time
+        it's needed. `None` if there's no way to time them here.
+        """
+        if not self._swapTimerMade:
+            self._swapTimerMade = True
+            if sys.platform == 'win32':
+                self._swapTimer = _win32.DwmSwapTimer.create()
+            elif sys.platform.startswith('linux'):
+                try:
+                    # fails under Wayland, and with an EGL context the GLX
+                    # window is 0
+                    xDisplay = glfw.get_x11_display()
+                    glxWindow = glfw.get_glx_window(self.winHandle.handle)
+                except Exception:
+                    xDisplay = glxWindow = None
+                self._swapTimer = _linux.OMLSwapTimer.create(
+                    xDisplay, glxWindow)
+
+        return self._swapTimer
+
+    @property
+    def flipTimestampSource(self):
+        """Name of where `getLastFlipTimestamp()` gets presentation times
+        from: 'displaylink' on macOS, 'dwm' on Windows, 'oml' on Linux, or
+        `None` if there's no source here (e.g. macOS before 14, Windows with
+        more than one display, or a Linux driver without
+        `GLX_OML_sync_control`).
+        """
+        if self._displayLinkMacOS is not None:
+            return 'displaylink'
+        swapTimer = self._getSwapTimer()
+
+        return None if swapTimer is None else swapTimer.source
+
+    def getLastFlipTimestamp(self):
+        """When the frame of the last swap was presented on screen, as
+        reported by the source given by `flipTimestampSource`.
+
+        Returns `None` if there's no source, it couldn't tell for that swap,
+        or vertical synchronization is disabled.
+        """
+        if self._swapInterval < 1:
+            return None
+        if self._displayLinkMacOS is not None:
+            return self._displayLinkMacOS.getLastFlipTimestamp()
+        swapTimer = self._getSwapTimer()
+
+        return None if swapTimer is None else swapTimer.lastTimestamp
+
+    def _timeSwap(self):
+        """Time the presentation of the swap just made, if the window uses
+        presentation times as flip times, since timing it can wait for it to
+        complete.
+        """
+        win = self.win
+        if win is None or getattr(win, 'flipTimestamps', None) != 'auto' or \
+                self._swapInterval < 1:
+            return
+        swapTimer = self._getSwapTimer()
+        if swapTimer is not None:
+            swapTimer.afterSwap()
 
     @_requiresOpenWindow
     def swapBuffers(self, flipThisFrame=True):
@@ -810,6 +877,16 @@ class GLFWBackend(BaseBackend):
                 glfw.poll_events()
             else:
                 glfw.swap_buffers(self.winHandle.handle)
+                self._timeSwap()
+
+    @property
+    def shareGroup(self):
+        """Identifies the group of OpenGL contexts this window's context shares
+        objects with (see `BaseBackend.shareGroup`): the hidden window which
+        every GLFW window shares a context with (see `_getShadowWindow`), by
+        its address, as its handle can't be hashed.
+        """
+        return 'glfw', ctypes.cast(_getShadowWindow(), ctypes.c_void_p).value
 
     @_requiresOpenWindow
     def setCurrent(self):

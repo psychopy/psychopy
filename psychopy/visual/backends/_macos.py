@@ -31,7 +31,7 @@ import AppKit
 from Quartz import CACurrentMediaTime
 
 from psychopy import logging
-from psychopy.clock import getTime as _getRawTime
+from psychopy.clock import measureClockOffset
 
 # Offset between the `CACurrentMediaTime()` clock DisplayLink callbacks are
 # timestamped in and the raw clock PsychoPy is using, see `_getClockOffset`.
@@ -69,10 +69,7 @@ def _getClockOffset(nSamples=51):
     global _clockOffset
 
     if _clockOffset is None:
-        # the media clock is read first in each pair, so every sample is
-        # biased *up* by the time between the two reads
-        _clockOffset = min(
-            _getRawTime() - CACurrentMediaTime() for _ in range(nSamples))
+        _clockOffset = measureClockOffset(CACurrentMediaTime, nSamples)
 
     return _clockOffset
 
@@ -96,14 +93,14 @@ class RefreshEventHandlerMacOS(AppKit.NSObject):
     lastTargetTimestamp = 0.0
 
     def displayRefreshed_(self, displayLink):
+        # `timestamp` is when the refresh this callback is for happened, which
+        # presents the frame submitted before it. `targetTimestamp` is the
+        # refresh after, which a frame submitted from now on is due to be
+        # presented at. These are vsync times from the display system, so
+        # unlike a `lastFlip + framePeriod` guess they're tied to the
+        # display's actual refresh cycle, but they don't include any delay a
+        # compositor adds beyond that.
         self.lastRefreshTimestamp = displayLink.timestamp()
-        # `targetTimestamp` is the WindowServer's own prediction of when
-        # the frame it's currently compositing will actually reach the
-        # screen. Unlike a naive `lastFlip + framePeriod` guess, this
-        # accounts for the compositor's real buffering depth (e.g. the
-        # extra 1-2 frames of latency triple-buffering can add), because
-        # it comes from the same process that's actually managing that
-        # queue.
         self.lastTargetTimestamp = displayLink.targetTimestamp()
 
         return 1
@@ -205,13 +202,31 @@ class DisplayLinkMacOS:
 
         return None
 
+    def getLastFlipTimestamp(self):
+        """When the frame of the last flip was presented: the refresh the
+        DisplayLink reported first after it was submitted (see
+        `RefreshEventHandlerMacOS`).
+
+        Returns
+        -------
+        float or None
+            Presentation timestamp, in the same raw timebase as
+            :func:`psychopy.clock.getTime`. `None` if the last flip wasn't
+            confirmed by a DisplayLink callback, since the last refresh
+            reported would then be from before it.
+
+        """
+        if not self._synced:
+            return None
+
+        return self._refreshHandler.lastRefreshTimestamp + _getClockOffset()
+
     def getFutureFlipTimestamp(self):
-        """The WindowServer's own predicted presentation time for the frame
-        it's currently compositing (see `RefreshEventHandlerMacOS`). Unlike
-        simply assuming one frame period of latency after the last flip, this
-        reflects whatever buffering depth (e.g. triple buffering) the
-        compositor is actually using, since it comes from the compositor
-        itself.
+        """When a frame submitted now is due to be presented: the refresh
+        after the one last reported by the DisplayLink (see
+        `RefreshEventHandlerMacOS`). Unlike assuming one frame period after
+        the last flip returned, this is tied to the display's actual refresh
+        cycle.
 
         Returns
         -------

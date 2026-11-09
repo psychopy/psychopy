@@ -42,7 +42,7 @@ class SerialOutComponent(BaseDeviceComponent):
                  port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='N',
                  startdata=1, stopdata=0,
                  timeout="", getResponse=False,
-                 syncScreenRefresh=False):
+                 syncScreenRefresh=False, syncOnset=False):
         super(SerialOutComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
@@ -142,6 +142,23 @@ class SerialOutComponent(BaseDeviceComponent):
             label=_translate("Get response?")
         )
 
+        self.params['syncOnset'] = Param(
+            syncOnset, valType='bool', inputType='bool', categ="Data",
+            hint=_translate(
+                "Send the signal when the frame is predicted to be presented on screen, rather "
+                "than once the screen refresh it's synced to has returned. The signal is sent a "
+                "refresh early if the frame is dropped."
+            ),
+            label=_translate("Sync to stimulus onset")
+        )
+        self.depends.append({
+            'dependsOn': "syncScreenRefresh",  # if...
+            'condition': "== True",  # meets...
+            'param': "syncOnset",  # then...
+            'true': "show",  # should...
+            'false': "hide",  # otherwise...
+        })
+
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
         # point component name to device object
@@ -160,6 +177,9 @@ class SerialOutComponent(BaseDeviceComponent):
         params = copy(self.params)
         # Get containing loop
         params['loop'] = self.currentLoop
+        # when to send data synced to the screen: on presentation of the frame
+        # or once its flip has returned
+        params['syncCall'] = "callOnPresent" if self.params['syncOnset'] else "callOnFlip"
         # On component start, send start bits
         indented = self.writeStartTestCode(buff)
         if indented:
@@ -179,7 +199,7 @@ class SerialOutComponent(BaseDeviceComponent):
             # write code to send it (immediately or on refresh)
             if self.params['syncScreenRefresh']:
                 code = (
-                    "win.callOnFlip(%(name)s.sendMessage, %(startData)s)\n"
+                    "win.%(syncCall)s(%(name)s.sendMessage, %(startData)s)\n"
                 )
             else:
                 code = (
@@ -224,7 +244,7 @@ class SerialOutComponent(BaseDeviceComponent):
             # write code to send it (immediately or on refresh)
             if self.params['syncScreenRefresh']:
                 code = (
-                    "win.callOnFlip(%(name)s.sendMessage, %(stopData)s)\n"
+                    "win.%(syncCall)s(%(name)s.sendMessage, %(stopData)s)\n"
                 )
             else:
                 code = (

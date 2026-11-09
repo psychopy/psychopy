@@ -33,13 +33,20 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
     resample : bool, optional
         If the sample rate of an audio clip doesn't match the sample rate of the speaker, should
         PsychoPy resample the sound on load?
-    
+    latencyBias : float or None, optional
+        Output latency of the speaker in seconds, on top of what its driver reports, as measured
+        e.g. with a sound sensor. Sounds are started this much earlier to reach the speaker on
+        time, and their reported start times include it. It applies to every `SpeakerDevice` for
+        the same physical speaker, so leave as None to keep the speaker's current setting (0 if
+        not set).
+
     """
     backend = 'sounddevice'
     # dict of extant streams, by numeric index
     streams = {}
 
-    def __init__(self, index=None, name=None, latencyClass=1, resample=True):
+    def __init__(self, index=None, name=None, latencyClass=1, resample=True,
+                 latencyBias=None):
         if index is not None and name is not None:
             logging.warn(
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
@@ -90,6 +97,42 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.stream = None
         self.resample = resample
         self.latencyClass = latencyClass
+        self._latencyBias = latencyBias
+
+    def _getPlaybackStream(self):
+        """
+        The stream which sounds on this speaker play through, if one is open. This belongs to the
+        sound backend (rather than being `stream`), which opens it when a sound is made.
+        """
+        try:
+            from psychopy.sound import backend_sounddevice as bsd
+            label = bsd.getDeviceStreamLabel(bsd._getOutputDevice(self))
+        except Exception:
+            return None
+
+        return bsd.streams.get(label, None)
+
+    @property
+    def latencyBias(self):
+        """
+        Output latency of the speaker in seconds, on top of what its driver reports (`float`).
+
+        Sounds are started this much earlier to reach the speaker on time, and their reported
+        start times include it. Setting it applies to every `SpeakerDevice` for the same physical
+        speaker.
+        """
+        playbackStream = self._getPlaybackStream()
+        if playbackStream is not None:
+            return playbackStream.latencyBias
+
+        return self._latencyBias or 0.0
+
+    @latencyBias.setter
+    def latencyBias(self, value):
+        self._latencyBias = float(value)
+        playbackStream = self._getPlaybackStream()
+        if playbackStream is not None:
+            playbackStream.latencyBias = self._latencyBias
 
     @staticmethod
     def getDefaultDeviceName():

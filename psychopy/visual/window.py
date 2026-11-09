@@ -79,6 +79,7 @@ import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, layout
 import psychopy.event
 from . import backends, image
+from ._presentcalls import PresentCall, PresentCallScheduler
 from .backends._base import closeOnInitError
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -311,7 +312,8 @@ class Window():
                  depthBits=8,
                  stencilBits=8,
                  backendConf=None,
-                 infoMsg=None):
+                 infoMsg=None,
+                 flipTimestamps='software'):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -427,6 +429,12 @@ class Window():
             ``checkTiming=True``). Default is None, which means that a default
             message is displayed. If you want to hide the message, pass an
             empty string.
+        flipTimestamps : str
+            Where the time of each flip comes from. 'software' (default) reads
+            the clock once the flip has returned. 'auto' uses the time the
+            operating system reports the frame being presented at, where the
+            window's backend can get one (see `flipTimestampSource`), falling
+            back to 'software' for any flip without a usable one.
 
         Notes
         -----
@@ -479,6 +487,15 @@ class Window():
 
         self._toLog = []
         self._toCall = []
+        # calls to make when the next frame is presented, see `callOnPresent`,
+        # and those of the last frame flipped, to check once they've been made
+        self._presentCalls = []
+        self._presentCallsFlipped = []
+        self._presentScheduler = None  # started once the window is open
+        self.nEarlyPresentCalls = 0
+        # time from the reported presentation of a frame to it being on screen
+        # (e.g. the response time of the display), see `presentationLatency`
+        self.presentationLatency = 0.0
         # settings for the monitor: local settings (if available) override
         # monitor
         # if we have a monitors.Monitor object (psychopy 0.54 onwards)
@@ -750,10 +767,33 @@ class Window():
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
+        if flipTimestamps not in ('software', 'auto'):
+            raise ValueError(
+                "Window `flipTimestamps` must be 'software' or 'auto', not "
+                "{!r}".format(flipTimestamps))
+        self.flipTimestamps = flipTimestamps
+        # where the time of the last flip came from, see `lastFlipTimeSource`
+        self._lastFlipTimeSource = None
+        # whether a reported flip time has been rejected, to warn just once
+        # (not while measuring the refresh rate, see below)
+        self._warnedFlipTimestamp = False
+        if flipTimestamps == 'auto':
+            logging.info(
+                "Window flip times come from: {}".format(
+                    self.backend.flipTimestampSource or
+                    "software (no source of presentation times for this "
+                    "backend and platform)"))
 
         # set the swap interval if using GLFW
         if self.winType == 'glfw':
             self.backend.setSwapInterval(int(waitBlanking))
+
+        # Start the thread which makes calls on presentation (see
+        # `callOnPresent`) now, rather than on the frame of the first call, as
+        # starting a thread can hold up the next flip by a couple of refreshes.
+        # It waits without using the CPU until it's given calls.
+        self._presentScheduler = PresentCallScheduler()
+        self._presentScheduler.start()
 
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
@@ -806,7 +846,13 @@ class Window():
         # for testing when to stop drawing a stim:
         self.monitorFramePeriod = 0.0
         if checkTiming:
+            # The first flips can return before their frames are presented
+            # (e.g. while the driver lets swaps queue up), so a presentation
+            # time can't be used for them. That's not worth warning of.
+            warned = self._warnedFlipTimestamp
+            self._warnedFlipTimestamp = True
             self._monitorFrameRate = self.getActualFrameRate(infoMsg=infoMsg)
+            self._warnedFlipTimestamp = warned
 
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
@@ -1261,14 +1307,191 @@ class Window():
         """
         self.callOnFlip(self._assignFlipTime, obj, attrib, format)
 
+    def callOnPresent(self, function, *args, **kwargs):
+        """Call a function when the next frame flipped is presented on
+        screen, e.g. to send a trigger to another device at stimulus onset.
+
+        Unlike :meth:`callOnFlip`, which calls functions once
+        :meth:`flip` returns, this calls them at the time the frame is
+        predicted to be presented (see :meth:`getFutureFlipTime`), plus
+        `presentationLatency`. :meth:`flip` may return after that (if it
+        waits for the frame to be presented) or before it (if the frame is
+        presented later, e.g. by a compositor).
+
+        The function is called on a thread of its own, so it should be quick,
+        and must not draw or change stimuli. Sending a message on a port is
+        fine, as long as nothing else uses the port at the same time.
+
+        If the frame is dropped (presented a refresh later than predicted),
+        the function is called a refresh early. This is detected once the
+        frame has been flipped, with a warning, and counted in
+        `nEarlyPresentCalls`. Use `flipTimestamps='auto'` for this check to
+        be made against the presentation time reported by the operating
+        system, where it's available.
+
+        Parameters
+        ----------
+        function : callable
+            Function to call.
+        *args, **kwargs
+            Arguments to call it with.
+
+        Returns
+        -------
+        PresentCall
+            Record of the call, giving when the function was called
+            (`tCalled`) and when its frame was presented (`tOnset`), once
+            each is known.
+
+        Examples
+        --------
+        Send a trigger on a serial port when a stimulus appears::
+
+            stim.draw()
+            trigger = win.callOnPresent(port.write, b'1')
+            win.flip()
+
+        """
+        call = PresentCall(function, args, kwargs)
+        self._presentCalls.append(call)
+
+        return call
+
+    def resetClockOnFlip(self, clock, newT=0.0):
+        """Reset a clock at the time of the next flip, as recorded by
+        :meth:`flip` (the presentation time reported by the operating system,
+        with `flipTimestamps='auto'`), rather than when the flip returns.
+
+        Use this rather than ``win.callOnFlip(clock.reset)`` to time responses
+        from when a stimulus appeared.
+
+        Parameters
+        ----------
+        clock : psychopy.clock.Clock
+            Clock to reset.
+        newT : float
+            As for :meth:`psychopy.clock.Clock.reset`.
+
+        """
+        self.callOnFlip(self._resetClockAtFlip, clock, newT)
+
+    def _resetClockAtFlip(self, clock, newT):
+        tFlipRaw = float(self._frameTime) + \
+            logging.defaultClock.getLastResetTime()
+        clock.resetAt(tFlipRaw, newT)
+
+    def _schedulePresentCalls(self):
+        """Hand the calls to make on presentation of the frame about to be
+        flipped to the thread which makes them, at the time it's predicted to
+        be presented. Returns the calls.
+        """
+        try:
+            tTarget = float(self.getFutureFlipTime(clock='ptb'))
+        except (AttributeError, IndexError):
+            # nothing to predict from (no frame period, or no flip yet), so
+            # call them straight away
+            tTarget = psychopy.clock.getTime()
+        if self._presentScheduler is None:
+            self._presentScheduler = PresentCallScheduler()
+        calls, self._presentCalls = self._presentCalls, []
+        self._presentScheduler.schedule(calls, tTarget)
+
+        return calls
+
+    def _checkPresentCalls(self):
+        """Check the calls made on presentation of the last frame flipped
+        against the recorded presentation time of that frame, counting and
+        warning of any made early because the frame was dropped.
+        """
+        stillWaiting = []
+        for call in self._presentCallsFlipped:
+            error = call.error
+            if error is None:
+                stillWaiting.append(call)
+                continue
+            if error < -0.5 * self.monitorFramePeriod:
+                self.nEarlyPresentCalls += 1
+                if self.nEarlyPresentCalls <= reportNDroppedFrames:
+                    logging.warning(
+                        "{} was called on presentation {:.2f} ms before its "
+                        "frame was presented, which was probably dropped."
+                        .format(call, -error * 1000))
+        self._presentCallsFlipped = stillWaiting
+
+    @property
+    def flipTimestampSource(self):
+        """Where the window's backend gets the presentation times of frames
+        from, which are used as flip times when `flipTimestamps` is 'auto'
+        (`str`, or `None` if it has no source on this platform).
+        """
+        return self.backend.flipTimestampSource
+
+    @property
+    def lastFlipTimeSource(self):
+        """Where the time of the last flip came from: 'software' if it was
+        read from the clock once the flip returned, otherwise the source of
+        the presentation time reported for it (see `flipTimestampSource`).
+        `None` before the first flip.
+        """
+        return self._lastFlipTimeSource
+
+    def _getPresentationTime(self, tSubmit, tReturned):
+        """The time the backend reports the frame just flipped being presented
+        at, if it reports one and it can be for that frame.
+
+        Parameters
+        ----------
+        tSubmit : float
+            Time on the logging clock just before the frame was submitted.
+        tReturned : float
+            Time on the logging clock once the flip returned.
+
+        Returns
+        -------
+        Timestamp or None
+            Presentation time on the logging clock, or `None` if there isn't
+            one to use.
+
+        """
+        # without vsync there's no presentation to time, and some sources would
+        # wait for one
+        if not self.waitBlanking:
+            return None
+
+        tRaw = self.backend.getLastFlipTimestamp()
+        if tRaw is None:
+            return None
+        t = logging.defaultClock.timestampFromRaw(tRaw)
+
+        # The frame is presented between being submitted and the flip
+        # returning, after the previous one. Outside of that (give or take
+        # error in putting the time on our clock), it's not for this frame.
+        tolerance = 0.001
+        previous = self._frameTimes[-1] if self._frameTimes else None
+        if tSubmit - tolerance <= t <= tReturned + tolerance and (
+                previous is None or t > previous):
+            return t
+
+        if not self._warnedFlipTimestamp:
+            self._warnedFlipTimestamp = True
+            logging.warning(
+                "A presentation time reported by {} wasn't for the frame just "
+                "flipped, so its flip time was read in software instead (as "
+                "it will be whenever this happens).".format(
+                    self.backend.flipTimestampSource))
+
+        return None
+
     def getFutureFlipTime(self, targetTime=0, clock=None):
         """The expected time of the next screen refresh. This is normally
         calculated as win._lastFrameTime + refreshInterval, but backends
         that can report the display system's own predicted presentation
         time (e.g. macOS's DisplayLink; see
         `BaseBackend.getFutureFlipTimestamp`) are used instead when
-        available, since that can account for compositor buffering our own
-        extrapolation from the last flip can't see.
+        available, since that is tied to the display's actual refresh cycle
+        rather than to when the last flip returned. Either way, the window's
+        `presentationLatency` (the time from a frame being presented to it
+        being on screen, 0 by default) is added.
 
         Parameters
         -----------
@@ -1288,12 +1511,11 @@ class Window():
         now = baseClock.getTime()
 
         # Prefer the display system's own prediction of the next
-        # presentation time, if the backend can provide one (e.g. macOS,
-        # where the WindowServer's compositor may add its own multi-frame
-        # buffering on top of the one frame period we'd otherwise assume).
-        # Our own `lastFlip + monitorFramePeriod` extrapolation has no way
-        # to see that extra buffering; the backend's answer does, because it
-        # comes from whatever is actually managing that buffer queue.
+        # presentation time, if the backend can provide one (e.g. macOS's
+        # DisplayLink), which is tied to the display's refresh cycle. Our own
+        # `lastFlip + monitorFramePeriod` extrapolation is late by however
+        # long the last flip took to return, unless its time was reported by
+        # the operating system (see `flipTimestamps`).
         futureFlipTimestamp = self.backend.getFutureFlipTimestamp()
         if futureFlipTimestamp is not None:
             timeNext = futureFlipTimestamp - baseClock.getLastResetTime()
@@ -1305,6 +1527,8 @@ class Window():
             thisT = timeNext + extraFrames*self.monitorFramePeriod
         else:
             thisT = timeNext
+        # from the frame being presented to it being on screen
+        thisT += self.presentationLatency
         # convert back to target clock timebase
         if clock=='ptb':  # add back the lastResetTime (that's the clock difference)
             output = thisT + baseClock.getLastResetTime()
@@ -1607,6 +1831,16 @@ class Window():
         # call this before flip() whether FBO was used or not
         self._afterFBOrender()
 
+        # hand the calls to make on presentation of this frame to their thread
+        # before submitting it, as after it's submitted the prediction would
+        # be of the frame after
+        presentCalls = []
+        if self._presentCalls and flipThisFrame:
+            presentCalls = self._schedulePresentCalls()
+
+        # the frame can't be presented before it's submitted, which is checked
+        # of any presentation time reported for it
+        tSubmit = logging.defaultClock.getTime()
         self.backend.swapBuffers(flipThisFrame)
 
         if self.useFBO and flipThisFrame:
@@ -1649,9 +1883,24 @@ class Window():
                 GL.glEnd()
             GL.glFinish()
 
-        # get timestamp
-        self._frameTime = now = logging.defaultClock.getTime()
+        # get timestamp, the presentation time reported for the frame if there
+        # is one to use, otherwise now
+        now = self._frameTimeSoftware = logging.defaultClock.getTime()
+        self._lastFlipTimeSource = 'software'
+        if self.flipTimestamps == 'auto' and flipThisFrame:
+            tPresented = self._getPresentationTime(tSubmit, now)
+            if tPresented is not None:
+                now = tPresented
+                self._lastFlipTimeSource = self.backend.flipTimestampSource
+        self._frameTime = now
         self._frameTimes.append(self._frameTime)
+
+        # check calls made on presentation against when the frame was
+        for call in presentCalls:
+            call.tOnset = now + self.presentationLatency
+        self._presentCallsFlipped.extend(presentCalls)
+        if self._presentCallsFlipped:
+            self._checkPresentCalls()
 
         # run scheduled functions immediately after flip completes
         n_items = len(self._toCall)
@@ -3563,6 +3812,10 @@ class Window():
         """Close the window (and reset the Bits++ if necess).
         """
         self._closed = True
+
+        # stop making calls on presentation of frames, now there won't be any
+        if getattr(self, '_presentScheduler', None) is not None:
+            self._presentScheduler.stop()
 
         # make any calls still waiting for the OpenGL thread while there is a
         # context to make them in (other threads can't queue more once closed)

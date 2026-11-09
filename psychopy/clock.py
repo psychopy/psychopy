@@ -295,8 +295,72 @@ class MonotonicClock:
         """
         return self._timeAtLastReset
 
+    def timestampFromRaw(self, t, format=None):
+        """
+        Convert a time on the raw timebase (as returned by
+        :func:`psychopy.clock.getTime`) to a timestamp on this clock, as if
+        :meth:`getTime` had been called at that moment.
+
+        This is for times which are measured by something other than this
+        clock, such as the presentation time of a frame or sound reported by
+        the operating system or a driver.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds on the raw timebase.
+        format : type, str or None
+            Format in which to show timestamp when converting to a string, see
+            :meth:`getTime`.
+
+        Returns
+        -------
+        Timestamp
+            Time on this clock, with format requested.
+        """
+        if format in (None, "None"):
+            format = self.format
+        if format in (str, "str"):
+            format = "%Y-%m-%d_%H:%M:%S.%f%z"
+
+        return Timestamp(
+            t - self._timeAtLastReset, format,
+            lastReset=self._epochTimeAtLastReset)
+
 
 monotonicClock = MonotonicClock()
+
+
+def measureClockOffset(otherClock, nSamples=51):
+    """Measure the offset between another clock and the raw timebase
+    (:func:`psychopy.clock.getTime`).
+
+    Each sample reads `otherClock` and then the raw timebase, so it
+    over-estimates the offset by however long elapsed between the two reads.
+    The smallest of `nSamples` such samples is therefore the closest to the
+    truth.
+
+    Parameters
+    ----------
+    otherClock : callable
+        Function returning the current time in seconds on the other clock.
+    nSamples : int
+        Number of pairs of clock reads to take.
+
+    Returns
+    -------
+    float
+        Offset in seconds, to be added to a time on `otherClock` to put it on
+        the raw timebase.
+
+    """
+    def sample():
+        # read the other clock first (`getTime() - otherClock()` would read it
+        # second), so the sample is biased up rather than down
+        other = otherClock()
+        return getTime() - other
+
+    return min(sample() for _ in range(nSamples))
 
 
 class Clock(MonotonicClock):
@@ -318,6 +382,23 @@ class Clock(MonotonicClock):
         """
         self._timeAtLastReset = getTime() + newT
         self._epochTimeAtLastReset = time.time()
+
+    def resetAt(self, t, newT=0.0):
+        """Reset the clock as if :meth:`reset` had been called at a time on
+        the raw timebase (as returned by :func:`psychopy.clock.getTime`),
+        such as the presentation time of a frame reported by the operating
+        system.
+
+        Parameters
+        ----------
+        t : float
+            Raw time to reset the clock at, which may be in the past.
+        newT : float
+            Time the clock reads at `t`, as for :meth:`reset`.
+        """
+        now = getTime()
+        self._timeAtLastReset = t + newT
+        self._epochTimeAtLastReset = time.time() - (now - t)
 
     def addTime(self, t):
         """Add more time to the Clock/Timer

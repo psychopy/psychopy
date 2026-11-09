@@ -90,6 +90,38 @@ _PYGLET_MOUSE_BUTTONS_ = {
 
 if sys.platform == 'darwin':
     from . import _macos
+from . import _linux, _win32
+
+
+def _handlePaintWhileQueuing():
+    """Have pyglet handle `WM_PAINT` even for windows which aren't dispatching
+    events, on Windows.
+
+    `dispatch_events()` on one window takes messages for every window of the
+    thread. Those for other windows are queued until they dispatch their own,
+    and Windows is told they were handled. But a window's `WM_PAINT` is sent
+    until it's validated, which only pyglet's handler does (by leaving it to
+    `DefWindowProc`), so with another window to paint, `dispatch_events()`
+    takes `WM_PAINT` for it forever and never returns. Messages in
+    `_priority_events` are always handled, and the handler for `WM_PAINT`
+    queues the `on_expose` event for the window to dispatch itself.
+    """
+    if sys.platform != 'win32':
+        return
+    try:
+        from pyglet.window import win32 as pygletWin32
+        from pyglet.libs.win32 import constants as win32Constants
+        priorityEvents = pygletWin32._priority_events
+        if win32Constants.WM_PAINT not in priorityEvents:
+            priorityEvents.append(win32Constants.WM_PAINT)
+    except (ImportError, AttributeError) as err:
+        logging.debug(
+            "Unable to have pyglet handle WM_PAINT while queuing events, so "
+            "dispatching events with more than one window open may hang: "
+            "{}".format(err))
+
+
+_handlePaintWhileQueuing()
 
 
 def _handlePaintWhileQueuing():
@@ -176,6 +208,10 @@ class PygletBackend(BaseBackend):
         # macOS only, set once the window is created
         self._displayLinkMacOS = None
         self._appNapActivityMacOS = None
+        # times presentation of swaps on Windows and Linux, made when first
+        # needed (see `_getSwapTimer`)
+        self._swapTimer = None
+        self._swapTimerMade = False
         # this window's own context on high DPI (e.g. Retina) displays, to get
         # the size of its framebuffer from
         self._retinaContext = None
@@ -483,12 +519,10 @@ class PygletBackend(BaseBackend):
         return int(GL.gl_info.get_version()[0]) >= 2
 
     def getFutureFlipTimestamp(self):
-        """The WindowServer's own predicted presentation time for the frame
-        it's currently compositing, when a macOS DisplayLink is active for
-        this window (see `_macos.DisplayLinkMacOS`). Unlike simply assuming
-        one frame period of latency after the last flip, this reflects
-        whatever buffering depth (e.g. triple buffering) the compositor is
-        actually using, since it comes from the compositor itself.
+        """When a frame submitted now is due to be presented, as reported by
+        a macOS DisplayLink for this window (see `_macos.DisplayLinkMacOS`).
+        Unlike assuming one frame period after the last flip returned, this
+        is tied to the display's actual refresh cycle.
 
         Returns `None` if unavailable, e.g. on non-macOS platforms, macOS
         versions prior to 14, or if the last flip wasn't confirmed by a
@@ -500,6 +534,63 @@ class PygletBackend(BaseBackend):
             return None
 
         return self._displayLinkMacOS.getFutureFlipTimestamp()
+
+    def _getSwapTimer(self):
+        """The timer of when swaps are presented on Windows or Linux
+        (`_win32.DwmSwapTimer` or `_linux.OMLSwapTimer`), made the first time
+        it's needed. `None` if there's no way to time them here.
+        """
+        if not self._swapTimerMade:
+            self._swapTimerMade = True
+            if sys.platform == 'win32':
+                self._swapTimer = _win32.DwmSwapTimer.create()
+            elif sys.platform.startswith('linux'):
+                context = self.winHandle.context
+                self._swapTimer = _linux.OMLSwapTimer.create(
+                    getattr(context, 'x_display', None),
+                    getattr(context, 'glx_window', None))
+
+        return self._swapTimer
+
+    @property
+    def flipTimestampSource(self):
+        """Name of where `getLastFlipTimestamp()` gets presentation times
+        from: 'displaylink' on macOS, 'dwm' on Windows, 'oml' on Linux, or
+        `None` if there's no source here (e.g. macOS before 14, Windows with
+        more than one display, or a Linux driver without
+        `GLX_OML_sync_control`).
+        """
+        if self._displayLinkMacOS is not None:
+            return 'displaylink'
+        swapTimer = self._getSwapTimer()
+
+        return None if swapTimer is None else swapTimer.source
+
+    def getLastFlipTimestamp(self):
+        """When the frame of the last swap was presented on screen, as
+        reported by the source given by `flipTimestampSource`.
+
+        Returns `None` if there's no source, or it couldn't tell for that
+        swap.
+        """
+        if self._displayLinkMacOS is not None:
+            return self._displayLinkMacOS.getLastFlipTimestamp()
+        swapTimer = self._getSwapTimer()
+
+        return None if swapTimer is None else swapTimer.lastTimestamp
+
+    def _timeSwap(self):
+        """Time the presentation of the swap just made, if the window uses
+        presentation times as flip times, since timing it can wait for it to
+        complete.
+        """
+        win = self.win
+        if win is None or getattr(win, 'flipTimestamps', None) != 'auto' or \
+                not win.waitBlanking:
+            return
+        swapTimer = self._getSwapTimer()
+        if swapTimer is not None:
+            swapTimer.afterSwap()
 
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
@@ -539,6 +630,15 @@ class PygletBackend(BaseBackend):
                 self.winHandle.dispatch_events()
             else:
                 self.winHandle.flip()
+                self._timeSwap()
+
+    @property
+    def shareGroup(self):
+        """Identifies the group of OpenGL contexts this window's context shares
+        objects with (see `BaseBackend.shareGroup`): Pyglet's object space,
+        which every Pyglet window shares with Pyglet's shadow window.
+        """
+        return self.winHandle.context.object_space
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.

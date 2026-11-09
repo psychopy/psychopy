@@ -118,18 +118,36 @@ class BaseBackend(ABC):
         """
         pass
 
+    @property
+    def shareGroup(self):
+        """Identifies the group of OpenGL contexts this window's context shares
+        objects (e.g. textures) with, so objects cached across windows (e.g.
+        font atlases) can be kept for each group.
+
+        An object made in one group's context can't be used in another's: its
+        name means nothing there, or another object. Each backend shares
+        objects between its own windows, but not with another backend's (e.g.
+        Pyglet's and GLFW's windows don't share).
+
+        Returns
+        -------
+        object
+            Hashable, and the same for every window whose context shares
+            objects with this one's. By default, this backend, so nothing is
+            shared with other windows.
+
+        """
+        return self
+
     def getFutureFlipTimestamp(self):
         """The display system's own prediction of when the next buffer swap
-        will actually be presented on screen, if the backend/platform can
-        provide one.
+        will be presented on screen, if the backend/platform can provide one.
 
-        This is distinct from simply extrapolating from the time of the last
-        `swapBuffers()` call: on platforms where window content passes
-        through a compositor with its own (possibly multi-frame) buffering
-        pipeline - such as macOS, where OpenGL windows are composited via
-        the WindowServer - the compositor knows its actual queue depth and
-        can predict the true presentation time more accurately than the
-        application can by simply assuming one frame period of latency.
+        This is tied to the display's actual refresh cycle, unlike
+        extrapolating from when the last `swapBuffers()` call returned, which
+        is late by however long that took. It's still a prediction: any
+        buffering a compositor adds beyond what the display system reports
+        isn't included.
 
         Returns
         -------
@@ -137,6 +155,32 @@ class BaseBackend(ABC):
             Predicted presentation timestamp, in the same raw timebase as
             :func:`psychopy.clock.getTime`, or ``None`` if this backend has
             no such prediction available (the default).
+
+        """
+        return None
+
+    @property
+    def flipTimestampSource(self):
+        """Name of where `getLastFlipTimestamp()` gets presentation times
+        from (e.g. 'displaylink'), or `None` if this backend has no source on
+        this platform (the default).
+        """
+        return None
+
+    def getLastFlipTimestamp(self):
+        """When the frame of the last `swapBuffers()` call was presented on
+        screen, as reported by the operating system or display system, if the
+        backend/platform can tell.
+
+        `Window` uses this as the time of a flip when its `flipTimestamps` is
+        'auto', after checking it could be for the frame just flipped.
+
+        Returns
+        -------
+        float or None
+            Presentation timestamp, in the same raw timebase as
+            :func:`psychopy.clock.getTime`, or ``None`` if there isn't one for
+            the last swap (the default).
 
         """
         return None

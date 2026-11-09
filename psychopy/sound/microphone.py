@@ -200,7 +200,7 @@ class Microphone:
 
     @latencyBias.setter
     def latencyBias(self, value):
-        self.device.latency_bias = value
+        self.device.latencyBias = value
 
     @property
     def audioLatencyMode(self):

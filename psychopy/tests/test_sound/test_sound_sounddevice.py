@@ -27,7 +27,7 @@ BLOCK = 64
 OFFSET = 20          # requested onset, in samples, inside the first block
 N = 10 * BLOCK       # long enough that the sound never ends during the test
 NBLOCKS = 4
-NOW = 5.0            # the backend's (frozen) time.monotonic() during a test
+NOW = 5.0            # the backend's (frozen) _monotonic() during a test
 # The (frozen) `psychopy.clock.getTime()` during a test, which `when` is given
 # in. Far from NOW, so that mixing up the two clocks can't go unnoticed.
 CLOCK_NOW = 1000.0
@@ -38,10 +38,14 @@ def headless(monkeypatch):
     """No audio device, a private stream registry and frozen backend clocks."""
     monkeypatch.setattr(bsd, "travisCI", True)
     monkeypatch.setattr(bsd, "streams", bsd._StreamsDict())
-    # stub only the backend's reference to the time module, not time itself
+    # stub only the backend's reference to the time module, not time itself,
+    # and its monotonic clock (which isn't `time.monotonic()` on Windows)
     monkeypatch.setattr(bsd, "time", types.SimpleNamespace(monotonic=lambda: NOW))
+    monkeypatch.setattr(bsd, "_monotonic", lambda: NOW)
     # likewise its reference to `psychopy.clock`, which `when` is converted from
-    monkeypatch.setattr(bsd, "clock", types.SimpleNamespace(getTime=lambda: CLOCK_NOW))
+    monkeypatch.setattr(bsd, "clock", types.SimpleNamespace(
+        getTime=lambda: CLOCK_NOW,
+        measureClockOffset=lambda otherClock, nSamples=51: CLOCK_NOW - otherClock()))
 
 
 def _ramp(n):
@@ -584,3 +588,144 @@ def test_stereo_sound_mixed_down_on_a_mono_stream():
     sound.play(log=False)
     out = _blockOut(sound)
     assert np.allclose(out[:, 0], (left[:BLOCK, 0] + right[:BLOCK, 0]) / 2)
+
+
+# --------------------------------------------------------------------------
+# Onset times, latency bias and the stream clock
+#
+
+def _rawStartTimes(sound):
+    """The requested and actual onset of the last play(), as raw times."""
+    sound._updateStartTimes()
+    return sound._tStartRequestedRaw, sound._tStartActualRaw
+
+
+@pytest.mark.parametrize("offset", [0, 13, BLOCK - 1])
+def test_actual_onset_reported_on_time(offset):
+    """A sound started on time reports the onset it was asked for, to within
+    a sample, on the clock `when` is given in."""
+    sound = _make_sound()
+    sound.play(when=CLOCK_NOW + offset / SR, log=False)
+    assert sound.tStartActual is None  # not until the onset is placed
+    _render(sound)
+    requested, actual = _rawStartTimes(sound)
+    assert requested == pytest.approx(CLOCK_NOW + offset / SR)
+    assert actual == pytest.approx(requested, abs=0.5 / SR)
+    assert sound.startDelay == pytest.approx(0.0, abs=0.5 / SR)
+
+
+def test_late_onset_reports_delay():
+    """A sound whose start time has passed starts at the next block, and
+    reports how late that was."""
+    late = 0.01
+    sound = _make_sound()
+    sound.play(when=CLOCK_NOW - late, log=False)
+    _render(sound)
+    assert sound.startDelay == pytest.approx(late)
+
+
+def test_immediate_play_reports_onset_without_delay():
+    """A sound played immediately has an onset, but no requested time to be
+    late for."""
+    sound = _make_sound()
+    sound.play(log=False)
+    _render(sound)
+    requested, actual = _rawStartTimes(sound)
+    assert requested is None
+    assert actual == pytest.approx(CLOCK_NOW)
+    assert sound.tStartRequested is None
+    assert sound.startDelay is None
+
+
+def test_replay_reports_new_onset():
+    sound = _make_sound(100)
+    sound.play(log=False)
+    _render(sound, nblocks=_nblocksFor(100))
+    sound.play(when=CLOCK_NOW + OFFSET / SR, log=False)
+    assert sound.tStartActual is None  # the previous onset is forgotten
+    _render(sound)
+    assert _rawStartTimes(sound)[1] == pytest.approx(CLOCK_NOW + OFFSET / SR)
+
+
+@pytest.mark.parametrize("bias", [0.001, 0.0025])
+def test_latency_bias_starts_sound_earlier(bias):
+    """With a latency bias, the onset goes that much earlier in the stream,
+    so it reaches the speaker on time, and its reported onset includes it."""
+    sound = _make_sound(speaker=_speaker("test speaker", latencyBias=bias))
+    assert sound.stream.latencyBias == bias
+    sound.play(when=CLOCK_NOW + bias + OFFSET / SR, log=False)
+    out = _render(sound)
+    assert int(np.flatnonzero(out)[0]) == OFFSET
+    assert sound.startDelay == pytest.approx(0.0, abs=0.5 / SR)
+
+
+def test_speaker_latency_bias_shared_by_its_stream():
+    """The latency bias belongs to the speaker's stream: setting it on any
+    speaker for the device sets it for all, and a speaker which leaves it
+    unset doesn't reset it."""
+    speaker = _speaker("test speaker", latencyBias=0.004)
+    sound = _make_sound(speaker=speaker)
+    assert speaker.latencyBias == sound.stream.latencyBias == 0.004
+
+    other = _speaker("test speaker")  # latencyBias left unset
+    _make_sound(speaker=other)
+    assert other.latencyBias == sound.stream.latencyBias == 0.004
+
+    other.latencyBias = 0.001
+    assert speaker.latencyBias == sound.stream.latencyBias == 0.001
+
+
+def _timepoint(currentTime, dac):
+    return types.SimpleNamespace(currentTime=currentTime, inputBufferAdcTime=0.0,
+                                 outputBufferDacTime=dac)
+
+
+def test_dac_time_on_same_clock_used_as_is():
+    stream = _make_sound().stream
+    assert stream._dacTimeMonotonic(_timepoint(NOW, NOW + 0.003), NOW) == NOW + 0.003
+
+
+def test_dac_time_on_another_clock_remapped():
+    """A stream clock far from `_monotonic()` is put on it, by the offset
+    measured over a run of callbacks: the smallest, as each is read late."""
+    stream = _make_sound().stream
+    clockOffset, latency = -1e4, 0.003  # stream clock 10,000 s ahead
+    n = stream._CLOCK_OFFSET_CALLBACKS
+    for i in range(n - 1):
+        now = NOW + i * BLOCK / SR
+        lateBy = 0.0 if i == n // 2 else 0.0005  # how late `now` was read
+        current = now - clockOffset - lateBy
+        # until the offset is known, the DAC time is taken relative to now
+        assert stream._dacTimeMonotonic(_timepoint(current, current + latency), now) \
+            == pytest.approx(now + latency)
+    # the last of the run, after which the offset is known, so the time `now`
+    # was read late by doesn't count
+    current = 2 * NOW - clockOffset
+    assert stream._dacTimeMonotonic(_timepoint(current, current + latency), 2 * NOW + 0.0005) \
+        == pytest.approx(2 * NOW + latency)
+
+
+def test_dac_time_without_host_timing_falls_back_to_latency():
+    """A host API giving no timing (all zeros) leaves only the stream's
+    nominal latency to go by, and warns once on play()."""
+    sound = _make_sound()
+    stream = sound.stream
+    stream.latency = 0.02
+    assert stream._dacTimeMonotonic(_timepoint(0.0, 0.0), NOW) == NOW + 0.02
+    assert stream.timingUnreliable
+    sound.play(log=False)
+    assert stream._warnedTimingUnreliable
+
+
+# the backend's own clock, before the `headless` fixture stubs it
+_backendMonotonic = bsd._monotonic
+
+
+def test_monotonic_clock_is_portaudios(monkeypatch):
+    """On Windows, PortAudio times streams with the QueryPerformanceCounter,
+    which `psychopy.clock.getTime()` always uses, but `time.monotonic()` only
+    does from Python 3.13. Elsewhere, `time.monotonic()` is PortAudio's."""
+    monkeypatch.setattr(bsd.sys, "platform", "win32")
+    assert _backendMonotonic() == CLOCK_NOW
+    monkeypatch.setattr(bsd.sys, "platform", "linux")
+    assert _backendMonotonic() == NOW

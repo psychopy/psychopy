@@ -93,3 +93,42 @@ class TestSoundComponent(BaseComponentTests):
         comp.writeFrameCodeJS(buff)
         assert buff.indentLevel == 0
         esprima.parseScript("function f() {\n" + buff.getvalue() + "\n}")
+
+
+@pytest.mark.parametrize("saveStartStop", [True, False])
+def test_routine_end_saves_actual_start(saveStartStop):
+    """With start/stop saved, the time the sound actually started is saved at
+    the end of the Routine, in code which runs whatever the sound backend."""
+    comp, _, _ = TestSoundComponent().make_minimal_experiment()
+    comp.params['saveStartStop'].val = saveStartStop
+    buff = IndentingBuffer(target="PsychoPy")
+    comp.writeRoutineEndCode(buff)
+    code = buff.getvalue()
+    ast.parse(code)
+    name = comp.params['name']
+    assert (f"'{name}.startedActual'" in code) == saveStartStop
+    if saveStartStop:
+        assert f"getattr({name}, 'tStartActual', None)" in code
+
+
+@pytest.mark.parametrize("latencyBias, written", [
+    (0, None), ("", None), ("0.004", 0.004),
+])
+def test_speaker_device_latency_bias(latencyBias, written):
+    """A speaker's latency bias is only given to it when set, so speakers of
+    backends which don't take one are made as before."""
+    from psychopy.experiment.components.sound import SpeakerDeviceBackend
+    backend = SpeakerDeviceBackend({
+        'deviceName': "speaker", 'deviceClass': SpeakerDeviceBackend.deviceClass,
+        'index': "Speakers"})
+    backend.params['latencyBias'].val = latencyBias
+    buff = IndentingBuffer(target="PsychoPy")
+    backend.writeDeviceCode(buff)
+    code = buff.getvalue()
+    call = next(node for node in ast.walk(ast.parse(code))
+                if isinstance(node, ast.Call) and node.func.attr == "addDevice")
+    kwargs = {kw.arg: kw.value for kw in call.keywords}
+    if written is None:
+        assert "latencyBias" not in kwargs
+    else:
+        assert ast.literal_eval(kwargs["latencyBias"]) == written

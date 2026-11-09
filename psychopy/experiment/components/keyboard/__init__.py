@@ -236,7 +236,7 @@ class KeyboardComponent(BaseComponent):
 
             if visualSync:
                 code = ("waitOnFlip = True\n"
-                        "win.callOnFlip(%(name)s.clock.reset)  "
+                        "win.resetClockOnFlip(%(name)s.clock)  "
                         "# t=0 on next screen flip\n") % self.params
             else:
                 code = "%(name)s.clock.reset()  # now t=0\n" % self.params

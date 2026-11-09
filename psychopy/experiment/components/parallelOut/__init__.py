@@ -5,6 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from copy import copy
 from pathlib import Path
 from psychopy.experiment.components import BaseDeviceComponent, Param, _translate
 from psychopy.experiment.devices import DeviceBackend
@@ -29,7 +30,7 @@ class ParallelOutComponent(BaseDeviceComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  address=None, register='EIO', startData="1", stopData="0",
-                 syncScreen=True):
+                 syncScreen=True, syncOnset=False):
         super(ParallelOutComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
@@ -66,6 +67,30 @@ class ParallelOutComponent(BaseDeviceComponent):
             hint=msg,
             label=_translate("Sync to screen"))
 
+        self.params['syncOnset'] = Param(
+            syncOnset, valType='bool', inputType="bool", categ='Data',
+            hint=_translate(
+                "Set the data when the frame is predicted to be presented on screen, rather than "
+                "once the screen refresh it's synced to has returned. The data is set a refresh "
+                "early if the frame is dropped."
+            ),
+            label=_translate("Sync to stimulus onset"))
+        self.depends.append({
+            'dependsOn': "syncScreen",  # if...
+            'condition': "== True",  # meets...
+            'param': "syncOnset",  # then...
+            'true': "show",  # should...
+            'false': "hide",  # otherwise...
+        })
+
+    def _getCodeParams(self):
+        """Params to write code with, including `syncCall`: the Window method
+        which data synced to the screen is set with."""
+        params = copy(self.params)
+        params['syncCall'] = "callOnPresent" if self.params['syncOnset'] else "callOnFlip"
+
+        return params
+
     def writeInitCode(self, buff):
 
         code = (
@@ -93,12 +118,12 @@ class ParallelOutComponent(BaseDeviceComponent):
                 )
             else:
                 code += (
-                    "win.callOnFlip(\n"
+                    "win.%(syncCall)s(\n"
                     "    %(name)s.setData, \n"
                     "    int(%(startData)s)\n"
                     ")\n"
                 )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % self._getCodeParams())
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
 
@@ -117,12 +142,12 @@ class ParallelOutComponent(BaseDeviceComponent):
                 )
             else:
                 code += (
-                    "win.callOnFlip(\n"
+                    "win.%(syncCall)s(\n"
                     "    %(name)s.setData, \n"
                     "    int(%(stopData)s)\n"
                     ")\n"
                 )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % self._getCodeParams())
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
 
@@ -139,12 +164,12 @@ class ParallelOutComponent(BaseDeviceComponent):
             )
         else:
             code += (
-                "win.callOnFlip(\n"
+                "win.%(syncCall)s(\n"
                 "    %(name)s.setData, \n"
                 "    int(%(stopData)s)\n"
                 ")\n"
             )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % self._getCodeParams())
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)

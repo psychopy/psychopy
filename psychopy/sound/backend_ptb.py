@@ -150,6 +150,7 @@ class SoundPTB(_SoundBase):
         self.preBuffer = preBuffer
         self.frameN = 0
         self._tSoundRequestPlay = 0
+        self._tStartRequestedPTB = None  # `when` of the last play(), if any
         self.sampleRate = sampleRate
         self.channels = None  # let this be set by stereo
         self.stereo = stereo
@@ -342,9 +343,21 @@ class SoundPTB(_SoundBase):
             logging.error(msg)
             raise ValueError(msg)
 
+    def _getStartTimesRaw(self):
+        status = self.statusDetailed
+        # a closed track has an integer for its status
+        if not isinstance(status, dict):
+            return self._tStartRequestedPTB, None
+        # PTB zeroes the start time on 'Start', and sets it to when the first
+        # sample reaches the speaker once the buffer holding it is filled
+        actual = status['StartTime']
+
+        return self._tStartRequestedPTB, actual if actual > 0 else None
+
     def _checkPlaybackFinished(self):
         """Checks whether playback has finished by looking up the status.
         """
+        self._updateStartTimes()
         # get detailed status from backend
         pa_status = self.statusDetailed
         # was the sound already finished?
@@ -389,6 +402,10 @@ class SoundPTB(_SoundBase):
         else:
             logTime = None
         self._repetitions = loops
+        # PTB's clock is the one `psychopy.clock.getTime()` reads, so `when`
+        # is already a raw time
+        self._resetStartTimes()
+        self._tStartRequestedPTB = when if when else None
         self.track.start(
             repetitions=loops, when=when, resume=int(self._resumeOnPlay))
         self._resumeOnPlay = False

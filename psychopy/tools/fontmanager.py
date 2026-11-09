@@ -795,8 +795,11 @@ class FontManager():
 
     def __str__(self):
         S = "Loaded:\n"
-        if len(self._glFonts):
-            for name in self._glFonts:
+        # fonts are cached for each group of contexts sharing objects
+        names = sorted({name for glFonts in self._glFonts.values()
+                        for name in glFonts})
+        if names:
+            for name in names:
                 S += "  {}\n".format(name)
         else:
             S += "None\n"
@@ -1030,13 +1033,20 @@ class FontManager():
     # used by user scripts in most situations. Accessing them is okay.
 
     def getFont(self, name, size=32, bold=False, italic=False, lineSpacing=1,
-                monospace=False, rasterScale=1.0):
+                monospace=False, rasterScale=1.0, shareGroup=None):
         """
         Return a FontAtlas object that matches the family name, style info,
         and size provided. FontAtlas objects are cached, so if multiple
         TextBox instances use the same font (with matching font properties)
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
+
+        A font's atlas texture can only be used in the group of OpenGL
+        contexts it was made in, so fonts are cached for each `shareGroup`
+        (see `BaseBackend.shareGroup`), e.g. a window's
+        ``win.backend.shareGroup``. Otherwise, a window of another backend
+        would draw text with a texture its context doesn't have, so its
+        glyphs would be drawn as solid rectangles.
         """
         fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
@@ -1050,11 +1060,12 @@ class FontManager():
         fontInfo = fontInfos[0]
         identifier = "{}_{}_{}_{}".format(
             str(fontInfo), size, lineSpacing, float(rasterScale))
-        glFont = self._glFonts.get(identifier)
+        glFonts = self._glFonts.setdefault(shareGroup, {})
+        glFont = glFonts.get(identifier)
         if glFont is None:
             glFont = GLFont(fontInfo.path, size, lineSpacing=lineSpacing,
                             rasterScale=rasterScale)
-            self._glFonts[identifier] = glFont
+            glFonts[identifier] = glFont
 
         return glFont
 
