@@ -879,6 +879,15 @@ class GLFWBackend(BaseBackend):
                 glfw.swap_buffers(self.winHandle.handle)
                 self._timeSwap()
 
+    @property
+    def shareGroup(self):
+        """Identifies the group of OpenGL contexts this window's context shares
+        objects with (see `BaseBackend.shareGroup`): the hidden window which
+        every GLFW window shares a context with (see `_getShadowWindow`), by
+        its address, as its handle can't be hashed.
+        """
+        return 'glfw', ctypes.cast(_getShadowWindow(), ctypes.c_void_p).value
+
     @_requiresOpenWindow
     def setCurrent(self):
         """Sets this window to be the current rendering target.

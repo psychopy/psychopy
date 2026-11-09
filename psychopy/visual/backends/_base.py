@@ -118,6 +118,27 @@ class BaseBackend(ABC):
         """
         pass
 
+    @property
+    def shareGroup(self):
+        """Identifies the group of OpenGL contexts this window's context shares
+        objects (e.g. textures) with, so objects cached across windows (e.g.
+        font atlases) can be kept for each group.
+
+        An object made in one group's context can't be used in another's: its
+        name means nothing there, or another object. Each backend shares
+        objects between its own windows, but not with another backend's (e.g.
+        Pyglet's and GLFW's windows don't share).
+
+        Returns
+        -------
+        object
+            Hashable, and the same for every window whose context shares
+            objects with this one's. By default, this backend, so nothing is
+            shared with other windows.
+
+        """
+        return self
+
     def getFutureFlipTimestamp(self):
         """The display system's own prediction of when the next buffer swap
         will be presented on screen, if the backend/platform can provide one.

@@ -601,6 +601,14 @@ class PygletBackend(BaseBackend):
                 self.winHandle.flip()
                 self._timeSwap()
 
+    @property
+    def shareGroup(self):
+        """Identifies the group of OpenGL contexts this window's context shares
+        objects with (see `BaseBackend.shareGroup`): Pyglet's object space,
+        which every Pyglet window shares with Pyglet's shadow window.
+        """
+        return self.winHandle.context.object_space
+
     def setCurrent(self):
         """Sets this window to be the current rendering target.
 
