@@ -19,7 +19,7 @@ from psychopy import logging as logging
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.hardware import BaseResponseDevice
-from psychopy.sound.audiodevice import AudioDeviceInfo
+from psychopy.sound.audiodevice import AudioDeviceInfo, getSoundDeviceHostAPI
 from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInvalidDeviceError, \
     AudioStreamError
 from psychopy.tools import systemtools as st
@@ -457,18 +457,27 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 _translate(msg),
                 deviceClass=SoundDeviceMicrophoneDevice)
 
+        # only list devices from one host API (WASAPI on Windows), so that a
+        # name means one device
+        hostAPI = getSoundDeviceHostAPI()
+        hostAPINames = [api['name'] for api in sd.query_hostapis()]
+
         devices = []
         for dev in sd.query_devices():
             # skip devices with no input channels, i.e. anything we cannot
             # capture from
             if dev['max_input_channels'] == 0:
                 continue
+            if hostAPI is not None and dev['hostapi'] != hostAPI:
+                continue
+
+            hostAPIName = hostAPINames[dev['hostapi']]
 
             # build a dict with the same keys as psychtoolbox for consistency
             devDict = {
                 'DeviceIndex': dev['index'],
                 'HostAudioAPIId': dev['hostapi'],
-                'HostAudioAPIName': sd.query_hostapis(dev['hostapi'])['name'],
+                'HostAudioAPIName': hostAPIName,
                 'DeviceName': dev['name'],
                 'NrInputChannels': dev['max_input_channels'],
                 'NrOutputChannels': dev['max_output_channels'],
@@ -513,8 +522,8 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         chosenDevice = None
         # iterate through device profiles
         for profile in self.getDevices():
-            # if same index, keep as fallback
-            if index in (profile.deviceIndex, profile.deviceName):
+            # if same index, keep as fallback (the first, if a name matches several)
+            if fallbackDevice is None and index in (profile.deviceIndex, profile.deviceName):
                 fallbackDevice = profile
             # if same everything, we got it!
             if all((
@@ -592,15 +601,34 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
 
         # create list of descriptors only for capture devices
-        devObjs = [AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
+        devObjs = []
+        for dev in allDevs:
+            # descriptors share PTB's format, but were queried with sounddevice
+            desc = AudioDeviceInfo.createFromPTBDesc(dev)
+            desc.audioLib = 'sounddevice'
+            devObjs.append(desc)
         inputDevices = [desc for desc in devObjs if desc.isCapture]
 
         return inputDevices
 
     @staticmethod
+    def isAvailable():
+        """Whether `sounddevice` can be imported, which this backend needs.
+        """
+        try:
+            import sounddevice  # noqa: F401
+        except (ImportError, OSError):  # OSError if PortAudio itself is missing
+            return False
+
+        return True
+
+    @staticmethod
     def getAvailableDevices():
         """Get available microphone devices using sounddevice.
-        
+
+        Devices are listed by sounddevice itself rather than by Psychtoolbox, so
+        names, sample rates and channels are those this backend will open.
+
         Returns
         -------
         list of dict
@@ -608,18 +636,19 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             dicts in a format similar to PTB.
 
         """
+        # skip in vm
+        if st.isVM_CI():  # GitHub actions VM does not have a sound device
+            return []
+
         devices = []
-        for profile in st.getAudioCaptureDevices():
-            # get index as a name if possible
-            index = profile.get('device_name', None)
-            if index is None:
-                index = profile.get('index', None)
+        for profile in SoundDeviceMicrophoneDevice.getDevices():
             device = {
-                'deviceName': profile.get('device_name', "Unknown Microphone"),
+                'deviceName': profile.deviceName,
                 'deviceClass': "psychopy.hardware.microphone.MicrophoneDevice",
-                'index': index,
-                'sampleRateHz': profile.get('defaultSampleRate', None),
-                'channels': profile.get('inputChannels', None),
+                # use the name as index, which is stable between sessions
+                'index': profile.deviceName,
+                'sampleRateHz': profile.defaultSampleRate,
+                'channels': profile.inputChannels,
             }
             devices.append(device)
 
