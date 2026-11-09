@@ -27,7 +27,7 @@ BLOCK = 64
 OFFSET = 20          # requested onset, in samples, inside the first block
 N = 10 * BLOCK       # long enough that the sound never ends during the test
 NBLOCKS = 4
-NOW = 5.0            # the backend's (frozen) time.monotonic() during a test
+NOW = 5.0            # the backend's (frozen) _monotonic() during a test
 # The (frozen) `psychopy.clock.getTime()` during a test, which `when` is given
 # in. Far from NOW, so that mixing up the two clocks can't go unnoticed.
 CLOCK_NOW = 1000.0
@@ -38,8 +38,10 @@ def headless(monkeypatch):
     """No audio device, a private stream registry and frozen backend clocks."""
     monkeypatch.setattr(bsd, "travisCI", True)
     monkeypatch.setattr(bsd, "streams", bsd._StreamsDict())
-    # stub only the backend's reference to the time module, not time itself
+    # stub only the backend's reference to the time module, not time itself,
+    # and its monotonic clock (which isn't `time.monotonic()` on Windows)
     monkeypatch.setattr(bsd, "time", types.SimpleNamespace(monotonic=lambda: NOW))
+    monkeypatch.setattr(bsd, "_monotonic", lambda: NOW)
     # likewise its reference to `psychopy.clock`, which `when` is converted from
     monkeypatch.setattr(bsd, "clock", types.SimpleNamespace(
         getTime=lambda: CLOCK_NOW,
@@ -684,7 +686,7 @@ def test_dac_time_on_same_clock_used_as_is():
 
 
 def test_dac_time_on_another_clock_remapped():
-    """A stream clock far from `time.monotonic()` is put on it, by the offset
+    """A stream clock far from `_monotonic()` is put on it, by the offset
     measured over a run of callbacks: the smallest, as each is read late."""
     stream = _make_sound().stream
     clockOffset, latency = -1e4, 0.003  # stream clock 10,000 s ahead
@@ -713,3 +715,17 @@ def test_dac_time_without_host_timing_falls_back_to_latency():
     assert stream.timingUnreliable
     sound.play(log=False)
     assert stream._warnedTimingUnreliable
+
+
+# the backend's own clock, before the `headless` fixture stubs it
+_backendMonotonic = bsd._monotonic
+
+
+def test_monotonic_clock_is_portaudios(monkeypatch):
+    """On Windows, PortAudio times streams with the QueryPerformanceCounter,
+    which `psychopy.clock.getTime()` always uses, but `time.monotonic()` only
+    does from Python 3.13. Elsewhere, `time.monotonic()` is PortAudio's."""
+    monkeypatch.setattr(bsd.sys, "platform", "win32")
+    assert _backendMonotonic() == CLOCK_NOW
+    monkeypatch.setattr(bsd.sys, "platform", "linux")
+    assert _backendMonotonic() == NOW

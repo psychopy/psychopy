@@ -84,6 +84,28 @@ def test_stop_drops_calls_and_restores_switch_interval():
     assert not late.called.wait(0.1)
 
 
+def test_started_ahead_without_lowering_switch_interval():
+    """`Window` starts the thread when it's created, as starting a thread can
+    hold up a flip, but the switch interval is left alone until there are
+    calls to make."""
+    before = sys.getswitchinterval()
+    scheduler = PresentCallScheduler()
+    try:
+        scheduler.start()
+        assert scheduler._thread.is_alive()
+        assert sys.getswitchinterval() == before
+        thread = scheduler._thread
+        call = _call()
+        scheduler.schedule([call], clock.getTime())
+        assert call.called.wait(1.0)
+        assert scheduler._thread is thread  # not started again
+        assert sys.getswitchinterval() <= _presentcalls.SWITCH_INTERVAL
+    finally:
+        scheduler.stop()
+    assert sys.getswitchinterval() == before
+    assert not thread.is_alive()
+
+
 # --------------------------------------------------------------------------
 # Window: when calls are due, and checking them afterwards
 #

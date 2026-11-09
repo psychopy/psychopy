@@ -87,16 +87,77 @@ def test_dwm_timing_info_is_packed():
     assert ctypes.sizeof(_win32.DwmTimingInfo) == fieldSizes
 
 
-@pytest.mark.parametrize("cDXRefresh, cDXRefreshConfirmed, refreshesBefore", [
-    (1000, 1000, 0),  # confirmed at the last refresh
-    (1002, 1000, 2),  # two refreshes before it
-    (1, 0xFFFFFFFF, 2),  # across the 32-bit count wrapping around
+VBLANK, PERIOD = 10_000_000, 166_667  # QPC ticks, at 10 MHz
+QPC_FREQUENCY = 10_000_000
+
+
+@pytest.mark.parametrize("nowTicks, expected", [
+    (VBLANK, VBLANK),  # at the reported vertical blank
+    (VBLANK + 50_000, VBLANK),  # in the refresh after it
+    (VBLANK + PERIOD + 5, VBLANK + PERIOD),  # in the next refresh
+    (VBLANK - 10_000, VBLANK - PERIOD),  # before it (it's the next one)
 ])
-def test_dwm_presentation_ticks(cDXRefresh, cDXRefreshConfirmed, refreshesBefore):
-    info = _win32.DwmTimingInfo(
-        qpcVBlank=10_000_000, qpcRefreshPeriod=166_667,
-        cDXRefresh=cDXRefresh, cDXRefreshConfirmed=cDXRefreshConfirmed)
-    assert _win32.presentationTicks(info) == 10_000_000 - refreshesBefore * 166_667
+def test_dwm_last_vblank(nowTicks, expected):
+    info = _win32.DwmTimingInfo(qpcVBlank=VBLANK, qpcRefreshPeriod=PERIOD)
+    assert _win32.lastVBlankTicks(info, nowTicks) == expected
+
+
+class _FakeDwmapi:
+    """`dwmapi` reporting a vertical blank, or failing."""
+    def __init__(self, vblank=VBLANK, ok=True):
+        self.vblank = vblank
+        self.ok = ok
+
+    def DwmGetCompositionTimingInfo(self, hwnd, infoRef):
+        info = infoRef._obj
+        info.qpcVBlank, info.qpcRefreshPeriod = self.vblank, PERIOD
+        return 0 if self.ok else 1
+
+
+def _dwmTimer(dwmapi, nowTicks):
+    """A DWM swap timer, with the QPC counter at `nowTicks[0]`."""
+    return _win32.DwmSwapTimer(dwmapi, QPC_FREQUENCY, lambda: nowTicks[0])
+
+
+def test_dwm_swap_time_is_last_vblank_when_read():
+    """A swap is timed at the last vertical blank before its time is read,
+    on the raw clock, once read, not when it was made."""
+    from psychopy.clock import getTime
+    nowTicks = [VBLANK - 1_000_000]  # 100 ms before the vertical blank
+    timer = _dwmTimer(_FakeDwmapi(), nowTicks)
+    tRaw = getTime() + 0.1  # raw time of the vertical blank
+    assert timer.lastTimestamp is None  # no swap yet
+    timer.afterSwap()
+    nowTicks[0] = VBLANK + 50_000  # read 5 ms after it
+    assert timer.lastTimestamp == pytest.approx(tRaw, abs=0.002)
+    # timed once per swap
+    nowTicks[0] += PERIOD
+    assert timer.lastTimestamp == pytest.approx(tRaw, abs=0.002)
+
+
+@pytest.mark.parametrize("readAfter, refreshes", [
+    (0.0001, 0),  # 0.1 ms after the reported vertical blank
+    (-0.0003, 0),  # just before it, as it can be reported late
+    (0.0150, 0),  # well into the refresh
+    (0.0160, 1),  # less than a millisecond before the next
+])
+def test_dwm_swap_read_margin(readAfter, refreshes):
+    nowTicks = [VBLANK]
+    timer = _dwmTimer(_FakeDwmapi(), nowTicks)
+    timer._clockOffset = 0.0
+    timer.afterSwap()
+    nowTicks[0] = VBLANK + int(readAfter * QPC_FREQUENCY)
+    assert timer.lastTimestamp == (VBLANK + refreshes * PERIOD) / QPC_FREQUENCY
+
+
+@pytest.mark.parametrize("dwmapi", [
+    _FakeDwmapi(vblank=VBLANK - 2 * QPC_FREQUENCY),  # the DWM's been idle 2 s
+    _FakeDwmapi(ok=False),  # no timing information
+])
+def test_dwm_swap_not_timed_without_recent_vblank(dwmapi):
+    timer = _dwmTimer(dwmapi, [VBLANK + 50_000])
+    timer.afterSwap()
+    assert timer.lastTimestamp is None
 
 
 def test_dwm_swap_timer_only_on_windows(monkeypatch):
