@@ -10,7 +10,7 @@ from psychopy import visual
 from psychopy.colors import Color
 import psychopy.tools.gltools as gt
 import psychopy.tools.mathtools as mt
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 import psychopy.tools.viewtools as vt
 from psychopy.visual.stim3d import (
     LightSource, SceneSkybox, BlinnPhongMaterial, SphereStim, BoxStim,

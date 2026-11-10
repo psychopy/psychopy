@@ -70,7 +70,7 @@ class BaseBackend(ABC):
 
     """
     # define GL here as a class attribute that includes all the opengl funcs
-    # e.g. GL = pyglet.gl
+    # e.g. GL = psychopy.tools.opengl
 
     # define the name of the backend, used to register the name to use when
     # specifying `winType`

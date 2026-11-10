@@ -8,7 +8,7 @@
 """shaders programs for either pyglet or pygame
 """
 
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 import psychopy.tools.gltools as gltools
 from ctypes import c_int, c_char_p, c_char, cast, POINTER, byref
 

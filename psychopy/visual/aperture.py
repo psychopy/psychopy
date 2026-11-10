@@ -10,13 +10,7 @@
 
 import os
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
-pyglet.options['debug_gl'] = False
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging, core

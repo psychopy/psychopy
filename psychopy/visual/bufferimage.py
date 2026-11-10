@@ -8,6 +8,10 @@ RBGA object.`"""
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+
+import psychopy.tools.opengl as GL
+
+import psychopy  # so we can get the __path__
 from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32

@@ -20,7 +20,7 @@ from ast import literal_eval
 import numpy as np
 import sys
 from arabic_reshaper import ArabicReshaper
-import psychopy.tools.pygletgl as gl
+import psychopy.tools.opengl as gl
 from bidi import algorithm as bidi
 import re
 

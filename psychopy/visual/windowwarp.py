@@ -18,7 +18,7 @@ import ctypes
 import numpy as np
 from psychopy import logging
 import pyglet
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 
 class Warper:

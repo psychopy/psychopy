@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 from psychopy import visual
 from .. import utils
 

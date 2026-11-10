@@ -132,7 +132,7 @@ __all__ = [
 import ctypes
 from io import StringIO
 from collections import namedtuple
-import psychopy.tools.pygletgl as GL  # using Pyglet for now
+import psychopy.tools.opengl as GL
 from contextlib import contextmanager
 from PIL import Image
 import numpy as np
@@ -404,11 +404,14 @@ def getOpenGLInfo():
     return OpenGLInfo()
 
 
-# OpenGL limits for this system
-try:
-    MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
-except Exception:
-    MAX_TEXTURE_UNITS = 32
+# OpenGL limits for this system, if a context is current to query them (calling
+# OpenGL without one can crash)
+MAX_TEXTURE_UNITS = 32
+if GL.gl_info.have_context():
+    try:
+        MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
+    except Exception:
+        pass
 
 
 # -------------------------------
@@ -2697,7 +2700,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     --------
     Creating a texture from an image file::
 
-        import psychopy.tools.pygletgl as GL  # using Pyglet for now
+        import psychopy.tools.opengl as GL
 
         # empty texture
         textureDesc = createTexImage2D(1024, 1024, internalFormat=GL.GL_RGBA8)
@@ -4524,9 +4527,8 @@ def activeTexture(unit):
     """
     if isinstance(unit, str):
         unit = _getGLEnum(unit)
-    else:
-        if unit < MAX_TEXTURE_UNITS: 
-            unit = GL.GL_TEXTURE0 + unit
+    elif unit < GL.GL_TEXTURE0:  # an index, not an enum
+        unit = GL.GL_TEXTURE0 + unit
 
     GL.glActiveTexture(unit)
 

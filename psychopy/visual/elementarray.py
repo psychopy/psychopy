@@ -9,17 +9,11 @@ detailed random dot stimuli."""
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
 
 from ..colors import Color
 
-pyglet.options['debug_gl'] = False
 import ctypes
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 import psychopy  # so we can get the __path__
 from psychopy import logging

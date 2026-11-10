@@ -21,13 +21,7 @@ from ._base import BaseBackend, closeOnInitError
 import psychopy
 from psychopy import core
 from psychopy.tools.attributetools import attributeSetter
-
-try:
-    import pyglet
-    import psychopy.tools.pygletgl as GL
-except ImportError:
-    import OpenGL
-    GL = OpenGL
+import psychopy.tools.opengl as GL
 
 
 class PygameBackend(BaseBackend):
