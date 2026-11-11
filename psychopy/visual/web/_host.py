@@ -58,6 +58,13 @@ def gpuSharingAllowed():
     return value not in ('0', 'off', 'false', 'no')
 
 
+def _unquote(arg):
+    """Remove the quotes around an argument, if it is quoted."""
+    if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in '"\'':
+        return arg[1:-1]
+    return arg
+
+
 class WebServerError(RuntimeError):
     """The web browser server couldn't be started, or has stopped."""
 
@@ -222,7 +229,11 @@ class BrowserHost:
     def _command(self):
         cmd = os.environ.get(_protocol.ENV_SERVER_CMD)
         if cmd:
-            return shlex.split(cmd, posix=os.name == 'posix')
+            if os.name == 'posix':
+                return shlex.split(cmd)
+            # non-POSIX splitting keeps quotes (so backslashes in paths
+            # survive), which `Popen` would then pass on as part of them
+            return [_unquote(arg) for arg in shlex.split(cmd, posix=False)]
         return [sys.executable, SERVER_PATH, '--platform', self.platform,
                 '--gpu', 'auto' if gpuSharingAllowed() else 'off']
 

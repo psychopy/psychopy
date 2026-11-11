@@ -869,8 +869,15 @@ class BrowserServer(QtCore.QObject):
             while True:
                 data = self.conn.conn.recv_bytes()
                 self.received.emit(_protocol.unpack(data))
-        except (EOFError, OSError):
+        except (EOFError, OSError, RuntimeError):
+            pass
+        # the server may have shut down and been deleted already, as the
+        # connection closes after (on Windows the pipe ends while this thread
+        # is still running)
+        try:
             self.received.emit({'op': 'eof'})
+        except RuntimeError:
+            pass
 
     def tempHtmlFile(self, viewId):
         import tempfile

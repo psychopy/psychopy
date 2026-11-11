@@ -175,12 +175,18 @@ def makeBlocking(conn):
     one) puts the socket into non-blocking mode, which reads on the connection
     then fail with `BlockingIOError`.
 
+    On Windows connections are named pipes, not sockets, which a default
+    timeout doesn't affect (and their handles aren't file descriptors), so they
+    are left alone.
+
     Parameters
     ----------
     conn : multiprocessing.connection.Connection
         Connection to fix.
 
     """
+    if os.name != 'posix':
+        return
     os.set_blocking(conn.fileno(), True)
 
 
