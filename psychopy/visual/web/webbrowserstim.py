@@ -326,6 +326,10 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         self._heldFrames = []
         self.frameSeq = 0
         self.lastFrameCaptureTime = None
+        # where the page drawn was scrolled to, its zoom and document size
+        self._frameScroll = (0., 0.)
+        self._frameZoom = self._zoom
+        self._frameDocSize = None
         # server frame times are `time.perf_counter()`, which is the same
         # clock in every process
         self._clockOffset = core.getTime() - time.perf_counter()
@@ -626,6 +630,99 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         `None`)."""
         self._pump()
         return self._loadError
+
+    @property
+    def scrollPosition(self):
+        """Where the page drawn last was scrolled to, `(x, y)` in CSS pixels
+        from the top-left of its document (`tuple` of `float`).
+
+        This is for the frame drawn, so it matches what participants saw. Log
+        it each frame to map positions onto the document later (see
+        `windowToDocument`).
+        """
+        return self._frameScroll
+
+    @property
+    def documentSize(self):
+        """Size `(w, h)` of the document of the page drawn last, in CSS pixels
+        (`tuple` of `float`), or `None` before the first frame. Useful as the
+        extent of a heatmap made with `windowToDocument`.
+        """
+        return self._frameDocSize
+
+    def windowToDocument(self, pos, units=None):
+        """Get the position on the page's HTML document of a position in the
+        window, e.g. where an eye tracker says a participant is looking.
+
+        Positions are mapped onto the page as it was drawn last, taking its
+        position, size, orientation, flips, zoom and where it was scrolled to
+        into account. So that a position matches what the participant saw, call
+        this each frame (after drawing) with the latest sample, or log
+        `scrollPosition` with each frame and map samples later.
+
+        Positions are in CSS pixels from the top-left of the document, `y`
+        increasing downwards, as `event.pageX` and `event.pageY` are in
+        JavaScript, and as the bounds of an element are given by
+        ``el.getBoundingClientRect()`` plus ``(scrollX, scrollY)``, so they can
+        be matched with what is on the page.
+
+        Only the scrolling of the page itself is taken into account, not that
+        of elements scrolled within it (e.g. with ``overflow: auto``) or of
+        frames in it.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in the window, or positions `(N, 2)`, measured
+            from the window's center as stimulus positions are. Positions which
+            are `nan` (e.g. while an eye tracker loses the eyes) give `nan`.
+        units : str or None
+            Units of `pos`, the stimulus' `units` if `None`.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` on the document, or positions `(N, 2)`. Positions
+            which aren't on the page are `nan`.
+
+        Examples
+        --------
+        Collect where a participant looked on a page, and make a heatmap of
+        it::
+
+            gaze = []
+            while not done:
+                page.draw()
+                win.flip()
+                gaze.append(page.windowToDocument(tracker.getPosition()))
+            gaze = np.array(gaze)
+            gaze = gaze[~np.isnan(gaze).any(axis=1)]
+            w, h = page.documentSize
+            heatmap, _, _ = np.histogram2d(
+                gaze[:, 1], gaze[:, 0], bins=(int(h // 20), int(w // 20)),
+                range=((0, h), (0, w)))
+
+        """
+        pos = np.asarray(pos, dtype=float)
+        single = pos.ndim == 1
+        pos = pos.reshape(-1, 2)
+        if units is None:
+            units = self.units
+        valid = ~np.isnan(pos).any(axis=1)
+        # converted with `nan` left out, as `layout` would replace it
+        pix = np.full(pos.shape, np.nan)
+        if valid.any():
+            if units == 'pix':
+                pix[valid] = pos[valid]
+            else:
+                pix[valid] = np.asarray(layout.Position(
+                    pos[valid], units, self.win).pix).reshape(-1, 2)
+        pagePos, inside = _geometry.windowPixToPageArray(
+            pix, self.verticesPix, self._resolution)
+        docPos = pagePos / self._frameZoom + np.asarray(self._frameScroll)
+        docPos[~(valid & inside)] = np.nan
+
+        return docPos[0] if single else docPos
 
     def waitForLoad(self, timeout=10.0):
         """Wait for the page to finish loading.
@@ -1011,6 +1108,13 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
                     self._release(frame)
             self.frameSeq = frame['seq']
             self.lastFrameCaptureTime = frame['t'] + self._clockOffset
+            if 'scroll' in frame:
+                self._frameScroll = tuple(float(v) for v in frame['scroll'])
+            if frame.get('zoom'):
+                self._frameZoom = float(frame['zoom'])
+            if frame.get('docSize') is not None:
+                self._frameDocSize = tuple(
+                    float(v) for v in frame['docSize'])
         finally:
             self._releaseFrames(older)
             if previous is not None and previous != self._shown:

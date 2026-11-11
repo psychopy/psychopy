@@ -191,6 +191,41 @@ class TestWebBrowserStim:
         finally:
             stim.close()
 
+    def test_windowToDocument(self, win, fakeServer):
+        """Positions in the window map onto the document as the page was
+        drawn: zoomed and scrolled, in any units."""
+        from psychopy import layout, visual
+        stim = visual.WebBrowserStim(
+            win, html='color:0,0,255;scroll:100,500', pos=(10, 0),
+            size=(64, 32), resolution=(640, 320), zoom=2.)
+        try:
+            # nothing scrolled before the first frame
+            assert stim.scrollPosition == (0., 0.)
+            assert stim.documentSize is None
+            assert _waitFor(stim, lambda: stim.frameSeq > 0)
+            assert stim.scrollPosition == (100., 500.)
+            assert stim.documentSize == (2000., 3000.)
+            # the page is 320 x 160 CSS pixels, from (100, 500) on the document
+            for winPos, docPos in [((-22, 16), (100, 500)),
+                                   ((10, 0), (260, 580)),
+                                   ((42, -16), (420, 660))]:
+                assert np.allclose(stim.windowToDocument(winPos), docPos)
+            assert np.isnan(stim.windowToDocument((60, 0))).all()  # off it
+            # many at once, with tracking lost for one
+            got = stim.windowToDocument(
+                [(10, 0), (np.nan, np.nan), (-60, 0), (-22, 16)])
+            assert got.shape == (4, 2)
+            assert np.allclose(got[[0, 3]], [(260, 580), (100, 500)])
+            assert np.isnan(got[[1, 2]]).all()
+            # other units
+            norm = layout.Position((10, 0), 'pix', win).norm
+            assert np.allclose(
+                stim.windowToDocument(norm, units='norm'), (260, 580))
+            stim.units = 'norm'
+            assert np.allclose(stim.windowToDocument(norm), (260, 580))
+        finally:
+            stim.close()
+
     def test_javascript(self, win, fakeServer):
         from psychopy import visual
         stim = visual.WebBrowserStim(win, html='color:0,0,0', size=(16, 16))

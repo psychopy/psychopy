@@ -14,7 +14,7 @@ order bottom-right, bottom-left, top-left, top-right of the page.
 
 import numpy as np
 
-__all__ = ['windowPixToPage', 'pageToWindowPix']
+__all__ = ['windowPixToPage', 'windowPixToPageArray', 'pageToWindowPix']
 
 
 def _axes(verticesPix):
@@ -23,6 +23,41 @@ def _axes(verticesPix):
     verts = np.asarray(verticesPix, dtype=float)
     origin = verts[2]
     return origin, verts[3] - origin, verts[1] - origin
+
+
+def windowPixToPageArray(pos, verticesPix, pageSize):
+    """Get the positions on a page of positions in the window, as
+    `windowPixToPage` for many at once.
+
+    Parameters
+    ----------
+    pos : ArrayLike
+        Positions `(N, 2)` in the window, in 'pix' units from its center.
+    verticesPix : ArrayLike
+        Corners of the page in the window, as given by `verticesPix`.
+    pageSize : ArrayLike
+        Size `(w, h)` of the page in its pixels.
+
+    Returns
+    -------
+    tuple
+        `(xy, inside)`, the positions `(N, 2)` on the page in its pixels from
+        its top-left corner (`y` increasing downwards), and whether each is on
+        the page `(N,)`. Positions are `nan` if the page has no area.
+
+    """
+    pos = np.asarray(pos, dtype=float).reshape(-1, 2)
+    origin, xAxis, yAxis = _axes(verticesPix)
+    axes = np.column_stack((xAxis, yAxis))
+    if abs(np.linalg.det(axes)) < 1e-9:
+        return (np.full(pos.shape, np.nan),
+                np.zeros(pos.shape[0], dtype=bool))
+    uv = np.linalg.solve(axes, (pos - origin).T).T
+    eps = 1e-9  # so the edges are inside despite rounding
+    with np.errstate(invalid='ignore'):  # `nan` positions are outside
+        inside = np.all((uv >= -eps) & (uv <= 1. + eps), axis=1)
+
+    return uv * np.asarray(pageSize, dtype=float)[:2], inside
 
 
 def windowPixToPage(pos, verticesPix, pageSize):
@@ -45,15 +80,9 @@ def windowPixToPage(pos, verticesPix, pageSize):
         page. `x` and `y` are `nan` if the page has no area.
 
     """
-    origin, xAxis, yAxis = _axes(verticesPix)
-    axes = np.column_stack((xAxis, yAxis))
-    if abs(np.linalg.det(axes)) < 1e-9:
-        return float('nan'), float('nan'), False
-    u, v = np.linalg.solve(axes, np.asarray(pos, dtype=float) - origin)
-    eps = 1e-9  # so the edges are inside despite rounding
-    inside = bool(-eps <= u <= 1. + eps and -eps <= v <= 1. + eps)
+    xy, inside = windowPixToPageArray(pos, verticesPix, pageSize)
 
-    return float(u * pageSize[0]), float(v * pageSize[1]), inside
+    return float(xy[0, 0]), float(xy[0, 1]), bool(inside[0])
 
 
 def pageToWindowPix(pagePos, verticesPix, pageSize):

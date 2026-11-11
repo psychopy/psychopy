@@ -1,7 +1,8 @@
 """Stands in for the web browser server in tests, without Qt.
 
 Speaks the same protocol (see `psychopy.visual.web._protocol`). Pages are a
-solid color, given as ``html='color:R,G,B'``, and input and messages sent to a
+solid color, given as ``html='color:R,G,B'``, optionally scrolled to a position
+in a 2000 x 3000 document with ``';scroll:X,Y'`` after it, and input and messages sent to a
 page are sent back as page messages, so tests can check what reached it.
 JavaScript `'crash'` makes the server exit, `'ignore'` is never answered, and
 anything else is answered with its length.
@@ -33,11 +34,15 @@ class FakeView:
         self.seq = 0
         self.ring = None
         self.free = set()
-        html = cfg.get('html') or ''
-        if html.startswith('color:'):
-            self.color = tuple(int(v) for v in html[6:].split(',')) + (255,)
-        else:
-            self.color = (255, 255, 255, 255)
+        self.color = (255, 255, 255, 255)
+        self.scroll = (0., 0.)
+        self.zoom = float(cfg.get('zoom') or 1.0)
+        for part in (cfg.get('html') or '').split(';'):
+            name, _, values = part.partition(':')
+            if name == 'color':
+                self.color = tuple(int(v) for v in values.split(',')) + (255,)
+            elif name == 'scroll':
+                self.scroll = tuple(float(v) for v in values.split(','))
         self.send('loadStarted')
         self.resize(cfg['w'], cfg['h'])
         self.send('loadFinished', ok=True, url=cfg.get('url') or 'about:blank')
@@ -65,7 +70,8 @@ class FakeView:
         self.ring.write(slot, bytes(self.color) * (self.ring.width *
                                                    self.ring.height))
         self.seq += 1
-        self.send('frame', slot=slot, seq=self.seq, gen=self.gen, t=0.)
+        self.send('frame', slot=slot, seq=self.seq, gen=self.gen, t=0.,
+                  scroll=self.scroll, zoom=self.zoom, docSize=(2000., 3000.))
 
     def close(self):
         if self.ring is not None:
@@ -119,6 +125,8 @@ def main():
                     view.free.add(msg['slot'])
             elif op == 'resize':
                 view.resize(msg['w'], msg['h'])
+            elif op == 'zoom':
+                view.zoom = float(msg['factor'])
             elif op in ('input', 'message', 'navigate', 'history', 'setHtml'):
                 view.send('pageMessage', data=msg, origin='fake')
             elif op == 'js':

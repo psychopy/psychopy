@@ -68,6 +68,29 @@ def test_geometryNoArea():
     verts = _rectVertices(size=(0, 100))
     x, y, inside = _geometry.windowPixToPage((0, 0), verts, (200, 100))
     assert not inside and np.isnan(x)
+    xy, inside = _geometry.windowPixToPageArray(
+        [(0, 0), (1, 1)], verts, (200, 100))
+    assert xy.shape == (2, 2) and np.isnan(xy).all() and not inside.any()
+
+
+@pytest.mark.parametrize('ori', [0., 33.])
+@pytest.mark.parametrize('flipVert', [False, True])
+def test_geometryArray(ori, flipVert):
+    """Many positions at once map as each does on its own, and `nan` positions
+    are outside."""
+    verts = _rectVertices((15, -20), (200, 100), ori, flipVert=flipVert)
+    pageSize = (400, 200)
+    rng = np.random.default_rng(0)
+    winPos = rng.uniform(-150, 150, (50, 2))
+    xy, inside = _geometry.windowPixToPageArray(winPos, verts, pageSize)
+    assert xy.shape == (50, 2) and inside.shape == (50,)
+    assert inside.any() and not inside.all()
+    for pos, gotXY, gotInside in zip(winPos, xy, inside):
+        x, y, ins = _geometry.windowPixToPage(pos, verts, pageSize)
+        assert np.allclose(gotXY, (x, y)) and gotInside == ins
+    xy, inside = _geometry.windowPixToPageArray(
+        [(np.nan, 0.)], verts, pageSize)
+    assert not inside[0]
 
 
 # --------------------------------------------------------------------------

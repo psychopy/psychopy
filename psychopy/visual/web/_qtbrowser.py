@@ -529,7 +529,20 @@ class ViewHost(QtCore.QObject):
         self.seq += 1
         self.lastGrabTime = time.perf_counter()
         self.send('frame', slot=slot, seq=self.seq, gen=self.gen,
-                  t=self.lastGrabTime)
+                  t=self.lastGrabTime, **self._viewState())
+
+    def _viewState(self):
+        """Where the page was scrolled to, its zoom and the size of its
+        document when a frame was grabbed, so positions in the window can be
+        mapped onto the document as it was shown. Scroll position and size
+        are in CSS pixels."""
+        # Qt gives these in the view's pixels, so zoomed
+        zoom = self.view.zoomFactor() or 1.0
+        scroll = self.page.scrollPosition()
+        size = self.page.contentsSize()
+        return dict(scroll=(scroll.x() / zoom, scroll.y() / zoom),
+                    zoom=zoom,
+                    docSize=(size.width() / zoom, size.height() / zoom))
 
     def _drawPopups(self, image, popups):
         """Draw open popups on a frame of the page."""
@@ -624,7 +637,7 @@ class ViewHost(QtCore.QObject):
         self.seq += 1
         self.lastGrabTime = time.perf_counter()
         self.send('frame', slot=slot, seq=self.seq, gen=self.gen,
-                  t=self.lastGrabTime)
+                  t=self.lastGrabTime, **self._viewState())
 
     def _newGpuSurface(self, width, height):
         """Allocate shared slots for frames of a new size, and send them to

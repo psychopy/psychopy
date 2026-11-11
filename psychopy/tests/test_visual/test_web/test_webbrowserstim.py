@@ -157,6 +157,39 @@ def test_scroll(stim):
     assert _flipUntil(stim, lambda: stim.evaluateJavaScript('scrollY') > 0)
 
 
+@pytest.mark.parametrize('zoom', [1., 2.])
+def test_windowToDocument(win, zoom):
+    """Positions in the window map onto the document as Chromium lays it out,
+    once scrolled and zoomed."""
+    from psychopy import visual
+    from psychopy.visual.web._geometry import pageToWindowPix
+    page = """<!doctype html><html><body style="margin: 0">
+    <div style="height: 3000px; width: 1000px"></div>
+    <div id="mark" style="position: absolute; left: 100px; top: 500px;
+        width: 40px; height: 40px; background: blue"></div>
+    </body></html>"""
+    stim = visual.WebBrowserStim(win, html=page, size=(320, 240),
+                                 resolution=(320, 240), zoom=zoom,
+                                 waitForLoad=True)
+    try:
+        assert stim.isLoaded, stim.loadError
+        stim.runJavaScript('scrollTo(30, 450)')
+        assert _flipUntil(stim, lambda: stim.scrollPosition == (30., 450.))
+        assert stim.evaluateJavaScript('[scrollX, scrollY]') == [30, 450]
+        docW, docH = stim.documentSize
+        assert docW >= 1000 and docH >= 3000
+        # center of the mark, (120, 520) on the document
+        pagePos = ((120 - 30) * zoom, (520 - 450) * zoom)
+        winPos = pageToWindowPix(pagePos, stim.verticesPix, stim.resolution)
+        docPos = stim.windowToDocument(winPos, units='pix')
+        assert np.allclose(docPos, (120, 520), atol=0.5)
+        assert stim.evaluateJavaScript(
+            'document.elementFromPoint({} - scrollX, {} - scrollY).id'.format(
+                *docPos)) == 'mark'
+    finally:
+        stim.close()
+
+
 def test_allowedUrls(win):
     from psychopy import visual
     stim = visual.WebBrowserStim(
