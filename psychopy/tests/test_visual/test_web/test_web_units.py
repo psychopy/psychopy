@@ -214,3 +214,91 @@ def test_isProcessGone():
     created = psutil.Process().create_time()
     assert _watchdog.isProcessGone(os.getpid(), createdBefore=created - 10)
     assert not _watchdog.isProcessGone(os.getpid(), createdBefore=created)
+
+
+# --------------------------------------------------------------------------
+# frames on the GPU: passing file descriptors, OpenGL and Vulkan functions
+#
+
+@pytest.mark.skipif(os.name != 'posix', reason="passes POSIX file descriptors")
+def test_fdPassingWithDefaultTimeout(tmp_path):
+    """File descriptors pass on a connection and leave it blocking, even with
+    a socket default timeout set (as `psychopy.web` sets one), which would
+    otherwise make later reads fail with BlockingIOError."""
+    import socket
+    from multiprocessing import Pipe
+    path = tmp_path / 'shared.txt'
+    path.write_text('shared file')
+    previous = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(5)
+    sender, receiver = Pipe()
+    try:
+        fd = os.open(str(path), os.O_RDONLY)
+        sender.send_bytes(_protocol.pack({'op': 'surface', 'nfds': 1}))
+        _protocol.sendFds(sender, [fd])
+        os.close(fd)
+        sender.send_bytes(_protocol.pack({'op': 'frame'}))
+
+        assert _protocol.unpack(receiver.recv_bytes())['nfds'] == 1
+        fds = _protocol.recvFds(receiver, 1)
+        assert os.get_blocking(receiver.fileno())
+        assert _protocol.unpack(receiver.recv_bytes()) == {'op': 'frame'}
+        with os.fdopen(fds[0]) as f:
+            assert f.read() == 'shared file'
+    finally:
+        socket.setdefaulttimeout(previous)
+        sender.close()
+        receiver.close()
+
+
+@pytest.mark.skipif(os.name != 'posix', reason="POSIX sockets")
+def test_makeBlocking():
+    from multiprocessing import Pipe
+    a, b = Pipe()
+    try:
+        os.set_blocking(a.fileno(), False)
+        _protocol.makeBlocking(a)
+        assert os.get_blocking(a.fileno())
+    finally:
+        a.close()
+        b.close()
+
+
+def test_glFunctionsUnknown():
+    """Names which aren't among the OpenGL functions used raise
+    AttributeError, rather than being looked up."""
+    from psychopy.visual.web import _glext
+    gl = _glext.GLFunctions(lambda name: 0)
+    with pytest.raises(AttributeError):
+        gl.notAFunction
+
+
+def test_vulkanAllocator():
+    """Memory and semaphores are allocated on a device found by its UUIDs and
+    exported as file descriptors; an unknown device is refused."""
+    from psychopy.visual.web import _vkshare
+    try:
+        devices = _vkshare.listDevices()
+    except _vkshare.VulkanError as err:
+        pytest.skip("no Vulkan: {}".format(err))
+    if not devices:
+        pytest.skip("no Vulkan devices")
+    name, deviceUUID, driverUUID = devices[0]
+    try:
+        allocator = _vkshare.VulkanAllocator(deviceUUID, driverUUID)
+    except _vkshare.VulkanError as err:
+        pytest.skip("{} can't export memory: {}".format(name, err))
+    try:
+        image = allocator.allocateImage(64, 32)
+        semaphore = allocator.createSemaphore()
+        assert image.size >= 64 * 32 * 4
+        fds = [image.exportFd(), image.exportFd(), semaphore.exportFd()]
+        assert len(set(fds)) == 3 and all(fd >= 0 for fd in fds)
+        for fd in fds:
+            os.close(fd)
+        image.destroy()
+        semaphore.destroy()
+    finally:
+        allocator.destroy()
+    with pytest.raises(_vkshare.VulkanError, match="No Vulkan device"):
+        _vkshare.VulkanAllocator('00' * 16, '00' * 16)

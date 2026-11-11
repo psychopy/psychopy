@@ -10,6 +10,7 @@ and keyboard."""
 
 import collections
 import itertools
+import sys
 import time
 import weakref
 
@@ -21,7 +22,7 @@ from psychopy.visual.helpers import callOnGLThread
 from psychopy.visual.backends import _events
 import psychopy.tools.pygletgl as GL
 
-from . import _geometry, _host
+from . import _geometry, _glext, _gpushare, _host
 from ._shm import FrameRing
 from ._texture import StreamingTexture
 
@@ -62,6 +63,54 @@ _CURSORS_ = {
 }
 
 
+# whether each window can share frames on the GPU, worked out once for each
+_gpuSupport = weakref.WeakKeyDictionary()
+
+
+def _gpuSupportFor(win):
+    """Whether frames can be shared on the GPU with a window's OpenGL context
+    (see `_gpushare`).
+
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window`
+        The window.
+
+    Returns
+    -------
+    tuple
+        `(gl, uuids)`, the context's OpenGL functions and its device and
+        driver UUIDs, or `(None, reason)` if it can't.
+
+    """
+    try:
+        return _gpuSupport[win]
+    except KeyError:
+        pass
+    if not sys.platform.startswith('linux'):
+        result = (None, "it is only done on Linux for now")
+    elif not _host.gpuSharingAllowed():
+        result = (None, "the {} environment variable turns it off".format(
+            _host.ENV_GPU_SHARING))
+    elif win.winType not in ('pyglet', 'glfw'):
+        result = (None, "it isn't done with {} windows".format(win.winType))
+    else:
+        try:
+            win._setCurrent()
+            gl = _glext.GLFunctions(_glext.platformGetProcAddress())
+            if gl.supportsSharing():
+                result = (gl, gl.uuids())
+            else:
+                result = (None, "the graphics driver can't import memory "
+                                "and semaphores ({})".format(
+                                    ', '.join(_glext.SHARING_EXTENSIONS)))
+        except Exception as err:
+            result = (None, "checking the graphics driver failed: {}".format(
+                err))
+    _gpuSupport[win] = result
+    return result
+
+
 class WebBrowserStim(BaseVisualStim, ContainerMixin):
     """A web page drawn as a stimulus, which participants can use with the
     mouse and keyboard.
@@ -79,6 +128,9 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
     JavaScript, which `getMessages` returns, and receive data sent with
     `sendMessage` by registering a function with
     ``psychopy.onMessage(handler)``.
+
+    Frames are passed to the window on the GPU when the graphics driver can
+    (see `gpuSharing`), and through shared memory otherwise.
 
     Each page is a private (incognito) browsing session: nothing it stores is
     kept once the experiment ends. Downloads, file uploads, new windows (by
@@ -137,6 +189,15 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         them in this page, `'block'` ignores them.
     interpolate : bool
         Whether to interpolate linearly when the page is scaled to its size.
+    gpuSharing : bool or str
+        Whether frames may be passed from the web browser to the window on the
+        GPU, which saves copying them through the CPU and memory. `'auto'`
+        does so when the window's graphics driver supports it (on Linux, for
+        now) and otherwise uses shared memory, `True` does the same but warns
+        when it can't, and `False` always uses shared memory. If frames on the
+        GPU fail, or the check made when they start fails, shared memory is
+        used. Setting the environment variable `PSYCHOPY_WEB_GPU_SHARING` to
+        `0` turns it off for every page. `frameTransport` says which is used.
     flipHoriz, flipVert : bool
         Whether to mirror the page horizontally or vertically.
     waitForLoad : bool
@@ -187,6 +248,7 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
                  maxFrameRate=60,
                  newWindowPolicy='same',
                  interpolate=True,
+                 gpuSharing='auto',
                  flipHoriz=False,
                  flipVert=False,
                  waitForLoad=False,
@@ -203,6 +265,10 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         super(WebBrowserStim, self).__init__(
             win, units=units, name=name, autoLog=False)
 
+        if gpuSharing not in (True, False, 'auto'):
+            raise ValueError(
+                "`gpuSharing` must be True, False or 'auto', not {!r}".format(
+                    gpuSharing))
         if newWindowPolicy not in ('same', 'block'):
             raise ValueError(
                 "`newWindowPolicy` must be 'same' or 'block', not {!r}".format(
@@ -246,7 +312,15 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         self._jsCallbacks = {}
         self._jsResults = {}
 
-        # frames
+        # frames, in shared memory or on the GPU (see `_gpushare`): slots the
+        # server sent to check, the slots frames come in, and what is drawn,
+        # as `(transport, slots, slot, gen)`
+        self._gpuSharing = gpuSharing
+        self._gpuPending = None
+        self._gpuSlots = None
+        self._gpuGen = None
+        self._gpuRetired = False
+        self._shown = None
         self._ring = None
         self._dpr = 1.0
         self._heldFrames = []
@@ -269,7 +343,8 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         self._cursorShown = None
 
         # open the page
-        self._channel = _host.BrowserHost.get().openChannel()
+        host = _host.BrowserHost.get()
+        self._channel = host.openChannel()
         cfg = dict(
             w=self._resolution[0], h=self._resolution[1], zoom=self._zoom,
             javascript=bool(javascript), transparent=bool(transparent),
@@ -281,6 +356,15 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
             cfg.update(html=html, baseUrl=baseUrl)
         elif url:
             cfg.update(url=url)
+        if gpuSharing:
+            if host.info.get('gpu') != 'auto':
+                gl, info = None, "it is turned off for the web browser"
+            else:
+                gl, info = _gpuSupportFor(win)
+            if gl is not None:
+                cfg['gpu'] = dict(deviceUUID=info[0], driverUUID=info[1])
+            else:
+                self._gpuUnavailable(info)
         self._channel.send('create', **cfg)
 
         self._pump_ = _host.WindowPump.forWindow(win)
@@ -389,6 +473,9 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         self._interpolate = bool(value)
         if self._texture is not None:
             self._texture.interpolate = self._interpolate
+        for slots in (self._gpuSlots, self._shown and self._shown[1]):
+            if slots:
+                slots.interpolate = self._interpolate
 
     @property
     def muted(self):
@@ -410,6 +497,28 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
     def maxFrameRate(self, value):
         self._maxFrameRate = float(value or 0)
         self._send('setMaxFps', fps=self._maxFrameRate)
+
+    @property
+    def gpuSharing(self):
+        """Whether frames may be passed on the GPU (`bool` or `'auto'`), as
+        given when the stimulus was made. See `frameTransport` for whether they
+        are."""
+        return self._gpuSharing
+
+    @property
+    def frameTransport(self):
+        """How the frame drawn reached the window (`str` or `None`): `'gpu'`
+        on the GPU, `'shm'` through shared memory, `None` before the first."""
+        return None if self._shown is None else self._shown[0]
+
+    def _gpuUnavailable(self, reason):
+        """Note that frames won't be passed on the GPU, and why."""
+        msg = "{}: using shared memory for frames, as they can't be passed " \
+              "on the GPU ({})".format(self.name, reason)
+        if self._gpuSharing is True:
+            logging.warning(msg)
+        else:
+            logging.info(msg)
 
     # ----------------------------------------------------------------------
     # The page
@@ -657,29 +766,73 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         self._sendResize()
         self._flushInput()
         self._updateFocus()
-        if len(self._heldFrames) > 1 and self._drawnRecently():
-            # only the newest is drawn, free the others for the server
-            for frame in self._heldFrames[:-1]:
+        held = self._heldFrames
+        if len(held) > 1 and self._drawnRecently() and \
+                not any(frame.get('gpu') for frame in held):
+            # only the newest is drawn, free the others for the server (frames
+            # on the GPU need OpenGL, see `_pumpGL`)
+            for frame in held[:-1]:
                 self._release(frame)
+            del held[:-1]
+
+    def _pumpGL(self):
+        """As `_pump`, plus what needs the window's OpenGL context current,
+        which it is when the window's pump calls this during a flip, and when
+        drawing."""
+        self._pump()
+        if self._channel is None:
+            return
+        if self._gpuPending is not None:
+            self._checkGpuSlots()
+        slots = self._gpuSlots
+        if self._gpuRetired and slots is not None and \
+                not (self._shown and self._shown[1] is slots):
+            # the server went back to shared memory
+            slots.delete()
+            self._gpuSlots = self._gpuGen = None
+            self._gpuRetired = False
+        if len(self._heldFrames) > 1 and self._drawnRecently():
+            self._releaseFrames(self._heldFrames[:-1])
             del self._heldFrames[:-1]
+
+    def _dropHeldFrames(self):
+        """Let go of frames held from slots being replaced. Those in shared
+        memory are released; those on the GPU aren't waited on again."""
+        for frame in self._heldFrames:
+            if not frame.get('gpu'):
+                self._release(frame)
+        self._heldFrames = []
 
     def _handleMessage(self, msg):
         op = msg['op']
         if op == 'frame':
-            if self._ring is None or msg['gen'] != self._ring.gen:
-                self._release(msg)
-            else:
+            if self._gpuSlots is not None and msg['gen'] == self._gpuGen:
+                msg['gpu'] = True
                 self._heldFrames.append(msg)
+            elif self._ring is not None and msg['gen'] == self._ring.gen:
+                self._heldFrames.append(msg)
+            else:
+                self._release(msg)
+        elif op == 'surface' and msg.get('transport') == 'gpu':
+            # checked (and frames start) once OpenGL is current, see `_pumpGL`
+            if self._gpuPending is not None:
+                _gpushare.closeFds(self._gpuPending.get('fds', ()))
+            self._gpuPending = msg
+            self._dropHeldFrames()
+            self._dpr = msg.get('dpr', 1.0)
         elif op == 'surface':
-            for frame in self._heldFrames:
-                self._release(frame)
-            self._heldFrames = []
+            self._dropHeldFrames()
             if self._ring is not None:
                 self._ring.close()
             self._ring = FrameRing.attach(
                 msg['shm'], msg['w'], msg['h'], msg['stride'], msg['fmt'],
                 msg['slots'], msg['gen'])
             self._dpr = msg.get('dpr', 1.0)
+        elif op == 'gpuFallback':
+            self._gpuRetired = True
+            reason = msg.get('reason')
+            _gpuSupport[self.win] = (None, reason)  # nor for later pages
+            self._gpuUnavailable(reason)
         elif op == 'loadStarted':
             self._isLoading = True
             self._loadError = None
@@ -742,6 +895,62 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
     def _release(self, frame):
         self._send('release', slot=frame['slot'], gen=frame['gen'])
 
+    def _releaseFrames(self, frames):
+        """Release frames which won't be drawn (with OpenGL current): those on
+        the GPU are waited for and signalled done first."""
+        slots = self._gpuSlots
+        gpuFrames = [frame for frame in frames if frame.get('gpu')]
+        if gpuFrames and slots is not None:
+            for frame in gpuFrames:
+                slots.waitReady(frame['slot'])
+                slots.signalDone(frame['slot'])
+            slots.gl.glFlush()  # signalled before the server hears
+        for frame in frames:
+            self._release(frame)
+
+    def _checkGpuSlots(self):
+        """Import the shared slots the server sent and check them (with
+        OpenGL current), going back to shared memory if they don't work."""
+        msg, self._gpuPending = self._gpuPending, None
+        fds = list(msg.pop('fds', ()))
+        n = msg['slots']
+        gl, info = _gpuSupportFor(self.win)
+        slots = None
+        problem = None
+        if gl is None:
+            problem = info
+        elif len(fds) != 3 * n:
+            problem = "expected {} file descriptors, got {}".format(
+                3 * n, len(fds))
+        if problem is not None:
+            _gpushare.closeFds(fds)
+        else:
+            try:
+                slots = _gpushare.GLSlots(
+                    gl, msg['w'], msg['h'], msg['memSize'], fds[:n],
+                    fds[n:2 * n], fds[2 * n:], self._interpolate)
+                colors = slots.readCheckColors()
+                expected = [_gpushare.checkColor(i) for i in range(n)]
+                if any(max(abs(a - b) for a, b in zip(color, want)) > 2
+                       for color, want in zip(colors, expected)):
+                    problem = "frames read back wrong ({} rather than " \
+                              "{})".format(colors, expected)
+            except _gpushare.GPUShareError as err:
+                problem = str(err)
+        if problem is not None:
+            if slots is not None:
+                slots.delete()
+            self._send('gpuStatus', gen=msg['gen'], ok=False, reason=problem)
+            _gpuSupport[self.win] = (None, problem)  # nor for later pages
+            self._gpuUnavailable(problem)
+            return
+        old = self._gpuSlots
+        self._gpuSlots, self._gpuGen = slots, msg['gen']
+        self._gpuRetired = False
+        if old is not None and not (self._shown and self._shown[1] is old):
+            old.delete()
+        self._send('gpuStatus', gen=msg['gen'], ok=True)
+
     # ----------------------------------------------------------------------
     # Drawing
     #
@@ -762,43 +971,77 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
             win = self.win
         self._selectWindow(win)
         self._lastDrawTime = core.getTime()
-        self._pump()
-        self._uploadFrame()
-        if self._texture is not None:
+        self._pumpGL()
+        self._takeFrame()
+        if self._shown is not None:
             self._drawTexture()
 
-    def _uploadFrame(self):
-        """Copy the newest frame from the server into the texture."""
+    def _takeFrame(self):
+        """Make the newest frame from the server the one drawn: upload it to
+        the texture if it is in shared memory, or wait for its slot if it is
+        on the GPU. The others are released."""
         if not self._heldFrames:
             return
         frame = self._heldFrames[-1]
-        ring = self._ring
+        older = self._heldFrames[:-1]
+        self._heldFrames = []
+        previous = self._shown
         try:
-            if ring is not None and frame['gen'] == ring.gen:
-                texture = self._texture
-                if texture is None or not texture.matches(
-                        ring.width, ring.height, ring.fmt):
-                    if texture is not None:
-                        texture.delete()
-                    texture = self._texture = StreamingTexture(
-                        ring.width, ring.height, ring.fmt, self._interpolate)
-                texture.upload(ring.address(frame['slot']), ring.stride)
-                self.frameSeq = frame['seq']
-                self.lastFrameCaptureTime = frame['t'] + self._clockOffset
+            if frame.get('gpu'):
+                self._gpuSlots.waitReady(frame['slot'])
+                self._shown = ('gpu', self._gpuSlots, frame['slot'],
+                               frame['gen'])
+            else:
+                ring = self._ring
+                if ring is None or frame['gen'] != ring.gen:
+                    self._release(frame)
+                    return
+                try:
+                    texture = self._texture
+                    if texture is None or not texture.matches(
+                            ring.width, ring.height, ring.fmt):
+                        if texture is not None:
+                            texture.delete()
+                        texture = self._texture = StreamingTexture(
+                            ring.width, ring.height, ring.fmt,
+                            self._interpolate)
+                    texture.upload(ring.address(frame['slot']), ring.stride)
+                    self._shown = ('shm', None, None, frame['gen'])
+                finally:
+                    self._release(frame)
+            self.frameSeq = frame['seq']
+            self.lastFrameCaptureTime = frame['t'] + self._clockOffset
         finally:
-            for held in self._heldFrames:
-                self._release(held)
-            self._heldFrames = []
+            self._releaseFrames(older)
+            if previous is not None and previous != self._shown:
+                self._letGoOfShown(previous)
+
+    def _letGoOfShown(self, shown):
+        """Stop drawing a frame on the GPU: signal its slot done and release
+        it, or delete its slots if they have been replaced (with OpenGL
+        current)."""
+        transport, slots, slot, gen = shown
+        if transport != 'gpu':
+            return
+        if slots is self._gpuSlots:
+            slots.signalDone(slot)
+            slots.gl.glFlush()  # signalled before the server hears
+            self._send('release', slot=slot, gen=gen)
+        elif self._shown is None or slots is not self._shown[1]:
+            slots.delete()
 
     def _drawTexture(self):
-        """Draw the texture on the stimulus' rectangle."""
+        """Draw the frame on the stimulus' rectangle."""
         vertsPix = self.verticesPix
-        # frames are top row first, so the top of the page is at t = 0
-        array = (GL.GLfloat * 20)(
-            1, 1, vertsPix[0, 0], vertsPix[0, 1], 0.,
-            0, 1, vertsPix[1, 0], vertsPix[1, 1], 0.,
-            0, 0, vertsPix[2, 0], vertsPix[2, 1], 0.,
-            1, 0, vertsPix[3, 0], vertsPix[3, 1], 0.)
+        if self._shown[0] == 'gpu':
+            # rendered by OpenGL, so the bottom of the page is at t = 0
+            texCoords = ((1, 0), (0, 0), (0, 1), (1, 1))
+        else:
+            # top row first, so the top of the page is at t = 0
+            texCoords = ((1, 1), (0, 1), (0, 0), (1, 0))
+        array = (GL.GLfloat * 20)(*[
+            value for (s, t), (x, y) in zip(texCoords, vertsPix[:4])
+            for value in (s, t, x, y, 0.)])
 
         GL.glPushAttrib(GL.GL_ENABLE_BIT | GL.GL_COLOR_BUFFER_BIT)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -813,7 +1056,10 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
             GL.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA)
         GL.glPushMatrix()
         self.win.setScale('pix')
-        self._texture.bind()
+        if self._shown[0] == 'gpu':
+            self._shown[1].bind(self._shown[2])
+        else:
+            self._texture.bind()
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
@@ -1099,9 +1345,17 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         if self._ring is not None:
             self._ring.close()
             self._ring = None
+        if self._gpuPending is not None:
+            _gpushare.closeFds(self._gpuPending.get('fds', ()))
+            self._gpuPending = None
         texture, self._texture = self._texture, None
         if texture is not None:
             callOnGLThread(win, texture.delete)
+        allSlots = {id(slots): slots for slots in (
+            self._gpuSlots, self._shown and self._shown[1]) if slots}
+        self._gpuSlots = self._shown = None
+        for slots in allSlots.values():
+            callOnGLThread(win, slots.delete)
 
     def __del__(self):
         try:

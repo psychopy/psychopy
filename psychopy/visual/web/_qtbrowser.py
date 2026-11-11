@@ -12,7 +12,8 @@ not to be imported anywhere else.
 
 Each page is a `QWebEngineView` which is shown but not on screen. When it has
 rendered, the frame is grabbed and written to shared memory for the stimulus,
-and input from the stimulus is sent to it as Qt events.
+or, when both processes can, drawn into GPU memory they share (see `_qtgpu`).
+Input from the stimulus is sent to it as Qt events.
 """
 
 import fnmatch
@@ -34,6 +35,7 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 import _keymap
 import _protocol
 from _shm import FrameRing
+from _qtgpu import GpuCompositor, GpuSurface, GPUShareError, RetainedCapture
 
 Qt = QtCore.Qt
 QE = QtCore.QEvent.Type
@@ -190,6 +192,22 @@ class ViewHost(QtCore.QObject):
         # the release of a press which closed one
         self.popups = []
         self.ignoreRelease = False
+        # frames go in shared memory, or stay on the GPU when the stimulus
+        # asked for that and this process can: copies of each widget's
+        # renders, and the shared slots they are drawn into
+        self.closed = False
+        self.transport = 'shm'
+        self.gpuUuids = None
+        self.gpuSurface = None
+        self.captures = {}
+        if cfg.get('gpu'):
+            compositor, problem = server.gpuCompositor()
+            if compositor is None:
+                self.send('gpuFallback', reason=problem)
+            else:
+                self.transport = 'gpu'
+                self.gpuUuids = (cfg['gpu']['deviceUUID'],
+                                 cfg['gpu']['driverUUID'])
         self.grabTimer = QtCore.QTimer(self)
         self.grabTimer.setSingleShot(True)
         self.grabTimer.timeout.connect(self.grab)
@@ -254,8 +272,8 @@ class ViewHost(QtCore.QObject):
         else:
             self.setHtml('<!doctype html><html><body></body></html>', None)
 
-    def send(self, op, **msg):
-        self.server.conn.send(op=op, view=self.id, **msg)
+    def send(self, op, fds=None, **msg):
+        self.server.conn.send(fds=fds, op=op, view=self.id, **msg)
 
     # ----------------------------------------------------------------------
     # page
@@ -384,9 +402,14 @@ class ViewHost(QtCore.QObject):
             direct = Qt.ConnectionType.DirectConnection
             window.afterFrameEnd.connect(self.markDirty, direct)
             window.afterRendering.connect(self.markDirty, direct)
+        if self.transport == 'gpu':
+            self._capture(popup)
         self.markDirty()
 
     def removePopup(self, popup):
+        capture = self.captures.pop(popup, None)
+        if capture is not None:
+            self._destroyCaptures([capture])
         if popup in self.popups:
             self.popups.remove(popup)
             self.markDirty()
@@ -415,6 +438,8 @@ class ViewHost(QtCore.QObject):
         It is made once the page first loads, and is replaced if the page's
         render process does.
         """
+        if self.closed:  # called later, e.g. from a timer
+            return
         proxy = self.view.focusProxy()
         if proxy is None or proxy is self.proxy:
             return
@@ -430,6 +455,8 @@ class ViewHost(QtCore.QObject):
             self.pollTimer.stop()
         else:
             self.pollTimer.start(int(1000 / (self.maxFps or 30)))
+        if self.transport == 'gpu':
+            self._capture(proxy)
         self.markDirty()
 
     def _poll(self):
@@ -456,6 +483,14 @@ class ViewHost(QtCore.QObject):
         a free slot to put it in."""
         self.hookProxy()
         if not self.dirty or self.proxy is None:
+            return
+        if self.transport == 'gpu':
+            try:
+                self._grabGpu()
+            except Exception as err:
+                traceback.print_exc()
+                self.gpuFailed("Drawing a frame on the GPU failed: {}".format(
+                    err))
             return
         if self.ring is not None and not self.free:
             return  # sent when a slot is released
@@ -529,11 +564,115 @@ class ViewHost(QtCore.QObject):
                   fmt=fmt, slots=_NUM_SLOTS, gen=self.gen, dpr=dpr)
 
     def release(self, slot, gen):
-        if gen != self.gen:
-            return  # from a segment that has gone
-        self.free.add(slot)
+        if self.gpuSurface is not None and gen == self.gpuSurface.gen:
+            self.gpuSurface.release(slot)
+        elif self.ring is not None and gen == self.gen:
+            self.free.add(slot)
+        else:
+            return  # from slots that have gone
         if self.dirty:
             self.scheduleGrab()
+
+    # frames on the GPU
+
+    def _capture(self, widget):
+        """Copy what a widget renders, to draw into frames on the GPU."""
+        if widget not in self.captures and hasattr(widget, 'quickWindow'):
+            self.captures[widget] = RetainedCapture(widget, self.gpuFailed)
+
+    def _destroyCaptures(self, captures):
+        compositor = self.server.compositor
+        if compositor is None:
+            return
+        try:
+            compositor.makeCurrent()
+            for capture in captures:
+                capture.destroy(compositor)
+            compositor.doneCurrent()
+        except Exception:
+            traceback.print_exc()
+
+    def _grabGpu(self):
+        """Draw the latest renders into a free shared slot and send it."""
+        capture = self.captures.get(self.proxy)
+        if capture is None or capture.texture is None:
+            return  # not rendered yet
+        width, height = capture.size
+        surface = self.gpuSurface
+        if surface is None or (surface.width, surface.height) != (width,
+                                                                  height):
+            self._newGpuSurface(width, height)
+            return  # frames start once the stimulus has checked the slots
+        if not surface.checked or not surface.free:
+            return  # sent when the check passes, or a slot is released
+        self.dirty = False
+        layers = [(capture, (0, 0, width, height))]
+        scale = width / max(1, self.proxy.width())
+        for popup in self.openPopups():
+            popupCapture = self.captures.get(popup)
+            if popupCapture is None or popupCapture.texture is None:
+                continue
+            rect = self.popupRect(popup)
+            left = int(round(rect.x() * scale))
+            right = int(round((rect.x() + rect.width()) * scale))
+            top = int(round(rect.y() * scale))
+            bottom = int(round((rect.y() + rect.height()) * scale))
+            # OpenGL's y is up, the page's down
+            layers.append((popupCapture,
+                           (left, height - bottom, right, height - top)))
+        slot = surface.compose(layers)
+        self.seq += 1
+        self.lastGrabTime = time.perf_counter()
+        self.send('frame', slot=slot, seq=self.seq, gen=self.gen,
+                  t=self.lastGrabTime)
+
+    def _newGpuSurface(self, width, height):
+        """Allocate shared slots for frames of a new size, and send them to
+        the stimulus to check."""
+        old, self.gpuSurface = self.gpuSurface, None
+        if old is not None:
+            old.destroy()
+        self.gen += 1
+        try:
+            surface = GpuSurface(self.server.compositor, self.gpuUuids, width,
+                                 height, _NUM_SLOTS, self.gen)
+        except GPUShareError as err:
+            self.gpuFailed(str(err))
+            return
+        self.gpuSurface = surface
+        fds, surface.stimulusFds = surface.stimulusFds, []
+        self.send('surface', transport='gpu', w=width, h=height,
+                  slots=_NUM_SLOTS, gen=self.gen, fmt='rgba_pm',
+                  memSize=surface.memSize, bottomUp=True,
+                  dpr=width / max(1, self.proxy.width()), fds=fds)
+
+    def gpuStatus(self, gen, ok, reason=None):
+        """The stimulus checked a set of shared slots."""
+        surface = self.gpuSurface
+        if surface is None or gen != surface.gen:
+            return
+        if ok:
+            surface.checkPassed()
+            self.markDirty()
+        else:
+            self.gpuFailed(reason or "The shared frames didn't check out",
+                           notify=False)
+
+    def gpuFailed(self, reason, notify=True):
+        """Go back to frames in shared memory."""
+        if self.transport != 'gpu':
+            return
+        print("Frames on the GPU stopped, using shared memory: {}".format(
+            reason), file=sys.stderr)
+        self.transport = 'shm'
+        if notify:
+            self.send('gpuFallback', reason=reason)
+        surface, self.gpuSurface = self.gpuSurface, None
+        if surface is not None:
+            surface.destroy()
+        captures, self.captures = list(self.captures.values()), {}
+        self._destroyCaptures(captures)
+        self.markDirty()
 
     def resize(self, width, height):
         self.view.resize(int(width), int(height))
@@ -642,12 +781,18 @@ class ViewHost(QtCore.QObject):
     # ----------------------------------------------------------------------
 
     def close(self):
+        self.closed = True
         self.grabTimer.stop()
         self.pollTimer.stop()
         self.view.removeEventFilter(self)
         if self.ring is not None:
             self.ring.close()
             self.ring = None
+        captures, self.captures = list(self.captures.values()), {}
+        self._destroyCaptures(captures)
+        if self.gpuSurface is not None:
+            self.gpuSurface.destroy()
+            self.gpuSurface = None
         self.view.close()
         # pages have to go before the profile they use
         self.view.deleteLater()
@@ -668,11 +813,16 @@ class BrowserServer(QtCore.QObject):
     """
     received = QtCore.pyqtSignal(object)
 
-    def __init__(self, conn, app):
+    def __init__(self, conn, app, gpu='off'):
         super().__init__()
         self.conn = conn
         self.app = app
         self.views = {}
+        # whether frames may be shared on the GPU, and the compositor for
+        # them once a page asks (or why there can't be one)
+        self.gpu = gpu
+        self.compositor = None
+        self._compositorProblem = None
         self._tempDir = None
         # off the record (no storage name): nothing is kept after exiting
         self.profile = QWebEngineProfile()
@@ -692,6 +842,26 @@ class BrowserServer(QtCore.QObject):
                     view.addPopup(obj)
                     break
         return False
+
+    def gpuCompositor(self):
+        """Get the compositor for frames on the GPU, making it if needed.
+
+        Returns
+        -------
+        tuple
+            `(compositor, None)`, or `(None, reason)` if there can't be one.
+
+        """
+        if self.compositor is None and self._compositorProblem is None:
+            if self.gpu != 'auto':
+                self._compositorProblem = "turned off"
+            else:
+                try:
+                    self.compositor = GpuCompositor()
+                except Exception as err:
+                    traceback.print_exc()
+                    self._compositorProblem = str(err)
+        return self.compositor, self._compositorProblem
 
     def readMessages(self):
         """Read messages until the connection closes (on its own thread)."""
@@ -726,6 +896,8 @@ class BrowserServer(QtCore.QObject):
                     return  # closed already
                 if op == 'release':
                     view.release(msg['slot'], msg['gen'])
+                elif op == 'gpuStatus':
+                    view.gpuStatus(msg['gen'], msg['ok'], msg.get('reason'))
                 elif op == 'input':
                     view.input(msg)
                 elif op == 'navigate':
@@ -760,6 +932,9 @@ class BrowserServer(QtCore.QObject):
         for view in list(self.views.values()):
             view.close()
         self.views.clear()
+        if self.compositor is not None and \
+                self.compositor._allocator is not None:
+            self.compositor._allocator.destroy()
         # delete the pages now, then the profile, which warns otherwise
         QtCore.QCoreApplication.sendPostedEvents(None, QE.DeferredDelete)
         self.profile.deleteLater()
@@ -771,7 +946,7 @@ class BrowserServer(QtCore.QObject):
         self.app.quit()
 
 
-def run(conn, platform):
+def run(conn, platform, gpu='off'):
     """Run the server until it is told to stop or the connection closes.
 
     Parameters
@@ -780,6 +955,9 @@ def run(conn, platform):
         Connection to the stimulus' process.
     platform : str
         How Qt renders pages, see `_server.choosePlatform`.
+    gpu : str
+        `'auto'` to share frames on the GPU with stimuli which ask for it,
+        `'off'` to only use shared memory.
 
     Returns
     -------
@@ -793,14 +971,18 @@ def run(conn, platform):
         conn.close()
         return 1
 
+    if gpu == 'auto':
+        # so our context can share the pages' rendered textures, see `_qtgpu`
+        QtCore.QCoreApplication.setAttribute(
+            Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
     app = QtWidgets.QApplication([sys.argv[0]])
     app.setQuitOnLastWindowClosed(False)
-    server = BrowserServer(conn, app)
+    server = BrowserServer(conn, app, gpu)
     threading.Thread(target=server.readMessages, name='webServerReader',
                      daemon=True).start()
     conn.send(op='hello', protocol=_protocol.PROTOCOL_VERSION,
               pid=os.getpid(), versions=versions(), platform=platform,
-              qpa=QtGui.QGuiApplication.platformName())
+              qpa=QtGui.QGuiApplication.platformName(), gpu=gpu)
     code = app.exec()
     conn.close()
     return code

@@ -16,6 +16,7 @@ goes.
 Usage::
 
     python _server.py --address ADDRESS --parent-pid PID [--platform PLATFORM]
+                      [--gpu {auto,off}]
 
 The connection's authentication key is passed (as hex) in the environment
 variable named by `_protocol.ENV_AUTHKEY`.
@@ -59,19 +60,41 @@ class Connection:
             target=self._write, name='webServerWriter', daemon=True)
         self._thread.start()
 
-    def send(self, **msg):
-        """Queue a message to send."""
-        self._queue.put(_protocol.pack(msg))
+    def send(self, fds=None, **msg):
+        """Queue a message to send.
+
+        Parameters
+        ----------
+        fds : list of int or None
+            File descriptors to send after the message (see
+            `_protocol.sendFds`), which are closed once sent. The message gets
+            an `nfds` field saying how many there are.
+        **msg
+            The message.
+
+        """
+        if fds:
+            msg['nfds'] = len(fds)
+        self._queue.put((_protocol.pack(msg), fds or ()))
 
     def _write(self):
         while True:
-            data = self._queue.get()
-            if data is None:
+            item = self._queue.get()
+            if item is None:
                 return
+            data, fds = item
             try:
                 self.conn.send_bytes(data)
+                if fds:
+                    _protocol.sendFds(self.conn, fds)
             except (OSError, ValueError):  # the other end has gone
                 return
+            finally:
+                for fd in fds:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        pass
 
     def close(self, timeout=2.0):
         """Send what is queued, then close the connection."""
@@ -149,6 +172,8 @@ def parseArgs(argv=None):
     parser.add_argument('--platform', default='auto',
                         choices=['auto', 'native', 'offscreen'],
                         help="How Qt renders pages")
+    parser.add_argument('--gpu', default='auto', choices=['auto', 'off'],
+                        help="Whether frames may be shared on the GPU")
     return parser.parse_args(argv)
 
 
@@ -177,8 +202,13 @@ def main(argv=None):
         conn.close()
         return 1
 
+    # sharing frames on the GPU needs a GPU to render with, and is only done
+    # on Linux for now
+    gpu = args.gpu
+    if platform != 'native' or not sys.platform.startswith('linux'):
+        gpu = 'off'
     try:
-        return _qtbrowser.run(conn, platform)
+        return _qtbrowser.run(conn, platform, gpu)
     finally:
         _shm.closeOwnedRings()
 

@@ -8,7 +8,9 @@
 """Web pages as stimuli, see `WebBrowserStim`.
 
 Pages are rendered by Chromium (Qt WebEngine) in a separate process, which
-needs the `PyQt6-WebEngine` package (``pip install psychopy[web]``).
+needs the `PyQt6-WebEngine` package (``pip install psychopy[web]``). Frames
+reach the window through shared memory, or on the GPU where the graphics
+driver supports it (Linux, for now; see `WebBrowserStim`'s `gpuSharing`).
 """
 
 import importlib.util

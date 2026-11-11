@@ -23,7 +23,12 @@ Messages to the server:
 * `input` - mouse, wheel, key, text (`ime`) or focus input (`kind` and the
   fields for that kind, see `WebBrowserStim`).
 * `release` - the stimulus has finished with a frame (`slot`, `gen`).
+* `gpuStatus` - whether shared slots on the GPU checked out (`gen`, `ok`,
+  `reason`), see `_gpushare`.
 * `close` - close a page, `shutdown` - close everything and exit.
+
+`create` has a `gpu` field (`deviceUUID`, `driverUUID` of the stimulus'
+OpenGL context) when the stimulus can take frames on the GPU.
 
 Messages from the server:
 
@@ -31,7 +36,10 @@ Messages from the server:
   (`error`) if the server can't start.
 * `surface` - where frames will be written (`shm`, `w`, `h`, `stride`, `fmt`,
   `slots`, `gen`, `dpr`), then `frame` for each frame written there (`slot`,
-  `seq`, `gen`, `t`).
+  `seq`, `gen`, `t`). For frames on the GPU it has `transport` `'gpu'`, no
+  `shm` or `stride`, and `memSize`, and is followed by the file descriptors
+  of each slot's memory, *ready* and *done* semaphores (see `_gpushare`).
+* `gpuFallback` (`reason`) - frames go in shared memory from now on.
 * `loadStarted`, `loadProgress` (`pct`), `loadFinished` (`ok`, `url`),
   `urlChanged` (`url`), `titleChanged` (`title`).
 * `console` (`level`, `msg`, `line`, `src`), `pageMessage` (`data`, `origin`),
@@ -40,10 +48,17 @@ Messages from the server:
   (`shape`), `renderGone` (`status`, `code`), `jsResult` (`id`, `ok`, `value`
   or `error`), `error` (`msg`), `closed`.
 
+A message followed by file descriptors (`sendFds`) says how many in `nfds`.
+`hello` has a `gpu` field, `'auto'` if the server can share frames on the GPU
+and `'off'` if not.
+
 This module only uses the standard library and msgpack, as the server imports
 it without importing PsychoPy.
 """
 
+import array
+import os
+import socket
 import struct
 
 import msgpack
@@ -59,7 +74,10 @@ __all__ = [
     'HEADER_MAGIC',
     'pack',
     'unpack',
-    'shmName'
+    'shmName',
+    'sendFds',
+    'recvFds',
+    'makeBlocking'
 ]
 
 # bumped whenever messages change, the server refuses other versions
@@ -148,3 +166,77 @@ def shmName(pid, view, gen):
 
     """
     return 'pw{:x}_{:x}_{:x}'.format(pid, view, gen)
+
+
+def makeBlocking(conn):
+    """Make a connection's socket blocking again.
+
+    A socket object made while a default timeout is set (`psychopy.web` sets
+    one) puts the socket into non-blocking mode, which reads on the connection
+    then fail with `BlockingIOError`.
+
+    Parameters
+    ----------
+    conn : multiprocessing.connection.Connection
+        Connection to fix.
+
+    """
+    os.set_blocking(conn.fileno(), True)
+
+
+def _socketFor(conn):
+    """A socket object for a connection's socket, to pass file descriptors
+    on, which leaves it blocking."""
+    sock = socket.socket(fileno=os.dup(conn.fileno()))
+    sock.settimeout(None)  # whatever the default timeout is
+    return sock
+
+
+def sendFds(conn, fds):
+    """Send file descriptors on a Unix socket connection, after the message
+    they go with. The caller still owns (and closes) its own.
+
+    Parameters
+    ----------
+    conn : multiprocessing.connection.Connection
+        Connection to send on.
+    fds : list of int
+        File descriptors to send.
+
+    """
+    with _socketFor(conn) as sock:
+        sock.sendmsg(
+            [bytes([len(fds) % 256])],
+            [(socket.SOL_SOCKET, socket.SCM_RIGHTS, array.array('i', fds))])
+
+
+def recvFds(conn, count):
+    """Receive file descriptors sent with `sendFds`, right after reading the
+    message they go with.
+
+    Parameters
+    ----------
+    conn : multiprocessing.connection.Connection
+        Connection to receive on.
+    count : int
+        Number of file descriptors sent.
+
+    Returns
+    -------
+    list of int
+        The file descriptors, which the caller owns.
+
+    """
+    fds = array.array('i')
+    with _socketFor(conn) as sock:
+        msg, ancdata, flags, addr = sock.recvmsg(
+            1, socket.CMSG_SPACE(count * fds.itemsize))
+    for level, kind, data in ancdata:
+        if level == socket.SOL_SOCKET and kind == socket.SCM_RIGHTS:
+            fds.frombytes(data[:len(data) - (len(data) % fds.itemsize)])
+    if len(fds) != count:
+        for fd in fds:
+            os.close(fd)
+        raise RuntimeError("Expected {} file descriptors, got {}".format(
+            count, len(fds)))
+    return list(fds)

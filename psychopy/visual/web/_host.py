@@ -43,6 +43,20 @@ SERVER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # seconds to wait for the server to start and connect
 START_TIMEOUT = 30.0
 
+# environment variable which turns sharing frames on the GPU off when '0',
+# 'off', 'false' or 'no'
+ENV_GPU_SHARING = 'PSYCHOPY_WEB_GPU_SHARING'
+
+
+def gpuSharingAllowed():
+    """Whether frames may be shared on the GPU here (`bool`): on Linux (the
+    only platform it is done on for now), unless the environment turns it
+    off."""
+    if not sys.platform.startswith('linux'):
+        return False
+    value = os.environ.get(ENV_GPU_SHARING, '').strip().lower()
+    return value not in ('0', 'off', 'false', 'no')
+
 
 class WebServerError(RuntimeError):
     """The web browser server couldn't be started, or has stopped."""
@@ -209,7 +223,8 @@ class BrowserHost:
         cmd = os.environ.get(_protocol.ENV_SERVER_CMD)
         if cmd:
             return shlex.split(cmd, posix=os.name == 'posix')
-        return [sys.executable, SERVER_PATH, '--platform', self.platform]
+        return [sys.executable, SERVER_PATH, '--platform', self.platform,
+                '--gpu', 'auto' if gpuSharingAllowed() else 'off']
 
     def _start(self):
         killOrphanedWebServers()
@@ -254,6 +269,7 @@ class BrowserHost:
             if not accepted or isinstance(accepted[0], Exception):
                 self._fail("The web browser server didn't connect", logPath)
             self.conn = accepted[0]
+            _protocol.makeBlocking(self.conn)  # see `makeBlocking`
             # first message is `hello`, or `fatal` if it can't start
             remaining = START_TIMEOUT - (time.perf_counter() - t0)
             if not self.conn.poll(max(remaining, 1.0)):
@@ -296,6 +312,8 @@ class BrowserHost:
         try:
             while True:
                 msg = _protocol.unpack(self.conn.recv_bytes())
+                if msg.get('nfds'):  # sent right after their message
+                    msg['fds'] = _protocol.recvFds(self.conn, msg['nfds'])
                 viewId = msg.get('view')
                 if viewId is None:
                     with self._replied:
@@ -305,6 +323,9 @@ class BrowserHost:
                 channel = self._channels.get(viewId)
                 if channel is not None:
                     channel.inbox.append(msg)
+                else:  # its page has closed
+                    for fd in msg.get('fds', ()):
+                        os.close(fd)
         except (EOFError, OSError):
             pass
         self.alive = False
@@ -470,6 +491,6 @@ class WindowPump:
                 self._unregister()
                 return
             for stim in stims:
-                stim._pump()
+                stim._pumpGL()
         except Exception as err:
             logging.error("Error updating web browser stimuli: {}".format(err))

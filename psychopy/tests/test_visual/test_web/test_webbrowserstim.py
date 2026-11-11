@@ -39,11 +39,22 @@ def win():
     win.close()
 
 
-@pytest.fixture
-def stim(win):
+def _gpuSupported(win):
+    """Whether frames can be passed to `win` on the GPU here."""
+    from psychopy.visual.web import _host, webbrowserstim
+    host = _host.BrowserHost.get()
+    return host.info.get('gpu') == 'auto' and \
+        webbrowserstim._gpuSupportFor(win)[0] is not None
+
+
+# each test using a page runs with frames in shared memory and on the GPU
+# (which falls back to shared memory where it isn't supported)
+@pytest.fixture(params=[False, True], ids=['shm', 'gpu'])
+def stim(win, request):
     from psychopy import visual
     stim = visual.WebBrowserStim(win, html=PAGE, size=(320, 240),
-                                 resolution=(320, 240), waitForLoad=True)
+                                 resolution=(320, 240), waitForLoad=True,
+                                 gpuSharing=request.param)
     assert stim.isLoaded, stim.loadError
     _flipUntil(stim, lambda: stim.frameSeq > 1)
     yield stim
@@ -196,7 +207,8 @@ def test_frameTiming(stim):
     assert fps > 20
 
 
-def test_selectPopup(win):
+@pytest.mark.parametrize('gpuSharing', [False, True], ids=['shm', 'gpu'])
+def test_selectPopup(win, gpuSharing):
     """A <select>'s options, which open in a popup window of their own, are
     drawn on the page and take keys and clicks."""
     from psychopy import visual
@@ -204,6 +216,7 @@ def test_selectPopup(win):
     options = ''.join('<option>option {}</option>'.format(i) for i in range(6))
     stim = visual.WebBrowserStim(
         win, size=(320, 240), resolution=(320, 240), waitForLoad=True,
+        gpuSharing=gpuSharing,
         html="<body style='margin:0; background: #fff'>"
              "<select id='s' style='position: absolute; left: 10px; "
              "top: 10px; font: 16px sans-serif'>{}</select></body>".format(
@@ -235,3 +248,136 @@ def test_selectPopup(win):
             "document.getElementById('s').selectedIndex") == 2)
     finally:
         stim.close()
+
+
+# --------------------------------------------------------------------------
+# frames on the GPU
+#
+
+def test_gpuTransport(win):
+    """Frames come on the GPU where it is supported, drawn the right way up,
+    and in shared memory when it is turned off."""
+    from psychopy import visual
+    if not _gpuSupported(win):
+        pytest.skip("frames can't be passed on the GPU here")
+    page = ("<body style='margin: 0'><div style='height: 50vh; background: "
+            "#f00'></div><div style='height: 50vh; background: #0f0'></div>"
+            "</body>")
+    for gpuSharing, transport in ((True, 'gpu'), (False, 'shm')):
+        stim = visual.WebBrowserStim(win, html=page, size=(320, 240),
+                                     gpuSharing=gpuSharing, waitForLoad=True)
+        try:
+            assert _flipUntil(stim, lambda: stim.frameSeq > 1)
+            assert stim.frameTransport == transport
+            stim.draw()
+            assert _pixel(win, (0, 60)) == (255, 0, 0)
+            assert _pixel(win, (0, -60)) == (0, 255, 0)
+            win.flip()
+        finally:
+            stim.close()
+
+
+def test_gpuResize(win):
+    """Frames keep coming on the GPU, at the new size, when the page is
+    resized."""
+    from psychopy import visual
+    if not _gpuSupported(win):
+        pytest.skip("frames can't be passed on the GPU here")
+    stim = visual.WebBrowserStim(win, html=PAGE, size=(160, 120),
+                                 gpuSharing=True, waitForLoad=True)
+    try:
+        assert _flipUntil(stim, lambda: stim.frameTransport == 'gpu')
+        stim.size = (240, 160)
+        expected = (int(240 * win.pixScaleFactor),
+                    int(160 * win.pixScaleFactor))
+        assert _flipUntil(
+            stim, lambda: stim._shown[1] is not None and
+            (stim._shown[1].width, stim._shown[1].height) == expected)
+        assert stim.frameTransport == 'gpu'
+        stim.draw()
+        assert _pixel(win, (0, 70)) == (255, 0, 0)
+        win.flip()
+    finally:
+        stim.close()
+
+
+def test_gpuCheckFailureFallsBack(win, monkeypatch):
+    """If the frames the server shares read back wrong, frames come in shared
+    memory instead, with a warning, and later pages don't try again."""
+    import weakref
+    from psychopy import visual
+    from psychopy.visual.web import _gpushare, webbrowserstim
+    if not _gpuSupported(win):
+        pytest.skip("frames can't be passed on the GPU here")
+    monkeypatch.setattr(webbrowserstim, '_gpuSupport',
+                        weakref.WeakKeyDictionary())
+    monkeypatch.setattr(_gpushare, 'checkColor', lambda slot: (1, 2, 3, 4))
+    stim = visual.WebBrowserStim(win, html=PAGE, size=(160, 120),
+                                 gpuSharing=True, waitForLoad=True)
+    try:
+        assert _flipUntil(stim, lambda: stim.frameTransport == 'shm' and
+                          stim.frameSeq > 1)
+        stim.draw()
+        assert _pixel(win, (0, 0)) == (255, 0, 0)
+        win.flip()
+        assert stim._gpuSlots is None
+        assert webbrowserstim._gpuSupport[win][0] is None
+    finally:
+        stim.close()
+
+
+@pytest.fixture
+def freshServer():
+    """A web browser server started for the test, and another after it."""
+    from psychopy.visual.web import _host
+    _host._shutdownHost()
+    yield
+    _host._shutdownHost()
+
+
+def test_gpuTurnedOffByEnvironment(win, monkeypatch, freshServer):
+    """`PSYCHOPY_WEB_GPU_SHARING=0` keeps frames in shared memory, and the
+    server doesn't set up for sharing them."""
+    import weakref
+    from psychopy import visual
+    from psychopy.visual.web import _host, webbrowserstim
+    monkeypatch.setenv(_host.ENV_GPU_SHARING, '0')
+    monkeypatch.setattr(webbrowserstim, '_gpuSupport',
+                        weakref.WeakKeyDictionary())
+    stim = visual.WebBrowserStim(win, html=PAGE, size=(160, 120),
+                                 gpuSharing=True, waitForLoad=True)
+    try:
+        assert _host.BrowserHost.current().info['gpu'] == 'off'
+        assert _flipUntil(stim, lambda: stim.frameSeq > 1)
+        assert stim.frameTransport == 'shm'
+    finally:
+        stim.close()
+
+
+def test_gpuSlotsFreedOnGLThread(win, monkeypatch):
+    """A page drawn from GPU slots, freed by the garbage collector on another
+    thread, leaves deleting them to the window's thread."""
+    import threading
+    from psychopy import visual
+    from psychopy.visual.web import _gpushare
+    from ..test_glThread import collectorOnOtherThread, _letGo
+    if not _gpuSupported(win):
+        pytest.skip("frames can't be passed on the GPU here")
+    deletes = []
+    realDelete = _gpushare.GLSlots.delete
+
+    def recordingDelete(self):
+        deletes.append(threading.current_thread().name)
+        realDelete(self)
+
+    monkeypatch.setattr(_gpushare.GLSlots, 'delete', recordingDelete)
+    with collectorOnOtherThread():
+        stim = visual.WebBrowserStim(win, html=PAGE, size=(160, 120),
+                                     gpuSharing=True, waitForLoad=True)
+        assert _flipUntil(stim, lambda: stim.frameTransport == 'gpu')
+        _letGo(stim)
+        del stim
+
+    assert not deletes  # left for the window
+    win.flip()
+    assert deletes == [threading.main_thread().name]
