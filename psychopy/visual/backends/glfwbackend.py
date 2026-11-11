@@ -28,6 +28,7 @@ from .gamma import (
     createLinearRamp, defaultGammaErrorPolicy, raise_msg, warn_msg)
 from .. import globalVars
 from ._base import BaseBackend, closeOnInitError
+from . import _events
 
 if sys.platform == 'darwin':
     from . import _macos
@@ -132,6 +133,15 @@ _GLFW_MOUSE_BUTTONS_ = {
     glfw.MOUSE_BUTTON_LEFT: mouse.MOUSE_BUTTON_LEFT,
     glfw.MOUSE_BUTTON_MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
     glfw.MOUSE_BUTTON_RIGHT: mouse.MOUSE_BUTTON_RIGHT
+}
+
+# names of mouse buttons in events passed to window listeners
+_GLFW_BUTTON_NAMES_ = {
+    glfw.MOUSE_BUTTON_LEFT: 'left',
+    glfw.MOUSE_BUTTON_MIDDLE: 'middle',
+    glfw.MOUSE_BUTTON_RIGHT: 'right',
+    glfw.MOUSE_BUTTON_4: 'back',
+    glfw.MOUSE_BUTTON_5: 'forward'
 }
 
 # Keys which are passed to editable stimuli as cursor motions, these use the
@@ -639,6 +649,8 @@ class GLFWBackend(BaseBackend):
         # doing so on moving to a display with a different pixel density
         glfw.set_framebuffer_size_callback(handle, self._onFrameBufferSize)
         glfw.set_window_pos_callback(handle, self._onWindowPos)
+        # mouse buttons held, for events passed to window listeners
+        self._buttonsHeld = set()
         glfw.set_key_callback(handle, self.onKey)
         glfw.set_char_callback(handle, self.onText)
         glfw.set_mouse_button_callback(handle, self.onMouseButton)
@@ -892,6 +904,13 @@ class GLFWBackend(BaseBackend):
     def onKey(self, handle, key, scancode, action, mods):
         """Event handler for GLFW key events. Keys are passed to the `event`
         module and editable stimuli (e.g., `TextBox2`)."""
+        if self._listening:
+            self._dispatchEvent(
+                _events.KEY_RELEASE if action == glfw.RELEASE
+                else _events.KEY_PRESS,
+                key=_events.glfwKeyName(key, scancode), scancode=scancode,
+                modifiers=event._glfwToPygletModifiers(mods),
+                repeat=action == glfw.REPEAT)
         if action != glfw.RELEASE:
             currentEditable = self.win.currentEditable
             if currentEditable:
@@ -906,6 +925,7 @@ class GLFWBackend(BaseBackend):
 
     def onText(self, handle, codepoint):
         """Event handler for GLFW unicode character events."""
+        self._dispatchEvent(_events.TEXT, text=chr(codepoint))
         currentEditable = self.win.currentEditable
         if currentEditable:
             currentEditable._onText(chr(codepoint))
@@ -1315,6 +1335,20 @@ class GLFWBackend(BaseBackend):
         GLFW passes both button state changes to this callback, which are
         forwarded to `onMouseButtonPress` and `onMouseButtonRelease`.
         """
+        handle, button, action, mods = args
+        name = _GLFW_BUTTON_NAMES_.get(button)
+        if name is not None:
+            if action == glfw.PRESS:
+                self._buttonsHeld.add(name)
+            else:
+                self._buttonsHeld.discard(name)
+        if self._listening:
+            self._dispatchEvent(
+                _events.MOUSE_PRESS if action == glfw.PRESS
+                else _events.MOUSE_RELEASE,
+                winPos=lambda: glfw.get_cursor_pos(handle), button=name,
+                buttons=frozenset(self._buttonsHeld),
+                modifiers=event._glfwToPygletModifiers(mods))
         # don't process mouse events until ready
         if mouse.Mouse.getInstance() is None:
             event._onGLFWMouseButton(*args, **kwargs)
@@ -1350,6 +1384,12 @@ class GLFWBackend(BaseBackend):
 
     def onMouseScroll(self, *args, **kwargs):
         """Event handler for mouse scroll events."""
+        if self._listening:
+            handle, xoffset, yoffset = args
+            self._dispatchEvent(
+                _events.MOUSE_SCROLL,
+                winPos=lambda: glfw.get_cursor_pos(handle),
+                scroll=(xoffset, yoffset), buttons=frozenset(self._buttonsHeld))
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1365,6 +1405,11 @@ class GLFWBackend(BaseBackend):
 
     def onMouseMove(self, *args, **kwargs):
         """Event handler for mouse move events."""
+        if self._listening:
+            _, xpos, ypos = args
+            self._dispatchEvent(
+                _events.MOUSE_MOTION, winPos=(xpos, ypos),
+                buttons=frozenset(self._buttonsHeld))
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1380,6 +1425,9 @@ class GLFWBackend(BaseBackend):
     def _onCursorEnter(self, handle, entered):
         """Callback for GLFW cursor enter events, which are emitted when the
         mouse both enters and leaves the window."""
+        self._dispatchEvent(
+            _events.MOUSE_ENTER if entered else _events.MOUSE_LEAVE,
+            winPos=lambda: glfw.get_cursor_pos(handle))
         if entered:
             self.onMouseEnter()
         else:
