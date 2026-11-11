@@ -56,7 +56,9 @@ def stim(win, request):
                                  resolution=(320, 240), waitForLoad=True,
                                  gpuSharing=request.param)
     assert stim.isLoaded, stim.loadError
-    _flipUntil(stim, lambda: stim.frameSeq > 1)
+    # the first frames after loading can be of the page before it is painted
+    # (blank white), so wait for its red background
+    assert _flipUntil(stim, lambda: _drawnPixel(stim, (0, 50)) == (255, 0, 0))
     yield stim
     stim.close()
 
@@ -78,6 +80,12 @@ def _pixel(win, pos):
     y = int(pos[1] * win.pixScaleFactor + win.size[1] / 2)
     GL.glReadPixels(x, y, 1, 1, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, buf)
     return tuple(buf)[:3]
+
+
+def _drawnPixel(stim, pos):
+    """Color at `pos` once the stimulus' latest frame is drawn."""
+    stim.draw()
+    return _pixel(stim.win, pos)
 
 
 def _windowCoords(stim, pagePos):
