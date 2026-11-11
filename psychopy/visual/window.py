@@ -8,6 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
+import inspect
 import os
 import sys
 import threading
@@ -80,6 +81,7 @@ from psychopy import core, platform_specific, logging, prefs, monitors, layout
 import psychopy.event
 from . import backends, image
 from .backends._base import closeOnInitError
+from .backends._events import WindowEvent, WINDOW_CLOSE
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -452,6 +454,9 @@ class Window():
         # from other threads to run on it, see `_callOnGLThread`
         self._glThread = threading.current_thread()
         self._glThreadCalls = deque()
+        # weak references to the functions given each input event, see
+        # `addEventListener` (made before the backend, which can send events)
+        self._eventListeners = []
         self.backend = None  # this will be set later
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
@@ -1751,6 +1756,107 @@ class Window():
                 logging.debug(
                     "Error in {} called on the OpenGL thread: {}".format(
                         func, err))
+
+    def addEventListener(self, listener):
+        """Add a function to be called with each input event this window
+        receives.
+
+        Listeners get every key press and release, typed text, mouse button,
+        movement, scroll and enter/leave event as the backend receives it,
+        described the same way for every backend (see `WindowEvent`), and a
+        `'window_close'` event when the window starts closing. Events still
+        reach the `event` module, keyboards and editable stimuli as usual.
+
+        Only a weak reference to the listener is kept, so it is removed once
+        nothing else refers to it (e.g. when the stimulus whose method it is is
+        deleted). Keep a reference to functions made just to listen, such as
+        lambdas, for as long as they should be called.
+
+        The pygame backend doesn't send events to listeners.
+
+        Parameters
+        ----------
+        listener : callable
+            Function (or method) to call with each event, taking the
+            `WindowEvent` as its only argument. Exceptions it raises are logged
+            and otherwise ignored.
+
+        Examples
+        --------
+        Print where the mouse is clicked::
+
+            def onEvent(evt):
+                if evt.type == 'mouse_press':
+                    print(evt.button, evt.pos)
+
+            win.addEventListener(onEvent)
+
+        """
+        if self._findEventListener(listener) is not None:
+            return
+
+        if inspect.ismethod(listener):
+            ref = weakref.WeakMethod(listener)
+        else:
+            ref = weakref.ref(listener)
+        self._eventListeners.append(ref)
+
+    def removeEventListener(self, listener):
+        """Stop calling a function added with `addEventListener`.
+
+        Parameters
+        ----------
+        listener : callable
+            Function (or method) to stop calling.
+
+        Returns
+        -------
+        bool
+            `True` if the listener was removed, `False` if it wasn't added.
+
+        """
+        ref = self._findEventListener(listener)
+        if ref is None:
+            return False
+
+        self._eventListeners.remove(ref)
+        return True
+
+    def _findEventListener(self, listener):
+        """Get the weak reference to a listener, or `None` if it wasn't
+        added."""
+        for ref in self._eventListeners:
+            if ref() == listener:
+                return ref
+
+        return None
+
+    def _dispatchWindowEvent(self, evt):
+        """Call each listener with an input event, see `addEventListener`.
+
+        Parameters
+        ----------
+        evt : WindowEvent
+            Event to pass to the listeners.
+
+        """
+        # a copy, as listeners may add or remove listeners
+        for ref in list(self._eventListeners):
+            listener = ref()
+            if listener is None:  # nothing else refers to it any more
+                try:
+                    self._eventListeners.remove(ref)
+                except ValueError:
+                    pass
+                continue
+            try:
+                listener(evt)
+            except Exception as err:
+                # an error here would otherwise end up in the backend's event
+                # loop, so the event would not reach anything else
+                logging.error(
+                    "Error in window event listener {}: {}".format(
+                        listener, err))
 
     def update(self):
         """Deprecated: use Window.flip() instead
@@ -3562,6 +3668,12 @@ class Window():
     def close(self):
         """Close the window (and reset the Bits++ if necess).
         """
+        # let listeners free what they have in the window while it's still open
+        if not self._closed and self._eventListeners:
+            self._dispatchWindowEvent(
+                WindowEvent(WINDOW_CLOSE, core.getTime()))
+        self._eventListeners.clear()
+
         self._closed = True
 
         # make any calls still waiting for the OpenGL thread while there is a

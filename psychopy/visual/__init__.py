@@ -70,6 +70,7 @@ from psychopy.visual.dot import DotStim
 from psychopy.visual.grating import GratingStim
 from psychopy.visual.secondorder import EnvelopeGrating
 from psychopy.visual.movies import MovieStim
+from psychopy.visual.web import WebBrowserStim
 from psychopy.visual.shape import BaseShapeStim
 
 # stimuli derived from GratingStim
