@@ -274,6 +274,26 @@ def test_fdPassingWithDefaultTimeout(tmp_path):
         receiver.close()
 
 
+@pytest.mark.skipif(sys.platform != 'win32', reason="passes Windows handles")
+def test_handleDuplication(tmp_path):
+    """Windows handles are copied into a process (here this one) and work
+    there after the originals are closed."""
+    import msvcrt
+    from psychopy.visual.web import _gpushare
+    path = tmp_path / 'shared.txt'
+    path.write_text('shared file')
+    with open(str(path), 'rb') as f:
+        handle = msvcrt.get_osfhandle(f.fileno())
+        copied = _protocol.duplicateHandles([handle], os.getpid())
+    assert len(copied) == 1 and copied[0] != handle
+    fd = msvcrt.open_osfhandle(copied[0], os.O_RDONLY)  # takes the handle
+    with os.fdopen(fd, 'rb') as f:
+        assert f.read() == b'shared file'
+    with pytest.raises(OSError):
+        _protocol.duplicateHandles([0], os.getpid())  # not a handle
+    _gpushare.closeHandles([0])  # ignores ones it can't close
+
+
 @pytest.mark.skipif(os.name != 'posix', reason="POSIX sockets")
 def test_makeBlocking():
     from multiprocessing import Pipe
@@ -298,8 +318,9 @@ def test_glFunctionsUnknown():
 
 def test_vulkanAllocator():
     """Memory and semaphores are allocated on a device found by its UUIDs and
-    exported as file descriptors; an unknown device is refused."""
-    from psychopy.visual.web import _vkshare
+    exported as handles (file descriptors, or NT handles on Windows); an
+    unknown device is refused."""
+    from psychopy.visual.web import _gpushare, _vkshare
     try:
         devices = _vkshare.listDevices()
     except _vkshare.VulkanError as err:
@@ -315,10 +336,10 @@ def test_vulkanAllocator():
         image = allocator.allocateImage(64, 32)
         semaphore = allocator.createSemaphore()
         assert image.size >= 64 * 32 * 4
-        fds = [image.exportFd(), image.exportFd(), semaphore.exportFd()]
-        assert len(set(fds)) == 3 and all(fd >= 0 for fd in fds)
-        for fd in fds:
-            os.close(fd)
+        handles = [image.exportHandle(), image.exportHandle(),
+                   semaphore.exportHandle()]
+        assert len(set(handles)) == 3 and all(h > 0 for h in handles)
+        _gpushare.closeHandles(handles)
         image.destroy()
         semaphore.destroy()
     finally:

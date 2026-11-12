@@ -29,6 +29,14 @@ body { margin: 0; background: rgb(255, 0, 0); font: 16px sans-serif; }
 </script>
 </body></html>"""
 
+# a different color each frame
+ANIM = """<!doctype html><body style="margin: 0"><canvas id=c></canvas><script>
+var c = document.getElementById('c'), g = c.getContext('2d'), n = 0;
+c.width = innerWidth; c.height = innerHeight;
+(function f() { g.fillStyle = 'hsl(' + (n++ * 7 % 360) + ',80%,50%)';
+  g.fillRect(0, 0, c.width, c.height); requestAnimationFrame(f); })();
+</script></body>"""
+
 
 @pytest.fixture(scope='module')
 def win():
@@ -37,6 +45,69 @@ def win():
                         color=(-1, -1, -1), allowGUI=False, autoLog=False)
     yield win
     win.close()
+
+
+@pytest.fixture(scope='module')
+def sites():
+    """Pages served on two sites, ``localhost`` and ``127.0.0.1`` (which
+    Chromium counts as different sites), as `(first, other, requests)`: their
+    addresses, and a list of the `(method, path)` of each request made.
+
+    The first has ``/start.html``, with ways of going to ``/anim.html``
+    (`ANIM`) on the other: a link, a link which redirects there, and forms.
+    Both have ``/script.js``, which sets `remoteScript`.
+    """
+    import http.server
+    import threading
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            path = self.path.split('?')[0]
+            requests.append((self.command, path))
+            if path == '/redirect':
+                self.send_response(302)
+                self.send_header('Location', other + '/anim.html')
+                self.end_headers()
+                return
+            if path not in pages:
+                self.send_error(404)
+                return
+            contentType, body = pages[path]
+            self.send_response(200)
+            self.send_header('Content-Type', contentType)
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get('Content-Length', 0)))
+            self.do_GET()
+
+    server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    port = server.server_address[1]
+    first = 'http://localhost:{}'.format(port)
+    other = 'http://127.0.0.1:{}'.format(port)
+    start = """<!doctype html><body>
+    <a id="link" href="{other}/anim.html">link</a>
+    <a id="redirect" href="/redirect">redirect</a>
+    <form id="formGet" method="get" action="{other}/anim.html">
+      <input name="a" value="1"></form>
+    <form id="formPost" method="post" action="{other}/anim.html">
+      <input name="a" value="1"></form>
+    </body>""".format(other=other)
+    html = 'text/html; charset=utf-8'
+    requests = []
+    pages = {'/start.html': (html, start.encode()),
+             '/anim.html': (html, ANIM.encode()),
+             '/script.js': ('text/javascript', b'window.remoteScript = 1;')}
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield first, other, requests
+    server.shutdown()
+    server.server_close()
 
 
 def _gpuSupported(win):
@@ -214,7 +285,7 @@ def test_allowedUrls(win):
 
 
 def test_largeHtml(win):
-    """Pages too big for Qt to take directly are loaded from a file."""
+    """Pages too big for Qt to take directly (over 2 MB) are shown."""
     from psychopy import visual
     filler = '<p>' + 'x' * 1000 + '</p>'
     html = '<html><body>{}<div id="end">end</div></body></html>'.format(
@@ -229,16 +300,47 @@ def test_largeHtml(win):
         stim.close()
 
 
+def test_setHtmlBaseUrl(win, sites):
+    """HTML given with a base address has relative links resolve against it,
+    is read as UTF-8, can load scripts from the web and is given that
+    address."""
+    from psychopy import visual
+    first, other, requests = sites
+    html = """<!doctype html><html lang="en"><head><title>t</title>
+    <script src="{}/script.js"></script></head>
+    <body><a id="a" href="sub/page.html">é✓</a></body></html>""".format(
+        other)
+    stim = visual.WebBrowserStim(win, html=html, baseUrl=first + '/dir/',
+                                 size=(64, 48), waitForLoad=True)
+    try:
+        assert stim.isLoaded, stim.loadError
+        assert stim.url == first + '/dir/'
+        href = stim.evaluateJavaScript("document.getElementById('a').href")
+        assert href == first + '/dir/sub/page.html'
+        assert stim.evaluateJavaScript(
+            "document.getElementById('a').textContent") == 'é✓'
+        assert stim.evaluateJavaScript("window.remoteScript") == 1
+        assert stim.evaluateJavaScript("document.documentElement.lang") == 'en'
+        stim.setHtml('<p>no base</p>')
+        assert _flipUntil(stim, lambda: stim.url == 'about:blank')
+    finally:
+        stim.close()
+
+
+def _assertAnimated(stim, duration=1.):
+    """Check `ANIM` is shown changing, rather than stuck on one frame."""
+    colors = set()
+    seq = stim.frameSeq
+    _flipUntil(stim, lambda: colors.add(_drawnPixel(stim, (0, 0))),
+               timeout=duration)
+    assert len(colors) > 5, "showed {} in {} frames of {}".format(
+        colors, stim.frameSeq - seq, stim.url)
+
+
 def test_frameTiming(stim):
     """An animated page is shown at (close to) its own frame rate, without
     the window missing flips."""
-    stim.setHtml("""<!doctype html><body style="margin:0"><canvas id=c>
-    </canvas><script>
-    var c = document.getElementById('c'), g = c.getContext('2d'), n = 0;
-    c.width = innerWidth; c.height = innerHeight;
-    (function f() { g.fillStyle = 'hsl(' + (n++ * 7 % 360) + ',80%,50%)';
-      g.fillRect(0, 0, c.width, c.height); requestAnimationFrame(f); })();
-    </script></body>""")
+    stim.setHtml(ANIM)
     assert stim.waitForLoad()
     _flipUntil(stim, lambda: False, timeout=0.5)
     seq = stim.frameSeq
@@ -246,6 +348,50 @@ def test_frameTiming(stim):
     _flipUntil(stim, lambda: False, timeout=2.)
     fps = (stim.frameSeq - seq) / (time.perf_counter() - t0)
     assert fps > 20
+    # and once given other HTML, which Qt WebEngine doesn't show when given
+    # as a `data:` URL
+    stim.setHtml(ANIM.replace('* 7', '* 11'))
+    assert stim.waitForLoad()
+    _assertAnimated(stim)
+
+
+# how pages go to another site themselves
+_GO = {
+    'link': "document.getElementById('link').click()",
+    'script': "location.href = '{other}/anim.html'",
+    'redirect': "document.getElementById('redirect').click()",
+    'formGet': "document.getElementById('formGet').submit()",
+    'formPost': "document.getElementById('formPost').submit()",
+    'url': None,  # set by the stimulus
+}
+
+
+@pytest.mark.parametrize('gpuSharing', [False, True], ids=['shm', 'gpu'])
+@pytest.mark.parametrize('how', list(_GO))
+def test_crossSiteNavigation(win, sites, how, gpuSharing):
+    """Pages are shown after going to another site, which Qt WebEngine (6.12
+    on Windows, at least) doesn't always do unless they're loaded again once
+    there."""
+    from psychopy import visual
+    first, other, requests = sites
+    del requests[:]
+    stim = visual.WebBrowserStim(win, url=first + '/start.html',
+                                 size=(320, 240), resolution=(320, 240),
+                                 waitForLoad=True, gpuSharing=gpuSharing)
+    try:
+        assert stim.isLoaded, stim.loadError
+        if how == 'url':
+            stim.url = other + '/anim.html'
+        else:
+            stim.runJavaScript(_GO[how].format(other=other))
+        assert _flipUntil(stim, lambda: stim.url.startswith(
+            other + '/anim.html') and stim.isLoaded, timeout=10)
+        _assertAnimated(stim)
+        # pages on the first site load once, those on the other twice
+        assert requests.count(('GET', '/start.html')) == 1
+        assert len([r for r in requests if r[1] == '/anim.html']) == 2
+    finally:
+        stim.close()
 
 
 @pytest.mark.parametrize('gpuSharing', [False, True], ids=['shm', 'gpu'])
@@ -308,10 +454,11 @@ def test_gpuTransport(win):
         stim = visual.WebBrowserStim(win, html=page, size=(320, 240),
                                      gpuSharing=gpuSharing, waitForLoad=True)
         try:
-            assert _flipUntil(stim, lambda: stim.frameSeq > 1)
+            # the first frames can be of the page before it is painted
+            assert _flipUntil(
+                stim, lambda: _drawnPixel(stim, (0, 60)) == (255, 0, 0))
             assert stim.frameTransport == transport
             stim.draw()
-            assert _pixel(win, (0, 60)) == (255, 0, 0)
             assert _pixel(win, (0, -60)) == (0, 255, 0)
             win.flip()
         finally:
@@ -334,9 +481,9 @@ def test_gpuResize(win):
         assert _flipUntil(
             stim, lambda: stim._shown[1] is not None and
             (stim._shown[1].width, stim._shown[1].height) == expected)
+        assert _flipUntil(
+            stim, lambda: _drawnPixel(stim, (0, 70)) == (255, 0, 0))
         assert stim.frameTransport == 'gpu'
-        stim.draw()
-        assert _pixel(win, (0, 70)) == (255, 0, 0)
         win.flip()
     finally:
         stim.close()
@@ -357,9 +504,7 @@ def test_gpuCheckFailureFallsBack(win, monkeypatch):
                                  gpuSharing=True, waitForLoad=True)
     try:
         assert _flipUntil(stim, lambda: stim.frameTransport == 'shm' and
-                          stim.frameSeq > 1)
-        stim.draw()
-        assert _pixel(win, (0, 0)) == (255, 0, 0)
+                          _drawnPixel(stim, (0, 0)) == (255, 0, 0))
         win.flip()
         assert stim._gpuSlots is None
         assert webbrowserstim._gpuSupport[win][0] is None
