@@ -19,8 +19,10 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from psychopy import logging
+from psychopy.clock import getTime
 from psychopy.tools.attributetools import attributeSetter
 from .. import globalVars
+from ._events import WindowEvent
 
 
 def closeOnInitError(init):
@@ -330,6 +332,46 @@ class BaseBackend(ABC):
         think about it!
         """
         self.__dict__['win'] = weakref.ref(win)
+
+    @property
+    def _listening(self):
+        """`True` if anything is listening for this window's input events (see
+        `Window.addEventListener`), so backends can skip describing them when
+        nothing is.
+        """
+        return bool(getattr(self.win, '_eventListeners', None))
+
+    def _dispatchEvent(self, eventType, winPos=None, **kwargs):
+        """Pass an input event to the window's listeners, see
+        `Window.addEventListener`.
+
+        Parameters
+        ----------
+        eventType : str
+            Type of event, one of the constants in `_events`.
+        winPos : ArrayLike, callable or None
+            Mouse position in window coordinates, as the backend's events give
+            it, or a function returning it (so it is only got if something is
+            listening). This is given to listeners in 'pix' units from the
+            center of the window.
+        **kwargs
+            Other fields of the `WindowEvent`.
+
+        """
+        if not self._listening:
+            return
+
+        win = self.win
+        pos = None
+        if winPos is not None:
+            if callable(winPos):
+                winPos = winPos()
+            pos = tuple(
+                float(v) for v in
+                self._windowCoordsToPix(winPos) / win.pixScaleFactor)
+
+        win._dispatchWindowEvent(
+            WindowEvent(eventType, getTime(), pos=pos, **kwargs))
 
     @property
     def autoLog(self):
