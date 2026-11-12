@@ -10,7 +10,8 @@
 Frames can be passed from the web browser server to the stimulus without
 leaving the GPU, as textures in memory both processes import with the
 `GL_EXT_memory_object` extensions, synchronized with semaphores imported with
-the `GL_EXT_semaphore` ones (see `_gpushare`). PyQt6 and pyglet don't wrap
+the `GL_EXT_semaphore` ones (see `_gpushare`), as file descriptors (`_fd`)
+or, on Windows, NT handles (`_win32`). PyQt6 and pyglet don't wrap
 these, so they are looked up here, along with the core functions the server
 needs (it doesn't import pyglet).
 
@@ -55,7 +56,7 @@ GL_FRAMEBUFFER_COMPLETE = 0x8CD5
 GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117
 GL_TIMEOUT_IGNORED = 0xFFFFFFFFFFFFFFFF
 
-# GL_EXT_memory_object(_fd)
+# GL_EXT_memory_object(_fd, _win32)
 GL_TEXTURE_TILING_EXT = 0x9580
 GL_DEDICATED_MEMORY_OBJECT_EXT = 0x9581
 GL_OPTIMAL_TILING_EXT = 0x9584
@@ -63,18 +64,25 @@ GL_DEVICE_UUID_EXT = 0x9597
 GL_DRIVER_UUID_EXT = 0x9598
 GL_UUID_SIZE_EXT = 16
 GL_HANDLE_TYPE_OPAQUE_FD_EXT = 0x9586
+GL_HANDLE_TYPE_OPAQUE_WIN32_EXT = 0x9587
 
-# GL_EXT_semaphore(_fd)
+# GL_EXT_semaphore(_fd, _win32)
 GL_LAYOUT_GENERAL_EXT = 0x958D
 GL_LAYOUT_COLOR_ATTACHMENT_EXT = 0x958E
 GL_LAYOUT_SHADER_READ_ONLY_EXT = 0x9591
 GL_LAYOUT_TRANSFER_SRC_EXT = 0x9592
 GL_LAYOUT_TRANSFER_DST_EXT = 0x9593
 
-# extensions both processes need to share frames on the GPU
-SHARING_EXTENSIONS = (
-    'GL_EXT_memory_object', 'GL_EXT_memory_object_fd', 'GL_EXT_semaphore',
-    'GL_EXT_semaphore_fd')
+# extensions both processes need to share frames on the GPU, importing NT
+# handles on Windows and file descriptors elsewhere
+if sys.platform == 'win32':
+    SHARING_EXTENSIONS = (
+        'GL_EXT_memory_object', 'GL_EXT_memory_object_win32',
+        'GL_EXT_semaphore', 'GL_EXT_semaphore_win32')
+else:
+    SHARING_EXTENSIONS = (
+        'GL_EXT_memory_object', 'GL_EXT_memory_object_fd', 'GL_EXT_semaphore',
+        'GL_EXT_semaphore_fd')
 
 _FUNCTYPE = ctypes.WINFUNCTYPE if sys.platform == 'win32' else ctypes.CFUNCTYPE
 
@@ -119,10 +127,12 @@ _PROTOTYPES_ = {
     'glDeleteMemoryObjectsEXT': (None, (_i, _pu)),
     'glMemoryObjectParameterivEXT': (None, (_u, _u, _pi)),
     'glImportMemoryFdEXT': (None, (_u, _u64, _u, _i)),
+    'glImportMemoryWin32HandleEXT': (None, (_u, _u64, _u, _p)),
     'glTexStorageMem2DEXT': (None, (_u, _i, _u, _i, _i, _u, _u64)),
     'glGenSemaphoresEXT': (None, (_i, _pu)),
     'glDeleteSemaphoresEXT': (None, (_i, _pu)),
     'glImportSemaphoreFdEXT': (None, (_u, _u, _i)),
+    'glImportSemaphoreWin32HandleEXT': (None, (_u, _u, _p)),
     'glSignalSemaphoreEXT': (None, (_u, _u, _pu, _u, _pu, _pu)),
     'glWaitSemaphoreEXT': (None, (_u, _u, _pu, _u, _pu, _pu)),
     'glGetUnsignedBytevEXT': (None, (_u, _pub)),

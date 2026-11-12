@@ -34,13 +34,18 @@ importing PsychoPy.
 
 import ctypes
 import os
+import sys
 
 try:
     import _glext as G  # imported by the server, as a script
 except ImportError:
     from . import _glext as G
 
-__all__ = ['GPUShareError', 'GLSlots', 'checkColor']
+_WINDOWS = sys.platform == 'win32'
+if _WINDOWS:
+    import _winapi
+
+__all__ = ['GPUShareError', 'GLSlots', 'checkColor', 'closeHandles']
 
 # the semaphores carry no layout transitions between APIs (only OpenGL uses
 # the textures), so the general layout is used throughout
@@ -71,9 +76,11 @@ class GLSlots:
     memSize : int
         Size of each slot's memory in bytes.
     memFds, readyFds, doneFds : list of int
-        File descriptors of each slot's memory and semaphores. Importing them
-        hands them over to OpenGL, so the caller mustn't close them, even if
-        this raises.
+        Handles of each slot's memory and semaphores: file descriptors, or NT
+        handles on Windows. They are handed over, so the caller mustn't close
+        them, even if this raises (OpenGL takes file descriptors it imports,
+        and NT handles are closed here once imported, as it keeps its own
+        reference to what they are for).
     interpolate : bool
         Whether to interpolate linearly when drawing the textures scaled.
 
@@ -97,6 +104,23 @@ class GLSlots:
         self._framebuffers = None
         self._interpolate = bool(interpolate)
         self._filterNeedsUpdate = False
+        if _WINDOWS:
+            def importMemory(memory, handle):
+                gl.glImportMemoryWin32HandleEXT(
+                    memory, int(memSize), G.GL_HANDLE_TYPE_OPAQUE_WIN32_EXT,
+                    handle)
+
+            def importSemaphore(semaphore, handle):
+                gl.glImportSemaphoreWin32HandleEXT(
+                    semaphore, G.GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, handle)
+        else:
+            def importMemory(memory, fd):
+                gl.glImportMemoryFdEXT(
+                    memory, int(memSize), G.GL_HANDLE_TYPE_OPAQUE_FD_EXT, fd)
+
+            def importSemaphore(semaphore, fd):
+                gl.glImportSemaphoreFdEXT(
+                    semaphore, G.GL_HANDLE_TYPE_OPAQUE_FD_EXT, fd)
         gl.clearErrors()
         try:
             gl.glCreateMemoryObjectsEXT(n, self.memories)
@@ -105,9 +129,7 @@ class GLSlots:
                 gl.glMemoryObjectParameterivEXT(
                     self.memories[i], G.GL_DEDICATED_MEMORY_OBJECT_EXT,
                     ctypes.byref(dedicated))
-                gl.glImportMemoryFdEXT(self.memories[i], int(memSize),
-                                       G.GL_HANDLE_TYPE_OPAQUE_FD_EXT,
-                                       memFds[i])
+                importMemory(self.memories[i], memFds[i])
             gl.glGenTextures(n, self.textures)
             for i in range(n):
                 gl.glBindTexture(G.GL_TEXTURE_2D, self.textures[i])
@@ -125,13 +147,14 @@ class GLSlots:
             gl.glGenSemaphoresEXT(n, self.ready)
             gl.glGenSemaphoresEXT(n, self.done)
             for i in range(n):
-                gl.glImportSemaphoreFdEXT(
-                    self.ready[i], G.GL_HANDLE_TYPE_OPAQUE_FD_EXT, readyFds[i])
-                gl.glImportSemaphoreFdEXT(
-                    self.done[i], G.GL_HANDLE_TYPE_OPAQUE_FD_EXT, doneFds[i])
+                importSemaphore(self.ready[i], readyFds[i])
+                importSemaphore(self.done[i], doneFds[i])
         except AttributeError as err:  # a function the driver doesn't have
             self.delete()
             raise GPUShareError(str(err))
+        finally:
+            if _WINDOWS:
+                closeHandles(list(memFds) + list(readyFds) + list(doneFds))
         errors = gl.clearErrors()
         if errors:
             self.delete()
@@ -290,10 +313,14 @@ class GLSlots:
         self.memories = (ctypes.c_uint * n)()
 
 
-def closeFds(fds):
-    """Close file descriptors which weren't handed to OpenGL."""
-    for fd in fds:
+def closeHandles(handles):
+    """Close handles which weren't handed to `GLSlots`: file descriptors, or
+    NT handles on Windows."""
+    for handle in handles:
         try:
-            os.close(fd)
+            if _WINDOWS:
+                _winapi.CloseHandle(handle)
+            else:
+                os.close(handle)
         except OSError:
             pass

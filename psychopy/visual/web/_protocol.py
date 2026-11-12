@@ -36,19 +36,24 @@ Messages from the server:
   (`error`) if the server can't start.
 * `surface` - where frames will be written (`shm`, `w`, `h`, `stride`, `fmt`,
   `slots`, `gen`, `dpr`), then `frame` for each frame written there (`slot`,
-  `seq`, `gen`, `t`). For frames on the GPU it has `transport` `'gpu'`, no
-  `shm` or `stride`, and `memSize`, and is followed by the file descriptors
-  of each slot's memory, *ready* and *done* semaphores (see `_gpushare`).
+  `seq`, `gen`, `t`, and the page's `scroll`, `zoom` and `docSize`). For
+  frames on the GPU it has `transport` `'gpu'`, no `shm` or `stride`, and
+  `memSize`, and is followed by the file descriptors of each slot's memory,
+  *ready* and *done* semaphores (see `_gpushare`).
 * `gpuFallback` (`reason`) - frames go in shared memory from now on.
 * `loadStarted`, `loadProgress` (`pct`), `loadFinished` (`ok`, `url`),
   `urlChanged` (`url`), `titleChanged` (`title`).
 * `console` (`level`, `msg`, `line`, `src`), `pageMessage` (`data`, `origin`),
   `dialog` (`kind`, `msg`).
-* `navBlocked` (`url`), `permissionDenied` (`feature`, `origin`), `cursor`
-  (`shape`), `renderGone` (`status`, `code`), `jsResult` (`id`, `ok`, `value`
-  or `error`), `error` (`msg`), `closed`.
+* `navBlocked` (`url`), `reloaded` (`url`, `form`), `permissionDenied`
+  (`feature`, `origin`), `cursor` (`shape`), `renderGone` (`status`, `code`),
+  `jsResult` (`id`, `ok`, `value` or `error`), `error` (`msg`), `closed`.
 
-A message followed by file descriptors (`sendFds`) says how many in `nfds`.
+Messages can pass OS handles to GPU memory and semaphores (`surface` for
+frames on the GPU). On POSIX they are file descriptors sent after the message
+(`sendFds`), which says how many in `nfds`; on Windows they are copied into
+the stimulus' process (`duplicateHandles`) and the message gives their values
+there in `handles`.
 `hello` has a `gpu` field, `'auto'` if the server can share frames on the GPU
 and `'off'` if not.
 
@@ -60,6 +65,7 @@ import array
 import os
 import socket
 import struct
+import sys
 
 import msgpack
 
@@ -72,11 +78,13 @@ __all__ = [
     'HEADER',
     'HEADER_SIZE',
     'HEADER_MAGIC',
+    'GPU_SHARING_PLATFORM',
     'pack',
     'unpack',
     'shmName',
     'sendFds',
     'recvFds',
+    'duplicateHandles',
     'makeBlocking'
 ]
 
@@ -108,6 +116,10 @@ FORMATS = {
 HEADER = struct.Struct('<4sIIIIIII')
 HEADER_SIZE = 64  # the header, padded so frames start aligned
 HEADER_MAGIC = b'PWB1'
+
+# whether frames can be shared on the GPU on this platform (see `_gpushare`)
+GPU_SHARING_PLATFORM = sys.platform.startswith('linux') or \
+    sys.platform == 'win32'
 
 
 def pack(msg):
@@ -246,3 +258,42 @@ def recvFds(conn, count):
         raise RuntimeError("Expected {} file descriptors, got {}".format(
             count, len(fds)))
     return list(fds)
+
+
+def duplicateHandles(handles, pid):
+    """Copy Windows handles into another process, to pass them to it (as
+    Windows has no way to send them on a connection). The caller still owns
+    (and closes) its own.
+
+    Parameters
+    ----------
+    handles : list of int
+        Handles in this process.
+    pid : int
+        ID of the process to copy them into.
+
+    Returns
+    -------
+    list of int
+        The handles in that process, which it owns.
+
+    """
+    import _winapi
+    process = _winapi.OpenProcess(_winapi.PROCESS_DUP_HANDLE, False, pid)
+    copied = []
+    try:
+        for handle in handles:
+            copied.append(_winapi.DuplicateHandle(
+                _winapi.GetCurrentProcess(), handle, process, 0, False,
+                _winapi.DUPLICATE_SAME_ACCESS))
+    except OSError:
+        for handle in copied:  # close those copied in the other process
+            try:
+                _winapi.DuplicateHandle(process, handle, 0, 0, False,
+                                        _winapi.DUPLICATE_CLOSE_SOURCE)
+            except OSError:
+                pass
+        raise
+    finally:
+        _winapi.CloseHandle(process)
+    return copied

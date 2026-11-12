@@ -30,6 +30,7 @@ import sys
 import threading
 
 # siblings, importable as this directory is first on `sys.path`
+import _gpushare
 import _protocol
 import _shm
 import _watchdog
@@ -51,10 +52,13 @@ class Connection:
     ----------
     conn : multiprocessing.connection.Connection
         Connection to the stimulus' process.
+    pid : int or None
+        ID of the stimulus' process, which handles are copied into on Windows.
 
     """
-    def __init__(self, conn):
+    def __init__(self, conn, pid=None):
         self.conn = conn
+        self.pid = pid
         self._queue = queue.SimpleQueue()
         self._thread = threading.Thread(
             target=self._write, name='webServerWriter', daemon=True)
@@ -66,13 +70,26 @@ class Connection:
         Parameters
         ----------
         fds : list of int or None
-            File descriptors to send after the message (see
-            `_protocol.sendFds`), which are closed once sent. The message gets
-            an `nfds` field saying how many there are.
+            OS handles to pass with the message, which are closed once sent:
+            file descriptors sent after it (see `_protocol.sendFds`), giving
+            it an `nfds` field saying how many there are; or on Windows,
+            handles copied into the stimulus' process, giving it a `handles`
+            field with their values there.
         **msg
             The message.
 
+        Raises
+        ------
+        OSError
+            If handles can't be copied into the stimulus' process.
+
         """
+        if fds and os.name == 'nt':
+            try:
+                msg['handles'] = _protocol.duplicateHandles(fds, self.pid)
+            finally:
+                _gpushare.closeHandles(fds)
+            fds = None
         if fds:
             msg['nfds'] = len(fds)
         self._queue.put((_protocol.pack(msg), fds or ()))
@@ -90,11 +107,7 @@ class Connection:
             except (OSError, ValueError):  # the other end has gone
                 return
             finally:
-                for fd in fds:
-                    try:
-                        os.close(fd)
-                    except OSError:
-                        pass
+                _gpushare.closeHandles(fds)
 
     def close(self, timeout=2.0):
         """Send what is queued, then close the connection."""
@@ -129,7 +142,7 @@ def choosePlatform(requested):
     return 'native'
 
 
-def configureEnvironment(platform, environ=None):
+def configureEnvironment(platform, environ=None, gpu='off'):
     """Set the environment variables Qt and Chromium read on starting.
 
     Parameters
@@ -138,6 +151,8 @@ def configureEnvironment(platform, environ=None):
         `'native'` or `'offscreen'`, see `choosePlatform`.
     environ : dict or None
         Environment to change, defaults to `os.environ`.
+    gpu : str
+        `'auto'` if frames may be shared on the GPU, `'off'` if not.
 
     """
     env = os.environ if environ is None else environ
@@ -154,6 +169,10 @@ def configureEnvironment(platform, environ=None):
         # Qt grabs stale frames of unshown pages under Wayland, and PsychoPy's
         # windows use X11 (XWayland) anyway
         env['QT_QPA_PLATFORM'] = 'xcb'
+    if gpu == 'auto' and sys.platform == 'win32':
+        # frames are shared on the GPU with OpenGL (see `_qtgpu`), which Qt
+        # Quick only renders with on Windows when asked (else Direct3D 11)
+        env.setdefault('QSG_RHI_BACKEND', 'opengl')
     if sys.platform == 'darwin':
         # don't become a foreground app, with a Dock icon and focus
         env['QT_MAC_DISABLE_FOREGROUND_APPLICATION_TRANSFORM'] = '1'
@@ -187,12 +206,16 @@ def main(argv=None):
     # take the key out of the environment, so page processes don't get it
     authkey = bytes.fromhex(os.environ.pop(_protocol.ENV_AUTHKEY, ''))
     from multiprocessing.connection import Client
-    conn = Connection(Client(args.address, authkey=authkey))
+    conn = Connection(Client(args.address, authkey=authkey), args.parent_pid)
 
     _watchdog.startParentWatchdog(args.parent_pid, _shm.closeOwnedRings)
 
     platform = choosePlatform(args.platform)
-    configureEnvironment(platform)
+    # sharing frames on the GPU needs a GPU to render with
+    gpu = args.gpu
+    if platform != 'native' or not _protocol.GPU_SHARING_PLATFORM:
+        gpu = 'off'
+    configureEnvironment(platform, gpu=gpu)
     try:
         import _qtbrowser
     except Exception as err:
@@ -202,11 +225,6 @@ def main(argv=None):
         conn.close()
         return 1
 
-    # sharing frames on the GPU needs a GPU to render with, and is only done
-    # on Linux for now
-    gpu = args.gpu
-    if platform != 'native' or not sys.platform.startswith('linux'):
-        gpu = 'off'
     try:
         return _qtbrowser.run(conn, platform, gpu)
     finally:

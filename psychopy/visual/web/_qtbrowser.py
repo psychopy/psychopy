@@ -17,8 +17,10 @@ Input from the stimulus is sent to it as Qt events.
 """
 
 import fnmatch
+import html as _html
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -42,6 +44,13 @@ QE = QtCore.QEvent.Type
 
 _MAC = sys.platform == 'darwin'
 _NUM_SLOTS = 3
+
+_NAV = QWebEnginePage.NavigationType
+
+# for adding a <base> to HTML given with `setHtml`
+_BASE_TAG = re.compile(r'<base[\s/>]', re.IGNORECASE)
+_HEAD_TAG = re.compile(r'<head(?:\s[^>]*)?>', re.IGNORECASE)
+_DOCTYPE = re.compile(r'\s*<!doctype[^>]*>', re.IGNORECASE)
 
 # frame formats Qt grabs in, as named in `surface` messages
 _FORMATS_ = {
@@ -133,7 +142,7 @@ class _Page(QWebEnginePage):
         self.host = host
 
     def acceptNavigationRequest(self, url, navType, isMainFrame):
-        return self.host.acceptNavigation(url, isMainFrame)
+        return self.host.acceptNavigation(url, navType, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line, source):
         self.host.onConsole(level, message, line, source)
@@ -185,8 +194,22 @@ class ViewHost(QtCore.QObject):
         self.dirty = True
         self.inGrab = False
         self.lastGrabTime = 0.
+        # the widget the page renders in, and its window, whose signals say
+        # when there is a new frame (the window is replaced when the page
+        # goes to another site)
         self.proxy = None
+        self.window = None
         self.cursorShape = None
+        # working around pages not being shown after going to another site
+        # (see `acceptNavigation`): the render window when the page started
+        # going to the one loading, whether a form sent it there, and whether
+        # it's being loaded again
+        self.navWindow = None
+        self.navForm = False
+        self.reloading = False
+        # files HTML given with `setHtml` is loaded from, and the address
+        # each is given as
+        self.htmlUrls = {}
         # popups the page has open (e.g. a <select>'s options), which are
         # windows of their own drawn into its frames, and whether to ignore
         # the release of a press which closed one
@@ -223,6 +246,11 @@ class ViewHost(QtCore.QObject):
         # activate the window (which never accepts focus) only warns
         settings.setAttribute(
             QWebEngineSettings.WebAttribute.FocusOnNavigationEnabled, False)
+        # HTML given with `setHtml` is loaded from a file, which can't load
+        # scripts, images etc. from the web otherwise
+        settings.setAttribute(
+            QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls,
+            True)
         if cfg.get('transparent'):
             self.page.setBackgroundColor(QtGui.QColor(0, 0, 0, 0))
         elif cfg.get('bgColor') is not None:
@@ -241,8 +269,7 @@ class ViewHost(QtCore.QObject):
         self.page.loadProgress.connect(
             lambda pct: self.send('loadProgress', pct=pct))
         self.page.loadFinished.connect(self._onLoadFinished)
-        self.page.urlChanged.connect(
-            lambda url: self.send('urlChanged', url=url.toString()))
+        self.page.urlChanged.connect(self._onUrlChanged)
         self.page.titleChanged.connect(
             lambda title: self.send('titleChanged', title=title))
         self.page.renderProcessTerminated.connect(self._onRenderGone)
@@ -280,19 +307,47 @@ class ViewHost(QtCore.QObject):
     #
 
     def navigate(self, url):
-        self.page.load(QtCore.QUrl.fromUserInput(url))
+        self._load(QtCore.QUrl.fromUserInput(url))
+
+    def _load(self, url):
+        """Load a page for the stimulus."""
+        self.reloading = False
+        self.page.load(url)
 
     def setHtml(self, html, baseUrl=None):
-        base = QtCore.QUrl(baseUrl) if baseUrl else QtCore.QUrl('about:blank')
-        if len(html.encode('utf-8')) < 1.9e6:
-            self.page.setHtml(html, base)
-            return
-        # Qt refuses content over 2 MB given directly, so load it from a file
-        # (relative links resolve against the file rather than `baseUrl`)
+        """Show a page made from HTML.
+
+        It is loaded from a file, rather than given to Qt as a ``data:`` URL
+        (with `QWebEnginePage.setHtml`): pages given that way after another
+        aren't shown (see `acceptNavigation`), and Qt refuses ones over 2 MB.
+        Relative links resolve against `baseUrl` by adding a ``<base>`` to the
+        page, but its origin is the file's (``file://``), not `baseUrl`'s.
+        """
+        if baseUrl and not _BASE_TAG.search(html):
+            # first in <head>, after a doctype (which has to come first)
+            start = _HEAD_TAG.search(html) or _DOCTYPE.match(html)
+            at = start.end() if start else 0
+            html = '{}<base href="{}">{}'.format(
+                html[:at], _html.escape(baseUrl, quote=True), html[at:])
         path = self.server.tempHtmlFile(self.id)
-        with open(path, 'w', encoding='utf-8') as f:
+        # starting with a byte order mark, as files are read as UTF-8 only if
+        # they say so
+        with open(path, 'w', encoding='utf-8-sig') as f:
             f.write(html)
-        self.page.load(QtCore.QUrl.fromLocalFile(path))
+        url = QtCore.QUrl.fromLocalFile(path)
+        self.htmlUrls[url.toString()] = baseUrl or 'about:blank'
+        self._load(url)
+
+    def shownUrl(self, url):
+        """The address to give the stimulus for one of the page's, which for
+        HTML given with `setHtml` is its `baseUrl` (or ``about:blank``) rather
+        than the file it was loaded from."""
+        text = url.toString()
+        page = url.adjusted(QtCore.QUrl.UrlFormattingOption.RemoveFragment)
+        shown = self.htmlUrls.get(page.toString())
+        if shown is None:
+            return text
+        return shown + ('#' + url.fragment() if url.hasFragment() else '')
 
     def history(self, action):
         actions = dict(
@@ -300,6 +355,7 @@ class ViewHost(QtCore.QObject):
             forward=QWebEnginePage.WebAction.Forward,
             reload=QWebEnginePage.WebAction.Reload,
             stop=QWebEnginePage.WebAction.Stop)
+        self.reloading = False
         self.page.triggerAction(actions[action])
 
     def runJavaScript(self, jsId, code):
@@ -316,8 +372,33 @@ class ViewHost(QtCore.QObject):
             "window.dispatchEvent(new CustomEvent('psychopy:message', "
             "{detail: %s}));" % json.dumps(data))
 
-    def acceptNavigation(self, url, isMainFrame):
-        if not self.allowedUrls or not isMainFrame:
+    def acceptNavigation(self, url, navType, isMainFrame):
+        """Whether the page may go to an address.
+
+        Qt WebEngine (6.12 with Chromium 140 on Windows, at least) can stop
+        showing a page after it goes to another site: the widget it renders in
+        is replaced, and the new one shows the page's first frame (or none)
+        and no more. It always does when the page went there itself (by a
+        link, redirect, form or script) or was given as a ``data:`` URL, and
+        sometimes when loaded with `QWebEnginePage.load`. Loading the page
+        again once there always works, so pages which replaced the widget are
+        (see `_onLoadFinished`). The widget it was in is noted here.
+        """
+        if not isMainFrame:
+            return True
+        if not self._allowed(url):
+            return False
+        if navType != _NAV.NavigationTypeRedirect:  # else noted already
+            self.navWindow = self._renderWindow()
+            self.navForm = navType == _NAV.NavigationTypeFormSubmitted
+            if navType != _NAV.NavigationTypeTyped:  # not loading it again
+                self.reloading = False
+        return True
+
+    def _allowed(self, url):
+        """Whether `allowedUrls` lets the page go to an address, saying if
+        not."""
+        if not self.allowedUrls:
             return True
         if url.scheme() in ('data', 'about', 'file') and not url.host():
             return True  # content given with `setHtml`
@@ -327,6 +408,12 @@ class ViewHost(QtCore.QObject):
             return True
         self.send('navBlocked', url=text)
         return False
+
+    def _renderWindow(self):
+        proxy = self.view.focusProxy()
+        if proxy is None or not hasattr(proxy, 'quickWindow'):
+            return None
+        return proxy.quickWindow()
 
     def createWindow(self, windowType):
         if self.newWindowPolicy == 'same':
@@ -341,7 +428,7 @@ class ViewHost(QtCore.QObject):
             except ValueError:
                 return
             self.send('pageMessage', data=data,
-                      origin=self.page.url().toString())
+                      origin=self.shownUrl(self.page.url()))
             return
         self.send('console', level=level.name, msg=message, line=line,
                   src=source)
@@ -354,9 +441,26 @@ class ViewHost(QtCore.QObject):
         self.hookProxy()
 
     def _onLoadFinished(self, ok):
-        self.send('loadFinished', ok=bool(ok), url=self.page.url().toString())
+        navWindow, self.navWindow = self.navWindow, None
+        reloading, self.reloading = self.reloading, False
+        if ok and not reloading and navWindow is not None and \
+                self._renderWindow() is not navWindow:
+            # it went to another site, load it again to be shown (once, in
+            # case that replaces the widget too), see `acceptNavigation`
+            url = self.page.url()
+            self.send('reloaded', url=self.shownUrl(url), form=self.navForm)
+            self.reloading = True
+            self.page.load(url)
+            return
+        self.send('loadFinished', ok=bool(ok),
+                  url=self.shownUrl(self.page.url()))
         self.hookProxy()
         self.markDirty()
+
+    def _onUrlChanged(self, url):
+        self.send('urlChanged', url=self.shownUrl(url))
+        # the render window may have been replaced
+        QtCore.QTimer.singleShot(0, self.hookProxy)
 
     def _onRenderGone(self, status, code):
         self.send('renderGone', status=status.name, code=code)
@@ -436,16 +540,23 @@ class ViewHost(QtCore.QObject):
         """Watch the widget the page renders in for new frames.
 
         It is made once the page first loads, and is replaced if the page's
-        render process does.
+        render process is. The window it renders in is replaced when the page
+        goes to another site.
         """
         if self.closed:  # called later, e.g. from a timer
             return
         proxy = self.view.focusProxy()
-        if proxy is None or proxy is self.proxy:
+        if proxy is None:
             return
-        self.proxy = proxy
-        proxy.installEventFilter(self)
         window = proxy.quickWindow() if hasattr(proxy, 'quickWindow') else None
+        if proxy is self.proxy and window is self.window:
+            return
+        oldProxy = self.proxy
+        if proxy is not oldProxy:
+            self.proxy = proxy
+            proxy.installEventFilter(self)
+        self._unhookWindow()
+        self.window = window
         if window is not None:
             # direct, so emissions caused by grabbing are seen during it
             direct = Qt.ConnectionType.DirectConnection
@@ -456,8 +567,25 @@ class ViewHost(QtCore.QObject):
         else:
             self.pollTimer.start(int(1000 / (self.maxFps or 30)))
         if self.transport == 'gpu':
+            # stop copying from the old widget, or the widget's old window
+            for widget in (oldProxy, proxy):
+                capture = self.captures.get(widget)
+                if capture is not None and capture.window is not window:
+                    del self.captures[widget]
+                    self._destroyCaptures([capture])
             self._capture(proxy)
         self.markDirty()
+
+    def _unhookWindow(self):
+        """Stop watching the render window the page has stopped using."""
+        window, self.window = self.window, None
+        if window is None or sip.isdeleted(window):
+            return
+        for signal in (window.afterFrameEnd, window.afterRendering):
+            try:
+                signal.disconnect(self.markDirty)
+            except (TypeError, RuntimeError):
+                pass
 
     def _poll(self):
         self.markDirty()
@@ -837,6 +965,7 @@ class BrowserServer(QtCore.QObject):
         self.compositor = None
         self._compositorProblem = None
         self._tempDir = None
+        self._tempFiles = 0
         # off the record (no storage name): nothing is kept after exiting
         self.profile = QWebEngineProfile()
         self.profile.downloadRequested.connect(lambda item: item.cancel())
@@ -866,8 +995,14 @@ class BrowserServer(QtCore.QObject):
 
         """
         if self.compositor is None and self._compositorProblem is None:
+            # pages' renders are copied with OpenGL (see `_qtgpu`)
+            api = QtQuick.QQuickWindow.graphicsApi()
             if self.gpu != 'auto':
                 self._compositorProblem = "turned off"
+            elif api != QtQuick.QSGRendererInterface.GraphicsApi.OpenGL:
+                self._compositorProblem = (
+                    "pages are rendered with {}, not OpenGL (see the "
+                    "QSG_RHI_BACKEND environment variable)".format(api.name))
             else:
                 try:
                     self.compositor = GpuCompositor()
@@ -893,10 +1028,14 @@ class BrowserServer(QtCore.QObject):
             pass
 
     def tempHtmlFile(self, viewId):
+        """Path of a new file for HTML given to a page. They are kept until
+        the server stops, for going back to them."""
         import tempfile
         if self._tempDir is None:
             self._tempDir = tempfile.mkdtemp(prefix='psychopy-web-')
-        return os.path.join(self._tempDir, 'page{}.html'.format(viewId))
+        self._tempFiles += 1
+        return os.path.join(self._tempDir, 'page{}-{}.html'.format(
+            viewId, self._tempFiles))
 
     def handle(self, msg):
         op = msg.get('op')

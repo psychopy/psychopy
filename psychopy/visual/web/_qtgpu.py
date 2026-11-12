@@ -303,16 +303,17 @@ class GpuSurface:
             try:
                 self.slots = GLSlots(
                     compositor.gl, width, height, self.memSize,
-                    [image.exportFd() for image in self._images],
-                    [s.exportFd() for s in ready],
-                    [s.exportFd() for s in done])
+                    [image.exportHandle() for image in self._images],
+                    [s.exportHandle() for s in ready],
+                    [s.exportHandle() for s in done])
                 self.slots.fillCheckColors()
             finally:
                 compositor.doneCurrent()
             # the stimulus' own references, sent with the `surface` message
             self.stimulusFds = (
-                [image.exportFd() for image in self._images] +
-                [s.exportFd() for s in ready] + [s.exportFd() for s in done])
+                [image.exportHandle() for image in self._images] +
+                [s.exportHandle() for s in ready] +
+                [s.exportHandle() for s in done])
         except VulkanError as err:
             self.destroy()
             raise GPUShareError(str(err))

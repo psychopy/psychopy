@@ -10,7 +10,6 @@ and keyboard."""
 
 import collections
 import itertools
-import sys
 import time
 import weakref
 
@@ -22,7 +21,7 @@ from psychopy.visual.helpers import callOnGLThread
 from psychopy.visual.backends import _events
 import psychopy.tools.pygletgl as GL
 
-from . import _geometry, _glext, _gpushare, _host
+from . import _geometry, _glext, _gpushare, _host, _protocol
 from ._shm import FrameRing
 from ._texture import StreamingTexture
 
@@ -87,8 +86,8 @@ def _gpuSupportFor(win):
         return _gpuSupport[win]
     except KeyError:
         pass
-    if not sys.platform.startswith('linux'):
-        result = (None, "it is only done on Linux for now")
+    if not _protocol.GPU_SHARING_PLATFORM:
+        result = (None, "it is only done on Linux and Windows")
     elif not _host.gpuSharingAllowed():
         result = (None, "the {} environment variable turns it off".format(
             _host.ENV_GPU_SHARING))
@@ -148,7 +147,7 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         HTML of the page to show, in place of `url`.
     baseUrl : str or None
         Address relative links in `html` are relative to, e.g. a ``file://``
-        folder to load local images from.
+        folder to load local images from (see `setHtml`).
     resolution : str or ArrayLike
         Size `(w, h)` of the page in pixels. `'auto'` uses the size it is
         drawn at on screen, so it is as sharp as possible.
@@ -192,12 +191,13 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
     gpuSharing : bool or str
         Whether frames may be passed from the web browser to the window on the
         GPU, which saves copying them through the CPU and memory. `'auto'`
-        does so when the window's graphics driver supports it (on Linux, for
-        now) and otherwise uses shared memory, `True` does the same but warns
-        when it can't, and `False` always uses shared memory. If frames on the
-        GPU fail, or the check made when they start fails, shared memory is
-        used. Setting the environment variable `PSYCHOPY_WEB_GPU_SHARING` to
-        `0` turns it off for every page. `frameTransport` says which is used.
+        does so when the window's graphics driver supports it (on Linux and
+        Windows) and otherwise uses shared memory, `True` does the same but
+        warns when it can't, and `False` always uses shared memory. If frames
+        on the GPU fail, or the check made when they start fails, shared
+        memory is used. Setting the environment variable
+        `PSYCHOPY_WEB_GPU_SHARING` to `0` turns it off for every page.
+        `frameTransport` says which is used.
     flipHoriz, flipVert : bool
         Whether to mirror the page horizontally or vertically.
     waitForLoad : bool
@@ -552,6 +552,13 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         log : bool or None
             Whether to log the change, `autoLog` if `None`.
 
+        Notes
+        -----
+        A page on another site than the one shown, whether gone to with this
+        or by the page itself (e.g. a link), is loaded twice, as Qt WebEngine
+        doesn't always show it otherwise. Its scripts run twice, and a page a
+        form sent data to is loaded again without the data.
+
         """
         self._isLoading = True
         self._loadError = None
@@ -572,6 +579,16 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
             Address relative links in it are relative to.
         log : bool or None
             Whether to log the change, `autoLog` if `None`.
+
+        Notes
+        -----
+        The page is loaded from a temporary file, with a ``<base>`` element
+        added for `baseUrl` (unless it has one), so its origin is that file's
+        (``file://``) rather than `baseUrl`'s. It can load scripts, images
+        etc. from anywhere, but scripts' requests to other origins (with
+        `fetch` etc.) need those to allow them (CORS), and it doesn't see
+        `baseUrl`'s cookies or storage. `url` is `baseUrl` (or
+        ``about:blank``) while it's shown.
 
         """
         self._isLoading = True
@@ -913,7 +930,7 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         elif op == 'surface' and msg.get('transport') == 'gpu':
             # checked (and frames start) once OpenGL is current, see `_pumpGL`
             if self._gpuPending is not None:
-                _gpushare.closeFds(self._gpuPending.get('fds', ()))
+                _gpushare.closeHandles(self._gpuPending.get('fds', ()))
             self._gpuPending = msg
             self._dropHeldFrames()
             self._dpr = msg.get('dpr', 1.0)
@@ -962,6 +979,16 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         elif op == 'navBlocked':
             logging.warning("{}: blocked page from going to {}".format(
                 self.name, msg['url']))
+        elif op == 'reloaded':
+            # pages which went to another site aren't always shown otherwise,
+            # see `_qtbrowser.ViewHost.acceptNavigation`
+            if msg.get('form'):
+                logging.warning(
+                    "{}: loaded {} again after a form went there, so what was "
+                    "sent may not be shown".format(self.name, msg['url']))
+            else:
+                logging.info("{}: loaded {} again after going to another "
+                             "site".format(self.name, msg['url']))
         elif op == 'permissionDenied':
             logging.info("{}: refused page permission for {} ({})".format(
                 self.name, msg['feature'], msg['origin']))
@@ -1017,10 +1044,10 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
         if gl is None:
             problem = info
         elif len(fds) != 3 * n:
-            problem = "expected {} file descriptors, got {}".format(
+            problem = "expected {} handles, got {}".format(
                 3 * n, len(fds))
         if problem is not None:
-            _gpushare.closeFds(fds)
+            _gpushare.closeHandles(fds)
         else:
             try:
                 slots = _gpushare.GLSlots(
@@ -1450,7 +1477,7 @@ class WebBrowserStim(BaseVisualStim, ContainerMixin):
             self._ring.close()
             self._ring = None
         if self._gpuPending is not None:
-            _gpushare.closeFds(self._gpuPending.get('fds', ()))
+            _gpushare.closeHandles(self._gpuPending.get('fds', ()))
             self._gpuPending = None
         texture, self._texture = self._texture, None
         if texture is not None:

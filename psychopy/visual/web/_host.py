@@ -28,7 +28,7 @@ from multiprocessing.connection import Listener
 import psutil
 
 from psychopy import logging
-from . import _protocol, _watchdog
+from . import _gpushare, _protocol, _watchdog
 
 __all__ = [
     'BrowserHost',
@@ -49,10 +49,10 @@ ENV_GPU_SHARING = 'PSYCHOPY_WEB_GPU_SHARING'
 
 
 def gpuSharingAllowed():
-    """Whether frames may be shared on the GPU here (`bool`): on Linux (the
-    only platform it is done on for now), unless the environment turns it
+    """Whether frames may be shared on the GPU here (`bool`): on Linux and
+    Windows (the platforms it is done on), unless the environment turns it
     off."""
-    if not sys.platform.startswith('linux'):
+    if not _protocol.GPU_SHARING_PLATFORM:
         return False
     value = os.environ.get(ENV_GPU_SHARING, '').strip().lower()
     return value not in ('0', 'off', 'false', 'no')
@@ -323,8 +323,12 @@ class BrowserHost:
         try:
             while True:
                 msg = _protocol.unpack(self.conn.recv_bytes())
-                if msg.get('nfds'):  # sent right after their message
+                # handles it passes: file descriptors sent right after it, or
+                # Windows handles copied into this process
+                if msg.get('nfds'):
                     msg['fds'] = _protocol.recvFds(self.conn, msg['nfds'])
+                elif msg.get('handles'):
+                    msg['fds'] = msg.pop('handles')
                 viewId = msg.get('view')
                 if viewId is None:
                     with self._replied:
@@ -335,8 +339,7 @@ class BrowserHost:
                 if channel is not None:
                     channel.inbox.append(msg)
                 else:  # its page has closed
-                    for fd in msg.get('fds', ()):
-                        os.close(fd)
+                    _gpushare.closeHandles(msg.get('fds', ()))
         except (EOFError, OSError):
             pass
         self.alive = False

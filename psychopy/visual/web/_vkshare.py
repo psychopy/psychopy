@@ -10,10 +10,8 @@
 OpenGL can import memory and semaphores from other APIs, but can't allocate
 them for export itself, so the web browser server allocates them with Vulkan
 (which is otherwise unused) and passes them to its OpenGL context and to the
-stimulus' as file descriptors. Only the few Vulkan calls this needs are bound,
-with ctypes.
-
-Linux only for now; Windows would export NT handles the same way.
+stimulus' as handles: file descriptors on Linux, NT handles on Windows. Only
+the few Vulkan calls this needs are bound, with ctypes.
 
 This module only uses the standard library, as the server imports it without
 importing PsychoPy.
@@ -40,11 +38,36 @@ _ST_PHYSICAL_DEVICE_ID_PROPERTIES = 1000071004
 _ST_EXTERNAL_MEMORY_IMAGE_CREATE_INFO = 1000072001
 _ST_EXPORT_MEMORY_ALLOCATE_INFO = 1000072002
 _ST_EXPORT_SEMAPHORE_CREATE_INFO = 1000077000
+_ST_MEMORY_GET_WIN32_HANDLE_INFO_KHR = 1000073003
 _ST_MEMORY_GET_FD_INFO_KHR = 1000074002
+_ST_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR = 1000078003
 _ST_SEMAPHORE_GET_FD_INFO_KHR = 1000079001
 _ST_MEMORY_DEDICATED_ALLOCATE_INFO = 1000127001
 
-_HANDLE_TYPE_OPAQUE_FD = 0x1
+_WINDOWS = sys.platform == 'win32'
+if _WINDOWS:
+    import _winapi
+# what memory and semaphores are exported as: NT handles on Windows, file
+# descriptors elsewhere, with the extensions and functions for each
+if _WINDOWS:
+    _HANDLE_TYPE = 0x2  # VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
+    _DEVICE_EXTENSIONS = (
+        b'VK_KHR_external_memory_win32', b'VK_KHR_external_semaphore_win32')
+    _GET_MEMORY = (b'vkGetMemoryWin32HandleKHR',
+                   _ST_MEMORY_GET_WIN32_HANDLE_INFO_KHR)
+    _GET_SEMAPHORE = (b'vkGetSemaphoreWin32HandleKHR',
+                      _ST_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR)
+    _OSHandle = ctypes.c_void_p  # HANDLE
+    _FUNCTYPE = ctypes.WINFUNCTYPE
+else:
+    _HANDLE_TYPE = 0x1  # VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
+    _DEVICE_EXTENSIONS = (
+        b'VK_KHR_external_memory_fd', b'VK_KHR_external_semaphore_fd')
+    _GET_MEMORY = (b'vkGetMemoryFdKHR', _ST_MEMORY_GET_FD_INFO_KHR)
+    _GET_SEMAPHORE = (b'vkGetSemaphoreFdKHR', _ST_SEMAPHORE_GET_FD_INFO_KHR)
+    _OSHandle = ctypes.c_int
+    _FUNCTYPE = ctypes.CFUNCTYPE
+
 _FORMAT_R8G8B8A8_UNORM = 37
 _IMAGE_TYPE_2D = 1
 _SAMPLE_COUNT_1 = 1
@@ -52,9 +75,6 @@ _TILING_OPTIMAL = 0
 # transfer source and destination, sampled, color attachment
 _IMAGE_USAGE = 0x1 | 0x2 | 0x4 | 0x10
 _MEMORY_DEVICE_LOCAL = 0x1
-
-_DEVICE_EXTENSIONS = (
-    b'VK_KHR_external_memory_fd', b'VK_KHR_external_semaphore_fd')
 
 _u32 = ctypes.c_uint32
 _u64 = ctypes.c_uint64
@@ -159,8 +179,10 @@ class _MemoryAllocateInfo(ctypes.Structure):
                 ('memoryTypeIndex', _u32)]
 
 
-class _MemoryGetFdInfo(ctypes.Structure):
-    _fields_ = [('sType', _u32), ('pNext', _p), ('memory', _nhandle),
+class _GetHandleInfo(ctypes.Structure):
+    # VkMemoryGetFdInfoKHR, VkSemaphoreGetFdInfoKHR and their Win32 versions:
+    # the memory or semaphore, and the type of handle to get for it
+    _fields_ = [('sType', _u32), ('pNext', _p), ('object', _nhandle),
                 ('handleType', _u32)]
 
 
@@ -170,11 +192,6 @@ class _ExportSemaphoreCreateInfo(ctypes.Structure):
 
 class _SemaphoreCreateInfo(ctypes.Structure):
     _fields_ = [('sType', _u32), ('pNext', _p), ('flags', _u32)]
-
-
-class _SemaphoreGetFdInfo(ctypes.Structure):
-    _fields_ = [('sType', _u32), ('pNext', _p), ('semaphore', _nhandle),
-                ('handleType', _u32)]
 
 
 class VulkanError(RuntimeError):
@@ -187,16 +204,42 @@ def _check(result, what):
 
 
 def _loadVulkan():
-    if not sys.platform.startswith('linux'):
-        raise VulkanError("Sharing frames on the GPU is only done on Linux")
-    name = ctypes.util.find_library('vulkan') or 'libvulkan.so.1'
     try:
-        return ctypes.CDLL(name)
+        if _WINDOWS:
+            return ctypes.WinDLL('vulkan-1')
+        if sys.platform.startswith('linux'):
+            return ctypes.CDLL(
+                ctypes.util.find_library('vulkan') or 'libvulkan.so.1')
     except OSError as err:
         raise VulkanError("No Vulkan loader ({})".format(err))
+    raise VulkanError(
+        "Sharing frames on the GPU is only done on Linux and Windows")
 
 
-class SharedImage:
+class _Exportable:
+    """Memory or a semaphore, which handles can be exported for."""
+    def __init__(self, allocator):
+        self._allocator = allocator
+        self._ntHandle = None
+
+    def _newHandle(self, getHandle, infoType, obj):
+        if not _WINDOWS:
+            return self._allocator._export(getHandle, infoType, obj)
+        # an NT handle can only be exported once for each object, so that one
+        # is kept and copies of it given
+        if self._ntHandle is None:
+            self._ntHandle = self._allocator._export(getHandle, infoType, obj)
+        process = _winapi.GetCurrentProcess()
+        return _winapi.DuplicateHandle(process, self._ntHandle, process, 0,
+                                       False, _winapi.DUPLICATE_SAME_ACCESS)
+
+    def _closeHandle(self):
+        if self._ntHandle is not None:
+            _winapi.CloseHandle(self._ntHandle)
+            self._ntHandle = None
+
+
+class SharedImage(_Exportable):
     """GPU memory for one frame, allocated for export.
 
     Attributes
@@ -208,36 +251,41 @@ class SharedImage:
 
     """
     def __init__(self, allocator, image, memory, width, height, size):
-        self._allocator = allocator
+        super().__init__(allocator)
         self.image = image
         self.memory = memory
         self.width = width
         self.height = height
         self.size = size
 
-    def exportFd(self):
-        """Get a new file descriptor for the memory, which the caller owns
-        (importing it into OpenGL hands it over)."""
-        return self._allocator._memoryFd(self.memory)
+    def exportHandle(self):
+        """Get a new handle for the memory (a file descriptor, or an NT handle
+        on Windows), which the caller owns."""
+        return self._newHandle(
+            self._allocator._getMemoryHandle, _GET_MEMORY[1], self.memory)
 
     def destroy(self):
+        self._closeHandle()
         if self.memory is not None:
             self._allocator._destroyImage(self.image, self.memory)
             self.image = self.memory = None
 
 
-class SharedSemaphore:
+class SharedSemaphore(_Exportable):
     """A semaphore, created for export."""
     def __init__(self, allocator, semaphore):
-        self._allocator = allocator
+        super().__init__(allocator)
         self.semaphore = semaphore
 
-    def exportFd(self):
-        """Get a new file descriptor for the semaphore, which the caller owns
-        (importing it into OpenGL hands it over)."""
-        return self._allocator._semaphoreFd(self.semaphore)
+    def exportHandle(self):
+        """Get a new handle for the semaphore (a file descriptor, or an NT
+        handle on Windows), which the caller owns."""
+        return self._newHandle(
+            self._allocator._getSemaphoreHandle, _GET_SEMAPHORE[1],
+            self.semaphore)
 
     def destroy(self):
+        self._closeHandle()
         if self.semaphore is not None:
             self._allocator._destroySemaphore(self.semaphore)
             self.semaphore = None
@@ -257,7 +305,7 @@ class VulkanAllocator:
     ------
     VulkanError
         If Vulkan isn't available, has no matching device, or the device can't
-        export memory and semaphores as file descriptors.
+        export memory and semaphores as handles.
 
     """
     def __init__(self, deviceUUID, driverUUID):
@@ -276,14 +324,11 @@ class VulkanAllocator:
             self._vk.vkGetPhysicalDeviceMemoryProperties(
                 self._physical, ctypes.byref(memProps))
             self._memProps = memProps
-            self._getMemoryFd = self._deviceProc(
-                b'vkGetMemoryFdKHR', ctypes.c_int32,
-                (_handle, ctypes.POINTER(_MemoryGetFdInfo),
-                 ctypes.POINTER(ctypes.c_int)))
-            self._getSemaphoreFd = self._deviceProc(
-                b'vkGetSemaphoreFdKHR', ctypes.c_int32,
-                (_handle, ctypes.POINTER(_SemaphoreGetFdInfo),
-                 ctypes.POINTER(ctypes.c_int)))
+            argtypes = (_handle, _P(_GetHandleInfo), _P(_OSHandle))
+            self._getMemoryHandle = self._deviceProc(
+                _GET_MEMORY[0], _i32, argtypes)
+            self._getSemaphoreHandle = self._deviceProc(
+                _GET_SEMAPHORE[0], _i32, argtypes)
         except Exception:
             self.destroy()
             raise
@@ -329,7 +374,7 @@ class VulkanAllocator:
         address = self._vk.vkGetDeviceProcAddr(self._device, name)
         if not address:
             raise VulkanError("Device has no {}".format(name.decode()))
-        return ctypes.CFUNCTYPE(restype, *argtypes)(address)
+        return _FUNCTYPE(restype, *argtypes)(address)
 
     def _createInstance(self):
         app = _ApplicationInfo(
@@ -415,7 +460,7 @@ class VulkanAllocator:
 
         """
         external = _ExternalMemoryImageCreateInfo(
-            _ST_EXTERNAL_MEMORY_IMAGE_CREATE_INFO, None, _HANDLE_TYPE_OPAQUE_FD)
+            _ST_EXTERNAL_MEMORY_IMAGE_CREATE_INFO, None, _HANDLE_TYPE)
         info = _ImageCreateInfo(
             _ST_IMAGE_CREATE_INFO, ctypes.cast(ctypes.pointer(external), _p), 0,
             _IMAGE_TYPE_2D, _FORMAT_R8G8B8A8_UNORM,
@@ -433,8 +478,7 @@ class VulkanAllocator:
                 _ST_MEMORY_DEDICATED_ALLOCATE_INFO, None, image, 0)
             export = _ExportMemoryAllocateInfo(
                 _ST_EXPORT_MEMORY_ALLOCATE_INFO,
-                ctypes.cast(ctypes.pointer(dedicated), _p),
-                _HANDLE_TYPE_OPAQUE_FD)
+                ctypes.cast(ctypes.pointer(dedicated), _p), _HANDLE_TYPE)
             alloc = _MemoryAllocateInfo(
                 _ST_MEMORY_ALLOCATE_INFO,
                 ctypes.cast(ctypes.pointer(export), _p), reqs.size,
@@ -461,7 +505,7 @@ class VulkanAllocator:
 
         """
         export = _ExportSemaphoreCreateInfo(
-            _ST_EXPORT_SEMAPHORE_CREATE_INFO, None, _HANDLE_TYPE_OPAQUE_FD)
+            _ST_EXPORT_SEMAPHORE_CREATE_INFO, None, _HANDLE_TYPE)
         info = _SemaphoreCreateInfo(
             _ST_SEMAPHORE_CREATE_INFO,
             ctypes.cast(ctypes.pointer(export), _p), 0)
@@ -471,22 +515,15 @@ class VulkanAllocator:
             'vkCreateSemaphore')
         return SharedSemaphore(self, semaphore)
 
-    def _memoryFd(self, memory):
-        info = _MemoryGetFdInfo(
-            _ST_MEMORY_GET_FD_INFO_KHR, None, memory, _HANDLE_TYPE_OPAQUE_FD)
-        fd = ctypes.c_int(-1)
-        _check(self._getMemoryFd(self._device, ctypes.byref(info),
-                                 ctypes.byref(fd)), 'vkGetMemoryFdKHR')
-        return fd.value
-
-    def _semaphoreFd(self, semaphore):
-        info = _SemaphoreGetFdInfo(
-            _ST_SEMAPHORE_GET_FD_INFO_KHR, None, semaphore,
-            _HANDLE_TYPE_OPAQUE_FD)
-        fd = ctypes.c_int(-1)
-        _check(self._getSemaphoreFd(self._device, ctypes.byref(info),
-                                    ctypes.byref(fd)), 'vkGetSemaphoreFdKHR')
-        return fd.value
+    def _export(self, getHandle, infoType, obj):
+        """Get a new handle for memory or a semaphore (`int`)."""
+        info = _GetHandleInfo(infoType, None, obj, _HANDLE_TYPE)
+        handle = _OSHandle(-1) if not _WINDOWS else _OSHandle()
+        _check(getHandle(self._device, ctypes.byref(info),
+                         ctypes.byref(handle)), 'Exporting a handle')
+        if handle.value is None or handle.value < 0:  # NULL, or -1
+            raise VulkanError("Exporting a handle gave none")
+        return int(handle.value)
 
     def _destroyImage(self, image, memory):
         if self._device is not None:
