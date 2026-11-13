@@ -15,7 +15,6 @@ import re
 import time
 import subprocess
 import traceback
-import threading
 
 import pandas
 from packaging.version import Version
@@ -66,6 +65,9 @@ code_challenge = None
 code_verifier = None
 scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
+# how long (in s) before a token's actual expiry to consider it expired, so we don't use a token
+# which expires mid-request
+tokenExpiryMargin = 60
 
 knownUsers = DictStorage(
         filename=os.path.join(pavloviaPrefsDir, 'users.json'))
@@ -306,7 +308,9 @@ class PavloviaSession:
         self.userFullName = None
         self.remember_me = remember_me
         self.authenticated = False
-        self.expired = None
+        # time (according to time.time) at which the current token should be considered
+        # expired, None if unknown
+        self.expiresAt = None
         self.setToken(token)
         logging.debug("PavloviaLoggedIn")
 
@@ -488,7 +492,18 @@ class PavloviaSession:
         """
         self.__dict__['refreshToken'] = refreshToken
         self.__dict__['token'] = token
+        # we don't know when a token given from outside expires, so treat it as expired (i.e.
+        # refresh it on first use)
+        self.expiresAt = None
         self.startSession(token, refreshToken=refreshToken)
+
+    @property
+    def expired(self):
+        """
+        Whether the current token is (or is about to be) expired. Calculated from the clock
+        rather than a timer, so that it stays accurate if the computer sleeps.
+        """
+        return self.expiresAt is None or time.time() >= self.expiresAt
 
     def getNamespace(self, namespace):
         """Returns a namespace object for the given name if an exact match is
@@ -513,7 +528,7 @@ class PavloviaSession:
             Refresh token to use, if None (default) then will use the stored refresh token
         """
         # if token isn't expired, do nothing
-        if self.expired is False:
+        if not self.expired:
             return
         # if not logged in yet, do nothing
         if refreshToken is None and self.__dict__['refreshToken'] is None:
@@ -539,17 +554,12 @@ class PavloviaSession:
             resp['access_token'],
             refreshToken=resp['refresh_token']
         )
-        # mark as not expired
-        self.expired = False
         # start countdown to token expiry
-        def expire():
-            # wait until token expires
-            time.sleep(
-                resp['expires_in']
-            )
-            # mark expired
-            self.expired = True
-        threading.Thread(target=expire, daemon=True).start()
+        expiresIn = resp.get('expires_in')
+        if expiresIn is not None:
+            self.expiresAt = time.time() + float(expiresIn) - tokenExpiryMargin
+        else:
+            self.expiresAt = None
 
     def startSession(self, token, refreshToken=None):
         """Start a gitlab session as best we can
