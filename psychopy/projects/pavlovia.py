@@ -518,7 +518,7 @@ class PavloviaSession:
             if thisSpace.path == namespace:
                 return thisSpace
     
-    def doRefreshToken(self, refreshToken=None):
+    def doRefreshToken(self, refreshToken=None, force=False):
         """
         Refresh the current authentication token
 
@@ -526,9 +526,12 @@ class PavloviaSession:
         ----------
         refreshToken : str, optional
             Refresh token to use, if None (default) then will use the stored refresh token
+        force : bool, optional
+            If True, refresh even if the token is not thought to be expired (e.g. because the
+            server has rejected it)
         """
         # if token isn't expired, do nothing
-        if not self.expired:
+        if not force and not self.expired:
             return
         # if not logged in yet, do nothing
         if refreshToken is None and self.__dict__['refreshToken'] is None:
@@ -549,17 +552,35 @@ class PavloviaSession:
             raise gitlab.GitlabAuthenticationError(
                 "{error}: {error_description}".format(**resp)
             )
-        # start again with new token
-        self.setToken(
-            resp['access_token'],
-            refreshToken=resp['refresh_token']
-        )
+        # store new tokens
+        token = resp['access_token']
+        self.__dict__['token'] = token
+        self.__dict__['refreshToken'] = resp.get('refresh_token', refreshToken or self.__dict__['refreshToken'])
+        # update gitlab session (in place rather than creating a new one)
+        if getattr(self, "gitlab", None) is not None:
+            self.gitlab.oauth_token = token
+            self.gitlab._set_auth_info()
+        if getattr(self, "session", None) is not None:
+            self.session.headers['OauthToken'] = token
         # start countdown to token expiry
         expiresIn = resp.get('expires_in')
         if expiresIn is not None:
             self.expiresAt = time.time() + float(expiresIn) - tokenExpiryMargin
         else:
             self.expiresAt = None
+        # save new tokens so they're valid next session (old refresh token is no longer valid)
+        self.saveTokens()
+
+    def saveTokens(self):
+        """
+        Update the stored tokens for the current user (if they're a known user) to match those
+        of this session.
+        """
+        if knownUsers is None or not self.username or self.username not in knownUsers:
+            return
+        knownUsers[self.username]['token'] = self.getToken()
+        knownUsers[self.username]['refresh_token'] = self.getRefreshToken()
+        knownUsers.save()
 
     def startSession(self, token, refreshToken=None):
         """Start a gitlab session as best we can
@@ -581,6 +602,11 @@ class PavloviaSession:
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token,
                                         timeout=10, session=self.session,
                                         per_page=100)
+            # we don't know whose token this is until it's authenticated, so clear the username
+            # (so that refreshing the token doesn't store it under the previous user)
+            prevUsername = self.username
+            self.username = None
+            refreshed = False
             try:
                 self.gitlab.auth()
             except gitlab.exceptions.GitlabAuthenticationError as err:
@@ -589,9 +615,12 @@ class PavloviaSession:
                     from psychopy_app.pavlovia_ui.functions import logInPavlovia
                     logInPavlovia(None)
                     return
-                # refresh auth token
-                self.doRefreshToken(refreshToken)
-                return
+                # token was rejected, so refresh it regardless of when we think it expires
+                # (this updates self.gitlab in place)
+                self.doRefreshToken(refreshToken, force=True)
+                token = self.getToken()
+                refreshed = True
+                self.gitlab.auth()
             except gitlab.exceptions.GitlabParsingError as err:
                 raise ConnectionError(
                     "Failed to authenticate with the gitlab.pavlovia.org server. "
@@ -600,13 +629,19 @@ class PavloviaSession:
                     "not setting the proxy setting in PsychoPy preferences. If that "
                     "isn't the case for you, then please get in touch so we can work out "
                     "what the cause was in your case! support@opensciencetools.org")
-            
+
+            # if the user has changed, clear the cached user object
+            if prevUsername != self.gitlab.user.username:
+                self._user = None
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
             # add the token (although this is also in the gitlab object)
             self.session.headers = {'OauthToken': token}
+            # if we had to refresh, now that we know who the user is, store the new tokens
+            if refreshed:
+                self.saveTokens()
         else:
             self.gitlab = gitlab.Gitlab(rootURL,
                                         timeout=10, session=self.session,
