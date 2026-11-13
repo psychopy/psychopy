@@ -302,7 +302,7 @@ class PavloviaSession:
     for project read/write access
     """
 
-    def __init__(self, token=None, remember_me=True):
+    def __init__(self, token=None, remember_me=True, refreshToken=None):
         """Create a session to send requests with the pavlovia server
 
         Provide either username and password for authentication with a new
@@ -317,7 +317,7 @@ class PavloviaSession:
         # time (according to time.time) at which the current token should be considered
         # expired, None if unknown
         self.expiresAt = None
-        self.setToken(token)
+        self.setToken(token, refreshToken=refreshToken)
         logging.debug("PavloviaLoggedIn")
 
     @property
@@ -1775,7 +1775,8 @@ def refreshSession():
     global _existingSession
     if _existingSession and _existingSession.getToken():
         _existingSession = PavloviaSession(
-                token=_existingSession.getToken()
+                token=_existingSession.getToken(),
+                refreshToken=_existingSession.getRefreshToken()
         )
     else:
         _existingSession = PavloviaSession()
