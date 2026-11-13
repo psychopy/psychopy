@@ -152,6 +152,12 @@ def login(tokenOrUsername, refreshToken=None, rememberMe=True):
         token = knownUsers[tokenOrUsername]  # username so fetch token
     else:
         token = tokenOrUsername
+        # if given a token with no name which matches one in users.json, get the refresh token from there
+        if refreshToken is None and isinstance(token, str) and knownUsers:
+            for userInfo in knownUsers.values():
+                if isinstance(userInfo, dict) and userInfo.get('token') == token:
+                    refreshToken = userInfo.get('refresh_token')
+                    break
     # it might still be a dict that *contains* the token
     if type(token) == dict and 'token' in token:
         if 'refresh_token' in token:
