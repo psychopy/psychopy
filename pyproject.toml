@@ -132,6 +132,13 @@ legacy = [
     "pyo>=1.0.3",
     "pygame",
 ]
+web = [
+    # Chromium, for web pages as stimuli (`visual.WebBrowserStim`). Releases
+    # up to 6.11 need the same minor version of Qt as PyQt6, which the stimulus
+    # checks, later ones (numbered by Chromium version) require a PyQt6 they
+    # work with.
+    "PyQt6-WebEngine>=6.9",
+]
 
 [project.urls]
 Homepage = "https://www.psychopy.org/"
