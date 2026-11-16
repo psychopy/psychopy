@@ -17,7 +17,7 @@ class ImageComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'image.png'
     iconSVG = Path(__file__).parent / 'ImageComponent.svg'
-    tooltip = _translate('Image: present images (bmp, jpg, tif...)')
+    tooltip = _translate("Show an image")
 
     def __init__(self, exp, parentName, name='image', image='', mask='',
                  interpolate='linear', units='from exp settings',

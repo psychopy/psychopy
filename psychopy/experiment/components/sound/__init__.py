@@ -21,7 +21,7 @@ class SoundComponent(BaseDeviceComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'sound.png'
     iconSVG = Path(__file__).parent / 'SoundComponent.svg'
-    tooltip = _translate('Sound: play recorded files or generated sounds', )
+    tooltip = _translate("Play audio from a file, data array or musical note")
     deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
     validatorClasses = ["AudioValidatorRoutine"]
     legacyParams = [

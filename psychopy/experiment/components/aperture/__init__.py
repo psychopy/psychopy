@@ -28,8 +28,7 @@ class ApertureComponent(PolygonComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'aperture.png'
     iconSVG = Path(__file__).parent / 'ApertureComponent.svg'
-    tooltip = _translate('Aperture: restrict the drawing of stimuli to a given '
-                         'region')
+    tooltip = _translate("Hide stimuli outside of a given area")
 
     def __init__(self, exp, parentName, name='aperture', units='norm',
                  size=1, pos=(0, 0), anchor="center", ori=0,

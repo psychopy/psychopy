@@ -15,7 +15,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_valid.png"
     iconSVG = Path(__file__).parent / 'EyetrackerValidationRoutine.svg'
-    tooltip = _translate("Validation routine for eyetrackers")
+    tooltip = _translate("Run a Routine to validate an eyetracker's calibration")
     beta = True
 
     def __init__(self, exp, name='validation',

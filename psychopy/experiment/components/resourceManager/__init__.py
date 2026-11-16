@@ -12,8 +12,7 @@ class ResourceManagerComponent(BaseComponent):
     targets = ['PsychoJS']
     iconFile = Path(__file__).parent / "resource_manager.png"
     iconSVG = Path(__file__).parent / 'ResourceManagerComponent.svg'
-    tooltip = _translate("Pre-load some resources into memory so that components using them can start without having "
-                         "to load first")
+    tooltip = _translate("Load some resources in advance of them being needed")
     beta = True
 
     def __init__(self, exp, parentName, name='resources',

@@ -19,7 +19,7 @@ class SerialOutComponent(BaseDeviceComponent):
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
     iconSVG = Path(__file__).parent / 'SerialOutComponent.svg'
-    tooltip = _translate('Serial out: send signals from a serial port')
+    tooltip = _translate("Send signals from a serial port")
     beta = False
     legacyParams = [
         # superceded by "startDataChar", "startDataCode", et al.
