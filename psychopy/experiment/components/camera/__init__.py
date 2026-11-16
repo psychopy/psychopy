@@ -32,7 +32,7 @@ class CameraComponent(BaseDeviceComponent):
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'webcam.png'
     iconSVG = Path(__file__).parent / 'CameraComponent.svg'
-    tooltip = _translate('Webcam: Record video from a webcam.')
+    tooltip = _translate("Record video from a webcam")
     beta = False
     deviceClasses = [
         # picks between the backends below when the device is made

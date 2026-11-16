@@ -27,7 +27,7 @@ class ButtonComponent(BaseVisualComponent):
     version = "2021.1.0"
     iconFile = Path(__file__).parent / 'button.png'
     iconSVG = Path(__file__).parent / 'ButtonComponent.svg'
-    tooltip = _translate('Button: A clickable textbox')
+    tooltip = _translate("Show box with text which runs some code when clicked on")
     beta = True
 
     def __init__(self, exp, parentName, name="button",

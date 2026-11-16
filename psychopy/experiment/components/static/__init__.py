@@ -24,8 +24,7 @@ class StaticComponent(BaseComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'static.png'
     iconSVG = Path(__file__).parent / 'StaticComponent.svg'
-    tooltip = _translate('Static: Static screen period (e.g. an ISI). '
-                         'Useful for pre-loading stimuli.')
+    tooltip = _translate("Stop the screen from refreshing for a period (e.g. during an ISI)")
 
     def __init__(
             self, exp, parentName, 

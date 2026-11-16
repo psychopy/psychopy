@@ -21,7 +21,7 @@ class JoystickComponent(BaseDeviceComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joystick.png'
     iconSVG = Path(__file__).parent / 'JoystickComponent.svg'
-    tooltip = _translate('Joystick: query joystick position and buttons')
+    tooltip = _translate("Collect joystick movements from a game controller")
     deviceClasses = ['psychopy.hardware.joystick.JoystickDevice']
 
     def __init__(self, exp, parentName, name='joystick',
