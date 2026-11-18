@@ -219,7 +219,18 @@ class PyAVMovieFileReader(MovieFileReader):
         for device in devices + [None]:
             if opened is not None:
                 opened[0].close()  # the last one tried, which couldn't
-            opened = self._openContainer(av, openOpts, device)
+                opened = None
+            try:
+                opened = self._openContainer(av, openOpts, device)
+            except av.FFmpegError as err:
+                if device is None:
+                    raise
+                # FFmpeg was built with it, but couldn't set it up here (e.g.
+                # there's no GPU, or no access to one)
+                logging.info(
+                    "Hardware decoder {!r} couldn't be set up for {}: "
+                    "{}".format(device, self._filename, err))
+                continue
             if opened is None:
                 raise MovieFileFormatError(self._filename)
             if device is None or opened[3]:
