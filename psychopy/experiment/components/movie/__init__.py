@@ -11,6 +11,12 @@ import copy
 from psychopy.experiment.components import BaseVisualComponent, BaseDeviceComponent, getInitVals, Param, _translate
 from psychopy.experiment.components.sound import SpeakerDeviceBackend
 
+# Backends which can decode movies with hardware, as
+# `psychopy.visual.movies.hardwareDecodingBackends()` gives them (which isn't
+# imported, as that would import `psychopy.visual`), for which the option is
+# shown and written
+HARDWARE_DECODING_BACKENDS = ('pyav',)
+
 
 class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
     """An event class for presenting movie-based stimuli"""
@@ -29,7 +35,7 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='pyav',
                  loop=False, volume=1, noAudio=False,
-                 stopWithRoutine=True
+                 stopWithRoutine=True, hardwareDecoding=False
                  ):
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -42,7 +48,7 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
         self.url = "https://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
         self.order += ['movie', 'forceEndRoutine', # Basic tab
-                       'loop', 'No audio', 'backend',
+                       'loop', 'No audio', 'backend', 'hardwareDecoding',
                        ]
 
         # params
@@ -63,6 +69,26 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
             allowedVals=['pyav', 'ffpyplayer', 'moviepy', 'opencv', 'vlc'],
             hint=msg, direct=False,
             label=_translate("Backend"))
+
+        msg = _translate(
+            "Decode the movie on the graphics card's video decoder rather "
+            "than the CPU, where there is one that can, leaving the CPU free "
+            "for the experiment. Worthwhile for high resolution (e.g. 4K) "
+            "movies, or on computers with few CPU cores. Otherwise the movie "
+            "is decoded on the CPU as usual.")
+        self.params['hardwareDecoding'] = Param(
+            hardwareDecoding, valType='bool', inputType="bool",
+            categ='Playback', updates='constant', hint=msg,
+            label=_translate("Hardware decoding"))
+        # only shown for the backends which decode with hardware
+        self.depends.append(
+            {"dependsOn": "backend",
+             "condition": "in {!r}".format(list(HARDWARE_DECODING_BACKENDS)),
+             "param": "hardwareDecoding",
+             "true": "show",
+             "false": "hide",
+             }
+        )
 
         msg = _translate("Prevent the movie's audio from being loaded or "
                "played")
@@ -211,9 +237,14 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
             "audioDevice=%(deviceLabel)s,"
-            "depth=%(depth)s\n"
+            "depth=%(depth)s"
         )
-        buff.writeIndentedLines(code % params)
+        # Only for backends which decode with hardware, as it's only shown for
+        # those (it would be decoded in software with a warning otherwise)
+        if self.params['backend'].val in HARDWARE_DECODING_BACKENDS and \
+                self.params['hardwareDecoding']:
+            code += ", hardwareDecoding=%(hardwareDecoding)s"
+        buff.writeIndentedLines((code + "\n") % params)
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
