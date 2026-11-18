@@ -1418,6 +1418,9 @@ class TestMovieStimFrameTiming:
             tStart = _nextFlip(win)
 
             mov.play()
+            # the next flip as of `play()`, which is later than `tStart` only
+            # if the machine stalled for a refresh or more (as CI runners can)
+            tStartLatest = _nextFlip(win)
             mov.draw()
             assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
             assert mov.pts == pytest.approx(0.0, abs=1e-6)
@@ -1425,7 +1428,8 @@ class TestMovieStimFrameTiming:
             win.flip()
             tNext = _nextFlip(win)
             mov.draw()
-            assert mov.movieTime == pytest.approx(tNext - tStart, abs=1e-3)
+            assert tNext - tStartLatest - 1e-3 <= mov.movieTime <= \
+                tNext - tStart + 1e-3
 
     def test_framesAdvanceOncePerRefresh(self, win, movieLib, monkeypatch):
         """With the display refreshing once per movie frame, each refresh
@@ -2390,6 +2394,120 @@ class TestMovieStimGPUColorConversion:
 
         assert np.abs(rgb - expected).max() <= 1
 
+    @pytest.mark.parametrize('fullRange', [False, True])
+    @pytest.mark.parametrize('colorMatrix', ['ITU709', 'ITU601', 'BT2020'])
+    def test_tenBitYUVToRGB(self, win, movieLib, colorMatrix, fullRange):
+        """What the shader converts `p010le` (10-bit samples at the top of
+        16, as hardware decoders give) to RGB with gives what the colour
+        matrix does, and close to `swscale` (whose 10-bit conversion rounds
+        less finely, by up to 3 levels in 255)."""
+        import av
+        from av.video.reformatter import Colorspace
+
+        rng = np.random.default_rng(2)
+        low, high = (0, 1023) if fullRange else (64, 940)
+        for _ in range(8):
+            # one colour, so that how chroma is upsampled doesn't come into it
+            y, u, v = (int(n) for n in rng.integers(low, high + 1, 3))
+            frame = av.VideoFrame(8, 8, 'p010le')
+            luma = np.full((8, frame.planes[0].line_size // 2), y << 6,
+                           np.uint16)
+            chroma = np.zeros((4, frame.planes[1].line_size // 2), np.uint16)
+            chroma[:, 0::2], chroma[:, 1::2] = u << 6, v << 6
+            frame.planes[0].update(luma.tobytes())
+            frame.planes[1].update(chroma.tobytes())
+            if colorMatrix in Colorspace.__members__:
+                expected = frame.to_ndarray(
+                    format='rgb24', src_colorspace=colorMatrix,
+                    src_color_range='JPEG' if fullRange else 'MPEG')[0, 0]
+            else:  # PyAV before 18, see `test_yuvToRGBMatchesSwscale`
+                frame.colorspace = \
+                    movies.frame._SWSCALE_TO_AVCOL_SPC[colorMatrix]
+                frame.color_range = 2 if fullRange else 1
+                expected = frame.to_ndarray(format='rgb24')[0, 0]
+
+            matrix, offset = movies._yuvToRGBUniforms(
+                colorMatrix, fullRange, (16, 10))
+            sampled = np.array([y, u, v]) * 64 / 65535.0
+            rgb = np.array(matrix).reshape(3, 3) @ (sampled - offset)
+            rgb = np.clip(rgb, 0.0, 1.0) * 255.0
+
+            # the colour matrix, from the 10-bit code values
+            kr, kb = movies._COLOR_MATRIX_KR_KB[colorMatrix]
+            if fullRange:
+                luma, cb, cr = y / 1023., (u - 512) / 1023., (v - 512) / 1023.
+            else:
+                luma, cb, cr = (y - 64) / 876., (u - 512) / 896., \
+                    (v - 512) / 896.
+            red = luma + 2 * (1 - kr) * cr
+            blue = luma + 2 * (1 - kb) * cb
+            green = (luma - kr * red - kb * blue) / (1 - kr - kb)
+            exact = np.clip([red, green, blue], 0.0, 1.0) * 255.0
+
+            assert np.abs(rgb - exact).max() < 0.5, (y, u, v)
+            assert np.abs(np.round(rgb) - expected).max() <= 3, (y, u, v)
+
+    @pytest.mark.parametrize('colorspace, colorRange', [
+        (1, 1),  # BT.709, limited range
+        (6, 2)])  # BT.601, full range
+    @pytest.mark.parametrize('pixelFormat', ['nv12', 'p010le'])
+    def test_semiPlanarFramesMatchPlanar(self, win, movieLib, tmp_path,
+                                         monkeypatch, pixelFormat, colorspace,
+                                         colorRange):
+        """Frames in the semi-planar formats hardware decoders give (`nv12`
+        and `p010le`) are uploaded as a luma and an interleaved chroma texture,
+        and drawn as the same frame in planar YUV is."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+        from psychopy.visual.movies.readers import pyav_reader
+
+        size = (64, 48)
+        path = _writeTaggedMovie(
+            tmp_path / 'tagged.mkv', 'yuv420p', colorspace, colorRange, size)
+        region = _movieRegion(win, size)
+
+        with movieStim(win, movieLib, filename=path, units='pix',
+                       size=_inPix(win, size)) as mov:
+            assert mov._recentFrameImage.pixelFormat == 'yuv420p'
+            planar, _ = _drawToBackBuffer(win, mov)
+
+        # as a hardware decoder gives them, with the movie's tags kept
+        convert = pyav_reader.PyAVMovieFileReader._convertFrameToRGB
+
+        def asSemiPlanar(reader, frame):
+            import av
+            if isinstance(frame, av.VideoFrame) and \
+                    frame.format.name != pixelFormat:
+                converted = frame.reformat(format=pixelFormat)
+                converted.colorspace = frame.colorspace
+                converted.color_range = frame.color_range
+                converted.pts = frame.pts
+                frame = converted
+            return convert(reader, frame)
+
+        monkeypatch.setattr(pyav_reader.PyAVMovieFileReader,
+                            '_convertFrameToRGB', asSemiPlanar)
+        with movieStim(win, movieLib, filename=path, units='pix',
+                       size=_inPix(win, size)) as mov:
+            image = mov._recentFrameImage
+            assert image.pixelFormat == pixelFormat and image.semiPlanar
+            assert len(mov._planeTextureIds) == 2
+            semiPlanar, _ = _drawToBackBuffer(win, mov)
+
+        # `p010le` frames are drawn from 16-bit textures and planar ones from
+        # 8-bit, and some drivers (Mesa's llvmpipe) filter the 8-bit chroma,
+        # which is half the size and so always interpolated, less precisely,
+        # leaving most of R and B a level out, and some (where the chroma
+        # error is scaled up most) three. Its full range samples are also
+        # 8-bit ones shifted (255 to 1020, not 1023), a little darker.
+        difference = np.abs(semiPlanar[region] - planar[region])
+        if pixelFormat == 'p010le':
+            assert difference.mean() < 1.0
+            assert difference.max() <= 3
+        else:
+            assert difference.mean() < 0.5
+            assert difference.max() <= 2
+
     @pytest.mark.parametrize('colorRange', [1, 2])  # MPEG, JPEG
     @pytest.mark.parametrize('colorspace', [9, 10])  # BT2020_NCL, BT2020_CL
     def test_BT2020FramesConvertedToRGB(self, win, movieLib, colorspace,
@@ -2646,6 +2764,209 @@ class TestMovieStimGPUColorConversion:
             fboWin.close()
 
         assert np.abs(drawnGPU - drawnCPU).mean() < 3.0
+
+
+def _writeH264Movie(path, size=(320, 240), nFrames=30):
+    """Write a short H.264 movie of smooth moving colour, which hardware
+    decoders can decode, or skip the test if H.264 can't be encoded."""
+    import av
+    import cv2
+
+    rng = np.random.default_rng(3)
+    width, height = size
+    base = cv2.GaussianBlur(
+        rng.integers(0, 256, (height * 2, width * 2, 3), dtype=np.uint8),
+        (0, 0), 6)
+    base = cv2.normalize(base, None, 20, 235, cv2.NORM_MINMAX)
+    try:
+        container = av.open(str(path), 'w')
+        stream = container.add_stream('libx264', rate=30)
+    except Exception as err:
+        pytest.skip("can't encode H.264: {}".format(err))
+    with container:
+        stream.width, stream.height, stream.pix_fmt = width, height, 'yuv420p'
+        stream.options = {'crf': '10'}
+        stream.codec_context.colorspace = 1
+        stream.codec_context.color_range = 1
+        for i in range(nFrames):
+            rgb = np.ascontiguousarray(base[i:i + height, i:i + width])
+            for packet in stream.encode(
+                    av.VideoFrame.from_ndarray(rgb, format='rgb24')):
+                container.mux(packet)
+        for packet in stream.encode(None):
+            container.mux(packet)
+
+    return path
+
+
+def _recordWarnings(monkeypatch):
+    """Record the warnings PsychoPy logs (as everything here logs them through
+    `psychopy.logging.warning`), returning the list they're added to."""
+    warned = []
+    original = logging.warning
+
+    def warning(msg, *args, **kwargs):
+        warned.append(str(msg))
+        return original(msg, *args, **kwargs)
+
+    monkeypatch.setattr(logging, 'warning', warning)
+
+    return warned
+
+
+class TestMovieStimHardwareDecoding:
+    """Tests for decoding movies with a hardware decoder (`hardwareDecoding`),
+    which are skipped where there's none to decode with."""
+
+    def test_hardwareDecodedFramesMatchSoftware(self, win, movieLib,
+                                                tmp_path):
+        """Frames decoded with hardware come as semi-planar YUV and are drawn
+        the same as those decoded in software, before and after seeking."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav decodes with hardware')
+
+        size = (320, 240)
+        path = _writeH264Movie(tmp_path / 'movie.mp4', size)
+        region = _movieRegion(win, size)
+
+        drawn = {}
+        for hardware in (False, True):
+            with movieStim(win, movieLib, filename=path, units='pix',
+                           size=_inPix(win, size),
+                           hardwareDecoding=hardware) as mov:
+                if hardware:
+                    if mov.hardwareDecoder is None:
+                        pytest.skip('no hardware decoder for H.264 here')
+                    assert mov._recentFrameImage.semiPlanar
+                else:
+                    assert mov.hardwareDecoder is None
+                first, _ = _drawToBackBuffer(win, mov)
+                mov.seek(0.5)
+                _drawUntilSeekResolves(win, mov)
+                assert mov.pts == pytest.approx(0.5, abs=1 / 30. + 1e-6)
+                sought, _ = _drawToBackBuffer(win, mov)
+                drawn[hardware] = (first, sought, mov.pts)
+
+        assert drawn[True][2] == drawn[False][2]
+        for hardwareFrame, softwareFrame in zip(drawn[True][:2],
+                                                drawn[False][:2]):
+            difference = np.abs(hardwareFrame[region] - softwareFrame[region])
+            assert difference.mean() < 1.0
+            assert difference.max() <= 3
+
+    def test_supportsHardwareDecoding(self, win, movieLib):
+        """Which backends can decode with hardware can be asked: only `pyav`,
+        and only with a version of PyAV which can."""
+        try:
+            from av.codec.hwaccel import hwdevices_available  # noqa: F401
+            pyavCan = True
+        except ImportError:  # PyAV before 14, or none
+            pyavCan = False
+
+        assert movies.hardwareDecodingBackends() == ['pyav']
+        assert movies.supportsHardwareDecoding(movieLib) == (
+            movieLib == 'pyav' and pyavCan)
+        assert not movies.supportsHardwareDecoding('notABackend')
+        assert MovieFileReader.supportsHardwareDecoding is False
+
+    @pytest.mark.parametrize('hardwareDecoding', [True, 'notADecoder'])
+    def test_softwareWhereHardwareCant(self, win, movieLib, tmp_path,
+                                       monkeypatch, hardwareDecoding):
+        """Movies no hardware decoder can decode (FFV1 here), asked to be
+        decoded with one there isn't, or with a backend which can't (OpenCV,
+        with the test movie), are decoded in software, with one warning saying
+        why."""
+        warned = _recordWarnings(monkeypatch)
+        if movieLib == 'pyav':
+            path = _writeTaggedMovie(tmp_path / 'ffv1.mkv', 'yuv420p')
+        else:
+            # OpenCV can't with any movie, and can't read FFV1 at all where it
+            # reads movies with AVFoundation (macOS)
+            path = MOVIE_PATH
+        with movieStim(win, movieLib, filename=path,
+                       hardwareDecoding=hardwareDecoding) as mov:
+            assert mov.hardwareDecoder is None
+            mov.draw()
+            if movieLib == 'pyav':
+                assert mov._recentFrameImage.pixelFormat == 'yuv420p'
+
+        hardwareWarnings = [msg for msg in warned
+                            if 'Hardware decoding was asked for' in msg]
+        assert len(hardwareWarnings) == 1, warned
+        if movieLib != 'pyav':
+            assert "'{}' movie backend".format(movieLib) in \
+                hardwareWarnings[0]
+        elif hardwareDecoding == 'notADecoder':
+            assert "'notADecoder'" in hardwareWarnings[0]
+
+    def test_softwareWhereHardwareCantBeSetUp(self, win, movieLib, tmp_path,
+                                              monkeypatch):
+        """Movies asked to be decoded with a hardware decoder FFmpeg was built
+        with, but can't set up here (where there's no GPU, PyAV raises opening
+        the movie, e.g. `PermissionError` for VAAPI), are decoded in software,
+        with one warning saying why."""
+        if movieLib != 'pyav' or not movies.supportsHardwareDecoding('pyav'):
+            pytest.skip('only pyav decodes with hardware')
+        import av
+        from psychopy.visual.movies.readers import pyav_reader
+
+        openContainer = pyav_reader.PyAVMovieFileReader._openContainer
+
+        def cantSetUp(reader, av_, openOpts, device):
+            if device is not None:
+                raise av.error.PermissionError(1, 'Operation not permitted')
+            return openContainer(reader, av_, openOpts, device)
+
+        monkeypatch.setattr(pyav_reader, '_hardwareDecodersToTry',
+                            lambda request: (['cuda', 'vaapi'], None))
+        monkeypatch.setattr(pyav_reader.PyAVMovieFileReader, '_openContainer',
+                            cantSetUp)
+        warned = _recordWarnings(monkeypatch)
+        path = _writeH264Movie(tmp_path / 'movie.mp4')
+        with movieStim(win, movieLib, filename=path,
+                       hardwareDecoding=True) as mov:
+            assert mov.hardwareDecoder is None
+            mov.draw()
+
+        hardwareWarnings = [msg for msg in warned
+                            if 'Hardware decoding was asked for' in msg]
+        assert len(hardwareWarnings) == 1, warned
+        assert 'cuda, vaapi' in hardwareWarnings[0]
+
+    def test_hardwareDecoderOnlyIfUsed(self, win, movieLib, tmp_path):
+        """A hardware decoder is only said to be used if FFmpeg decodes with
+        it, not if it falls back to software because it couldn't set it up
+        (as VideoToolbox can't for MPEG-4 Part 2, the test movie, on some
+        Macs), which PyAV's `is_hwaccel` doesn't tell apart."""
+        if movieLib != 'pyav' or not movies.supportsHardwareDecoding('pyav'):
+            pytest.skip('only pyav decodes with hardware')
+
+        for path in (MOVIE_PATH, _writeH264Movie(tmp_path / 'movie.mp4')):
+            with movieStim(win, movieLib, filename=path,
+                           hardwareDecoding=True) as mov:
+                # left in a hardware pixel format, which has no components,
+                # only if the hardware decoder decodes
+                codecFormat = mov._player._videoStream.codec_context.format
+                assert (mov.hardwareDecoder is not None) == (
+                    not codecFormat.components), path
+
+    def test_noWarningUnlessHardwareCant(self, win, movieLib, tmp_path,
+                                         monkeypatch):
+        """Nothing is said about hardware decoding when it's not asked for,
+        or when it's used."""
+        warned = _recordWarnings(monkeypatch)
+        with movieStim(win, movieLib) as mov:
+            assert mov.hardwareDecoder is None
+        if movieLib == 'pyav' and movies.supportsHardwareDecoding('pyav'):
+            path = _writeH264Movie(tmp_path / 'movie.mp4')
+            with movieStim(win, movieLib, filename=path,
+                           hardwareDecoding=True) as mov:
+                used = mov.hardwareDecoder is not None
+            if not used:
+                warned = [msg for msg in warned
+                          if 'Hardware decoding was asked for' not in msg]
+
+        assert not [msg for msg in warned if 'ardware' in msg], warned
 
 
 class TestMovieStimFrameTexture:

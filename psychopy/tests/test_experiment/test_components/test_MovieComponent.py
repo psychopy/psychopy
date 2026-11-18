@@ -50,3 +50,76 @@ class TestMovieComponent:
             # one stimulus, given the movie for each repeat as it starts
             assert script.count("visual.MovieStim(") == 1
             assert "movie.setMovie(" in script
+
+    def test_hardwareDecodingOffByDefault(self):
+        """Movies are decoded in software unless asked otherwise, and scripts
+        are then written as they were before the option existed."""
+        comp, script = _compileMovieExperiment()
+
+        assert comp.params['hardwareDecoding'].val is False
+        assert 'hardwareDecoding' not in script
+
+    @pytest.mark.parametrize('value', [True, 'True'])
+    def test_hardwareDecodingCompiles(self, value):
+        """Asking for hardware decoding (as set in Builder, or loaded from an
+        experiment file as text) is passed on to `MovieStim`, in a script
+        which compiles."""
+        _, script = _compileMovieExperiment(hardwareDecoding=value)
+
+        assert "hardwareDecoding=True" in script
+        compile(script, 'TestMovieComponentExp.py', 'exec')
+
+    @pytest.mark.parametrize('value', [False, 'False'])
+    def test_hardwareDecodingOff(self, value):
+        """Hardware decoding turned off, including as text from an experiment
+        file, leaves it out."""
+        _, script = _compileMovieExperiment(hardwareDecoding=value)
+
+        assert 'hardwareDecoding' not in script
+
+    def test_hardwareDecodingOnlyWithPyAV(self):
+        """Hardware decoding is only shown for, and passed on with, the PyAV
+        backend, the only one which does it."""
+        comp, script = _compileMovieExperiment(
+            backend='opencv', hardwareDecoding=True)
+
+        assert 'hardwareDecoding' not in script
+        assert {"dependsOn": "backend", "condition": "in ['pyav']",
+                "param": "hardwareDecoding", "true": "show",
+                "false": "hide"} in comp.depends
+
+    def test_hardwareDecodingBackendsMatchReaders(self):
+        """The backends the option is shown for are those whose readers
+        decode with hardware (which the component doesn't import, see
+        `HARDWARE_DECODING_BACKENDS`)."""
+        from psychopy.experiment.components import movie
+        from psychopy.visual import movies
+
+        assert list(movie.HARDWARE_DECODING_BACKENDS) == \
+            movies.hardwareDecodingBackends()
+
+    def test_hardwareDecodingSavedAndLoaded(self, tmp_path):
+        """The setting is kept in the experiment file, and experiments saved
+        before it existed load with it off."""
+        comp, _ = _compileMovieExperiment(hardwareDecoding=True)
+        path = tmp_path / 'withSetting.psyexp'
+        comp.exp.saveToXML(str(path))
+
+        exp = experiment.Experiment()
+        exp.loadFromXML(str(path))
+        loaded = exp.routines['trial'].getComponentFromName('movie')
+        assert loaded.params['hardwareDecoding']
+        assert "hardwareDecoding=True" in exp.writeScript(target="PsychoPy")
+
+        # as written before the setting existed
+        text = path.read_text(encoding='utf-8')
+        at = text.index('name="hardwareDecoding"')
+        start = text.rindex('<Param', 0, at)
+        end = text.index('/>', at) + 2
+        path.write_text(text[:start] + text[end:], encoding='utf-8')
+        assert 'hardwareDecoding' not in path.read_text(encoding='utf-8')
+        exp = experiment.Experiment()
+        exp.loadFromXML(str(path))
+        loaded = exp.routines['trial'].getComponentFromName('movie')
+        assert not loaded.params['hardwareDecoding']
+        assert 'hardwareDecoding' not in exp.writeScript(target="PsychoPy")

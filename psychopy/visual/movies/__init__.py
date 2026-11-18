@@ -18,7 +18,9 @@ __all__ = [
     'MovieAudioError',
     'backend',   # allow the user to get the current backend and set it
     'setBackend',
-    'getBackend']
+    'getBackend',
+    'supportsHardwareDecoding',
+    'hardwareDecodingBackends']
 
 
 import ctypes
@@ -55,10 +57,13 @@ from .exceptions import (
     MovieAudioError)
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
 from .frame import (
-    FRAME_BYTES_PER_PIXEL, _YUVFrameAdapter, _COLOR_MATRIX_KR_KB)
+    FRAME_BYTES_PER_PIXEL, _YUVFrameAdapter, _COLOR_MATRIX_KR_KB,
+    _YUV_SEMIPLANAR_FORMATS, _YUV_SAMPLE_BITS)
 from .readers import (
-    MovieFileReader, PREFERRED_VIDEO_LIB, SUPPORTED_VIDEO_LIBS)
-from .readers._base import defaultTimeout, _openMovieReaders
+    MovieFileReader, PREFERRED_VIDEO_LIB, SUPPORTED_VIDEO_LIBS,
+    supportsHardwareDecoding, hardwareDecodingBackends)
+from .readers._base import (
+    defaultTimeout, _openMovieReaders, _hardwareDecodingProblem)
 
 # threshold to stop reporting dropped frames
 reportNDroppedFrames = 10
@@ -184,20 +189,24 @@ def _frameSampleOffset(framePeriod, frameInterval):
 
 
 @functools.lru_cache(maxsize=16)
-def _yuvToRGBUniforms(colorMatrix, fullRange):
+def _yuvToRGBUniforms(colorMatrix, fullRange, sampleBits=(8, 8)):
     """Matrix and offset converting YUV to RGB, for the shader frames are drawn
     with (see `psychopy.visual.shaders.fragYUVToRGB`).
 
-    These match what `swscale` does. Sampling an 8-bit plane gives its code
-    value over 255 (`t`), and the RGB is `matrix @ (t - offset)`.
+    These match what `swscale` does. Sampling a plane gives the sample it
+    stores over the largest it could store (`t`), e.g. an 8-bit code value
+    over 255, and the RGB is `matrix @ (t - offset)`.
 
     Parameters
     ----------
     colorMatrix : str
         `swscale` name of the colour matrix, see `_frameColorMatrix`.
     fullRange : bool
-        Whether the samples are full range (0 to 255) rather than limited
-        (16 to 235 for luma, 16 to 240 for chroma).
+        Whether the samples are full range (0 to 255, for 8 bits) rather than
+        limited (16 to 235 for luma, 16 to 240 for chroma, for 8 bits).
+    sampleBits : tuple
+        Bits each sample is stored in, and how many of them (at the top) are
+        used, e.g. `(16, 10)` for `p010le`.
 
     Returns
     -------
@@ -212,12 +221,16 @@ def _yuvToRGBUniforms(colorMatrix, fullRange):
         [1.0, -2.0 * kb * (1.0 - kb) / kg, -2.0 * kr * (1.0 - kr) / kg],
         [1.0, 2.0 * (1.0 - kb), 0.0]])
 
+    # what one code value is once sampled, and how many 8-bit steps it is
+    storedBits, bits = sampleBits
+    code = 2.0 ** (storedBits - bits) / (2.0 ** storedBits - 1.0)
+    step = 2.0 ** (bits - 8)
     if fullRange:
-        scale = np.array([1.0, 1.0, 1.0])
-        offset = np.array([0.0, 128.0, 128.0]) / 255.0
+        scale = np.full(3, 1.0 / ((2.0 ** bits - 1.0) * code))
+        offset = np.array([0.0, 128.0, 128.0]) * step * code
     else:
-        scale = np.array([255.0 / 219.0, 255.0 / 224.0, 255.0 / 224.0])
-        offset = np.array([16.0, 128.0, 128.0]) / 255.0
+        scale = 1.0 / (np.array([219.0, 224.0, 224.0]) * step * code)
+        offset = np.array([16.0, 128.0, 128.0]) * step * code
 
     return tuple((matrix * scale).ravel()), tuple(offset)
 
@@ -251,11 +264,47 @@ def _getYUVToRGBProgram(win):
         else:
             uniforms = {
                 name: GL.glGetUniformLocation(program, name.encode())
-                for name in ('uPlaneY', 'uPlaneU', 'uPlaneV', 'uYUVToRGB',
-                             'uYUVOffset')}
+                for name in ('uPlaneY', 'uPlaneU', 'uPlaneV', 'uSemiPlanar',
+                             'uYUVToRGB', 'uYUVOffset')}
             win._movieYUVToRGBProgram = (program, uniforms)
 
     return win._movieYUVToRGBProgram
+
+
+def _planeTextureFormats(pixelFormat, nPlanes):
+    """How each plane of a frame in a YUV pixel format is uploaded to a
+    texture of its own (`tuple`).
+
+    Luma, and the chroma of planar formats, have one sample per texel, and the
+    chroma of semi-planar formats (e.g. `nv12`) a U and V pair, as luminance
+    and alpha. 16-bit samples are uploaded as they are, to 16-bit textures.
+
+    Parameters
+    ----------
+    pixelFormat : str
+        Name of the frame's pixel format.
+    nPlanes : int
+        Number of planes the frame has.
+
+    Returns
+    -------
+    tuple
+        `(internalFormat, format, type, bytesPerTexel)` for each plane.
+
+    """
+    if _YUV_SAMPLE_BITS.get(pixelFormat, (8, 8))[0] == 16:
+        luma = (GL.GL_LUMINANCE16, GL.GL_LUMINANCE, GL.GL_UNSIGNED_SHORT, 2)
+        pair = (GL.GL_LUMINANCE16_ALPHA16, GL.GL_LUMINANCE_ALPHA,
+                GL.GL_UNSIGNED_SHORT, 4)
+    else:
+        luma = (GL.GL_LUMINANCE8, GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, 1)
+        pair = (GL.GL_LUMINANCE8_ALPHA8, GL.GL_LUMINANCE_ALPHA,
+                GL.GL_UNSIGNED_BYTE, 2)
+
+    if pixelFormat in _YUV_SEMIPLANAR_FORMATS:
+        return (luma, pair)
+
+    return (luma,) * nPlanes
 
 
 class _ScheduledTime:
@@ -410,31 +459,72 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         `movieLib='ffpyplayer'`, `'vlc'` for `movieLib='vlc'`, and
         extracted-track playback via `psychopy.sound.Sound` for
         `movieLib='pyav'` and `movieLib='opencv'`, since neither library
-        provides its own audio playback).
+        provides its own audio playback). This parameter is ignored for those 
+        backends.
     units : str
         Units to use when sizing the video frame on the window, affects how
         `size` is interpreted.
     size : ArrayLike or None
         Size of the video frame on the window in `units`. If `None`, the native
         size of the video will be used.
+    pos : ArrayLike
+        Position of the video frame on the window in `units`. Default is
+        `(0.0, 0.0)`.
+    ori : float
+        Orientation of the video frame in degrees, clockwise. Default is
+        `0.0`.
+    anchor : str
+        Point on the video frame that `pos` refers to (e.g. `'center'`,
+        `'top-left'`). Default is `'center'`.
     draggable : bool
         Can this stimulus be dragged by a mouse click?
     flipVert : bool
         If `True` then the movie will be top-bottom flipped.
     flipHoriz : bool
         If `True` then the movie will be right-left flipped.
+    color : ArrayLike or str
+        Color the video frame is multiplied by, in `colorSpace`. The default
+        white `(1.0, 1.0, 1.0)` leaves the frame's colors as they are.
+    colorSpace : str
+        Color space `color` is given in. Default is `'rgb'`.
+    opacity : float
+        Opacity of the video frame, from 0 (transparent) to 1 (opaque).
+        Default is `1.0`.
+    contrast : float
+        Contrast of the video frame. Currently not applied. Default is `1`.
     volume : int or float
         If specifying an `int` the nominal level is 100, and 0 is silence. If a
         `float`, values between 0 and 1 may be used.
+    name : str
+        Name of the stimulus, used in logging.
+    loop : bool
+        Whether to start the movie over from the beginning if draw is called and
+        the movie is done. Default is `False`.
+    autoLog : bool
+        Log changes to the stimulus' attributes automatically. Default is
+        `True`.
+    depth : float
+        Depth of the stimulus, used by Builder to order drawing. Default is
+        `0.0`.
     noAudio : bool
         Leave out the movie's audio: it isn't loaded, and isn't played by
         decoders which play it themselves (`ffpyplayer` and `vlc`). Default is
         `False`.
-    loop : bool
-        Whether to start the movie over from the beginning if draw is called and
-        the movie is done. Default is `False`.
+    interpolate : bool
+        Smooth the video frame with linear filtering when it's drawn at a size
+        other than its own (and when downscaling frames, see
+        `downscaleFrames`), rather than using nearest neighbour. Default is
+        `True`.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
+    audioDevice : :class:`~psychopy.hardware.speaker.SpeakerDevice`, str, int or None
+        Speaker to play the movie's audio on, as a device, the name of one
+        registered with `DeviceManager`, or an index or name to open one with.
+        Only used when the audio is played via `psychopy.sound.Sound` (the
+        `pyav` and `opencv` backends). If `None`, the default speaker is used.
+    audioConfig : dict or None
+        Options for loading the movie's audio track. `'fps'` sets the sample
+        rate it's decoded at, otherwise the speaker's rate is used.
     loadAudioInBackground : bool
         Decode the movie's audio track in the background, rather than waiting
         for it to load along with the movie. For a long movie that takes a
@@ -456,8 +546,32 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         saves the conversion, and leaves less than half as much to copy to the GPU 
         for each frame. Either way, colours are converted with the colour matrix 
         the movie is encoded with. Only the `pyav` backend does this, and only for
-        movies in 8-bit planar YUV (as most are), others being converted as they're 
-        decoded. `frameTexture` holds the frame as RGBA either way. Default is `True`.
+        movies in 8-bit planar YUV (as most are), or the semi-planar YUV
+        hardware decoders give (see `hardwareDecoding`), others being converted
+        as they're decoded. `frameTexture` holds the frame as RGBA either way.
+        Default is `True`.
+    hardwareDecoding : bool or str
+        Decode the movie on the GPU's video decoder rather than the CPU. The
+        decoded frames are still copied to system memory and uploaded as
+        usual, but decoding them takes a fraction of the CPU time (e.g. ~1 ms
+        rather than ~5 ms for a 1080p H.264 frame, ~2-5 ms rather than ~19 ms
+        for 4K). That leaves the CPU free for the experiment, which matters
+        most on machines with few cores and for high resolution movies, where
+        decoding in software can make the window miss flips. `True` (or
+        `'auto'`) uses the best decoder there is (CUDA on NVIDIA GPUs, then
+        D3D11VA on Windows, VA-API on Linux and VideoToolbox on macOS), or an
+        FFmpeg device type (e.g. `'cuda'`) names one. Movies the decoder can't
+        handle (e.g. a codec it doesn't have) are decoded in software, as they
+        are if there's no decoder or the backend can't decode with hardware,
+        with a warning saying why; `hardwareDecoder` says which was used. Only
+        the `pyav` backend does this, needing PyAV 14 or later (see
+        `psychopy.visual.movies.supportsHardwareDecoding`), and it's only
+        worthwhile with `gpuColorConversion`, as frames are otherwise
+        converted to RGB on the CPU, which costs more than is saved. Frames
+        copied back from the GPU are a little slower to upload than those
+        decoded in software (~0.05 ms per 1080p frame), so with movies of
+        1080p or less on a machine with cores to spare, decoding in software
+        keeps `draw()` slightly quicker. Default is `False`.
 
     Notes
     -----
@@ -506,6 +620,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  loadAudioInBackground=False,
                  downscaleFrames=True,
                  gpuColorConversion=True,
+                 hardwareDecoding=False,
                  **kwargs):
 
         # what local vars are defined (these are the init params) for use
@@ -649,6 +764,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # whether frames are uploaded as YUV for a shader to convert, see
         # `_useGPUColorConversion`
         self._gpuColorConversion = bool(gpuColorConversion)
+
+        # hardware decoder to decode with, see `hardwareDecoding`, if the
+        # backend can (else it's said why not, and decoded in software)
+        if hardwareDecoding:
+            problem = _hardwareDecodingProblem(self._movieLib)
+            if problem is not None:
+                logging.warning(
+                    "Hardware decoding was asked for, but {}, so movies are "
+                    "decoded in software.".format(problem))
+                hardwareDecoding = False
+        self._hardwareDecoding = hardwareDecoding
         self._audioSamples = []  # audio samples from the movie 
         self._audioTrack = None  # audio track information from the movie metadata
         self._audioReader = None  # audio reader object
@@ -661,10 +787,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
         self._textureId = GL.GLuint(0)
-        # textures for the Y, U and V planes of frames uploaded as YUV, and the
-        # framebuffer they're converted into `_textureId` through, see
-        # `_setupPlaneTextures`
+        # textures for the Y, U and V (or Y and UV) planes of frames uploaded
+        # as YUV, how each is uploaded, and the framebuffer they're converted
+        # into `_textureId` through, see `_setupPlaneTextures`
         self._planeTextureIds = None
+        self._planeTextureFormats = None
         self._frameBufferId = GL.GLuint(0)
         self._vidWidth = self._vidHeight = 0  # set by `_setupTextureBuffers`
         self._nBufferBytes = 0
@@ -909,6 +1036,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         self._decoderOpts['loop'] = 0 if self._loop else 1
         self._loopCount = 0  # reset loop count
+
+        # decoded with hardware if asked for (only by `pyav`)
+        self._decoderOpts['hwaccel'] = self._hardwareDecoding
 
         # Create the movie player interface, this is what decodes movie frames
         # in the background. We disable audio playback since we are using the
@@ -1557,7 +1687,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._recentFrameAddr = None
             self._recentFrameLayout = ('yuv', tuple(
                 (width, height, rowLength)
-                for _, width, height, rowLength in frameImage.planes))
+                for _, width, height, rowLength in frameImage.planes),
+                frameImage.pixelFormat)
         else:
             # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
             videoBuffer = frameImage.to_memoryview()[0].memview
@@ -1586,7 +1717,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         return self._textureId
-    
+
+    @property
+    def hardwareDecoder(self):
+        """FFmpeg device type of the hardware decoder the movie is decoded with
+        (e.g. `'cuda'`), or `None` if it's decoded in software or isn't loaded
+        (`str` or `None`). See `hardwareDecoding`."""
+        if self._player is None:
+            return None
+
+        return self._player.hardwareDecoder
+
     def updateVideoFrame(self, blocking=None):
         """Get the frame for the movie's present position, and upload it to
         `frameTexture` if it's a new one.
@@ -1718,6 +1859,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             pass
 
         self._planeTextureIds = None
+        self._planeTextureFormats = None
         self._vidWidth = self._vidHeight = 0
         self._nBufferBytes = 0
         self._textureLayout = None
@@ -1813,17 +1955,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
 
-    def _setupPlaneTextures(self, planes):
+    def _setupPlaneTextures(self, planes, pixelFormat):
         """Make the textures and pixel buffer for frames uploaded as YUV, one
-        single channel texture for each plane, along with the RGBA texture a
-        shader converts them into (see `_convertPlanesToRGBA`) and the
-        framebuffer it does so through. Any made before are deleted first.
+        texture for each plane (see `_planeTextureFormats`), along with the
+        RGBA texture a shader converts them into (see `_convertPlanesToRGBA`)
+        and the framebuffer it does so through. Any made before are deleted
+        first.
 
         Parameters
         ----------
         planes : tuple
-            The size `(width, height, rowLength)` of each plane in pixels, as
-            `_recentFrameLayout` gives them.
+            The size `(width, height, rowLength)` of each plane, in texels and
+            (`rowLength`) bytes, as `_recentFrameLayout` gives them.
+        pixelFormat : str
+            Name of the frames' pixel format.
 
         Returns
         -------
@@ -1845,13 +1990,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # Converted at their own size, so this only comes into it for chroma
         # subsampled planes, which are interpolated up to the luma's size
         # whether or not the movie is interpolated as it's drawn
+        formats = _planeTextureFormats(pixelFormat, len(planes))
         textureIds = (GL.GLuint * len(planes))()
         GL.glGenTextures(len(planes), textureIds)
-        for textureId, (width, height, _) in zip(textureIds, planes):
+        for textureId, (width, height, _), (internalFormat, texFormat,
+                                            texType, _) in zip(
+                textureIds, planes, formats):
             GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
             GL.glTexImage2D(
-                GL.GL_TEXTURE_2D, 0, GL.GL_LUMINANCE8, width, height, 0,
-                GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, None)
+                GL.GL_TEXTURE_2D, 0, internalFormat, width, height, 0,
+                texFormat, texType, None)
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
             GL.glTexParameteri(
@@ -1865,6 +2013,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         self._planeTextureIds = textureIds
+        self._planeTextureFormats = formats
         self._vidWidth, self._vidHeight = planes[0][0], planes[0][1]
         self._nBufferBytes = nBufferBytes
 
@@ -1890,7 +2039,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._player.setOutputPixelFormat('rgba')
             return False
 
-        self._textureLayout = ('yuv', tuple(planes))
+        self._textureLayout = ('yuv', tuple(planes), pixelFormat)
 
         return True
 
@@ -1928,7 +2077,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # `downscaleFrames`), or decoded in another format
         if self._recentFrameLayout != self._textureLayout:
             if self._recentFrameLayout[0] == 'yuv':
-                if not self._setupPlaneTextures(self._recentFrameLayout[1]):
+                if not self._setupPlaneTextures(*self._recentFrameLayout[1:]):
                     self._frameNeedsUpload = False  # shown once RGBA ones come
                     return
             else:
@@ -2038,25 +2187,29 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
-        # and from there to each plane's texture, the row length telling GL to
-        # skip any padding at the end of each row
+        # and from there to each plane's texture, the row length (in texels)
+        # telling GL to skip any padding at the end of each row
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glPushClientAttrib(GL.GL_CLIENT_PIXEL_STORE_BIT)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-        for textureId, offset, (_, width, height, rowLength) in zip(
-                self._planeTextureIds, offsets, planes):
-            GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, rowLength)
+        for textureId, offset, (_, width, height, rowLength), (
+                _, texFormat, texType, texelBytes) in zip(
+                self._planeTextureIds, offsets, planes,
+                self._planeTextureFormats):
+            GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, rowLength // texelBytes)
             GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
             GL.glTexSubImage2D(
                 GL.GL_TEXTURE_2D, 0, 0, 0, width, height,
-                GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, ctypes.c_void_p(offset))
+                texFormat, texType, ctypes.c_void_p(offset))
 
         # back to whatever other stimuli had set to upload with
         GL.glPopClientAttrib()
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        self._textureColor = (frameImage.colorMatrix, frameImage.fullRange)
+        self._textureColor = (
+            frameImage.colorMatrix, frameImage.fullRange,
+            frameImage.sampleBits)
         self._convertPlanesToRGBA()
         self._frameNeedsUpload = False  # textures now match `_recentFrame`
 
@@ -2101,8 +2254,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.glBindTexture(GL.GL_TEXTURE_2D, textureId)
 
         GL.glUseProgram(program)
+        # semi-planar frames have both chroma samples in the second plane, so
+        # the third sampler (unused) points at it too
+        nPlanes = len(self._planeTextureIds)
         for unit, name in enumerate(('uPlaneY', 'uPlaneU', 'uPlaneV')):
-            GL.glUniform1i(uniforms[name], unit)
+            GL.glUniform1i(uniforms[name], min(unit, nPlanes - 1))
+        GL.glUniform1i(uniforms['uSemiPlanar'], int(nPlanes == 2))
         matrix, offset = _yuvToRGBUniforms(*self._textureColor)
         GL.glUniformMatrix3fv(
             uniforms['uYUVToRGB'], 1, GL.GL_TRUE, (GL.GLfloat * 9)(*matrix))
