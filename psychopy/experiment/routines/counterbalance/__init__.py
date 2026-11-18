@@ -10,7 +10,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
     iconFile = Path(__file__).parent / "counterbalance.png"
     iconSVG = Path(__file__).parent / 'CounterbalanceRoutine.svg'
     label = _translate("Counter-balance")
-    tooltip = _translate("Choose a value, taking into account previous runs of this experiment")
+    tooltip = _translate("Choose a value (e.g. group number), taking into account previous runs of this experiment")
     beta = True
 
     def __init__(
