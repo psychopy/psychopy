@@ -2490,8 +2490,13 @@ class TestMovieStimGPUColorConversion:
             assert len(mov._planeTextureIds) == 2
             semiPlanar, _ = _drawToBackBuffer(win, mov)
 
+        # `p010le` frames are drawn from 16-bit textures and planar ones from
+        # 8-bit, and some drivers (Mesa's llvmpipe) filter the 8-bit chroma,
+        # which is half the size and so always interpolated, less precisely,
+        # leaving most of R and B a level out. Its full range samples are
+        # also 8-bit ones shifted (255 to 1020, not 1023), a little darker.
         difference = np.abs(semiPlanar[region] - planar[region])
-        assert difference.mean() < 0.5
+        assert difference.mean() < (1.0 if pixelFormat == 'p010le' else 0.5)
         assert difference.max() <= 2
 
     @pytest.mark.parametrize('colorRange', [1, 2])  # MPEG, JPEG
@@ -2884,6 +2889,40 @@ class TestMovieStimHardwareDecoding:
                 hardwareWarnings[0]
         elif hardwareDecoding == 'notADecoder':
             assert "'notADecoder'" in hardwareWarnings[0]
+
+    def test_softwareWhereHardwareCantBeSetUp(self, win, movieLib, tmp_path,
+                                              monkeypatch):
+        """Movies asked to be decoded with a hardware decoder FFmpeg was built
+        with, but can't set up here (where there's no GPU, PyAV raises opening
+        the movie, e.g. `PermissionError` for VAAPI), are decoded in software,
+        with one warning saying why."""
+        if movieLib != 'pyav' or not movies.supportsHardwareDecoding('pyav'):
+            pytest.skip('only pyav decodes with hardware')
+        import av
+        from psychopy.visual.movies.readers import pyav_reader
+
+        openContainer = pyav_reader.PyAVMovieFileReader._openContainer
+
+        def cantSetUp(reader, av_, openOpts, device):
+            if device is not None:
+                raise av.error.PermissionError(1, 'Operation not permitted')
+            return openContainer(reader, av_, openOpts, device)
+
+        monkeypatch.setattr(pyav_reader, '_hardwareDecodersToTry',
+                            lambda request: (['cuda', 'vaapi'], None))
+        monkeypatch.setattr(pyav_reader.PyAVMovieFileReader, '_openContainer',
+                            cantSetUp)
+        warned = _recordWarnings(monkeypatch)
+        path = _writeH264Movie(tmp_path / 'movie.mp4')
+        with movieStim(win, movieLib, filename=path,
+                       hardwareDecoding=True) as mov:
+            assert mov.hardwareDecoder is None
+            mov.draw()
+
+        hardwareWarnings = [msg for msg in warned
+                            if 'Hardware decoding was asked for' in msg]
+        assert len(hardwareWarnings) == 1, warned
+        assert 'cuda, vaapi' in hardwareWarnings[0]
 
     def test_hardwareDecoderOnlyIfUsed(self, win, movieLib, tmp_path):
         """A hardware decoder is only said to be used if FFmpeg decodes with
