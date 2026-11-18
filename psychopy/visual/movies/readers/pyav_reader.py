@@ -168,8 +168,16 @@ class PyAVMovieFileReader(MovieFileReader):
             except StopIteration:
                 break
 
-        hardware = device is not None and bool(
-            getattr(videoStream.codec_context, 'is_hwaccel', False))
+        # Whether the hardware decoder decoded the frame. PyAV's `is_hwaccel`
+        # can't say, being true whenever one was asked for, even once FFmpeg
+        # has fallen back to software because it couldn't be set up (as
+        # VideoToolbox can't for MPEG-2, MPEG-4 Part 2 or ProRes on some
+        # Macs). The codec context is left in the hardware decoder's own pixel
+        # format (e.g. `videotoolbox_vld`, which has no components) only if
+        # it did.
+        codecFormat = videoStream.codec_context.format
+        hardware = device is not None and firstFrame is not None and \
+            codecFormat is not None and not codecFormat.components
         self._packetIterator = packetIterator
 
         return container, videoStream, firstFrame, hardware
