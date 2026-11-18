@@ -2879,6 +2879,23 @@ class TestMovieStimHardwareDecoding:
         elif hardwareDecoding == 'notADecoder':
             assert "'notADecoder'" in hardwareWarnings[0]
 
+    def test_hardwareDecoderOnlyIfUsed(self, win, movieLib, tmp_path):
+        """A hardware decoder is only said to be used if FFmpeg decodes with
+        it, not if it falls back to software because it couldn't set it up
+        (as VideoToolbox can't for MPEG-4 Part 2, the test movie, on some
+        Macs), which PyAV's `is_hwaccel` doesn't tell apart."""
+        if movieLib != 'pyav' or not movies.supportsHardwareDecoding('pyav'):
+            pytest.skip('only pyav decodes with hardware')
+
+        for path in (MOVIE_PATH, _writeH264Movie(tmp_path / 'movie.mp4')):
+            with movieStim(win, movieLib, filename=path,
+                           hardwareDecoding=True) as mov:
+                # left in a hardware pixel format, which has no components,
+                # only if the hardware decoder decodes
+                codecFormat = mov._player._videoStream.codec_context.format
+                assert (mov.hardwareDecoder is not None) == (
+                    not codecFormat.components), path
+
     def test_noWarningUnlessHardwareCant(self, win, movieLib, tmp_path,
                                          monkeypatch):
         """Nothing is said about hardware decoding when it's not asked for,
