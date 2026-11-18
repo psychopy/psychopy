@@ -2859,10 +2859,16 @@ class TestMovieStimHardwareDecoding:
     def test_softwareWhereHardwareCant(self, win, movieLib, tmp_path,
                                        monkeypatch, hardwareDecoding):
         """Movies no hardware decoder can decode (FFV1 here), asked to be
-        decoded with one there isn't, or with a backend which can't (OpenCV),
-        are decoded in software, with one warning saying why."""
+        decoded with one there isn't, or with a backend which can't (OpenCV,
+        with the test movie), are decoded in software, with one warning saying
+        why."""
         warned = _recordWarnings(monkeypatch)
-        path = _writeTaggedMovie(tmp_path / 'ffv1.mkv', 'yuv420p')
+        if movieLib == 'pyav':
+            path = _writeTaggedMovie(tmp_path / 'ffv1.mkv', 'yuv420p')
+        else:
+            # OpenCV can't with any movie, and can't read FFV1 at all where it
+            # reads movies with AVFoundation (macOS)
+            path = MOVIE_PATH
         with movieStim(win, movieLib, filename=path,
                        hardwareDecoding=hardwareDecoding) as mov:
             assert mov.hardwareDecoder is None
