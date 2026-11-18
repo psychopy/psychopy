@@ -1418,6 +1418,9 @@ class TestMovieStimFrameTiming:
             tStart = _nextFlip(win)
 
             mov.play()
+            # the next flip as of `play()`, which is later than `tStart` only
+            # if the machine stalled for a refresh or more (as CI runners can)
+            tStartLatest = _nextFlip(win)
             mov.draw()
             assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
             assert mov.pts == pytest.approx(0.0, abs=1e-6)
@@ -1425,7 +1428,8 @@ class TestMovieStimFrameTiming:
             win.flip()
             tNext = _nextFlip(win)
             mov.draw()
-            assert mov.movieTime == pytest.approx(tNext - tStart, abs=1e-3)
+            assert tNext - tStartLatest - 1e-3 <= mov.movieTime <= \
+                tNext - tStart + 1e-3
 
     def test_framesAdvanceOncePerRefresh(self, win, movieLib, monkeypatch):
         """With the display refreshing once per movie frame, each refresh
@@ -2493,11 +2497,16 @@ class TestMovieStimGPUColorConversion:
         # `p010le` frames are drawn from 16-bit textures and planar ones from
         # 8-bit, and some drivers (Mesa's llvmpipe) filter the 8-bit chroma,
         # which is half the size and so always interpolated, less precisely,
-        # leaving most of R and B a level out. Its full range samples are
-        # also 8-bit ones shifted (255 to 1020, not 1023), a little darker.
+        # leaving most of R and B a level out, and some (where the chroma
+        # error is scaled up most) three. Its full range samples are also
+        # 8-bit ones shifted (255 to 1020, not 1023), a little darker.
         difference = np.abs(semiPlanar[region] - planar[region])
-        assert difference.mean() < (1.0 if pixelFormat == 'p010le' else 0.5)
-        assert difference.max() <= 2
+        if pixelFormat == 'p010le':
+            assert difference.mean() < 1.0
+            assert difference.max() <= 3
+        else:
+            assert difference.mean() < 0.5
+            assert difference.max() <= 2
 
     @pytest.mark.parametrize('colorRange', [1, 2])  # MPEG, JPEG
     @pytest.mark.parametrize('colorspace', [9, 10])  # BT2020_NCL, BT2020_CL
