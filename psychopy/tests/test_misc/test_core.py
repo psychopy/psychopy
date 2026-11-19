@@ -271,6 +271,34 @@ def test_Clock():
     printf("-------------------------------------\n")
 
 
+def test_timestampFromRaw():
+    """A raw time converts to the time the clock would have read then, across
+    resets, and keeps the clock's format for printing."""
+    from psychopy.clock import getTime as getRawTime
+    c = Clock()
+    c.reset(-2.0)  # reads 2 s now
+    raw = getRawTime()
+    assert float(c.timestampFromRaw(raw)) == pytest.approx(
+        float(c.getTime()), abs=0.01)
+    assert float(c.timestampFromRaw(raw + 0.5)) == pytest.approx(
+        float(c.timestampFromRaw(raw)) + 0.5)
+    assert c.timestampFromRaw(raw).lastReset == c._epochTimeAtLastReset
+
+    c.reset()
+    assert float(c.timestampFromRaw(c.getLastResetTime())) == 0.0
+
+    stamp = c.timestampFromRaw(raw, format=str)
+    assert isinstance(str(stamp), str) and str(stamp) != repr(float(stamp))
+
+
+def test_measureClockOffset():
+    """The offset puts another clock's times on the raw timebase."""
+    from psychopy.clock import measureClockOffset, getTime as getRawTime
+    offset = measureClockOffset(lambda: getRawTime() - 1000.0)
+    assert offset == pytest.approx(1000.0, abs=0.001)
+    assert offset >= 1000.0  # reads of the other clock come first
+
+
 def test_CountdownTimer():
     try:
         cdt = CountdownTimer(5.0)

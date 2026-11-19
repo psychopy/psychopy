@@ -53,6 +53,23 @@ travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 logging.info("Loaded SoundDevice with {}".format(sd.get_portaudio_version()[1]))
 
 
+def _monotonic():
+    """The monotonic clock which `play()` schedules against and the stream
+    callback places onsets on, in seconds, chosen to be the clock PortAudio
+    times streams with on most host APIs.
+
+    That's `time.monotonic()`, except on Windows, where PortAudio uses the
+    QueryPerformanceCounter. `time.monotonic()` only does from Python 3.13:
+    before, it has a resolution of 15.6 ms, and is offset from it by tens of
+    ms, too little to be told apart from it as another clock. On Windows,
+    `psychopy.clock.getTime()` always uses the QueryPerformanceCounter.
+    """
+    if sys.platform == 'win32':
+        return clock.getTime()
+
+    return time.monotonic()
+
+
 def init(rate=44100, stereo=True, buffer=128):
     """Initialise the sound system with the specified settings.
 
@@ -234,11 +251,19 @@ streams = _StreamsDict()
 
 
 class _SoundStream:
-    """A SoundStream is a single stream of audio data to the sound card. It can 
-    be shared by multiple Sound objects, but only one stream of a given format 
+    """A SoundStream is a single stream of audio data to the sound card. It can
+    be shared by multiple Sound objects, but only one stream of a given format
     (sample rate, channels, block size) can exist at once.
-    
+
     """
+    # A stream clock this close to `_monotonic()` is taken to be the same
+    # clock, which it is for most host APIs. Different clocks (e.g. ALSA set
+    # up to timestamp with the wall clock) are usually far apart.
+    _SAME_CLOCK_TOLERANCE = 1.0
+    # Number of callbacks over which the offset between a different stream
+    # clock and `_monotonic()` is estimated, see `_dacTimeMonotonic()`
+    _CLOCK_OFFSET_CALLBACKS = 50
+
     def __init__(self, sampleRate, channels, blockSize,
                  device=None, duplex=False):
         """
@@ -272,6 +297,18 @@ class _SoundStream:
         self.sounds = []  # list of dicts for sounds currently playing
         self.takeTimeStamp = False
         self.frameN = 1
+        # extra output latency (s) of the device which its driver doesn't
+        # report, set from the speaker's `latencyBias`
+        self.latencyBias = 0.0
+        self.latency = 0.0  # reported by the device, once open
+        # offset to add to the stream clock to put it on `_monotonic()`,
+        # if they differ, see `_dacTimeMonotonic()`
+        self._clockOffset = None
+        self._clockOffsetSamples = []
+        # set if the host API gives no timing information, so sound onsets
+        # can only be estimated from the nominal latency
+        self.timingUnreliable = False
+        self._warnedTimingUnreliable = False
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
             self._sdStream = sd.OutputStream(samplerate=self.sampleRate,
@@ -294,6 +331,49 @@ class _SoundStream:
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
         return self._isPlaying
+
+    def _dacTimeMonotonic(self, timepoint, now):
+        """When the first sample of the block being filled reaches the
+        speaker, on the `_monotonic()` clock which `play()` schedules
+        against, including the stream's `latencyBias`.
+
+        PortAudio gives this on the host API's own clock, which is the same
+        as `_monotonic()` for most host APIs but not all (e.g. ALSA can
+        be set up to timestamp with the wall clock), so it's put on
+        `_monotonic()` here as Psychtoolbox does.
+
+        Parameters
+        ----------
+        timepoint : object
+            Timing information passed to the callback.
+        now : float
+            `_monotonic()` on entering the callback.
+
+        """
+        currentTime = timepoint.currentTime
+        if not currentTime:
+            # no timing from the host API (e.g. PulseAudio's ALSA plugin), so
+            # all that can be done is to assume the nominal latency
+            self.timingUnreliable = True
+            return now + self.latency + self.latencyBias
+
+        dacTime = timepoint.outputBufferDacTime
+        if abs(now - currentTime) < self._SAME_CLOCK_TOLERANCE:
+            return dacTime + self.latencyBias
+
+        # Different clocks. Each callback samples the offset between them,
+        # biased up by however late `now` was read after `currentTime`, so
+        # the smallest of a run of samples is taken. Runs repeat, to follow
+        # any drift between the clocks.
+        self._clockOffsetSamples.append(now - currentTime)
+        if len(self._clockOffsetSamples) >= self._CLOCK_OFFSET_CALLBACKS:
+            self._clockOffset = min(self._clockOffsetSamples)
+            self._clockOffsetSamples = []
+        if self._clockOffset is None:
+            # until the offset is known, go by how far ahead of now it is
+            return now + (dacTime - currentTime) + self.latencyBias
+
+        return dacTime + self._clockOffset + self.latencyBias
 
     def _callback(self, toSpk, blockSize, timepoint, status):
         """Callback function for the sound stream. 
@@ -321,9 +401,10 @@ class _SoundStream:
             overflow).
         
         """
+        now = _monotonic()  # as early as possible, for _dacTimeMonotonic
         if self.takeTimeStamp and hasattr(self, 'lastFrameTime'):
             logging.info("Entered callback: {} ms after last frame end"
-                         .format((time.monotonic() - self.lastFrameTime) * 1000))
+                         .format((_monotonic() - self.lastFrameTime) * 1000))
             # logging.info("Entered callback: {} ms after sound start"
             #              .format(
             #     (time.monotonic() - self._tSoundRequestPlay) * 1000))
@@ -331,7 +412,7 @@ class _SoundStream:
         toSpk.fill(0.0)  # fill buffer with silence to start with
 
         # check if we have reached the requested play time
-        outputBufferDacTime = timepoint.outputBufferDacTime
+        outputBufferDacTime = self._dacTimeMonotonic(timepoint, now)
 
         self.frameN += 1
         blockDur = blockSize / float(self.sampleRate)
@@ -359,6 +440,10 @@ class _SoundStream:
             dat = thisSound._nextBlock(nReq)
             if dat is None:  # no data for some reason (e.g., sound finished)
                 continue
+            if thisSound._blockOffset < 0:
+                # when the onset reaches the speaker, for `tStartActual`
+                thisSound._tStartActualMonotonic = (
+                    outputBufferDacTime + offset / float(self.sampleRate))
             thisSound._blockOffset = offset  # onset placed
 
             if thisSound.volume != 1.0:
@@ -507,12 +592,25 @@ class SoundDeviceSound(_SoundBase):
         # sample offset within the output block at which the sound started, for
         # accurate timing of play requests; -1 until the onset has been placed
         self._blockOffset = -1
+        # when the last play() asked to start (None if immediately), and when
+        # it did, on the monotonic clock, see `tStartActual`
+        self._tStartRequestedMonotonic = None
+        self._tStartActualMonotonic = None
 
         # every sound on the speaker plays through its one stream, and is
         # resampled to that stream's rate
         self._outputDevice = _getOutputDevice(speaker)
         self.streamLabel, stream = streams.getDeviceStream(
             self._outputDevice, blockSize=blockSize)
+        # the speaker's latency bias applies to the stream, unless left unset
+        if speaker._latencyBias is not None:
+            if stream.latencyBias not in (0, speaker._latencyBias):
+                logging.warning(
+                    "Changing the latency bias of speaker {} from {} s to {} "
+                    "s, for every SpeakerDevice playing on it.".format(
+                        speaker.name, stream.latencyBias,
+                        speaker._latencyBias))
+            stream.latencyBias = speaker._latencyBias
 
         if sampleRate:  # a rate was requested, so the sound is made at it
             self.sampleRate = sampleRate
@@ -739,12 +837,26 @@ class SoundDeviceSound(_SoundBase):
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
         # This will update _isPlaying if sound has stopped by _EOS()
+        self._updateStartTimes()
         return self._isPlaying
 
     @property
     def isFinished(self):
         """`True` if the audio playback has completed."""
+        self._updateStartTimes()
         return self._isFinished
+
+    def _getStartTimesRaw(self):
+        actual = self._tStartActualMonotonic
+        if actual is None:
+            return None, None
+        # both by the same offset, so the delay between them is exact
+        offset = clock.measureClockOffset(_monotonic)
+        requested = self._tStartRequestedMonotonic
+        if requested is not None:
+            requested += offset
+
+        return requested, actual + offset
 
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If so, raises an error 
@@ -800,26 +912,43 @@ class SoundDeviceSound(_SoundBase):
             self.setLoops(loops)
 
         # handle scheduling of play time
-        tRequest = time.monotonic()
+        tRequest = _monotonic()
         logTime = None
+        scheduled = False  # rather than to start immediately
         if when is not None:
             if hasattr(when, 'getFutureFlipTime'):
                 logTime = when.getFutureFlipTime(clock=None)
                 when = when.getFutureFlipTime(clock='now')
                 tRequest += when
+                scheduled = True
             else:
                 # an absolute time, so convert it to the monotonic timebase the
                 # stream callback schedules against
-                tRequest += float(when) - clock.getTime()
+                tRequest = float(when) - clock.measureClockOffset(_monotonic)
+                # zero, like other times which have passed, starts immediately,
+                # but is what the ptb backend takes as being asked to
+                scheduled = bool(when)
         else:
             if hasattr(self.win, 'getFutureFlipTime'):
                 logTime = self.win.getFutureFlipTime(clock=None)
                 when = self.win.getFutureFlipTime(clock='now')
                 tRequest += when
+                scheduled = True
+
+        stream = self.stream
+        if stream.timingUnreliable and not stream._warnedTimingUnreliable:
+            stream._warnedTimingUnreliable = True
+            logging.warning(
+                "The audio driver of speaker {} gives no timing information, "
+                "so sounds can't be started at accurate times on it.".format(
+                    self.speaker.name))
 
         # set _isPlaying last: the sound is already in the stream, so the audio
         # callback may pick it up as soon as it is set, and must not see a stale
         # _tSoundRequestPlay or onset offset
+        self._resetStartTimes()
+        self._tStartRequestedMonotonic = tRequest if scheduled else None
+        self._tStartActualMonotonic = None
         self._tSoundRequestPlay = tRequest
         self._blockOffset = -1  # onset not yet placed in the output stream
         self._isFinished = False
