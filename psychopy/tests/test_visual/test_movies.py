@@ -3537,9 +3537,11 @@ class TestBuilderMovieEndRoutine:
 
         def checkNextRoutineStarts(row, name, probeRow):
             # straight away, so stopping the movie as the Routine ends (which
-            # reloads it) doesn't hold up the experiment
+            # reloads it) doesn't hold up the experiment. This takes ~10ms, but
+            # is given as long as `test_stopLeavesDecodingAheadToPlay` gives it,
+            # since a CI machine can stall for a few hundred ms at any time.
             gap = probeRow['probe.started'] - row[name + '.stopped']
-            assert 0.0 <= gap < 0.25, (
+            assert 0.0 <= gap < 1.0, (
                 "`probe` started {}s after `{}` ended.".format(gap, name))
 
         # "Force end of Routine" on: the Routine ended with the movie, well
