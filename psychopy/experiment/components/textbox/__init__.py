@@ -19,7 +19,7 @@ class TextboxComponent(BaseVisualComponent):
     version = "2020.2.0"
     iconFile = Path(__file__).parent / 'textbox.png'
     iconSVG = Path(__file__).parent / 'TextboxComponent.svg'
-    tooltip = _translate('Textbox: present text stimuli but cooler')
+    tooltip = _translate("Show text inside a bounding box and collect typed responses")
     beta = False
 
     def __init__(self, exp, parentName, name='textbox',

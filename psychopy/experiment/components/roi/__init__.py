@@ -18,7 +18,7 @@ class RegionOfInterestComponent(PolygonComponent):
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
     iconSVG = Path(__file__).parent / 'RegionOfInterestComponent.svg'
-    tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
+    tooltip = _translate("Define a region of interest for use with eyetrackers")
     beta = False
 
     def __init__(self, exp, parentName, name='roi',

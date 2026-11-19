@@ -18,7 +18,7 @@ class MouseComponent(BaseComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'mouse.png'
     iconSVG = Path(__file__).parent / 'MouseComponent.svg'
-    tooltip = _translate('Mouse: query mouse position and buttons')
+    tooltip = _translate("Collect movements and clicks from the mouse / touch input")
 
     def __init__(self, exp, parentName, name='mouse',
                  startType='time (s)', startVal=0.0,

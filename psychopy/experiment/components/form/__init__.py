@@ -23,7 +23,7 @@ class FormComponent(BaseVisualComponent):
     version = "2020.2.0"
     iconFile = Path(__file__).parent / 'form.png'
     iconSVG = Path(__file__).parent / 'FormComponent.svg'
-    tooltip = _translate('Form: a Psychopy survey tool')
+    tooltip = _translate("Gather simple form responses")
     beta = False
 
     def __init__(self, exp, parentName,

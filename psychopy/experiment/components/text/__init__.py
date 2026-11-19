@@ -18,7 +18,7 @@ class TextComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'text.png'
     iconSVG = Path(__file__).parent / 'TextComponent.svg'
-    tooltip = _translate('Text: present text stimuli')
+    tooltip = _translate("Show text at a given point")
 
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
