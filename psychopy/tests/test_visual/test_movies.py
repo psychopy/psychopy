@@ -2340,9 +2340,12 @@ class TestMovieStimAudioStream:
 
             release.set()
             stream.waitUntilReady(10.0)
-            samples, _ = stream._read(5000)
+            # Ready only promises `prefillSamples` (4800) are queued, so read
+            # no more than that, counting the 1000 skipped to make up for the
+            # silence, or this can underflow again on a slow machine
+            samples, _ = stream._read(3000)
             np.testing.assert_allclose(
-                samples, expected[1000:6000], atol=1e-6)
+                samples, expected[1000:4000], atol=1e-6)
 
     @pytest.mark.parametrize('inBackground', [False, True])
     def test_audioStreamErrorRaised(self, win, movieLib, audioOutputStandIn,
@@ -3595,8 +3598,12 @@ class TestBuilderMovieEndRoutine:
             assert row['probe.timesHeld'], (
                 "A movie moved on after its Routine ended.")
 
-        # and stopping a movie leaves no decoding threads behind
+        # and stopping a movie leaves no decoding threads behind, which would
+        # leave more running after the second repeat than after the first.
+        # This counts every thread in the process, so there can be fewer:
+        # movies from earlier tests (such as this one with another backend)
+        # stop their decode threads whenever the garbage collector frees them.
         threads = [row['probe.threads'] for row in earlyRows]
-        assert threads[0] == threads[1], (
+        assert threads[1] <= threads[0], (
             "{} threads were running after the first repeat of "
             "`movieEarlyEnd`, {} after the second.".format(*threads))
