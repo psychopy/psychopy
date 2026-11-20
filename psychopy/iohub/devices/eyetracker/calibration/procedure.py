@@ -237,7 +237,16 @@ class BaseCalibrationProcedure:
     def runCalibration(self):
         """Run calibration sequence
         """
+        try:
+            return self._runCalibrationSequence()
+        finally:
+            # Stop listening to the ioHub Keyboard once calibration is over.
+            # Otherwise this object stays registered for the rest of the
+            # session and every SPACE / ESCAPE release clears all ioHub event
+            # buffers, so those keys never reach the experiment.
+            self._unregisterEventMonitors()
 
+    def _runCalibrationSequence(self):
         if self.showIntroScreen() is False:
             # User pressed escape  to exit calibration
             return False
