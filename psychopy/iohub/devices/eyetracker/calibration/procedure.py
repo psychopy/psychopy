@@ -16,6 +16,37 @@ from psychopy.tools.stimulustools import serialize, actualize
 
 currentTime = Computer.getTime
 
+
+def _removeRawKeyboardRegistration():
+    """Undo pyglet's raw keyboard input registration for this process.
+
+    pyglet registers the process for raw keyboard input when it creates a
+    window on Windows. In the ioHub server process this stops the pyWinhook
+    low-level keyboard hook (which feeds ioHub's Keyboard device) from being
+    called, so key presses on the calibration screens are lost or arrive very
+    late. The calibration window reads keys through ioHub, not pyglet, so the
+    registration is not needed here.
+    """
+    if not Computer.platform.startswith('win32'):
+        return
+    import ctypes
+    from ctypes import wintypes
+
+    class RAWINPUTDEVICE(ctypes.Structure):
+        _fields_ = [('usUsagePage', wintypes.USHORT),
+                    ('usUsage', wintypes.USHORT),
+                    ('dwFlags', wintypes.DWORD),
+                    ('hwndTarget', wintypes.HWND)]
+
+    RIDEV_REMOVE = 0x00000001
+    # usage page 0x01 (generic desktop), usage 0x06 (keyboard)
+    device = RAWINPUTDEVICE(0x01, 0x06, RIDEV_REMOVE, None)
+    if not ctypes.windll.user32.RegisterRawInputDevices(
+            ctypes.byref(device), 1, ctypes.sizeof(device)):
+        print2err('Warning: could not remove raw keyboard input registration '
+                  'for the calibration window; ioHub keyboard events may be '
+                  'delayed.')
+
 target_position_count = dict(THREE_POINTS=3,
                              FIVE_POINTS=5,
                              NINE_POINTS=9,
@@ -80,6 +111,7 @@ class BaseCalibrationProcedure:
             screen=display.getIndex(),
             color=self.getCalibSetting(['screen_background_color']),
             colorSpace=color_type)
+        _removeRawKeyboardRegistration()
         self.window.setMouseVisible(False)
         self.window.flip(clearBuffer=True)
 
