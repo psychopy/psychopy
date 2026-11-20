@@ -17,7 +17,7 @@ class DotsComponent(BaseVisualComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'dots.png'
     iconSVG = Path(__file__).parent / 'DotsComponent.svg'
-    tooltip = _translate('Dots: Random Dot Kinematogram')
+    tooltip = _translate("Show a Random Dot Kinematogram")
 
     def __init__(self, exp, parentName, name='dots',
                  nDots=100,

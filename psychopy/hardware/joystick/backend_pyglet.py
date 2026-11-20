@@ -17,6 +17,8 @@ another library.
 __all__ = ['JoystickDevicePyglet', 'JoystickInterfacePyglet',
            'getPygletJoysticks']
 
+import warnings
+
 try:
     from pyglet import input as pyglet_input  # pyglet 1.2+
     from pyglet import app as pyglet_app
@@ -58,7 +60,13 @@ def getPygletJoysticks():
         return []
 
     if not any(joy.device.is_open for joy in _pygletJoysticks):
-        _pygletJoysticks = pyglet_input.get_joysticks()
+        with warnings.catch_warnings():
+            # Without a window (e.g. listing devices for Device Manager), pyglet warns that it
+            # won't hear about joysticks being plugged in or out. Nothing relies on that here,
+            # since joysticks are listed afresh each time until one is opened.
+            warnings.filterwarnings(
+                "ignore", message=".*requires a window to receive device connection events.*")
+            _pygletJoysticks = pyglet_input.get_joysticks()
 
     return _pygletJoysticks
 

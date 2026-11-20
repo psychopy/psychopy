@@ -47,7 +47,8 @@ class DeviceManager:
 
     Any subclass of BaseDevice is added to DeviceManager's `.deviceClasses` list upon import,
     so devices matching that class become available through `DeviceManager.getAvailableDevices(
-    "*")`.
+    "*")`. Classes declared with `isBackend=True` are left out, as their devices are listed
+    through the class which picks between backends (e.g. `BaseCameraDevice`).
 
     """
     _instance = None  # singleton instance

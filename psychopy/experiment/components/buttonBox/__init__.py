@@ -12,7 +12,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'buttonBox.png'
     iconSVG = Path(__file__).parent / 'ButtonBoxComponent.svg'
-    tooltip = _translate('Button Box: Get input from a button box')
+    tooltip = _translate("Collect responses from a button box")
     beta = True
     legacyParams = [
         # old device setup params, no longer needed as this is handled by DeviceManager

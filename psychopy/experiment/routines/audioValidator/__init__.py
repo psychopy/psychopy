@@ -20,10 +20,7 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'audio_validator.png'
     iconSVG = Path(__file__).parent / 'AudioValidatorRoutine.svg'
-    tooltip = _translate(
-        "Use a sound sensor to confirm that audio stimuli are presented when they should "
-        "be."
-    )
+    tooltip = _translate("Use a sound sensor to confirm that audio stimuli are presented when they should be")
     version = "2025.1.0"
     legacyParams = [
         # old device setup params, no longer needed as this is handled by DeviceManager

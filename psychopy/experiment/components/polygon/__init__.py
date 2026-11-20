@@ -18,8 +18,7 @@ class PolygonComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'polygon.png'
     iconSVG = Path(__file__).parent / 'PolygonComponent.svg'
-    tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
-                         '...circle)')
+    tooltip = _translate("Show a shape or line")
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings', anchor='center',

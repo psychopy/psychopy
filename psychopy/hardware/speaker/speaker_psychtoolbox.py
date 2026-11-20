@@ -472,7 +472,18 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         deviceType = 13 if sys.platform == 'win32' and wasapiPref else None
 
         return ptb.get_devices(device_type=deviceType)
-    
+
+    @staticmethod
+    def isAvailable():
+        """Whether `psychtoolbox` audio can be imported, which this backend needs.
+        """
+        try:
+            systemtools.importPsychtoolbox('psychtoolbox.audio')
+        except ImportError:
+            return False
+
+        return True
+
     @staticmethod
     def getAvailableDevices():
         """Get available speaker devices.
@@ -488,8 +499,15 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
             return []
 
+        try:
+            found = PsychtoolboxSpeakerDevice._getDevicesPsychtoolbox()
+        except ImportError as err:
+            # without psychtoolbox there are no speakers this backend can play on
+            logging.debug(f"Can't list psychtoolbox speakers: {err}")
+            return []
+
         devices = []
-        for profile in PsychtoolboxSpeakerDevice._getDevicesPsychtoolbox():
+        for profile in found:
             # skip input-only devices (microphones)
             if profile['NrOutputChannels'] == 0:
                 continue

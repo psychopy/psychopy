@@ -134,6 +134,8 @@
     audioDriver = list(default=list('portaudio'))
     # audio device to use (if audioLib allows control)
     audioDevice = list(default=list('default'))
+    # library to use for reading cameras
+    cameraLib = option('pyav', 'ffpyplayer', 'opencv', default='pyav')
     # a list of parallel ports
     parallelPorts = list(default=list('0x0378', '0x03BC'))
     # The name of the Qmix pump configuration to use

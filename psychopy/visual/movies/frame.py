@@ -30,6 +30,26 @@ _YUV_PLANAR_FORMATS = frozenset((
     'yuv420p', 'yuvj420p', 'yuv422p', 'yuvj422p', 'yuv444p', 'yuvj444p',
     'yuv440p', 'yuvj440p', 'yuv411p', 'yuv410p'))
 
+# The same for semi-planar YUV 4:2:0, a luma plane and a plane of interleaved
+# chroma pairs, which hardware decoders give frames in (see
+# `hardwareDecoding`): 8-bit `nv12`, and `p010le` and `p016le`, whose samples
+# are 16-bit with the 10 or 16 bits used at the top
+_YUV_SEMIPLANAR_FORMATS = frozenset(('nv12', 'p010le', 'p016le'))
+
+# Bits each sample is stored in, and how many of them are used (at the top),
+# for formats where that isn't 8 of 8
+_YUV_SAMPLE_BITS = {
+    'p010le': (16, 10),
+    'p016le': (16, 16)}
+
+
+def _isGPUYUVFormat(formatName):
+    """Whether frames in a pixel format can be uploaded as they are and
+    converted to RGB by a shader (`bool`)."""
+    return formatName in _YUV_PLANAR_FORMATS or \
+        formatName in _YUV_SEMIPLANAR_FORMATS
+
+
 # `swscale` names of the colour matrices YUV is encoded with, by the value of
 # FFmpeg's `AVColorSpace` a frame is tagged with
 _AVCOL_SPC_TO_SWSCALE = {
@@ -132,33 +152,44 @@ class _RGBFrameAdapter:
 
 
 class _YUVFrameAdapter:
-    """A decoded frame kept as its planar YUV samples, to be uploaded as they
-    are and converted to RGB by a shader on the GPU.
+    """A decoded frame kept as its YUV samples, to be uploaded as they are and
+    converted to RGB by a shader on the GPU.
 
     Parameters
     ----------
     frame : av.VideoFrame
-        The frame, in one of `_YUV_PLANAR_FORMATS`. This holds on to it, so
-        that its planes can be uploaded straight from where they were decoded.
+        The frame, in one of `_YUV_PLANAR_FORMATS` or
+        `_YUV_SEMIPLANAR_FORMATS`. This holds on to it, so that its planes can
+        be uploaded straight from where they were decoded.
 
     """
-    __slots__ = ['_frame', 'planes', 'size', 'colorMatrix', 'fullRange']
+    __slots__ = ['_frame', 'planes', 'size', 'colorMatrix', 'fullRange',
+                 'pixelFormat', 'semiPlanar', 'sampleBits']
 
     def __init__(self, frame):
         self._frame = frame
-        #: Each plane (Y, U then V) as `(samples, width, height, rowLength)`,
-        #: `samples` being a flat array of `rowLength` bytes per row
+        #: Name of the frame's pixel format
+        self.pixelFormat = frame.format.name
+        #: Whether the chroma is one plane of interleaved U and V samples
+        #: (e.g. `nv12`) rather than a plane of each
+        self.semiPlanar = self.pixelFormat in _YUV_SEMIPLANAR_FORMATS
+        #: Bits each sample is stored in, and how many of them (at the top)
+        #: are used, see `_yuvToRGBUniforms`
+        self.sampleBits = _YUV_SAMPLE_BITS.get(self.pixelFormat, (8, 8))
+        #: Each plane (Y, U then V, or Y then UV) as `(samples, width, height,
+        #: rowLength)`, `samples` being a flat array of `rowLength` bytes per
+        #: row, and `width` the samples (or pairs of chroma samples) per row
         self.planes = tuple(
             (np.frombuffer(plane, np.uint8), plane.width, plane.height,
              plane.line_size)
-            for plane in frame.planes[:3])
+            for plane in frame.planes[:2 if self.semiPlanar else 3])
         #: Size `(w, h)` of the frame in pixels
         self.size = (frame.width, frame.height)
         #: `swscale` name of the colour matrix, see `_frameColorMatrix`
         self.colorMatrix = _frameColorMatrix(frame)
         #: Whether the samples are full range, see `_yuvToRGBUniforms`
         self.fullRange = int(frame.color_range) == 2 or \
-            frame.format.name.startswith('yuvj')
+            self.pixelFormat.startswith('yuvj')
 
     @property
     def nbytes(self):

@@ -14,7 +14,7 @@ class ProgressComponent(BaseVisualComponent):
     version = "2023.2.0"
     iconFile = Path(__file__).parent / 'progress.png'
     iconSVG = Path(__file__).parent / 'ProgressComponent.svg'
-    tooltip = _translate('Progress: Present a progress bar, with values ranging from 0 to 1.')
+    tooltip = _translate("Indicate progress with a bar")
     beta = True
 
     def __init__(self, exp, parentName, name='prog',

@@ -28,6 +28,7 @@ from psychopy.tools import systemtools
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend, closeOnInitError
+from . import _events
 
 import pyglet
 import pyglet.window as pyglet_window
@@ -96,9 +97,56 @@ _PYGLET_MOUSE_BUTTONS_ = {
     pyglet_mouse.RIGHT: mouse.MOUSE_BUTTON_RIGHT
 }
 
+# names of mouse buttons in events passed to window listeners
+_PYGLET_BUTTON_NAMES_ = {
+    pyglet_mouse.LEFT: 'left',
+    pyglet_mouse.MIDDLE: 'middle',
+    pyglet_mouse.RIGHT: 'right',
+    getattr(pyglet_mouse, 'MOUSE4', 8): 'back',
+    getattr(pyglet_mouse, 'MOUSE5', 16): 'forward'
+}
+
+
+def _pygletButtonNames(buttons):
+    """Names of the buttons in a pyglet button bitmask."""
+    return frozenset(
+        name for button, name in _PYGLET_BUTTON_NAMES_.items()
+        if buttons & button)
+
 
 if sys.platform == 'darwin':
     from . import _macos
+
+
+def _handlePaintWhileQueuing():
+    """Have pyglet handle `WM_PAINT` even for windows which aren't dispatching
+    events, on Windows.
+
+    `dispatch_events()` on one window takes messages for every window of the
+    thread. Those for other windows are queued until they dispatch their own,
+    and Windows is told they were handled. But a window's `WM_PAINT` is sent
+    until it's validated, which only pyglet's handler does (by leaving it to
+    `DefWindowProc`), so with another window to paint, `dispatch_events()`
+    takes `WM_PAINT` for it forever and never returns. Messages in
+    `_priority_events` are always handled, and the handler for `WM_PAINT`
+    queues the `on_expose` event for the window to dispatch itself.
+    """
+    if sys.platform != 'win32':
+        return
+    try:
+        from pyglet.window import win32 as pygletWin32
+        from pyglet.libs.win32 import constants as win32Constants
+        priorityEvents = pygletWin32._priority_events
+        if win32Constants.WM_PAINT not in priorityEvents:
+            priorityEvents.append(win32Constants.WM_PAINT)
+    except (ImportError, AttributeError) as err:
+        logging.debug(
+            "Unable to have pyglet handle WM_PAINT while queuing events, so "
+            "dispatching events with more than one window open may hang: "
+            "{}".format(err))
+
+
+_handlePaintWhileQueuing()
 
 
 class PygletBackend(BaseBackend):
@@ -381,7 +429,20 @@ class PygletBackend(BaseBackend):
         self.winHandle.setGammaRamp = setGammaRamp
         self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
-        self.winHandle.on_text = self.onText
+        if sys.platform == 'win32' and not win._isFullScr:
+            # On Windows 8 and later, pyglet (as of 2.1) turns off vsync for
+            # windows which aren't full screen, leaving them to be synced by
+            # the DWM, but then doesn't wait for the DWM in `flip()`, so they
+            # aren't synced at all. Sync them with the swap interval instead,
+            # as the GLFW backend does.
+            self.winHandle.context.set_vsync(True)
+        # input state for events passed to window listeners, the key last
+        # pressed and still held, whether its text or motion event is still to
+        # come, and the mouse buttons held
+        self._keyHeld = None
+        self._keyAwaitingInput = False
+        self._buttonsHeld = 0
+        self.winHandle.on_text = self._onPygletText
         self.winHandle.on_move = self.onMove
         self.winHandle.on_resize = self.onResize
         # pyglet 2+ sets the viewport in whichever context is current before
@@ -394,12 +455,14 @@ class PygletBackend(BaseBackend):
         if hasattr(self.winHandle, '_on_internal_scale'):
             self._pygletInternalScale = self.winHandle._on_internal_scale
             self.winHandle._on_internal_scale = self._onInternalScale
-        self.winHandle.on_text_motion = self.onCursorKey
+        self.winHandle.on_text_motion = self._onPygletTextMotion
         self.winHandle.on_key_press = self.onKey
+        self.winHandle.on_key_release = self.onKeyRelease
         self.winHandle.on_mouse_press = self.onMouseButtonPress
         self.winHandle.on_mouse_release = self.onMouseButtonRelease
         self.winHandle.on_mouse_scroll = self.onMouseScroll
         self.winHandle.on_mouse_motion = self.onMouseMove
+        self.winHandle.on_mouse_drag = self.onMouseDrag
         self.winHandle.on_mouse_enter = self.onMouseEnter
         self.winHandle.on_mouse_leave = self.onMouseLeave
 
@@ -654,10 +717,57 @@ class PygletBackend(BaseBackend):
     def onKey(self, evt, modifiers):
         """Check for tab key then pass all events to event package."""
         if evt is not None:
+            self._keyHeld = (evt, modifiers)
+            self._keyAwaitingInput = True
+            if self._listening:
+                self._dispatchEvent(
+                    _events.KEY_PRESS, key=_events.pygletKeyName(evt),
+                    modifiers=modifiers)
             thisKey = pyglet.window.key.symbol_string(evt).lower()
             if thisKey == 'tab':
                 self.onText('\t')
             event._onPygletKey(evt, modifiers)
+
+    def onKeyRelease(self, evt, modifiers):
+        """Event handler for key releases, which only window listeners get
+        (see `Window.addEventListener`)."""
+        if self._keyHeld is not None and self._keyHeld[0] == evt:
+            self._keyHeld = None
+        if self._listening:
+            self._dispatchEvent(
+                _events.KEY_RELEASE, key=_events.pygletKeyName(evt),
+                modifiers=modifiers)
+
+    def _dispatchKeyRepeat(self):
+        """Tell window listeners a held key repeated, if it did.
+
+        pyglet doesn't repeat key presses while a key is held, only the text or
+        cursor motion events they make, so each of those after the first is
+        taken as a repeat of the key held.
+        """
+        if self._keyAwaitingInput:  # the first, made by the press itself
+            self._keyAwaitingInput = False
+        elif self._keyHeld is not None and self._listening:
+            symbol, modifiers = self._keyHeld
+            self._dispatchEvent(
+                _events.KEY_PRESS, key=_events.pygletKeyName(symbol),
+                modifiers=modifiers, repeat=True)
+
+    def _onPygletText(self, text):
+        """Event handler for pyglet text events, which tells window listeners
+        before handling them as `onText` does.
+
+        This isn't done in `onText` since that is also called for tab key
+        presses, which pyglet doesn't send text events for.
+        """
+        self._dispatchKeyRepeat()
+        self._dispatchEvent(_events.TEXT, text=text)
+        self.onText(text)
+
+    def _onPygletTextMotion(self, motion):
+        """Event handler for pyglet text motion events, see `onCursorKey`."""
+        self._dispatchKeyRepeat()
+        self.onCursorKey(motion)
 
     def onText(self, evt):
         """Retrieve the character event(s?) for this window"""
@@ -911,7 +1021,8 @@ class PygletBackend(BaseBackend):
         try:
             cursor = _PYGLET_CURSORS_[cursorType]  # get cursor
 
-            if cursor is None:  # check supported by backend
+            # check supported by backend, pyglet's own default is `None` too
+            if cursor is None and cursorType not in ('default', 'arrow'):
                 logging.warn(
                     "Cursor type name '{}', is not supported by this backend. "
                     "Setting cursor to system default.".format(cursorType))
@@ -1044,8 +1155,21 @@ class PygletBackend(BaseBackend):
         """
         pass
 
+    def _dispatchMouseButton(self, eventType, x, y, button, modifiers):
+        """Tell window listeners a mouse button was pressed or released."""
+        if eventType == _events.MOUSE_PRESS:
+            self._buttonsHeld |= button
+        else:
+            self._buttonsHeld &= ~button
+        if not self._listening:
+            return
+        self._dispatchEvent(
+            eventType, winPos=(x, y), button=_PYGLET_BUTTON_NAMES_.get(button),
+            buttons=_pygletButtonNames(self._buttonsHeld), modifiers=modifiers)
+
     def onMouseButtonPress(self, *args, **kwargs):
         """Event handler for mouse press events."""
+        self._dispatchMouseButton(_events.MOUSE_PRESS, *args)
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1061,6 +1185,7 @@ class PygletBackend(BaseBackend):
 
     def onMouseButtonRelease(self, *args, **kwargs):
         """Event handler for mouse press events."""
+        self._dispatchMouseButton(_events.MOUSE_RELEASE, *args)
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1076,6 +1201,12 @@ class PygletBackend(BaseBackend):
 
     def onMouseScroll(self, *args, **kwargs):
         """Event handler for mouse scroll events."""
+        x, y, scroll_x, scroll_y = args
+        if self._listening:
+            self._dispatchEvent(
+                _events.MOUSE_SCROLL, winPos=(x, y),
+                scroll=(scroll_x, scroll_y),
+                buttons=_pygletButtonNames(self._buttonsHeld))
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1083,14 +1214,32 @@ class PygletBackend(BaseBackend):
             return
 
         # register mouse position associated with event
-        x, y, scroll_x, scroll_y = args
         absTime = core.getTime()
         absPos = self._windowCoordsToPix((x, y))
         mouseEventHandler.win = self.win
-        mouseEventHandler.setMouseMotionState(absPos, absTime)
+        mouseEventHandler.setMouseScrollState(
+            absPos, (scroll_x, scroll_y), absTime)
 
     def onMouseMove(self, *args, **kwargs):
         """Event handler for mouse move events."""
+        if self._listening:
+            x, y, _, _ = args
+            self._dispatchEvent(
+                _events.MOUSE_MOTION, winPos=(x, y),
+                buttons=_pygletButtonNames(self._buttonsHeld))
+        self._setMouseMoved(*args, **kwargs)
+
+    def onMouseDrag(self, x, y, dx, dy, buttons, modifiers):
+        """Event handler for the mouse moving with a button held, which
+        pyglet reports separately from other movement."""
+        if self._listening:
+            self._dispatchEvent(
+                _events.MOUSE_MOTION, winPos=(x, y),
+                buttons=_pygletButtonNames(buttons), modifiers=modifiers)
+        self._setMouseMoved(x, y, dx, dy)
+
+    def _setMouseMoved(self, *args, **kwargs):
+        """Pass the mouse moving on to the mouse event handler."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1105,6 +1254,7 @@ class PygletBackend(BaseBackend):
 
     def onMouseEnter(self, *args, **kwargs):
         """Event called when the mouse enters the window."""
+        self._dispatchEvent(_events.MOUSE_ENTER, winPos=args)
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
@@ -1120,6 +1270,7 @@ class PygletBackend(BaseBackend):
 
     def onMouseLeave(self, *args, **kwargs):
         """Event called when the mouse enters the window."""
+        self._dispatchEvent(_events.MOUSE_LEAVE, winPos=args)
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:

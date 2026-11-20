@@ -18,9 +18,13 @@ __all__ = [
     'OpenCVMovieFileReader',
     'VLCMovieFileReader',
     'PREFERRED_VIDEO_LIB',
-    'SUPPORTED_VIDEO_LIBS']
+    'SUPPORTED_VIDEO_LIBS',
+    'supportsHardwareDecoding',
+    'hardwareDecodingBackends']
 
-from ._base import MovieFileReader, PREFERRED_VIDEO_LIB, SUPPORTED_VIDEO_LIBS
+from ._base import (
+    MovieFileReader, PREFERRED_VIDEO_LIB, SUPPORTED_VIDEO_LIBS,
+    supportsHardwareDecoding, hardwareDecodingBackends)
 # each of these registers its reader with `_MOVIE_READER_CLASSES`
 from .ffpyplayer_reader import FFPyPlayerMovieFileReader
 from .pyav_reader import PyAVMovieFileReader

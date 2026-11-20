@@ -14,9 +14,10 @@ import pytest
 
 from psychopy import clock, core, session, visual
 from psychopy.hardware import DeviceManager
+from psychopy.hardware import camera
 from psychopy.hardware.camera import (
-    CAMERA_LIB_OPENCV, CAMERA_LIB_PYAV, PREFERED_CAMERA_LIB, Camera,
-    getCameraDeviceClass, getCameras)
+    CAMERA_LIB_OPENCV, CAMERA_LIB_PYAV, Camera, getCameraDeviceClass,
+    getCameras)
 from psychopy.sound.audioclip import AudioClip
 from psychopy.tests.utils import RUNNING_IN_VM
 
@@ -410,8 +411,9 @@ class TestCameraDeviceLibrary:
         """
         # a library other than the preferred one, which the camera would pick
         # for itself, so that it can only get it from the device
+        preferredLib = camera._resolveCameraLib()
         deviceLib = CAMERA_LIB_OPENCV \
-            if PREFERED_CAMERA_LIB != CAMERA_LIB_OPENCV else CAMERA_LIB_PYAV
+            if preferredLib != CAMERA_LIB_OPENCV else CAMERA_LIB_PYAV
         self._addDevice(deviceLib)
 
         warnings = []

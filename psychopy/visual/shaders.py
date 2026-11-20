@@ -565,23 +565,25 @@ if USE_LEGACY_GL:
     # Converts a movie frame's YUV planes to RGB, the planes being bound to
     # texture units 0 to 2, as it's drawn into the movie's RGBA texture (see
     # `MovieStim._convertPlanesToRGBA`), with the matrix and offset from
-    # `psychopy.visual.movies._yuvToRGBUniforms`. This runs with the
-    # fixed-function vertex pipeline, as the rest of `MovieStim`'s drawing
-    # does, from which it takes the texture coordinates and the colour.
+    # `psychopy.visual.movies._yuvToRGBUniforms`. Frames with semi-planar
+    # chroma (e.g. `nv12`) have it in `uPlaneU`, a luminance-alpha texture of
+    # U and V. This runs with the fixed-function vertex pipeline, as the rest
+    # of `MovieStim`'s drawing does, from which it takes the texture
+    # coordinates and the colour.
     fragYUVToRGB = """
         #version 120
         uniform sampler2D uPlaneY;
         uniform sampler2D uPlaneU;
         uniform sampler2D uPlaneV;
+        uniform bool uSemiPlanar;
         uniform mat3 uYUVToRGB;
         uniform vec3 uYUVOffset;
 
         void main() {
             vec2 texCoord = gl_TexCoord[0].st;
-            vec3 yuv = vec3(
-                texture2D(uPlaneY, texCoord).r,
-                texture2D(uPlaneU, texCoord).r,
-                texture2D(uPlaneV, texCoord).r);
+            vec4 chroma = texture2D(uPlaneU, texCoord);
+            float v = uSemiPlanar ? chroma.a : texture2D(uPlaneV, texCoord).r;
+            vec3 yuv = vec3(texture2D(uPlaneY, texCoord).r, chroma.r, v);
             vec3 rgb = clamp(uYUVToRGB * (yuv - uYUVOffset), 0.0, 1.0);
             gl_FragColor = vec4(rgb, 1.0) * gl_Color;
         }

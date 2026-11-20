@@ -347,33 +347,6 @@ def _erode(mask, n=1):
     return ~_dilate(~mask, n)
 
 
-def _grating(win, ori=0.0, size=(48, 48)):
-    """An opaque, unmasked sine grating to draw alongside a movie."""
-    return visual.GratingStim(
-        win, units='pix', tex='sin', mask=None, sf=1 / 12., size=size,
-        ori=ori, autoLog=False)
-
-
-def _footprint(win, size, ori=0.0):
-    """Mask of the pixels a square stimulus of `size` at `ori` covers.
-
-    This draws a solid rectangle in its place, since a sine grating has pixels
-    the same grey as the background, which would leave holes in a mask taken
-    from the grating itself.
-
-    """
-    rect = visual.Rect(
-        win, units='pix', size=size, ori=ori, fillColor='white',
-        lineColor=None, autoLog=False)
-
-    return _drawnRegion(win, rect)[0]
-
-
-def _maxDifference(a, b, mask):
-    """Largest difference between two captured frames over `mask`."""
-    return np.abs(a - b)[mask].max()
-
-
 # --------------------------------------------------------------------------
 # Decoding
 #
@@ -643,16 +616,6 @@ class TestMovieStimDecoding:
 EDGE_MARGIN = 2
 
 
-@contextmanager
-def _pausedMovie(win, movieLib, **kwargs):
-    """A movie held on one frame, so that every capture of it is the same."""
-    with movieStim(win, movieLib, **kwargs) as mov:
-        mov.play()
-        mov.seek(SAMPLE_EARLY)
-        mov.pause()
-        yield mov
-
-
 @pytest.mark.parametrize('gpuColorConversion', [True, False])
 class TestMovieStimWithOtherStimuli:
     """Tests that a movie and other stimuli drawn on the same window each look
@@ -683,55 +646,63 @@ class TestMovieStimWithOtherStimuli:
             gc.enable()
             gc.collect()
 
-    @pytest.mark.parametrize('ori', [0, 30, 45, 90, 137])
-    def test_gratingOverMovieDrawsCorrectly(self, win, movieLib,
-                                            gpuColorConversion, ori):
-        """A rotated grating drawn over a movie looks as it does alone, and
-        leaves the rest of the movie as it was."""
-        size = (48, 48)
-        grating = _grating(win, ori=ori, size=size)
+    def test_rotatingMaskedGratingOverPlayingMovie(self, win, movieLib,
+                                                   gpuColorConversion):
+        """A Gaussian-masked grating rotating smoothly over a playing movie
+        blends with every movie frame just as it would alone.
 
-        with _pausedMovie(win, movieLib, size=(100, 100),
-                          gpuColorConversion=gpuColorConversion) as mov:
-            gratingAlone, _ = _drawToBackBuffer(win, grating)
-            movieAlone, _ = _drawToBackBuffer(win, mov)
-            composite, _ = _drawToBackBuffer(win, mov, grating)
+        Where the mask is translucent the grating mixes with whatever is under
+        it, so each frame checks the composite against the blend predicted
+        from the movie frame alone. The grating's colour and per-pixel opacity
+        come from drawing it over solid black and white: over black it leaves
+        `alpha * grating`, and over white the difference from black is
+        `255 * (1 - alpha)`. The grating draws, and so uploads its new
+        orientation, right after the movie uploads each new frame, which would
+        show up any GL state the movie leaves behind.
 
-        footprint = _footprint(win, size, ori)
-        inside = _erode(footprint, EDGE_MARGIN)
-        outside = ~_dilate(footprint, EDGE_MARGIN)
+        """
+        grating = visual.GratingStim(
+            win, units='pix', tex='sin', mask='gauss', sf=1 / 12.,
+            size=(80, 80), autoLog=False)
+        black = visual.Rect(win, units='norm', size=(2, 2), fillColor='black',
+                            lineColor=None, autoLog=False)
+        white = visual.Rect(win, units='norm', size=(2, 2), fillColor='white',
+                            lineColor=None, autoLog=False)
 
-        # the grating is opaque, so covers the movie entirely and looks just
-        # as it does without the movie under it
-        assert _maxDifference(composite, gratingAlone, inside) <= 1
+        def drawnOver(*stims):
+            for stim in stims:
+                stim.draw()
+            return _captureBackBuffer(win)
 
-        # and the movie around it is untouched
-        assert _maxDifference(composite, movieAlone, outside) <= 1
+        with movieStim(win, movieLib, units='pix', size=(100, 100),
+                       gpuColorConversion=gpuColorConversion) as mov:
+            # only compare where the movie covers the window
+            inside = _erode(_drawnRegion(win, mov)[0], EDGE_MARGIN)
+            assert inside.any()
 
-        # the grating did cover something, so the first check means something
-        assert np.abs(composite - movieAlone)[inside].mean() > 1.0
+            mov.play()
+            _drawFrames(win, mov, count=2)
+            start = mov.movieTime
 
-    def test_movieOverGratingDrawsCorrectly(self, win, movieLib,
-                                            gpuColorConversion):
-        """A movie drawn over a grating looks as it does alone, with the
-        grating still showing around it."""
-        size, ori = (120, 120), 30
-        grating = _grating(win, ori=ori, size=size)
+            for ori in np.arange(0, 180, 3.0):  # 3 deg per frame, 60 frames
+                grating.ori = ori
+                overBlack = drawnOver(black, grating)
+                overWhite = drawnOver(white, grating)
+                movieAlone = drawnOver(mov)
+                composite = drawnOver(grating)
+                win.flip()
 
-        with _pausedMovie(win, movieLib, size=(64, 64),
-                          gpuColorConversion=gpuColorConversion) as mov:
-            gratingAlone, _ = _drawToBackBuffer(win, grating)
-            movieAlone, _ = _drawToBackBuffer(win, mov)
-            composite, _ = _drawToBackBuffer(win, grating, mov)
-            movieMask, _ = _drawnRegion(win, mov)
+                transmitted = (overWhite - overBlack) / 255.
+                expected = overBlack + transmitted * movieAlone
+                error = np.abs(composite - expected)[inside].max()
 
-        inside = _erode(movieMask, EDGE_MARGIN)
-        around = _erode(_footprint(win, size, ori), EDGE_MARGIN) & \
-            ~_dilate(movieMask, EDGE_MARGIN)
+                # allows for each capture being rounded to 8 bits
+                assert error <= 2, (ori, error)
 
-        assert inside.any() and around.any()
-        assert _maxDifference(composite, movieAlone, inside) <= 1
-        assert _maxDifference(composite, gratingAlone, around) <= 1
+                # the grating did change the movie, so the check means something
+                assert np.abs(composite - movieAlone)[inside].mean() > 1.0, ori
+
+            assert mov.movieTime > start
 
     def test_drawLeavesGLStateAlone(self, win, movieLib, gpuColorConversion):
         """Drawing a playing movie, uploading new frames as it goes, leaves the
@@ -739,9 +710,11 @@ class TestMovieStimWithOtherStimuli:
         defaults which another stimulus may have left set to upload with."""
         import psychopy.tools.opengl as GL
 
-        grating = _grating(win, ori=30)
+        grating = visual.GratingStim(
+            win, units='pix', tex='sin', mask='gauss', sf=1 / 12.,
+            size=(48, 48), ori=30, autoLog=False)
 
-        with movieStim(win, movieLib, size=(100, 100),
+        with movieStim(win, movieLib, units='pix', size=(100, 100),
                        gpuColorConversion=gpuColorConversion) as mov:
             mov.play()
             try:
@@ -760,51 +733,6 @@ class TestMovieStimWithOtherStimuli:
                 # back to the defaults, for the tests sharing the window
                 GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4)
                 GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
-
-    def test_rotatingGratingOverPlayingMovie(self, win, movieLib,
-                                             gpuColorConversion):
-        """A grating rotated frame by frame over a playing movie looks as it
-        does alone at every angle, while new movie frames are uploaded between
-        draws.
-
-        The grating swaps texture every frame too, so that it uploads one right
-        after the movie has, as it would if pixel upload state (a bound pixel
-        buffer, row length or alignment) were left behind by the movie.
-
-        """
-        size = (48, 48)
-        steps = [(ori, 'sqr' if i % 2 else 'sin')
-                 for i, ori in enumerate(range(0, 360, 30))]
-        grating = _grating(win, size=size)
-
-        # how the grating looks alone at each step, and where it is solid
-        expected = {}
-        for ori, tex in steps:
-            grating.ori, grating.tex = ori, tex
-            alone, _ = _drawToBackBuffer(win, grating)
-            expected[ori] = (
-                alone, _erode(_footprint(win, size, ori), EDGE_MARGIN))
-
-        with movieStim(win, movieLib, size=(100, 100),
-                       gpuColorConversion=gpuColorConversion) as mov:
-            mov.play()
-            _drawFrames(win, mov, count=2)
-            start = mov.movieTime
-
-            for ori, tex in steps:
-                win.flip()  # clear the back buffer, as `_drawToBackBuffer`
-                mov.draw()
-                grating.ori, grating.tex = ori, tex  # uploaded after the movie
-                grating.draw()
-                composite = _captureBackBuffer(win)
-                win.flip()
-                alone, inside = expected[ori]
-
-                assert _maxDifference(composite, alone, inside) <= 1, ori
-
-                time.sleep(0.02)  # let the movie move on a frame or so
-
-            assert mov.movieTime > start
 
 
 # --------------------------------------------------------------------------
@@ -1490,6 +1418,9 @@ class TestMovieStimFrameTiming:
             tStart = _nextFlip(win)
 
             mov.play()
+            # the next flip as of `play()`, which is later than `tStart` only
+            # if the machine stalled for a refresh or more (as CI runners can)
+            tStartLatest = _nextFlip(win)
             mov.draw()
             assert mov.movieTime == pytest.approx(0.0, abs=1e-6)
             assert mov.pts == pytest.approx(0.0, abs=1e-6)
@@ -1497,7 +1428,8 @@ class TestMovieStimFrameTiming:
             win.flip()
             tNext = _nextFlip(win)
             mov.draw()
-            assert mov.movieTime == pytest.approx(tNext - tStart, abs=1e-3)
+            assert tNext - tStartLatest - 1e-3 <= mov.movieTime <= \
+                tNext - tStart + 1e-3
 
     def test_framesAdvanceOncePerRefresh(self, win, movieLib, monkeypatch):
         """With the display refreshing once per movie frame, each refresh
@@ -1780,7 +1712,8 @@ def _waitForAudio(mov, timeout=10.0):
 
 @needsMovieAudio
 class TestMovieStimAudioTrack:
-    """Tests for decoding a movie's audio track for playback alongside it."""
+    """Tests for decoding a movie's audio track for playback alongside it,
+    extracted into a `Sound` up front (`extractAudioTrack=True`)."""
 
     @pytest.mark.parametrize('sampleRate', [None, 48000, 22050])
     def test_decodeAudioTrack(self, win, movieLib, sampleRate):
@@ -1851,7 +1784,8 @@ class TestMovieStimAudioTrack:
                                             soundStandIn):
         """The track is loaded at the rate its speaker plays at, rather than
         one it would have to be resampled from again to be played."""
-        with movieStim(win, movieLib, noAudio=False) as mov:
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1875,7 +1809,8 @@ class TestMovieStimAudioTrack:
     def test_stopKeepsAudioTrack(self, win, movieLib, soundStandIn):
         """`stop()` reloads the movie, but keeps its audio track (back at the
         start) rather than decoding it all over again."""
-        with movieStim(win, movieLib, noAudio=False) as mov:
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1901,7 +1836,8 @@ class TestMovieStimAudioTrack:
         moviePath = tmp_path / MOVIE_PATH.name
         shutil.copyfile(MOVIE_PATH, moviePath)
 
-        with movieStim(win, movieLib, filename=moviePath, noAudio=False) as mov:
+        with movieStim(win, movieLib, filename=moviePath, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1927,7 +1863,7 @@ class TestMovieStimAudioTrack:
                                              soundStandIn, gatedAudioDecode):
         """Loading a movie returns while its audio track is still decoding in
         the background, and `play()` waits for it to finish."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1950,7 +1886,7 @@ class TestMovieStimAudioTrack:
                                            gatedAudioDecode):
         """Unloading a movie while its audio track is decoding stops it, and
         nothing more is written to the track afterwards."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1970,7 +1906,7 @@ class TestMovieStimAudioTrack:
                                          gatedAudioDecode):
         """`stop()` while the audio track is still decoding carries on with it,
         rather than starting it over."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1992,7 +1928,8 @@ class TestMovieStimAudioTrack:
                                                 soundStandIn):
         """Unless asked to load it in the background, the audio track has
         loaded by the time loading the movie returns."""
-        with movieStim(win, movieLib, noAudio=False) as mov:
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -2016,11 +1953,12 @@ class TestMovieStimAudioTrack:
 
         if not inBackground:
             with pytest.raises(RuntimeError, match='broken audio track'):
-                with movieStim(win, movieLib, noAudio=False):
+                with movieStim(win, movieLib, noAudio=False,
+                               extractAudioTrack=True):
                     pass
             return
 
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -2042,7 +1980,7 @@ class TestMovieStimAudioTrack:
             movies.MovieStim, '_getAudioDuration',
             staticmethod(lambda container, audioStream: duration))
 
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=inBackground) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -2055,7 +1993,7 @@ class TestMovieStimAudioTrack:
     def test_audioTrackAtRequestedRate(self, win, movieLib, soundStandIn):
         """`audioConfig['fps']` decodes the track at that rate instead of the
         speaker's, leaving the `Sound` to resample it."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        audioConfig={'fps': 22050}) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -2065,6 +2003,454 @@ class TestMovieStimAudioTrack:
             assert track.sampleRate == 22050
             np.testing.assert_array_equal(
                 track.loaded, _decodeMovieAudio(22050))
+
+
+# --------------------------------------------------------------------------
+# Audio track streamed from the movie file
+#
+
+class _AudioOutputStandIn:
+    """Stands in for the speaker a `MovieAudioStream` plays on.
+
+    This records what the stream asks of it instead of opening an audio
+    device, which test machines often lack, and plays the stream only when
+    told to (`pull()`), so what it plays can be checked.
+
+    """
+    needsPump = False
+    sampleRate = 48000
+    channels = 2
+    prefillSamples = 4800
+
+    made = []  # every one made, in order
+
+    def __init__(self, speaker=None, volume=1.0):
+        self.speaker = speaker
+        self.volume = volume
+        self.isPlaying = False
+        self.closed = False
+        self.source = None
+        self.nPlayed = 0  # samples pulled since starting
+        self.calls = []  # `('start', when)` and `('stop', None)`
+        _AudioOutputStandIn.made.append(self)
+
+    def setVolume(self, volume):
+        self.volume = volume
+
+    def start(self, source, when=None):
+        self.source = source
+        self.nPlayed = 0
+        self.isPlaying = True
+        self.calls.append(('start', when))
+
+    def stop(self):
+        self.isPlaying = False
+        self.calls.append(('stop', None))
+        return self.nPlayed
+
+    def pump(self, source):
+        pass
+
+    def close(self):
+        self.isPlaying = False
+        self.closed = True
+
+    def pull(self, n=None, timeout=10.0):
+        """Play `n` samples (or the rest of the track if `None`), waiting for
+        them to decode. Fewer are returned at the end of the track."""
+        blocks = []
+        nPulled = 0
+        deadline = time.time() + timeout
+        while n is None or nPulled < n:
+            want = 4096 if n is None else min(4096, n - nPulled)
+            samples, atEnd = self.source._read(want, padUnderflow=False)
+            blocks.append(samples)
+            nPulled += len(samples)
+            if atEnd:
+                break
+            if not len(samples):
+                assert time.time() < deadline, 'audio never decoded'
+                time.sleep(0.001)
+        self.nPlayed += nPulled
+
+        return np.concatenate(blocks)
+
+
+@pytest.fixture
+def audioOutputStandIn(monkeypatch):
+    """Make `MovieAudioStream` play on `_AudioOutputStandIn`s, at the test
+    movie's own sample rate (so its audio needn't be resampled)."""
+    _AudioOutputStandIn.made = []
+    monkeypatch.setattr(
+        _AudioOutputStandIn, 'sampleRate', MOVIE_AUDIO[0] if MOVIE_AUDIO
+        else 48000)
+    monkeypatch.setattr(
+        movies.audiostream, '_makeAudioOutput', _AudioOutputStandIn)
+    monkeypatch.setattr(
+        movies, 'getAudioStreamBackend', lambda: 'standIn')
+
+    return _AudioOutputStandIn
+
+
+@needsMovieAudio
+class TestMovieStimAudioStream:
+    """Tests for streaming a movie's audio track from the movie file as it
+    plays, which it is unless `extractAudioTrack=True`."""
+
+    @staticmethod
+    def _skipIfDecoderPlaysAudio(mov, movieLib):
+        if mov._decoderPlaysAudio:
+            pytest.skip('{} plays the audio itself'.format(movieLib))
+
+    def test_streamedByDefault(self, win, movieLib, audioOutputStandIn):
+        """The audio track is streamed unless asked to be extracted, ready to
+        play by the time the movie has loaded, at the movie's volume."""
+        with movieStim(win, movieLib, noAudio=False, volume=0.5) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            stream = mov._audioTrack
+            assert isinstance(stream, movies.MovieAudioStream)
+            assert mov.isAudioReady
+            output, = audioOutputStandIn.made
+            assert output.volume == pytest.approx(0.5)
+            assert not output.isPlaying
+
+    def test_extractAudioTrack(self, win, movieLib, audioOutputStandIn,
+                               soundStandIn):
+        """`extractAudioTrack=True` extracts the track into a `Sound`
+        instead."""
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            assert soundStandIn.made == [mov._audioTrack]
+            assert audioOutputStandIn.made == []
+
+    def test_extractedWithoutStreamingBackend(self, win, movieLib,
+                                              soundStandIn, monkeypatch):
+        """With an audio library audio can't be streamed through, the track
+        is extracted instead."""
+        monkeypatch.setattr(movies, 'getAudioStreamBackend', lambda: None)
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            assert soundStandIn.made == [mov._audioTrack]
+            assert mov._extractAudioTrack
+
+    def test_streamPlaysWholeTrack(self, win, movieLib, audioOutputStandIn,
+                                   monkeypatch):
+        """Played from the start, the stream plays exactly the track as
+        extracted, at the track's own rate and resampled to the speaker's."""
+        for sampleRate in (MOVIE_AUDIO[0], 48000):
+            monkeypatch.setattr(
+                audioOutputStandIn, 'sampleRate', sampleRate)
+            with movieStim(win, movieLib, noAudio=False) as mov:
+                self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+                mov.play()
+                output = audioOutputStandIn.made[-1]
+                played = output.pull()
+
+                np.testing.assert_array_equal(
+                    played, _decodeMovieAudio(sampleRate))
+                assert mov._audioTrack.isReady  # at the end
+
+    def test_streamSeek(self, win, movieLib, audioOutputStandIn):
+        """Seeking plays the track from the sample at the position seeked to,
+        both before playing and while playing."""
+        expected = _decodeMovieAudio(audioOutputStandIn.sampleRate)
+        rate = audioOutputStandIn.sampleRate
+        n = rate // 4
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            for t in (SAMPLE_LATE, SAMPLE_EARLY, 0.0):
+                stream.seek(t)
+                stream.play()
+                start = int(round(t * rate))
+                np.testing.assert_allclose(
+                    output.pull(n), expected[start:start + n], atol=1e-6)
+                stream.pause()
+
+            # and while playing, carrying on playing from there
+            stream.play()
+            output.pull(n)
+            stream.seek(SAMPLE_EARLY)
+            assert stream.isPlaying
+            start = int(round(SAMPLE_EARLY * rate))
+            np.testing.assert_allclose(
+                output.pull(n), expected[start:start + n], atol=1e-6)
+
+    def test_streamSeekResampledInTime(self, win, movieLib,
+                                       audioOutputStandIn, monkeypatch):
+        """Seeking a track resampled to the speaker's rate plays it from the
+        nearest sample to the position seeked to.
+
+        The resampled samples aren't quite those resampling the whole track
+        gives, since they're interpolated from the samples either side of a
+        position up to half a sample from where they were, so this checks
+        that they line up best with no lag.
+
+        """
+        monkeypatch.setattr(audioOutputStandIn, 'sampleRate', 48000)
+        expected = _decodeMovieAudio(48000)
+        n = 48000 // 4
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            stream.seek(SAMPLE_LATE)
+            stream.play()
+            played = output.pull(n)
+            start = int(round(SAMPLE_LATE * 48000))
+
+            def error(lag):
+                return np.abs(
+                    played - expected[start + lag:start + lag + n]).mean()
+
+            assert min(range(-4, 5), key=error) == 0
+
+    def test_playStartsStreamFromMovieTime(self, win, movieLib,
+                                           audioOutputStandIn):
+        """Playing starts the stream from wherever the movie is, and pausing
+        stops it."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            mov.play()
+            assert output.calls == [('start', None)]
+            _drawFrames(win, mov, count=5, interval=0.01)
+            mov.pause()
+            assert output.calls[-1] == ('stop', None)
+            assert not stream.isPlaying
+
+            mov.seek(SAMPLE_EARLY)
+            mov.play()
+            assert output.isPlaying
+            assert stream._target == pytest.approx(mov.movieTime, abs=1e-6)
+
+            tStart = core.getTime() + 1.0
+            mov.pause()
+            mov.play(when=_absTime(tStart))
+            when = output.calls[-1][1]
+            assert when.getFutureFlipTime(clock='ptb') == pytest.approx(
+                _absTime(tStart))
+
+    def test_pauseCarriesOnFromWhereItGotTo(self, win, movieLib,
+                                            audioOutputStandIn):
+        """Paused and played again by itself, the stream carries on from
+        where it had got to."""
+        expected = _decodeMovieAudio(audioOutputStandIn.sampleRate)
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            stream.play()
+            first = output.pull(10000)
+            stream.pause()
+            stream.play()
+            second = output.pull(10000)
+
+            np.testing.assert_allclose(
+                np.concatenate([first, second]), expected[:20000], atol=1e-6)
+
+    def test_stopKeepsAudioStream(self, win, movieLib, audioOutputStandIn):
+        """`stop()` reloads the movie, but keeps its audio stream (back at the
+        start) rather than opening the movie file's audio again."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            mov.play()
+            output.pull(5000)
+            mov.stop()
+
+            assert mov._audioTrack is stream
+            assert audioOutputStandIn.made == [output]
+            assert not output.closed
+            assert not stream.isPlaying
+            assert stream._target == 0.0
+
+    def test_unloadClosesAudioStream(self, win, movieLib, audioOutputStandIn):
+        """Unloading the movie stops its audio stream decoding and closes it.
+        """
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            mov.play()
+            mov.unload()
+
+            assert mov._audioTrack is None
+            assert output.closed
+            assert not stream._thread.is_alive()
+            assert stream not in movies.audiostream._openAudioStreams
+
+    def test_volumeAppliesToAudioStream(self, win, movieLib,
+                                        audioOutputStandIn):
+        """Volume and muting are applied to the stream's output."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            output = audioOutputStandIn.made[-1]
+
+            mov.volume = 0.25
+            assert output.volume == pytest.approx(0.25)
+            assert mov.volume == pytest.approx(0.25)
+
+            mov.muted = True
+            assert mov.muted
+            assert output.volume == 0.0
+            mov.muted = False
+            assert output.volume == pytest.approx(0.25)
+
+    def test_underflowKeepsTime(self, win, movieLib, audioOutputStandIn,
+                                monkeypatch):
+        """Audio played before it has decoded is made up with silence, and as
+        much audio is skipped once it has, so that it stays in time."""
+        release = threading.Event()
+        decodeNext = movies.MovieAudioStream._decodeNext
+
+        def gated(self):
+            release.wait(10.0)
+            return decodeNext(self)
+
+        monkeypatch.setattr(movies.MovieAudioStream, '_decodeNext', gated)
+        expected = _decodeMovieAudio(audioOutputStandIn.sampleRate)
+
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+
+            silence, atEnd = stream._read(1000)
+            assert not atEnd
+            np.testing.assert_array_equal(silence, 0.0)
+
+            release.set()
+            stream.waitUntilReady(10.0)
+            # Ready only promises `prefillSamples` (4800) are queued, so read
+            # no more than that, counting the 1000 skipped to make up for the
+            # silence, or this can underflow again on a slow machine
+            samples, _ = stream._read(3000)
+            np.testing.assert_allclose(
+                samples, expected[1000:4000], atol=1e-6)
+
+    @pytest.mark.parametrize('inBackground', [False, True])
+    def test_audioStreamErrorRaised(self, win, movieLib, audioOutputStandIn,
+                                    monkeypatch, inBackground):
+        """An error decoding the audio before any could be is raised by
+        loading the movie, or by `play()` if loading it in the background,
+        after which the movie plays without it."""
+        def broken(self, frame):
+            raise RuntimeError('broken audio track')
+
+        monkeypatch.setattr(movies.MovieAudioStream, '_resample', broken)
+
+        if not inBackground:
+            with pytest.raises(RuntimeError, match='broken audio track'):
+                with movieStim(win, movieLib, noAudio=False):
+                    pass
+            return
+
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            with pytest.raises(RuntimeError, match='broken audio track'):
+                mov.play()
+            assert mov._audioTrack is None
+            assert audioOutputStandIn.made[-1].closed
+
+            mov.play()
+            assert mov.isPlaying
+
+    def test_sampleQueueWrapsAround(self, win, movieLib):
+        """The queue samples are decoded into hands them back in order as it
+        wraps around its ring buffer, and takes no more than it holds."""
+        queue = movies.audiostream._SampleQueue(10, 2)
+        samples = np.arange(60, dtype=np.float32).reshape(30, 2)
+
+        assert queue.push(samples[:7]) == 7
+        np.testing.assert_array_equal(queue.pop(5), samples[:5])
+        assert queue.push(samples[7:20]) == 8  # wraps, and fills it
+        assert queue.space == 0
+        assert queue.skip(1) == 1
+        np.testing.assert_array_equal(queue.pop(100), samples[6:15])
+        assert len(queue) == 0
+
+    @pytest.fixture
+    def closeNewSoundDeviceStreams(self):
+        """Close any `sounddevice` output streams the test opens.
+
+        The `sounddevice` backend keeps a device's stream open, its callback
+        running, for as long as the process lives. Left open, it would keep
+        playing (silence) through every test after this one."""
+        try:
+            from psychopy.sound import backend_sounddevice
+        except Exception:
+            yield
+            return
+
+        streams = backend_sounddevice.streams
+        before = set(streams)
+        yield
+
+        for label in set(streams) - before:
+            stream = streams.pop(label)
+            sdStream = getattr(stream, '_sdStream', None)
+            if sdStream is None:
+                continue
+            try:
+                sdStream.stop()
+                sdStream.close()
+            finally:
+                # so the `__del__` it registered to run at exit has nothing
+                # left to stop
+                del stream._sdStream
+
+    @pytest.mark.parametrize('audioLib', ['ptb', 'sounddevice'])
+    @pytest.mark.usefixtures('closeNewSoundDeviceStreams')
+    def test_streamPlaysOnSpeaker(self, win, movieLib, audioLib, monkeypatch):
+        """The stream plays on a real speaker through each audio library,
+        silently, keeping its place when paused. Skipped where there's no
+        speaker (or library) to play on."""
+        import psychopy.sound
+
+        monkeypatch.setattr(psychopy.sound.Sound, 'backend', audioLib)
+        if movies.getAudioStreamBackend() != audioLib:
+            pytest.skip('{} audio library not available'.format(audioLib))
+        try:
+            output = movies.audiostream._makeAudioOutput(volume=0.0)
+            output.close()
+        except Exception as err:
+            pytest.skip('no speaker to play on ({})'.format(err))
+
+        with movieStim(win, movieLib, noAudio=False, volume=0.0) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            assert isinstance(stream, movies.MovieAudioStream)
+
+            stream.play()
+            time.sleep(0.5)
+            assert stream.isPlaying
+            stream.pause()
+
+            # paused about where it got to, give or take the speaker's latency
+            assert stream._target == pytest.approx(0.5, abs=0.1)
+            with stream._cond:
+                assert stream._deficit == 0  # it kept up
 
 
 # --------------------------------------------------------------------------
@@ -2462,6 +2848,120 @@ class TestMovieStimGPUColorConversion:
 
         assert np.abs(rgb - expected).max() <= 1
 
+    @pytest.mark.parametrize('fullRange', [False, True])
+    @pytest.mark.parametrize('colorMatrix', ['ITU709', 'ITU601', 'BT2020'])
+    def test_tenBitYUVToRGB(self, win, movieLib, colorMatrix, fullRange):
+        """What the shader converts `p010le` (10-bit samples at the top of
+        16, as hardware decoders give) to RGB with gives what the colour
+        matrix does, and close to `swscale` (whose 10-bit conversion rounds
+        less finely, by up to 3 levels in 255)."""
+        import av
+        from av.video.reformatter import Colorspace
+
+        rng = np.random.default_rng(2)
+        low, high = (0, 1023) if fullRange else (64, 940)
+        for _ in range(8):
+            # one colour, so that how chroma is upsampled doesn't come into it
+            y, u, v = (int(n) for n in rng.integers(low, high + 1, 3))
+            frame = av.VideoFrame(8, 8, 'p010le')
+            luma = np.full((8, frame.planes[0].line_size // 2), y << 6,
+                           np.uint16)
+            chroma = np.zeros((4, frame.planes[1].line_size // 2), np.uint16)
+            chroma[:, 0::2], chroma[:, 1::2] = u << 6, v << 6
+            frame.planes[0].update(luma.tobytes())
+            frame.planes[1].update(chroma.tobytes())
+            if colorMatrix in Colorspace.__members__:
+                expected = frame.to_ndarray(
+                    format='rgb24', src_colorspace=colorMatrix,
+                    src_color_range='JPEG' if fullRange else 'MPEG')[0, 0]
+            else:  # PyAV before 18, see `test_yuvToRGBMatchesSwscale`
+                frame.colorspace = \
+                    movies.frame._SWSCALE_TO_AVCOL_SPC[colorMatrix]
+                frame.color_range = 2 if fullRange else 1
+                expected = frame.to_ndarray(format='rgb24')[0, 0]
+
+            matrix, offset = movies._yuvToRGBUniforms(
+                colorMatrix, fullRange, (16, 10))
+            sampled = np.array([y, u, v]) * 64 / 65535.0
+            rgb = np.array(matrix).reshape(3, 3) @ (sampled - offset)
+            rgb = np.clip(rgb, 0.0, 1.0) * 255.0
+
+            # the colour matrix, from the 10-bit code values
+            kr, kb = movies._COLOR_MATRIX_KR_KB[colorMatrix]
+            if fullRange:
+                luma, cb, cr = y / 1023., (u - 512) / 1023., (v - 512) / 1023.
+            else:
+                luma, cb, cr = (y - 64) / 876., (u - 512) / 896., \
+                    (v - 512) / 896.
+            red = luma + 2 * (1 - kr) * cr
+            blue = luma + 2 * (1 - kb) * cb
+            green = (luma - kr * red - kb * blue) / (1 - kr - kb)
+            exact = np.clip([red, green, blue], 0.0, 1.0) * 255.0
+
+            assert np.abs(rgb - exact).max() < 0.5, (y, u, v)
+            assert np.abs(np.round(rgb) - expected).max() <= 3, (y, u, v)
+
+    @pytest.mark.parametrize('colorspace, colorRange', [
+        (1, 1),  # BT.709, limited range
+        (6, 2)])  # BT.601, full range
+    @pytest.mark.parametrize('pixelFormat', ['nv12', 'p010le'])
+    def test_semiPlanarFramesMatchPlanar(self, win, movieLib, tmp_path,
+                                         monkeypatch, pixelFormat, colorspace,
+                                         colorRange):
+        """Frames in the semi-planar formats hardware decoders give (`nv12`
+        and `p010le`) are uploaded as a luma and an interleaved chroma texture,
+        and drawn as the same frame in planar YUV is."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav keeps frames as YUV')
+        from psychopy.visual.movies.readers import pyav_reader
+
+        size = (64, 48)
+        path = _writeTaggedMovie(
+            tmp_path / 'tagged.mkv', 'yuv420p', colorspace, colorRange, size)
+        region = _movieRegion(win, size)
+
+        with movieStim(win, movieLib, filename=path, units='pix',
+                       size=_inPix(win, size)) as mov:
+            assert mov._recentFrameImage.pixelFormat == 'yuv420p'
+            planar, _ = _drawToBackBuffer(win, mov)
+
+        # as a hardware decoder gives them, with the movie's tags kept
+        convert = pyav_reader.PyAVMovieFileReader._convertFrameToRGB
+
+        def asSemiPlanar(reader, frame):
+            import av
+            if isinstance(frame, av.VideoFrame) and \
+                    frame.format.name != pixelFormat:
+                converted = frame.reformat(format=pixelFormat)
+                converted.colorspace = frame.colorspace
+                converted.color_range = frame.color_range
+                converted.pts = frame.pts
+                frame = converted
+            return convert(reader, frame)
+
+        monkeypatch.setattr(pyav_reader.PyAVMovieFileReader,
+                            '_convertFrameToRGB', asSemiPlanar)
+        with movieStim(win, movieLib, filename=path, units='pix',
+                       size=_inPix(win, size)) as mov:
+            image = mov._recentFrameImage
+            assert image.pixelFormat == pixelFormat and image.semiPlanar
+            assert len(mov._planeTextureIds) == 2
+            semiPlanar, _ = _drawToBackBuffer(win, mov)
+
+        # `p010le` frames are drawn from 16-bit textures and planar ones from
+        # 8-bit, and some drivers (Mesa's llvmpipe) filter the 8-bit chroma,
+        # which is half the size and so always interpolated, less precisely,
+        # leaving most of R and B a level out, and some (where the chroma
+        # error is scaled up most) three. Its full range samples are also
+        # 8-bit ones shifted (255 to 1020, not 1023), a little darker.
+        difference = np.abs(semiPlanar[region] - planar[region])
+        if pixelFormat == 'p010le':
+            assert difference.mean() < 1.0
+            assert difference.max() <= 3
+        else:
+            assert difference.mean() < 0.5
+            assert difference.max() <= 2
+
     @pytest.mark.parametrize('colorRange', [1, 2])  # MPEG, JPEG
     @pytest.mark.parametrize('colorspace', [9, 10])  # BT2020_NCL, BT2020_CL
     def test_BT2020FramesConvertedToRGB(self, win, movieLib, colorspace,
@@ -2720,6 +3220,209 @@ class TestMovieStimGPUColorConversion:
         assert np.abs(drawnGPU - drawnCPU).mean() < 3.0
 
 
+def _writeH264Movie(path, size=(320, 240), nFrames=30):
+    """Write a short H.264 movie of smooth moving colour, which hardware
+    decoders can decode, or skip the test if H.264 can't be encoded."""
+    import av
+    import cv2
+
+    rng = np.random.default_rng(3)
+    width, height = size
+    base = cv2.GaussianBlur(
+        rng.integers(0, 256, (height * 2, width * 2, 3), dtype=np.uint8),
+        (0, 0), 6)
+    base = cv2.normalize(base, None, 20, 235, cv2.NORM_MINMAX)
+    try:
+        container = av.open(str(path), 'w')
+        stream = container.add_stream('libx264', rate=30)
+    except Exception as err:
+        pytest.skip("can't encode H.264: {}".format(err))
+    with container:
+        stream.width, stream.height, stream.pix_fmt = width, height, 'yuv420p'
+        stream.options = {'crf': '10'}
+        stream.codec_context.colorspace = 1
+        stream.codec_context.color_range = 1
+        for i in range(nFrames):
+            rgb = np.ascontiguousarray(base[i:i + height, i:i + width])
+            for packet in stream.encode(
+                    av.VideoFrame.from_ndarray(rgb, format='rgb24')):
+                container.mux(packet)
+        for packet in stream.encode(None):
+            container.mux(packet)
+
+    return path
+
+
+def _recordWarnings(monkeypatch):
+    """Record the warnings PsychoPy logs (as everything here logs them through
+    `psychopy.logging.warning`), returning the list they're added to."""
+    warned = []
+    original = logging.warning
+
+    def warning(msg, *args, **kwargs):
+        warned.append(str(msg))
+        return original(msg, *args, **kwargs)
+
+    monkeypatch.setattr(logging, 'warning', warning)
+
+    return warned
+
+
+class TestMovieStimHardwareDecoding:
+    """Tests for decoding movies with a hardware decoder (`hardwareDecoding`),
+    which are skipped where there's none to decode with."""
+
+    def test_hardwareDecodedFramesMatchSoftware(self, win, movieLib,
+                                                tmp_path):
+        """Frames decoded with hardware come as semi-planar YUV and are drawn
+        the same as those decoded in software, before and after seeking."""
+        if movieLib != 'pyav':
+            pytest.skip('only pyav decodes with hardware')
+
+        size = (320, 240)
+        path = _writeH264Movie(tmp_path / 'movie.mp4', size)
+        region = _movieRegion(win, size)
+
+        drawn = {}
+        for hardware in (False, True):
+            with movieStim(win, movieLib, filename=path, units='pix',
+                           size=_inPix(win, size),
+                           hardwareDecoding=hardware) as mov:
+                if hardware:
+                    if mov.hardwareDecoder is None:
+                        pytest.skip('no hardware decoder for H.264 here')
+                    assert mov._recentFrameImage.semiPlanar
+                else:
+                    assert mov.hardwareDecoder is None
+                first, _ = _drawToBackBuffer(win, mov)
+                mov.seek(0.5)
+                _drawUntilSeekResolves(win, mov)
+                assert mov.pts == pytest.approx(0.5, abs=1 / 30. + 1e-6)
+                sought, _ = _drawToBackBuffer(win, mov)
+                drawn[hardware] = (first, sought, mov.pts)
+
+        assert drawn[True][2] == drawn[False][2]
+        for hardwareFrame, softwareFrame in zip(drawn[True][:2],
+                                                drawn[False][:2]):
+            difference = np.abs(hardwareFrame[region] - softwareFrame[region])
+            assert difference.mean() < 1.0
+            assert difference.max() <= 3
+
+    def test_supportsHardwareDecoding(self, win, movieLib):
+        """Which backends can decode with hardware can be asked: only `pyav`,
+        and only with a version of PyAV which can."""
+        try:
+            from av.codec.hwaccel import hwdevices_available  # noqa: F401
+            pyavCan = True
+        except ImportError:  # PyAV before 14, or none
+            pyavCan = False
+
+        assert movies.hardwareDecodingBackends() == ['pyav']
+        assert movies.supportsHardwareDecoding(movieLib) == (
+            movieLib == 'pyav' and pyavCan)
+        assert not movies.supportsHardwareDecoding('notABackend')
+        assert MovieFileReader.supportsHardwareDecoding is False
+
+    @pytest.mark.parametrize('hardwareDecoding', [True, 'notADecoder'])
+    def test_softwareWhereHardwareCant(self, win, movieLib, tmp_path,
+                                       monkeypatch, hardwareDecoding):
+        """Movies no hardware decoder can decode (FFV1 here), asked to be
+        decoded with one there isn't, or with a backend which can't (OpenCV,
+        with the test movie), are decoded in software, with one warning saying
+        why."""
+        warned = _recordWarnings(monkeypatch)
+        if movieLib == 'pyav':
+            path = _writeTaggedMovie(tmp_path / 'ffv1.mkv', 'yuv420p')
+        else:
+            # OpenCV can't with any movie, and can't read FFV1 at all where it
+            # reads movies with AVFoundation (macOS)
+            path = MOVIE_PATH
+        with movieStim(win, movieLib, filename=path,
+                       hardwareDecoding=hardwareDecoding) as mov:
+            assert mov.hardwareDecoder is None
+            mov.draw()
+            if movieLib == 'pyav':
+                assert mov._recentFrameImage.pixelFormat == 'yuv420p'
+
+        hardwareWarnings = [msg for msg in warned
+                            if 'Hardware decoding was asked for' in msg]
+        assert len(hardwareWarnings) == 1, warned
+        if movieLib != 'pyav':
+            assert "'{}' movie backend".format(movieLib) in \
+                hardwareWarnings[0]
+        elif hardwareDecoding == 'notADecoder':
+            assert "'notADecoder'" in hardwareWarnings[0]
+
+    def test_softwareWhereHardwareCantBeSetUp(self, win, movieLib, tmp_path,
+                                              monkeypatch):
+        """Movies asked to be decoded with a hardware decoder FFmpeg was built
+        with, but can't set up here (where there's no GPU, PyAV raises opening
+        the movie, e.g. `PermissionError` for VAAPI), are decoded in software,
+        with one warning saying why."""
+        if movieLib != 'pyav' or not movies.supportsHardwareDecoding('pyav'):
+            pytest.skip('only pyav decodes with hardware')
+        import av
+        from psychopy.visual.movies.readers import pyav_reader
+
+        openContainer = pyav_reader.PyAVMovieFileReader._openContainer
+
+        def cantSetUp(reader, av_, openOpts, device):
+            if device is not None:
+                raise av.error.PermissionError(1, 'Operation not permitted')
+            return openContainer(reader, av_, openOpts, device)
+
+        monkeypatch.setattr(pyav_reader, '_hardwareDecodersToTry',
+                            lambda request: (['cuda', 'vaapi'], None))
+        monkeypatch.setattr(pyav_reader.PyAVMovieFileReader, '_openContainer',
+                            cantSetUp)
+        warned = _recordWarnings(monkeypatch)
+        path = _writeH264Movie(tmp_path / 'movie.mp4')
+        with movieStim(win, movieLib, filename=path,
+                       hardwareDecoding=True) as mov:
+            assert mov.hardwareDecoder is None
+            mov.draw()
+
+        hardwareWarnings = [msg for msg in warned
+                            if 'Hardware decoding was asked for' in msg]
+        assert len(hardwareWarnings) == 1, warned
+        assert 'cuda, vaapi' in hardwareWarnings[0]
+
+    def test_hardwareDecoderOnlyIfUsed(self, win, movieLib, tmp_path):
+        """A hardware decoder is only said to be used if FFmpeg decodes with
+        it, not if it falls back to software because it couldn't set it up
+        (as VideoToolbox can't for MPEG-4 Part 2, the test movie, on some
+        Macs), which PyAV's `is_hwaccel` doesn't tell apart."""
+        if movieLib != 'pyav' or not movies.supportsHardwareDecoding('pyav'):
+            pytest.skip('only pyav decodes with hardware')
+
+        for path in (MOVIE_PATH, _writeH264Movie(tmp_path / 'movie.mp4')):
+            with movieStim(win, movieLib, filename=path,
+                           hardwareDecoding=True) as mov:
+                # left in a hardware pixel format, which has no components,
+                # only if the hardware decoder decodes
+                codecFormat = mov._player._videoStream.codec_context.format
+                assert (mov.hardwareDecoder is not None) == (
+                    not codecFormat.components), path
+
+    def test_noWarningUnlessHardwareCant(self, win, movieLib, tmp_path,
+                                         monkeypatch):
+        """Nothing is said about hardware decoding when it's not asked for,
+        or when it's used."""
+        warned = _recordWarnings(monkeypatch)
+        with movieStim(win, movieLib) as mov:
+            assert mov.hardwareDecoder is None
+        if movieLib == 'pyav' and movies.supportsHardwareDecoding('pyav'):
+            path = _writeH264Movie(tmp_path / 'movie.mp4')
+            with movieStim(win, movieLib, filename=path,
+                           hardwareDecoding=True) as mov:
+                used = mov.hardwareDecoder is not None
+            if not used:
+                warned = [msg for msg in warned
+                          if 'Hardware decoding was asked for' not in msg]
+
+        assert not [msg for msg in warned if 'ardware' in msg], warned
+
+
 class TestMovieStimFrameTexture:
     """Tests for keeping `frameTexture` up to date."""
 
@@ -2865,9 +3568,11 @@ class TestBuilderMovieEndRoutine:
 
         def checkNextRoutineStarts(row, name, probeRow):
             # straight away, so stopping the movie as the Routine ends (which
-            # reloads it) doesn't hold up the experiment
+            # reloads it) doesn't hold up the experiment. This takes ~10ms, but
+            # is given as long as `test_stopLeavesDecodingAheadToPlay` gives it,
+            # since a CI machine can stall for a few hundred ms at any time.
             gap = probeRow['probe.started'] - row[name + '.stopped']
-            assert 0.0 <= gap < 0.25, (
+            assert 0.0 <= gap < 1.0, (
                 "`probe` started {}s after `{}` ended.".format(gap, name))
 
         # "Force end of Routine" on: the Routine ended with the movie, well
@@ -2926,8 +3631,12 @@ class TestBuilderMovieEndRoutine:
             assert row['probe.timesHeld'], (
                 "A movie moved on after its Routine ended.")
 
-        # and stopping a movie leaves no decoding threads behind
+        # and stopping a movie leaves no decoding threads behind, which would
+        # leave more running after the second repeat than after the first.
+        # This counts every thread in the process, so there can be fewer:
+        # movies from earlier tests (such as this one with another backend)
+        # stop their decode threads whenever the garbage collector frees them.
         threads = [row['probe.threads'] for row in earlyRows]
-        assert threads[0] == threads[1], (
+        assert threads[1] <= threads[0], (
             "{} threads were running after the first repeat of "
             "`movieEarlyEnd`, {} after the second.".format(*threads))
