@@ -147,6 +147,10 @@ requires = [
 ]
 build-backend = "pdm.backend"
 
+[tool.uv.pip]
+# restrict source builds only for specific packages
+only-binary = ["opencv-python", "pyqt6", "psychtoolbox"]
+
 [tool.uv]
 exclude-newer = "7 days"
 
