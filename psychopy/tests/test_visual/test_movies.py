@@ -2390,7 +2390,38 @@ class TestMovieStimAudioStream:
         np.testing.assert_array_equal(queue.pop(100), samples[6:15])
         assert len(queue) == 0
 
+    @pytest.fixture
+    def closeNewSoundDeviceStreams(self):
+        """Close any `sounddevice` output streams the test opens.
+
+        The `sounddevice` backend keeps a device's stream open, its callback
+        running, for as long as the process lives. Left open, it would keep
+        playing (silence) through every test after this one."""
+        try:
+            from psychopy.sound import backend_sounddevice
+        except Exception:
+            yield
+            return
+
+        streams = backend_sounddevice.streams
+        before = set(streams)
+        yield
+
+        for label in set(streams) - before:
+            stream = streams.pop(label)
+            sdStream = getattr(stream, '_sdStream', None)
+            if sdStream is None:
+                continue
+            try:
+                sdStream.stop()
+                sdStream.close()
+            finally:
+                # so the `__del__` it registered to run at exit has nothing
+                # left to stop
+                del stream._sdStream
+
     @pytest.mark.parametrize('audioLib', ['ptb', 'sounddevice'])
+    @pytest.mark.usefixtures('closeNewSoundDeviceStreams')
     def test_streamPlaysOnSpeaker(self, win, movieLib, audioLib, monkeypatch):
         """The stream plays on a real speaker through each audio library,
         silently, keeping its place when paused. Skipped where there's no
