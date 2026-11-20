@@ -17,7 +17,7 @@ from freetype import Face, FT_LOAD_RENDER, FT_LOAD_FORCE_AUTOHINT, FT_Exception
                                                      
 from .textureatlas import TextureAtlas
 
-from psychopy.tools.pygletgl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
+from psychopy.tools.opengl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
                        glBegin, glTexCoord2f, glVertex2f, glEnd,
                        glEndList, glTranslatef)
 

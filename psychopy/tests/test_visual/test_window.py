@@ -236,14 +236,14 @@ class TestWindowFailedInit:
         from psychopy.visual.backends import pygletbackend
 
         created = []
-        origWindow = pygletbackend.GL.Window
+        origWindow = pygletbackend.pygletgl.Window
 
         def recordingWindow(*args, **kwargs):
             nativeWin = origWindow(*args, **kwargs)
             created.append(nativeWin)
             return nativeWin
 
-        monkeypatch.setattr(pygletbackend.GL, 'Window', recordingWindow)
+        monkeypatch.setattr(pygletbackend.pygletgl, 'Window', recordingWindow)
 
         return created
 

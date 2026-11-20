@@ -12,7 +12,7 @@ system.
 
 import ctypes
 import numpy as np
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 from psychopy.visual import window
 from psychopy import logging
 import psychopy.tools.mathtools as mt

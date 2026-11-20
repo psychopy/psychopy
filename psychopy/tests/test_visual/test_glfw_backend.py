@@ -21,13 +21,55 @@ def test_open_glfw_window():
 @skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
 def test_glfw_legacy_gl():
     """GLFW windows use the same OpenGL module as the rest of PsychoPy, so the
-    fixed-function (legacy) API is available with all versions of pyglet."""
-    import psychopy.tools.pygletgl as pygletgl
+    fixed-function (legacy) API is available."""
+    import psychopy.tools.opengl as opengl
     from psychopy.visual.backends import glfwbackend
 
-    assert glfwbackend.GL is pygletgl
-    assert glfwbackend.USE_LEGACY_GL == pygletgl.USE_LEGACY_GL
+    assert glfwbackend.GL is opengl
+    assert glfwbackend.USE_LEGACY_GL == opengl.USE_LEGACY_GL
     assert hasattr(glfwbackend.GL, 'glMatrixMode')
+
+
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+@pytest.mark.parametrize('wayland', [True, False])
+def test_glfw_wayland_with_pyglet(monkeypatch, wayland):
+    """Under Wayland, GLFW windows (with EGL contexts) can't be created once
+    pyglet windows (with GLX contexts) are in use."""
+    import sys
+    from psychopy.visual.backends import glfwbackend
+
+    monkeypatch.setattr(glfwbackend, '_isWayland', lambda: wayland)
+    monkeypatch.setitem(sys.modules, 'psychopy.tools.pygletgl', object())
+    if wayland:
+        with pytest.raises(RuntimeError, match='Wayland'):
+            glfwbackend._checkContextAPI()
+    else:
+        glfwbackend._checkContextAPI()
+
+    monkeypatch.delitem(sys.modules, 'psychopy.tools.pygletgl')
+    glfwbackend._checkContextAPI()
+
+
+@skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")
+def test_glfw_without_pyglet_gl():
+    """GLFW windows don't use pyglet for OpenGL, or need a pyglet context to be
+    current (in a new process, since other tests create pyglet windows).
+    `pyglet.gl` itself may be imported, since `psychopy.event` uses
+    `pyglet.window`."""
+    import subprocess
+    import sys
+
+    script = (
+        "import sys\n"
+        "from psychopy import visual\n"
+        "win = visual.Window((64, 64), winType='glfw', autoLog=False)\n"
+        "visual.Rect(win, size=(.5, .5), fillColor='red').draw()\n"
+        "win.flip()\n"
+        "win.close()\n"
+        "assert 'psychopy.tools.pygletgl' not in sys.modules\n"
+        "pygletGL = sys.modules.get('pyglet.gl')\n"
+        "assert pygletGL is None or pygletGL._shadow_window is None\n")
+    subprocess.run([sys.executable, '-c', script], check=True)
 
 
 @skip_under_vm(reason="GLFW doesn't work on (macOS) virtual machine")

@@ -40,7 +40,7 @@ import warnings
 import platform
 import ctypes
 import numpy as np
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 from psychopy.visual import window
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy import platform_specific, logging, core

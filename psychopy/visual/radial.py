@@ -14,11 +14,6 @@ These are optional components that can be obtained by installing the
 
 from psychopy.plugins import PluginStub
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-
 
 class RadialStim(
     PluginStub,
