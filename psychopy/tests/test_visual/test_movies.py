@@ -1712,7 +1712,8 @@ def _waitForAudio(mov, timeout=10.0):
 
 @needsMovieAudio
 class TestMovieStimAudioTrack:
-    """Tests for decoding a movie's audio track for playback alongside it."""
+    """Tests for decoding a movie's audio track for playback alongside it,
+    extracted into a `Sound` up front (`extractAudioTrack=True`)."""
 
     @pytest.mark.parametrize('sampleRate', [None, 48000, 22050])
     def test_decodeAudioTrack(self, win, movieLib, sampleRate):
@@ -1783,7 +1784,8 @@ class TestMovieStimAudioTrack:
                                             soundStandIn):
         """The track is loaded at the rate its speaker plays at, rather than
         one it would have to be resampled from again to be played."""
-        with movieStim(win, movieLib, noAudio=False) as mov:
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1807,7 +1809,8 @@ class TestMovieStimAudioTrack:
     def test_stopKeepsAudioTrack(self, win, movieLib, soundStandIn):
         """`stop()` reloads the movie, but keeps its audio track (back at the
         start) rather than decoding it all over again."""
-        with movieStim(win, movieLib, noAudio=False) as mov:
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1833,7 +1836,8 @@ class TestMovieStimAudioTrack:
         moviePath = tmp_path / MOVIE_PATH.name
         shutil.copyfile(MOVIE_PATH, moviePath)
 
-        with movieStim(win, movieLib, filename=moviePath, noAudio=False) as mov:
+        with movieStim(win, movieLib, filename=moviePath, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1859,7 +1863,7 @@ class TestMovieStimAudioTrack:
                                              soundStandIn, gatedAudioDecode):
         """Loading a movie returns while its audio track is still decoding in
         the background, and `play()` waits for it to finish."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1882,7 +1886,7 @@ class TestMovieStimAudioTrack:
                                            gatedAudioDecode):
         """Unloading a movie while its audio track is decoding stops it, and
         nothing more is written to the track afterwards."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1902,7 +1906,7 @@ class TestMovieStimAudioTrack:
                                          gatedAudioDecode):
         """`stop()` while the audio track is still decoding carries on with it,
         rather than starting it over."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1924,7 +1928,8 @@ class TestMovieStimAudioTrack:
                                                 soundStandIn):
         """Unless asked to load it in the background, the audio track has
         loaded by the time loading the movie returns."""
-        with movieStim(win, movieLib, noAudio=False) as mov:
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
 
@@ -1948,11 +1953,12 @@ class TestMovieStimAudioTrack:
 
         if not inBackground:
             with pytest.raises(RuntimeError, match='broken audio track'):
-                with movieStim(win, movieLib, noAudio=False):
+                with movieStim(win, movieLib, noAudio=False,
+                               extractAudioTrack=True):
                     pass
             return
 
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=True) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1974,7 +1980,7 @@ class TestMovieStimAudioTrack:
             movies.MovieStim, '_getAudioDuration',
             staticmethod(lambda container, audioStream: duration))
 
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        loadAudioInBackground=inBackground) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1987,7 +1993,7 @@ class TestMovieStimAudioTrack:
     def test_audioTrackAtRequestedRate(self, win, movieLib, soundStandIn):
         """`audioConfig['fps']` decodes the track at that rate instead of the
         speaker's, leaving the `Sound` to resample it."""
-        with movieStim(win, movieLib, noAudio=False,
+        with movieStim(win, movieLib, noAudio=False, extractAudioTrack=True,
                        audioConfig={'fps': 22050}) as mov:
             if mov._decoderPlaysAudio:
                 pytest.skip('{} plays the audio itself'.format(movieLib))
@@ -1997,6 +2003,454 @@ class TestMovieStimAudioTrack:
             assert track.sampleRate == 22050
             np.testing.assert_array_equal(
                 track.loaded, _decodeMovieAudio(22050))
+
+
+# --------------------------------------------------------------------------
+# Audio track streamed from the movie file
+#
+
+class _AudioOutputStandIn:
+    """Stands in for the speaker a `MovieAudioStream` plays on.
+
+    This records what the stream asks of it instead of opening an audio
+    device, which test machines often lack, and plays the stream only when
+    told to (`pull()`), so what it plays can be checked.
+
+    """
+    needsPump = False
+    sampleRate = 48000
+    channels = 2
+    prefillSamples = 4800
+
+    made = []  # every one made, in order
+
+    def __init__(self, speaker=None, volume=1.0):
+        self.speaker = speaker
+        self.volume = volume
+        self.isPlaying = False
+        self.closed = False
+        self.source = None
+        self.nPlayed = 0  # samples pulled since starting
+        self.calls = []  # `('start', when)` and `('stop', None)`
+        _AudioOutputStandIn.made.append(self)
+
+    def setVolume(self, volume):
+        self.volume = volume
+
+    def start(self, source, when=None):
+        self.source = source
+        self.nPlayed = 0
+        self.isPlaying = True
+        self.calls.append(('start', when))
+
+    def stop(self):
+        self.isPlaying = False
+        self.calls.append(('stop', None))
+        return self.nPlayed
+
+    def pump(self, source):
+        pass
+
+    def close(self):
+        self.isPlaying = False
+        self.closed = True
+
+    def pull(self, n=None, timeout=10.0):
+        """Play `n` samples (or the rest of the track if `None`), waiting for
+        them to decode. Fewer are returned at the end of the track."""
+        blocks = []
+        nPulled = 0
+        deadline = time.time() + timeout
+        while n is None or nPulled < n:
+            want = 4096 if n is None else min(4096, n - nPulled)
+            samples, atEnd = self.source._read(want, padUnderflow=False)
+            blocks.append(samples)
+            nPulled += len(samples)
+            if atEnd:
+                break
+            if not len(samples):
+                assert time.time() < deadline, 'audio never decoded'
+                time.sleep(0.001)
+        self.nPlayed += nPulled
+
+        return np.concatenate(blocks)
+
+
+@pytest.fixture
+def audioOutputStandIn(monkeypatch):
+    """Make `MovieAudioStream` play on `_AudioOutputStandIn`s, at the test
+    movie's own sample rate (so its audio needn't be resampled)."""
+    _AudioOutputStandIn.made = []
+    monkeypatch.setattr(
+        _AudioOutputStandIn, 'sampleRate', MOVIE_AUDIO[0] if MOVIE_AUDIO
+        else 48000)
+    monkeypatch.setattr(
+        movies.audiostream, '_makeAudioOutput', _AudioOutputStandIn)
+    monkeypatch.setattr(
+        movies, 'getAudioStreamBackend', lambda: 'standIn')
+
+    return _AudioOutputStandIn
+
+
+@needsMovieAudio
+class TestMovieStimAudioStream:
+    """Tests for streaming a movie's audio track from the movie file as it
+    plays, which it is unless `extractAudioTrack=True`."""
+
+    @staticmethod
+    def _skipIfDecoderPlaysAudio(mov, movieLib):
+        if mov._decoderPlaysAudio:
+            pytest.skip('{} plays the audio itself'.format(movieLib))
+
+    def test_streamedByDefault(self, win, movieLib, audioOutputStandIn):
+        """The audio track is streamed unless asked to be extracted, ready to
+        play by the time the movie has loaded, at the movie's volume."""
+        with movieStim(win, movieLib, noAudio=False, volume=0.5) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            stream = mov._audioTrack
+            assert isinstance(stream, movies.MovieAudioStream)
+            assert mov.isAudioReady
+            output, = audioOutputStandIn.made
+            assert output.volume == pytest.approx(0.5)
+            assert not output.isPlaying
+
+    def test_extractAudioTrack(self, win, movieLib, audioOutputStandIn,
+                               soundStandIn):
+        """`extractAudioTrack=True` extracts the track into a `Sound`
+        instead."""
+        with movieStim(win, movieLib, noAudio=False,
+                       extractAudioTrack=True) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            assert soundStandIn.made == [mov._audioTrack]
+            assert audioOutputStandIn.made == []
+
+    def test_extractedWithoutStreamingBackend(self, win, movieLib,
+                                              soundStandIn, monkeypatch):
+        """With an audio library audio can't be streamed through, the track
+        is extracted instead."""
+        monkeypatch.setattr(movies, 'getAudioStreamBackend', lambda: None)
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            assert soundStandIn.made == [mov._audioTrack]
+            assert mov._extractAudioTrack
+
+    def test_streamPlaysWholeTrack(self, win, movieLib, audioOutputStandIn,
+                                   monkeypatch):
+        """Played from the start, the stream plays exactly the track as
+        extracted, at the track's own rate and resampled to the speaker's."""
+        for sampleRate in (MOVIE_AUDIO[0], 48000):
+            monkeypatch.setattr(
+                audioOutputStandIn, 'sampleRate', sampleRate)
+            with movieStim(win, movieLib, noAudio=False) as mov:
+                self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+                mov.play()
+                output = audioOutputStandIn.made[-1]
+                played = output.pull()
+
+                np.testing.assert_array_equal(
+                    played, _decodeMovieAudio(sampleRate))
+                assert mov._audioTrack.isReady  # at the end
+
+    def test_streamSeek(self, win, movieLib, audioOutputStandIn):
+        """Seeking plays the track from the sample at the position seeked to,
+        both before playing and while playing."""
+        expected = _decodeMovieAudio(audioOutputStandIn.sampleRate)
+        rate = audioOutputStandIn.sampleRate
+        n = rate // 4
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            for t in (SAMPLE_LATE, SAMPLE_EARLY, 0.0):
+                stream.seek(t)
+                stream.play()
+                start = int(round(t * rate))
+                np.testing.assert_allclose(
+                    output.pull(n), expected[start:start + n], atol=1e-6)
+                stream.pause()
+
+            # and while playing, carrying on playing from there
+            stream.play()
+            output.pull(n)
+            stream.seek(SAMPLE_EARLY)
+            assert stream.isPlaying
+            start = int(round(SAMPLE_EARLY * rate))
+            np.testing.assert_allclose(
+                output.pull(n), expected[start:start + n], atol=1e-6)
+
+    def test_streamSeekResampledInTime(self, win, movieLib,
+                                       audioOutputStandIn, monkeypatch):
+        """Seeking a track resampled to the speaker's rate plays it from the
+        nearest sample to the position seeked to.
+
+        The resampled samples aren't quite those resampling the whole track
+        gives, since they're interpolated from the samples either side of a
+        position up to half a sample from where they were, so this checks
+        that they line up best with no lag.
+
+        """
+        monkeypatch.setattr(audioOutputStandIn, 'sampleRate', 48000)
+        expected = _decodeMovieAudio(48000)
+        n = 48000 // 4
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            stream.seek(SAMPLE_LATE)
+            stream.play()
+            played = output.pull(n)
+            start = int(round(SAMPLE_LATE * 48000))
+
+            def error(lag):
+                return np.abs(
+                    played - expected[start + lag:start + lag + n]).mean()
+
+            assert min(range(-4, 5), key=error) == 0
+
+    def test_playStartsStreamFromMovieTime(self, win, movieLib,
+                                           audioOutputStandIn):
+        """Playing starts the stream from wherever the movie is, and pausing
+        stops it."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            mov.play()
+            assert output.calls == [('start', None)]
+            _drawFrames(win, mov, count=5, interval=0.01)
+            mov.pause()
+            assert output.calls[-1] == ('stop', None)
+            assert not stream.isPlaying
+
+            mov.seek(SAMPLE_EARLY)
+            mov.play()
+            assert output.isPlaying
+            assert stream._target == pytest.approx(mov.movieTime, abs=1e-6)
+
+            tStart = core.getTime() + 1.0
+            mov.pause()
+            mov.play(when=_absTime(tStart))
+            when = output.calls[-1][1]
+            assert when.getFutureFlipTime(clock='ptb') == pytest.approx(
+                _absTime(tStart))
+
+    def test_pauseCarriesOnFromWhereItGotTo(self, win, movieLib,
+                                            audioOutputStandIn):
+        """Paused and played again by itself, the stream carries on from
+        where it had got to."""
+        expected = _decodeMovieAudio(audioOutputStandIn.sampleRate)
+
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            stream.play()
+            first = output.pull(10000)
+            stream.pause()
+            stream.play()
+            second = output.pull(10000)
+
+            np.testing.assert_allclose(
+                np.concatenate([first, second]), expected[:20000], atol=1e-6)
+
+    def test_stopKeepsAudioStream(self, win, movieLib, audioOutputStandIn):
+        """`stop()` reloads the movie, but keeps its audio stream (back at the
+        start) rather than opening the movie file's audio again."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            mov.play()
+            output.pull(5000)
+            mov.stop()
+
+            assert mov._audioTrack is stream
+            assert audioOutputStandIn.made == [output]
+            assert not output.closed
+            assert not stream.isPlaying
+            assert stream._target == 0.0
+
+    def test_unloadClosesAudioStream(self, win, movieLib, audioOutputStandIn):
+        """Unloading the movie stops its audio stream decoding and closes it.
+        """
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            output = audioOutputStandIn.made[-1]
+
+            mov.play()
+            mov.unload()
+
+            assert mov._audioTrack is None
+            assert output.closed
+            assert not stream._thread.is_alive()
+            assert stream not in movies.audiostream._openAudioStreams
+
+    def test_volumeAppliesToAudioStream(self, win, movieLib,
+                                        audioOutputStandIn):
+        """Volume and muting are applied to the stream's output."""
+        with movieStim(win, movieLib, noAudio=False) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            output = audioOutputStandIn.made[-1]
+
+            mov.volume = 0.25
+            assert output.volume == pytest.approx(0.25)
+            assert mov.volume == pytest.approx(0.25)
+
+            mov.muted = True
+            assert mov.muted
+            assert output.volume == 0.0
+            mov.muted = False
+            assert output.volume == pytest.approx(0.25)
+
+    def test_underflowKeepsTime(self, win, movieLib, audioOutputStandIn,
+                                monkeypatch):
+        """Audio played before it has decoded is made up with silence, and as
+        much audio is skipped once it has, so that it stays in time."""
+        release = threading.Event()
+        decodeNext = movies.MovieAudioStream._decodeNext
+
+        def gated(self):
+            release.wait(10.0)
+            return decodeNext(self)
+
+        monkeypatch.setattr(movies.MovieAudioStream, '_decodeNext', gated)
+        expected = _decodeMovieAudio(audioOutputStandIn.sampleRate)
+
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+
+            silence, atEnd = stream._read(1000)
+            assert not atEnd
+            np.testing.assert_array_equal(silence, 0.0)
+
+            release.set()
+            stream.waitUntilReady(10.0)
+            # Ready only promises `prefillSamples` (4800) are queued, so read
+            # no more than that, counting the 1000 skipped to make up for the
+            # silence, or this can underflow again on a slow machine
+            samples, _ = stream._read(3000)
+            np.testing.assert_allclose(
+                samples, expected[1000:4000], atol=1e-6)
+
+    @pytest.mark.parametrize('inBackground', [False, True])
+    def test_audioStreamErrorRaised(self, win, movieLib, audioOutputStandIn,
+                                    monkeypatch, inBackground):
+        """An error decoding the audio before any could be is raised by
+        loading the movie, or by `play()` if loading it in the background,
+        after which the movie plays without it."""
+        def broken(self, frame):
+            raise RuntimeError('broken audio track')
+
+        monkeypatch.setattr(movies.MovieAudioStream, '_resample', broken)
+
+        if not inBackground:
+            with pytest.raises(RuntimeError, match='broken audio track'):
+                with movieStim(win, movieLib, noAudio=False):
+                    pass
+            return
+
+        with movieStim(win, movieLib, noAudio=False,
+                       loadAudioInBackground=True) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+
+            with pytest.raises(RuntimeError, match='broken audio track'):
+                mov.play()
+            assert mov._audioTrack is None
+            assert audioOutputStandIn.made[-1].closed
+
+            mov.play()
+            assert mov.isPlaying
+
+    def test_sampleQueueWrapsAround(self, win, movieLib):
+        """The queue samples are decoded into hands them back in order as it
+        wraps around its ring buffer, and takes no more than it holds."""
+        queue = movies.audiostream._SampleQueue(10, 2)
+        samples = np.arange(60, dtype=np.float32).reshape(30, 2)
+
+        assert queue.push(samples[:7]) == 7
+        np.testing.assert_array_equal(queue.pop(5), samples[:5])
+        assert queue.push(samples[7:20]) == 8  # wraps, and fills it
+        assert queue.space == 0
+        assert queue.skip(1) == 1
+        np.testing.assert_array_equal(queue.pop(100), samples[6:15])
+        assert len(queue) == 0
+
+    @pytest.fixture
+    def closeNewSoundDeviceStreams(self):
+        """Close any `sounddevice` output streams the test opens.
+
+        The `sounddevice` backend keeps a device's stream open, its callback
+        running, for as long as the process lives. Left open, it would keep
+        playing (silence) through every test after this one."""
+        try:
+            from psychopy.sound import backend_sounddevice
+        except Exception:
+            yield
+            return
+
+        streams = backend_sounddevice.streams
+        before = set(streams)
+        yield
+
+        for label in set(streams) - before:
+            stream = streams.pop(label)
+            sdStream = getattr(stream, '_sdStream', None)
+            if sdStream is None:
+                continue
+            try:
+                sdStream.stop()
+                sdStream.close()
+            finally:
+                # so the `__del__` it registered to run at exit has nothing
+                # left to stop
+                del stream._sdStream
+
+    @pytest.mark.parametrize('audioLib', ['ptb', 'sounddevice'])
+    @pytest.mark.usefixtures('closeNewSoundDeviceStreams')
+    def test_streamPlaysOnSpeaker(self, win, movieLib, audioLib, monkeypatch):
+        """The stream plays on a real speaker through each audio library,
+        silently, keeping its place when paused. Skipped where there's no
+        speaker (or library) to play on."""
+        import psychopy.sound
+
+        monkeypatch.setattr(psychopy.sound.Sound, 'backend', audioLib)
+        if movies.getAudioStreamBackend() != audioLib:
+            pytest.skip('{} audio library not available'.format(audioLib))
+        try:
+            output = movies.audiostream._makeAudioOutput(volume=0.0)
+            output.close()
+        except Exception as err:
+            pytest.skip('no speaker to play on ({})'.format(err))
+
+        with movieStim(win, movieLib, noAudio=False, volume=0.0) as mov:
+            self._skipIfDecoderPlaysAudio(mov, movieLib)
+            stream = mov._audioTrack
+            assert isinstance(stream, movies.MovieAudioStream)
+
+            stream.play()
+            time.sleep(0.5)
+            assert stream.isPlaying
+            stream.pause()
+
+            # paused about where it got to, give or take the speaker's latency
+            assert stream._target == pytest.approx(0.5, abs=0.1)
+            with stream._cond:
+                assert stream._deficit == 0  # it kept up
 
 
 # --------------------------------------------------------------------------
@@ -3114,9 +3568,11 @@ class TestBuilderMovieEndRoutine:
 
         def checkNextRoutineStarts(row, name, probeRow):
             # straight away, so stopping the movie as the Routine ends (which
-            # reloads it) doesn't hold up the experiment
+            # reloads it) doesn't hold up the experiment. This takes ~10ms, but
+            # is given as long as `test_stopLeavesDecodingAheadToPlay` gives it,
+            # since a CI machine can stall for a few hundred ms at any time.
             gap = probeRow['probe.started'] - row[name + '.stopped']
-            assert 0.0 <= gap < 0.25, (
+            assert 0.0 <= gap < 1.0, (
                 "`probe` started {}s after `{}` ended.".format(gap, name))
 
         # "Force end of Routine" on: the Routine ended with the movie, well
@@ -3175,8 +3631,12 @@ class TestBuilderMovieEndRoutine:
             assert row['probe.timesHeld'], (
                 "A movie moved on after its Routine ended.")
 
-        # and stopping a movie leaves no decoding threads behind
+        # and stopping a movie leaves no decoding threads behind, which would
+        # leave more running after the second repeat than after the first.
+        # This counts every thread in the process, so there can be fewer:
+        # movies from earlier tests (such as this one with another backend)
+        # stop their decode threads whenever the garbage collector frees them.
         threads = [row['probe.threads'] for row in earlyRows]
-        assert threads[0] == threads[1], (
+        assert threads[1] <= threads[0], (
             "{} threads were running after the first repeat of "
             "`movieEarlyEnd`, {} after the second.".format(*threads))

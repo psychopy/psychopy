@@ -17,6 +17,11 @@ from psychopy.experiment.components.sound import SpeakerDeviceBackend
 # shown and written
 HARDWARE_DECODING_BACKENDS = ('pyav',)
 
+# Backends whose audio PsychoPy plays itself, rather than the decoder, for
+# which the option to extract the audio track rather than stream it is shown
+# and written (see `MovieStim(extractAudioTrack=...)`)
+AUDIO_TRACK_BACKENDS = ('pyav', 'opencv')
+
 
 class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
     """An event class for presenting movie-based stimuli"""
@@ -35,7 +40,8 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='pyav',
                  loop=False, volume=1, noAudio=False,
-                 stopWithRoutine=True, hardwareDecoding=False
+                 stopWithRoutine=True, hardwareDecoding=False,
+                 extractAudioTrack=False
                  ):
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -49,6 +55,7 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
         # comes immediately after name and timing params
         self.order += ['movie', 'forceEndRoutine', # Basic tab
                        'loop', 'No audio', 'backend', 'hardwareDecoding',
+                       'extractAudioTrack',
                        ]
 
         # params
@@ -103,6 +110,34 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
              "param": "volume",  # param property to alter
              "true": "show",  # what to do with param if condition is True
              "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        msg = _translate(
+            "Load the movie's whole audio track into memory when the movie "
+            "loads, rather than reading it from the movie file a little at a "
+            "time as the movie plays. Takes longer to load and more memory "
+            "for long movies, but leaves less to do while the movie plays.")
+        self.params['extractAudioTrack'] = Param(
+            extractAudioTrack, valType='bool', inputType="bool",
+            categ='Playback', updates='constant', hint=msg,
+            label=_translate("Extract audio track"))
+        # only shown for the backends whose audio PsychoPy plays itself...
+        self.depends.append(
+            {"dependsOn": "backend",
+             "condition": "in {!r}".format(list(AUDIO_TRACK_BACKENDS)),
+             "param": "extractAudioTrack",
+             "true": "show",
+             "false": "hide",
+             }
+        )
+        # ...and only of use with audio
+        self.depends.append(
+            {"dependsOn": "No audio",
+             "condition": "==False",
+             "param": "extractAudioTrack",
+             "true": "enable",
+             "false": "disable",
              }
         )
 
@@ -244,6 +279,12 @@ class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
         if self.params['backend'].val in HARDWARE_DECODING_BACKENDS and \
                 self.params['hardwareDecoding']:
             code += ", hardwareDecoding=%(hardwareDecoding)s"
+        # Likewise only for backends whose audio PsychoPy plays itself, and
+        # only when there's audio to play
+        if self.params['backend'].val in AUDIO_TRACK_BACKENDS and \
+                self.params['extractAudioTrack'] and \
+                not self.params['No audio']:
+            code += ", extractAudioTrack=%(extractAudioTrack)s"
         buff.writeIndentedLines((code + "\n") % params)
         buff.setIndentLevel(-1, relative=True)
         code = (

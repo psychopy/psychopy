@@ -64,6 +64,7 @@ from .readers import (
     supportsHardwareDecoding, hardwareDecodingBackends)
 from .readers._base import (
     defaultTimeout, _openMovieReaders, _hardwareDecodingProblem)
+from .audiostream import MovieAudioStream, getAudioStreamBackend
 
 # threshold to stop reporting dropped frames
 reportNDroppedFrames = 10
@@ -456,10 +457,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         then this must be `'sdl2'` for audio playback, and if `movieLib` is
         `'vlc'` it must be `'vlc'`. If `None`, the default audio library for
         the `movieLib` will be used (this will be `'sdl2'` for
-        `movieLib='ffpyplayer'`, `'vlc'` for `movieLib='vlc'`, and
-        extracted-track playback via `psychopy.sound.Sound` for
-        `movieLib='pyav'` and `movieLib='opencv'`, since neither library
-        provides its own audio playback). This parameter is ignored for those 
+        `movieLib='ffpyplayer'`, `'vlc'` for `movieLib='vlc'`, and playback
+        through PsychoPy's own audio library for `movieLib='pyav'` and
+        `movieLib='opencv'`, since neither library provides its own audio
+        playback, see `extractAudioTrack`). This parameter is ignored for those
         backends.
     units : str
         Units to use when sizing the video frame on the window, affects how
@@ -520,18 +521,41 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     audioDevice : :class:`~psychopy.hardware.speaker.SpeakerDevice`, str, int or None
         Speaker to play the movie's audio on, as a device, the name of one
         registered with `DeviceManager`, or an index or name to open one with.
-        Only used when the audio is played via `psychopy.sound.Sound` (the
-        `pyav` and `opencv` backends). If `None`, the default speaker is used.
+        Only used when the audio is played through PsychoPy's own audio
+        library (the `pyav` and `opencv` backends). If `None`, the default
+        speaker is used.
     audioConfig : dict or None
         Options for loading the movie's audio track. `'fps'` sets the sample
-        rate it's decoded at, otherwise the speaker's rate is used.
+        rate it's decoded at with `extractAudioTrack=True`, otherwise the
+        speaker's rate is used. Streamed audio is always decoded at the
+        speaker's rate.
+    extractAudioTrack : bool
+        How the movie's audio is played, when played through PsychoPy's own
+        audio library (the `pyav` and `opencv` backends only). If `False` (the
+        default), the audio stream is read from the movie file with PyAV as
+        the movie plays, a little ahead of where it's playing, and fed to the
+        speaker as it goes. That starts playing as soon as the movie is loaded
+        whatever its length, and holds only a second or two of audio in memory.
+        If `True`, the whole audio track is extracted from the movie file when
+        it's loaded, decoded into memory, and played as a
+        `psychopy.sound.Sound`. That takes a moment for a long movie, and
+        memory for all of it (~23 MB a minute in stereo at 48 kHz), but leaves 
+        nothing to decode while the movie plays. Audio can only be streamed 
+        through the `ptb` and `sounddevice` audio libraries, and is extracted 
+        with any other. What to use depends on backend support and use case.
+        Generally, it is more efficient to extract the audio track for short
+        movies, if seeking often, or looping, as no additional decoding is 
+        needed after extraction. For longer movies, one-shot playback, or on 
+        low-memory systems, disabling extracting the audio track is better.
     loadAudioInBackground : bool
         Decode the movie's audio track in the background, rather than waiting
-        for it to load along with the movie. For a long movie that takes a
-        second or so, which loading the movie then doesn't wait for. If `play()`
-        is called before the track has loaded, it waits for it, so leave time
-        between loading and playing the movie (check `isAudioReady`), or the
-        wait lands in the drawing loop instead. Default is `False`.
+        for it to load along with the movie. With `extractAudioTrack=True`, for
+        a long movie that takes a second or so, which loading the movie then
+        doesn't wait for. If `play()` is called before the track has loaded, it
+        waits for it, so leave time between loading and playing the movie
+        (check `isAudioReady`), or the wait lands in the drawing loop instead.
+        Streamed audio only needs a moment's audio decoded before it can play,
+        so there is little to wait for either way. Default is `False`.
     downscaleFrames : bool
         Scale frames down to the size the movie is drawn at as they are
         decoded, if smaller than the movie's own. This is much less to copy to
@@ -617,6 +641,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  autoStart=True,
                  audioDevice=None,
                  audioConfig=None,
+                 extractAudioTrack=False,
                  loadAudioInBackground=False,
                  downscaleFrames=True,
                  gpuColorConversion=True,
@@ -723,9 +748,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self._audioLib = 'vlc'
             else:
                 # other decoder backends (`pyav`, `opencv`) do not provide
-                # their own audio playback, so the audio track is extracted and
-                # played back separately via `psychopy.sound.Sound`
-                # (see `_loadAudioTrack`/`_extractAudioTrack`)
+                # their own audio playback, so the audio track is streamed
+                # from the movie file or extracted from it, and played back
+                # separately (see `_loadAudioTrack`)
                 self._audioLib = None
 
         # warn the user if the decoder is playing the audio itself, since 
@@ -754,6 +779,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # whether loading the movie leaves `_audioLoader` decoding the track
         # rather than waiting for it, see `_loadAudioTrack`
         self._loadAudioInBackground = bool(loadAudioInBackground)
+        # whether the audio track is decoded into a `Sound` up front rather
+        # than streamed from the movie file as it plays, see `_loadAudioTrack`
+        self._extractAudioTrack = bool(extractAudioTrack)
 
         # Whether frames are scaled down to the size they're drawn at as they
         # are decoded, and the size and filter the decoder was last given for
@@ -900,9 +928,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         `ffpyplayer` (through SDL2) and VLC play the audio themselves, so
         volume and muting are controlled on the movie reader. The other
-        backends decode video only, and their audio is played back by a
-        separate `Sound` object holding the track extracted by
-        `_extractAudioTrack`.
+        backends decode video only, and their audio is played back separately
+        by `_audioTrack`, see `_loadAudioTrack`.
 
         """
         return self._audioLib in ('sdl', 'sdl2', 'vlc')
@@ -1014,7 +1041,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # Load the audio track to play alongside the video. This needs to be
         # done before the movie is opened by the player to avoid file access
-        # issues. The track is decoded into memory (in the background if
+        # issues. The track is opened to stream from the movie file, or
+        # decoded into memory with `extractAudioTrack` (in the background if
         # `loadAudioInBackground`), or kept from before if this is the same
         # movie being reloaded, as by `stop()`.
         disableAudio = False
@@ -1307,10 +1335,36 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         return nOut
 
-    def _loadAudioTrack(self):
-        """Load the movie's audio track into a `Sound` for playback.
+    @property
+    def _streamsAudio(self):
+        """Whether the audio track is streamed from the movie file as it plays,
+        rather than extracted into a `Sound` up front (`bool`). See
+        `extractAudioTrack`."""
+        if self._extractAudioTrack:
+            return False
 
-        The `Sound` is made here, which opens the speaker, and the track is
+        if getAudioStreamBackend() is None:
+            logging.warning(
+                "Movie audio can only be streamed through the 'ptb' or "
+                "'sounddevice' audio libraries, so the audio track of {} is "
+                "extracted instead.".format(self._filename))
+            self._extractAudioTrack = True  # not to say so every time
+            return False
+
+        return True
+
+    def _loadAudioTrack(self):
+        """Load the movie's audio track for playback.
+
+        By default the track is streamed: opened as a `MovieAudioStream`, which
+        decodes it from the movie file a little ahead of where it's playing,
+        and starts decoding the start of it in the background. Loading the
+        movie waits for enough of that to start playing from, unless
+        `loadAudioInBackground` was set. See `_loadAudioStream`.
+
+        With `extractAudioTrack`, the whole track is decoded into a `Sound`
+        instead. The `Sound` is made here, which opens the speaker, and the
+        track is
         decoded into it on a background thread (see `_AudioTrackLoader`). This
         waits for it to finish unless `loadAudioInBackground` was set, in which
         case `play()` waits for it if it hasn't finished by then, see
@@ -1342,6 +1396,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 return
 
             self._cleanupAudioTrack()
+
+        if self._streamsAudio:
+            self._loadAudioStream(source)
+            return
 
         logging.debug("Loading audio track from movie file: {}".format(
             self._filename))
@@ -1406,9 +1464,45 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             loader.wait()
             self._finishAudioLoad()
 
+    def _loadAudioStream(self, source):
+        """Open the movie's audio track to stream as it plays, see
+        `_loadAudioTrack`.
+
+        Parameters
+        ----------
+        source : tuple
+            What the track is loaded from, as `_getAudioSource()` gives it.
+
+        """
+        logging.debug("Opening audio track to stream from movie file: "
+                      "{}".format(self._filename))
+        t0 = time.time()
+
+        stream = MovieAudioStream.open(
+            self._filename, speaker=self._audioDevice, volume=self._volume)
+        if stream is None:
+            logging.warning(
+                "Movie file has no audio track, no audio will be played "
+                "for: {}".format(self._filename))
+            return
+
+        self._audioTrack = stream
+        self._audioTrackSource = source
+
+        if not self._loadAudioInBackground:
+            # wait for enough to start playing, raising any error decoding it
+            self._finishAudioLoad()
+
+        logging.debug(
+            "Audio track opened to stream at {} Hz in {:.3f} seconds".format(
+                stream.sampleRate, time.time() - t0))
+
     def _finishAudioLoad(self, wait=True):
         """Finish loading the audio track once it has decoded, see
         `_loadAudioTrack`.
+
+        For a streamed track, that's once enough has decoded to start playing
+        from where it was last seeked to.
 
         Parameters
         ----------
@@ -1422,6 +1516,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             is still decoding and `wait` is `False`.
 
         """
+        if isinstance(self._audioTrack, MovieAudioStream):
+            return self._finishAudioStreamLoad(wait)
+
         loader = self._audioLoader
         if loader is None:
             return True
@@ -1472,6 +1569,32 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         return True
 
+    def _finishAudioStreamLoad(self, wait=True):
+        """`_finishAudioLoad()` for a streamed track."""
+        stream = self._audioTrack
+
+        if not stream.isReady:
+            if not wait:
+                return False
+
+            t0 = time.time()
+            stream.waitUntilReady()
+            waited = time.time() - t0
+            logFunc = logging.warning \
+                if waited > (self.win.monitorFramePeriod or 1 / 60.) \
+                else logging.debug
+            logFunc(
+                "Movie {} was played before its audio had decoded, so waited "
+                "{:.3f} seconds for it.".format(self._filename, waited))
+
+        if stream.error is not None:
+            # nothing could be decoded, so play the movie without it
+            error = stream.error
+            self._cleanupAudioTrack()
+            raise error
+
+        return True
+
     def _restartAudioTrack(self):
         """Play the extracted audio track again from the start, as when the
         movie loops.
@@ -1498,7 +1621,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Clean up the audio track.
 
         This function stops the audio track if it is playing and releases it,
-        stopping it decoding first if it still is.
+        stopping it decoding first if it still is (and closing the movie file
+        a streamed track is decoded from).
 
         """
         if self._audioLoader is not None:
@@ -1506,7 +1630,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioLoader = None
 
         if self._audioTrack is not None:
-            if hasattr(self._audioTrack, 'stop'):
+            if isinstance(self._audioTrack, MovieAudioStream):
+                self._audioTrack.close()
+            elif hasattr(self._audioTrack, 'stop'):
                 self._audioTrack.stop()
             self._audioTrack = None
 
@@ -2470,9 +2596,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         With `loadAudioInBackground=True`, the audio track is decoded in the
         background after the movie loads, so that loading doesn't wait for it,
         and `play()` waits for it if it hasn't finished. For a long movie this
-        can take a second or so, so check this to leave time for it before
-        playing. Always `True` otherwise, as it is for a movie without an
-        audio track, or with audio disabled.
+        can take a second or so with `extractAudioTrack=True`, so check this to
+        leave time for it before playing. Always `True` otherwise, as it is for
+        a movie without an audio track, or with audio disabled.
+
+        Streamed audio (the default) is ready once enough of it has decoded to
+        start playing from where the movie is, which takes a moment after
+        loading or seeking.
 
         Raises any error decoding the audio track ran into.
 
@@ -2509,6 +2639,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
           background after the movie loads. If it hasn't finished, this waits
           for it first, delaying playback. Check `isAudioReady` to leave time
           for it.
+        * Streamed audio (the default) is started from wherever the movie is,
+          which means decoding it from there unless it's where the audio was
+          left (as it is after loading, or `stop()`). That takes a few
+          milliseconds, which this waits for.
         * When the decoder plays the audio itself (`ffpyplayer` and `vlc`), it
           is started on the first `draw()` at or after `when`, so the audio
           onset is only as precise as the drawing loop.
