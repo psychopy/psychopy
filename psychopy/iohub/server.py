@@ -658,7 +658,16 @@ class ioServer():
         try:
             for iodevice in config.get('monitor_devices', ()):
                 for dev_cls_name, dev_conf in iodevice.items():
-                    self.createNewMonitoredDevice(dev_cls_name, dev_conf)
+                    # catch errors per device so one failing device (e.g. a
+                    # missing optional dependency) doesn't prevent the
+                    # remaining devices from being created
+                    try:
+                        self.createNewMonitoredDevice(dev_cls_name, dev_conf)
+                    except Exception:
+                        # createNewMonitoredDevice already printed details
+                        print2err(
+                            'Skipping device that failed to start: ',
+                            dev_cls_name)
         except Exception:
             print2err('Error during device creation ....')
             printExceptionDetailsToStdErr()
