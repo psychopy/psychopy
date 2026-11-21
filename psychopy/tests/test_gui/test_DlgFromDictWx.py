@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-
 import pytest
+wx = pytest.importorskip("wx")
 
 
-@pytest.mark.needs_wx
 class TestDlgFromDictWx:
     def setup_method(self):
         self.d = dict(
