@@ -315,6 +315,25 @@ class ExperimentHandler(_ComparisonMixin, FileSaveMixin):
         if priority is not None:
             self.setPriority(name, priority)
 
+    def addRecursiveData(self, name, value, row=None, priority=None):
+        """
+        Add data recursively to the experiment data file - data that's given as a dict will 
+        create a column for each key, and entries within that which are dicts will create a column 
+        for each key in it, ad infinitum.
+
+        Parameters
+        ----------
+        Same as .addData
+        """
+        if isinstance(value, dict):
+            # if data is a dict, add each part as its own column
+            for key, val in value.entries():
+                self.addRecursiveData(f"{name}.{key}", val, row=row, priority=priority)
+        else:
+            # otherwise add just this entry
+            self.addData(name, value, row=row, priority=priority)
+    
+
     def addAnnotation(self, value):
         """
         Add an annotation at the current point in the experiment
