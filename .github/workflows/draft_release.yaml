@@ -54,7 +54,7 @@ jobs:
       - name: Work out filter from version
         id: filter
         run: |
-          if [[ $TAG" == "dev" || "$TAG" == *.0 ]]; then
+          if [[ "$TAG" == "dev" || "$TAG" == *.0 ]]; then
             # for a major release (x.x.0) or dev branch, include PRs to all branches
             echo "args=" >> "$GITHUB_OUTPUT"
           elif [[ "$TAG" == "release" || "$TAG" =~ \.[1-9][0-9]*$ ]]; then
