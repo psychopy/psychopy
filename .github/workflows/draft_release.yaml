@@ -12,10 +12,10 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Tag of the release to regenerate notes for
+        description: Tag of the release or branch to regenerate notes for
         required: true
       dryrun:
-        description: If checked, just create the file, don't actually create/update the release
+        description: Just create the file, without touching releases
         type: boolean
         default: false
 
@@ -51,9 +51,20 @@ jobs:
         run: |
           uv pip install requests
       
+      - name: Work out filter from version
+        id: filter
+        run: |
+          if [[ $TAG" == "dev" || "$TAG" == *.0 ]]; then
+            # for a major release (x.x.0) or dev branch, include PRs to all branches
+            echo "args=" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == "release" || "$TAG" =~ \.[1-9][0-9]*$ ]]; then
+            # for a bugfix release or release branch, only include PRs to the release branch
+            echo "args=--filter release" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate draft release notes
         run: |
-          uv run --no-project 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ !endsWith(env.TAG, '.0') && '--filter release' || '' }}
+          uv run --no-project 'psychopy/building/releaseNotes.py' --token ${{ secrets.GITHUB_TOKEN }} ${{ steps.filter.outputs.args }}
 
       - name: Upload release notes
         uses: actions/upload-artifact@v4
@@ -64,7 +75,7 @@ jobs:
 
       - name: Check for existing release
         id: existing
-        if: "!inputs.dryrun"
+        if: "!inputs.dryrun && env.TAG != 'dev' && env.TAG != 'release'"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -76,7 +87,7 @@ jobs:
           fi
 
       - name: Create draft release
-        if: "!inputs.dryrun && steps.existing.outputs.exists == 'false'"
+        if: "!inputs.dryrun && env.TAG != 'dev' && env.TAG != 'release' && steps.existing.outputs.exists == 'false'"
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
