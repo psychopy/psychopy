@@ -15,6 +15,9 @@ on:
       tag:
         description: Tag of the release to regenerate notes for
         required: true
+      dryrun:
+        description: If checked, just create the file, don't actually create/update the release
+        default: false
 
 permissions:
   contents: write
@@ -61,6 +64,7 @@ jobs:
 
       - name: Check for existing release
         id: existing
+        if: "!inputs.dryrun"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -72,7 +76,7 @@ jobs:
           fi
 
       - name: Create draft release
-        if: steps.existing.outputs.exists == 'false'
+        if: "!inputs.dryrun && steps.existing.outputs.exists == 'false"
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
