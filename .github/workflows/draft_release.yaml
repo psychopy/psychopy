@@ -1,6 +1,5 @@
 name: Create a draft release for a tag
 
-# will run in root folder devops/devops/
 # and we will create the following (which will persist until next run):
 # - ./versions_upload/python #executable
 # - psychopy #repo
@@ -17,6 +16,7 @@ on:
         required: true
       dryrun:
         description: If checked, just create the file, don't actually create/update the release
+        type: boolean
         default: false
 
 permissions:
@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Create draft release
-        if: "!inputs.dryrun && steps.existing.outputs.exists == 'false"
+        if: "!inputs.dryrun && steps.existing.outputs.exists == 'false'"
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
