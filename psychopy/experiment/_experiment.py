@@ -246,6 +246,32 @@ class Experiment:
         """What kind of eyetracker this experiment is set up for"""
         return self.settings.params['eyetracker']
 
+    def usesEyetracker(self, element=None):
+        """
+        Is an eyetracker configured for this experiment (or for a particular element in it)?
+
+        Parameters
+        ----------
+        element : BaseComponent or BaseStandaloneRoutine, optional
+            If given, an element is considered to have an eyetracker if its "Device" param names
+            one, even if no eyetracker is configured in Experiment Settings.
+
+        Returns
+        -------
+        bool
+            True if an eyetracker is configured, either in Experiment Settings (legacy) or in
+            Device Manager.
+        """
+        # eyetracker from Experiment Settings (legacy)
+        if self.eyetracking not in (None, "", "None"):
+            return True
+        # eyetracker named by the given element
+        if element is not None and 'deviceLabel' in element.params:
+            if element.params['deviceLabel'].val not in (None, "", "None"):
+                return True
+        # eyetracker from Device Manager used by any element
+        return bool(self.settings.getEyetrackerDevices())
+
     @property
     def legacyFilename(self):
         """

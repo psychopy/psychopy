@@ -10,11 +10,14 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.components import BaseDeviceComponent, Param, _translate
+from psychopy.experiment.eyetracking import (
+    MouseGazeEyetrackerDeviceBackend, getEyetrackerDeviceCode
+)
 from psychopy.alerts import alert
 
 
-class EyetrackerRecordComponent(BaseComponent):
+class EyetrackerRecordComponent(BaseDeviceComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
@@ -30,18 +33,25 @@ class EyetrackerRecordComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  actionType="Start and Stop",
                  stopWithRoutine=False,
+                 deviceLabel="",
                  # legacy
                  save='final', configFile='myTracker.yaml'):
-        BaseComponent.__init__(self, exp, parentName, name=name,
-                               startType=startType, startVal=startVal,
-                               stopType=stopType, stopVal=stopVal,
-                               startEstim=startEstim, durationEstim=durationEstim)
+        BaseDeviceComponent.__init__(self, exp, parentName, name=name,
+                                     startType=startType, startVal=startVal,
+                                     stopType=stopType, stopVal=stopVal,
+                                     startEstim=startEstim, durationEstim=durationEstim,
+                                     deviceLabel=deviceLabel)
         self.type = 'EyetrackerRecord'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
         self.exp.requireImport(
             importName="EyetrackerControl",
             importFrom="psychopy.hardware.eyetracker"
+        )
+
+        self.params['deviceLabel'].hint = _translate(
+            "The eyetracker from Device Manager to use. Leave blank to use the eyetracker set in "
+            "Experiment Settings."
         )
 
         self.params['actionType'] = Param(
@@ -123,10 +133,12 @@ class EyetrackerRecordComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tracker=eyetracker,\n"
+                "tracker=%(tracker)s,\n"
                 "actionType=%(actionType)s\n"
         )
-        buff.writeIndentedLines(code % inits)
+        buff.writeIndentedLines(code % dict(
+            inits, tracker=getEyetrackerDeviceCode(inits['deviceLabel'])
+        ))
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")"
@@ -137,7 +149,7 @@ class EyetrackerRecordComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         # Alert user if eyetracking isn't setup
-        if self.exp.eyetracking == "None":
+        if not self.exp.usesEyetracker(self):
             alert(code=4505)
 
         buff.writeIndented("\n")
@@ -193,3 +205,6 @@ class EyetrackerRecordComponent(BaseComponent):
                 "%(name)s.stop()  # ensure eyetracking has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
+
+
+EyetrackerRecordComponent.registerBackend(MouseGazeEyetrackerDeviceBackend)

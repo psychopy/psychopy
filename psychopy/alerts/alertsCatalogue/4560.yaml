@@ -1,0 +1,22 @@
+code: 4560
+cat: Eyetracking
+msg: The eyetracker ({eyetracker}) is set in Experiment Settings, which is deprecated. Eyetrackers should now be set up in Device Manager.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Eyetracker set in Experiment Settings (deprecated)
+
+synopsis: |
+  Eyetrackers can now be set up in Device Manager, like other hardware devices, so that their settings are stored on
+  each computer rather than in the experiment file. Setting the eyetracker in Experiment Settings still works, but may
+  be removed in a future version.
+
+details: |
+
+
+solutions: |
+  Add your eyetracker in Device Manager, then select it in the "Device" setting of your eyetracking Components and
+  Routines (e.g. Eyetracker Record, ROI, Eyetracker Calibration and Eyetracker Validation). Then set the
+  Eyetracking -> Eyetracker device setting in Experiment Settings to "None".
+
+versions: |
+  >=2027.1.0

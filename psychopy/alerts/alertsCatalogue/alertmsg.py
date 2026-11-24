@@ -129,6 +129,14 @@ _translate(
 _translate(
     "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting")
 
+# Alert 4555
+_translate(
+    "More than one eyetracker is configured ({eyetrackers}), but only one can be used at a time. Only {eyetracker} will be used.")
+
+# Alert 4560
+_translate(
+    "The eyetracker ({eyetracker}) is set in Experiment Settings, which is deprecated. Eyetrackers should now be set up in Device Manager.")
+
 # Alert 4605
 _translate(
     "Audio transcription service \"{transcriber}\" is not supported online.")

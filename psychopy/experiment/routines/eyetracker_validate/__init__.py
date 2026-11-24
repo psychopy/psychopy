@@ -1,7 +1,10 @@
 from copy import deepcopy
 
-from .. import BaseStandaloneRoutine
+from .. import BaseDeviceRoutine
 from psychopy.localization import _translate
+from psychopy.experiment.eyetracking import (
+    MouseGazeEyetrackerDeviceBackend, getEyetrackerDeviceCode
+)
 from psychopy.experiment import Param
 from pathlib import Path
 from psychopy.alerts import alert
@@ -9,7 +12,7 @@ from psychopy.alerts import alert
 positions = ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", "SEVENTEEN_POINTS"]
 
 
-class EyetrackerValidationRoutine(BaseStandaloneRoutine):
+class EyetrackerValidationRoutine(BaseDeviceRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
     version = "2021.2.0"
@@ -27,13 +30,24 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                  progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
                  movementAnimation=True, movementDur=1.0, targetDelay=1.0,
                  saveAsImg=False, showResults=True,
+                 deviceLabel="",
                  disabled=False
                  ):
         # Initialise base routine
-        BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
+        BaseDeviceRoutine.__init__(
+            self, exp, name=name, deviceLabel=deviceLabel, disabled=disabled
+        )
+        self.params['deviceLabel'].hint = _translate(
+            "The eyetracker from Device Manager to validate. Leave blank to use the eyetracker "
+            "set in Experiment Settings."
+        )
         self.url = "https://psychopy.org/builder/components/eyetracker_validation.html"
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requireImport(
+            importName="EyetrackerValidation",
+            importFrom="psychopy.hardware.eyetracker"
+        )
 
         # Define relationships
         self.depends = [  # allows params to turn each other off/on
@@ -271,7 +285,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
     def writeMainCode(self, buff):
         # Alert user if eyetracking isn't setup
-        if self.exp.eyetracking == "None":
+        if not self.exp.usesEyetracker(self):
             alert(code=4505)
 
         # Get inits
@@ -289,7 +303,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             inits['targetDelay'] = inits['movementDur']
         else:
             inits['movementDur'] = inits['targetDelay']
-        # Convert progress mode to ioHub format
+        # Convert progress mode to a key to progress on
         if inits['progressMode'].val == 'space key':
             inits['progressKey'] = "'space'"
         else:
@@ -299,7 +313,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             inits['targetPositions'].val = inits['targetLayout'].val
             inits['targetPositions'].valType = 'str'
 
-        BaseStandaloneRoutine.writeMainCode(self, buff)
+        BaseDeviceRoutine.writeMainCode(self, buff)
 
         # Make target
         code = (
@@ -324,22 +338,24 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Make validation object
         code = (
             "# define parameters for %(name)s\n"
-            "%(name)s = iohub.ValidationProcedure(win,\n"
+            "%(name)s = EyetrackerValidation(win,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
 
         code = (
-                "target=%(name)sTarget,\n"
-                "gaze_cursor=%(cursorFillColor)s, \n"
-                "positions=%(targetPositions)s, randomize_positions=%(randomisePos)s,\n"
-                "expand_scale=%(expandScale)s, target_duration=%(targetDur)s,\n"
-                "enable_position_animation=%(movementAnimation)s, target_delay=%(targetDelay)s,\n"
-                "progress_on_key=%(progressKey)s, text_color=%(textColor)s,\n"
-                "show_results_screen=%(showResults)s, save_results_screen=%(saveAsImg)s,\n"
-                "color_space=%(colorSpace)s, unit_type=%(units)s\n"
+                "%(tracker)s, %(name)sTarget,\n"
+                "positions=%(targetPositions)s, randomisePos=%(randomisePos)s,\n"
+                "expandScale=%(expandScale)s, targetDur=%(targetDur)s,\n"
+                "movementAnimation=%(movementAnimation)s, targetDelay=%(targetDelay)s,\n"
+                "progressKey=%(progressKey)s, textColor=%(textColor)s,\n"
+                "cursorColor=%(cursorFillColor)s,\n"
+                "showResults=%(showResults)s, saveAsImg=%(saveAsImg)s,\n"
+                "colorSpace=%(colorSpace)s, units=%(units)s\n"
         )
-        buff.writeIndentedLines(code % inits)
+        buff.writeIndentedLines(code % dict(
+            inits, tracker=getEyetrackerDeviceCode(self.params['deviceLabel'])
+        ))
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
@@ -353,3 +369,6 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             "defaultKeyboard.clearEvents()\n"
         )
         buff.writeIndentedLines(code % inits)
+
+
+EyetrackerValidationRoutine.registerBackend(MouseGazeEyetrackerDeviceBackend)
