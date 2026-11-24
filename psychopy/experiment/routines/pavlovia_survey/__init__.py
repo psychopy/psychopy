@@ -3,11 +3,13 @@ from psychopy.experiment.routines import BaseStandaloneRoutine
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 from pathlib import Path
+import json
+import urllib.parse
 
 
 class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     categories = ['Responses']
-    targets = ["PsychoJS"]
+    targets = ["PsychoJS", "PsychoPy"]
     version = "2023.1.0"
     iconFile = Path(__file__).parent / "survey.png"
     iconSVG = Path(__file__).parent / 'PavloviaSurveyRoutine.svg'
@@ -27,6 +29,11 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         del self.params['stopType']
         self.url = "https://psychopy.org/builder/components/advanced_survey.html"
         self.type = "PavloviaSurvey"
+
+        # need visual for WebBrowserStim
+        self.exp.requirePsychopyLibs(
+            ["visual"]
+        )
 
         # Define relationships
         self.depends = []
@@ -87,6 +94,62 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
                 "File path of the JSON file used to construct the survey"
             ),
             label=_translate("Survey JSON"))
+        
+    def writeMainCode(self, buff):
+        # figure out url
+        if self.params['surveyType'] == "json":
+            # get JSON file relative to experiment folder
+            file = Path(self.params['surveyJson'].val)
+            if not file.is_absolute():
+                file = Path(self.exp.filename).parent / file
+            # load JSON from file
+            with file.open("r", encoding="utf-8") as f:
+                surveyJSON = json.load(f)
+            # convert to a url safe string
+            surveyStr = urllib.parse.quote(
+                json.dumps(surveyJSON), safe=""
+            )
+            # construct params from JSON
+            urlParams = f"surveyJSON={surveyStr}"
+        else:
+            urlParams = f"surveyId={self.params['surveyId'].val}"
+        # create stimulus
+        code = (
+            "# --- Prepare to start Routine '%(name)s' ---\n"
+            "%(name)s = visual.WebBrowserStim(\n"
+            "    win,\n"
+            "    url='https://run.pavlovia.org/pavlovia/survey/?{urlParams}',\n"
+            "    name='%(name)s',\n"
+            "    size=(2, 2),\n"
+            "    units='norm'\n"
+            ")\n"
+        ).format(
+            urlParams=urlParams
+        )
+        buff.writeIndentedLines(code % self.params)
+        # run a draw loop until survey is finished
+        code = (
+            "# --- Starting Routine '%(name)s' ---\n"
+            # TODO: need to agree a protocol with PsychoJS for marking survey as finished
+            "while not any(\n"
+            "    msg['type'] == 'event' and msg['tag'] == 'FINISHED' for msg in %(name)s.getMessages(clear=False)\n"
+            "):\n"
+            "    # each frame, until %(name)s survey has finished, render it to the window\n"
+            "    %(name)s.draw()\n"
+            "    win.flip()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # get data when finished
+        code = (
+            "# get data from %(name)s\n"
+            # TODO: need to agree a protocol with PsychoJS for sending data
+            "for msg in %(name)s.getResponses(clear=True).reversed():\n"
+            "    if msg['type'] == 'data':\n"
+            "        thisExp.addRecursiveData('%(name)s', msg['data'])\n"
+            "        # break loop here so we only get the final data that was sent\n"
+            "        break\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineBeginCodeJS(self, buff, modular):
         code = (
