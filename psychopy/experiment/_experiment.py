@@ -349,7 +349,7 @@ class Experiment:
             # Imports
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion, localDateTime)
             # Write "run once" code sections
-            for entry in self_copy.flow:
+            for entry in self_copy.flow.getUniqueEntries():
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writePreCode'):

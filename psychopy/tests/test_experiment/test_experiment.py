@@ -1,10 +1,35 @@
 from psychopy import experiment
+from psychopy.experiment.components.code import CodeComponent
+from psychopy.experiment.loops import TrialHandler
 from psychopy.tests.utils import TESTS_DATA_PATH
 from pathlib import Path
 import esprima
 
 
 class TestExperiment:
+    def test_experiment_hooks_for_repeated_routine(self):
+        exp = experiment.Experiment()
+        routine = exp.addRoutine("question")
+        hooks = {
+            "beforeExp": "print('before_experiment_marker')",
+            "beginExp": "print('begin_experiment_marker')",
+            "beginRoutine": "print('begin_routine_marker')",
+            "endRoutine": "print('end_routine_marker')",
+            "endExperiment": "print('end_experiment_marker')",
+        }
+        routine.addComponent(CodeComponent(exp, routine.name, **hooks))
+        exp.flow.addRoutine(routine, 0)
+        exp.flow.addRoutine(routine, 1)
+        exp.flow.addLoop(TrialHandler(exp, name="warmUp", nReps=1), 0, 1)
+        exp.flow.addLoop(TrialHandler(exp, name="trials", nReps=1), 3, 4)
+
+        script = exp.writeScript(target="PsychoPy")
+        assert script.count(hooks["beforeExp"]) == 1
+        assert script.count(hooks["beginExp"]) == 1
+        assert script.count(hooks["endExperiment"]) == 1
+        assert script.count(hooks["beginRoutine"]) == 2
+        assert script.count(hooks["endRoutine"]) == 2
+
     def test_resources(self):
         def getResources(handled):
             """
