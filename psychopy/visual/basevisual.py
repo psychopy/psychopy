@@ -1339,8 +1339,9 @@ class TextureMixin:
         This is used to pass additional parameters to the mask if those are
         needed.
 
-            - For 'gauss' mask, pass dict {'sd': 5} to control
-                standard deviation.
+            - For a 'gauss' mask, ``sd`` gives the number of Gaussian standard
+              deviations in one mask radius. The default value of 3 gives a
+              standard deviation of one-third of the mask radius.
             - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised
