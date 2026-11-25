@@ -527,6 +527,8 @@ class Window():
         # this will get overridden once the window is created
         self.winHandle = None
         self.useFBO = useFBO
+        # `useFBO` is set to False if an FBO turns out not to be supported
+        self._requestedFBO = useFBO
         self.useRetina = useRetina and sys.platform == 'darwin'
 
         if gammaErrorPolicy not in ['raise', 'warn', 'ignore']:
@@ -4364,6 +4366,12 @@ class Window():
         if requestedFBO and not self.useFBO:
             logging.warning("Framebuffer object (FBO) not supported on "
                             "this graphics card")
+        if self._requestedFBO and not self.useFBO and self.multiSample:
+            # the backend only makes a multisampled back buffer without an FBO
+            logging.warning(
+                "Multisampling was requested for a framebuffer object (FBO), "
+                "which is not supported on this graphics card, stimuli will "
+                "not be anti-aliased")
         if self.blendMode == 'add' and not self.useFBO:
             logging.warning("Framebuffer object (FBO) is required for "
                             "blendMode='add'. Reverting to blendMode='avg'")

@@ -782,9 +782,14 @@ class TestMultisampleFBO:
     @pytest.fixture(scope='class')
     @classmethod
     def msaaWin(cls):
-        win = visual.Window(
-            size=cls.WIN_SIZE, allowGUI=False, autoLog=False, color='black',
-            useFBO=True, multiSample=True, numSamples=4, allowStencil=True)
+        try:
+            win = visual.Window(
+                size=cls.WIN_SIZE, allowGUI=False, autoLog=False,
+                color='black', useFBO=True, multiSample=True, numSamples=4,
+                allowStencil=True)
+        except RuntimeError as err:
+            # the display can't make a window in the configuration needed
+            pytest.skip("could not open a window: {}".format(err))
         if not (win.useFBO and win._frameBufferResolve is not None):
             win.close()
             pytest.skip("multisampled framebuffer objects are not supported")
@@ -809,6 +814,20 @@ class TestMultisampleFBO:
 
     def test_notAntialiasedWithoutInterpolate(self, msaaWin):
         assert self._countEdgePixels(msaaWin, interpolate=False) == 0
+
+    def test_backBufferNotMultisampled(self, msaaWin):
+        """The FBO is multisampled rather than the back buffer it's copied to,
+        so that displays without multisampled back buffers can be used."""
+        import ctypes
+        import psychopy.tools.pygletgl as GL
+
+        samples = GL.GLint()
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        try:
+            GL.glGetIntegerv(GL.GL_SAMPLE_BUFFERS, ctypes.byref(samples))
+        finally:
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, msaaWin.frameBuffer)
+        assert samples.value == 0
 
     def test_withoutMultiSample(self):
         """Without `multiSample` the FBO is made as before."""

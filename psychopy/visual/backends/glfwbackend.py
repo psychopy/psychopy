@@ -472,6 +472,12 @@ class GLFWBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
+        # with an FBO, stimuli are drawn to a multisampled FBO instead (see
+        # `Window._setupFrameBuffer()`), so the back buffer it's copied to
+        # doesn't need to be, and not every display offers one which is
+        if win.useFBO:
+            msaaSamples = 0
+
         # full screen windows use the current video mode of the display unless
         # a refresh rate is explicitly requested
         if win._isFullScr:
