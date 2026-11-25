@@ -362,16 +362,25 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def __del__(self):
-        """Remove textures from graphics card to prevent crash
+        """Remove the display list and textures from graphics card to prevent
+        crash
         """
         try:
-            #if hasattr(self, '_listID'):
-                # GL.glDeleteLists(self._listID, 1)
             # the garbage collector may be running on any thread, so these
             # are freed on the one with the window's OpenGL context
-            callOnGLThread(self.__dict__.get('win'), self.clearTextures)
+            callOnGLThread(self.__dict__.get('win'), self._freeGLObjects)
         except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
             pass  # has probably been garbage-collected already
+
+    def _freeGLObjects(self):
+        """Delete the display list and textures, see `__del__`."""
+        # only made with legacy OpenGL, leaked in the driver unless deleted,
+        # see https://github.com/psychopy/psychopy/issues/7459
+        listID = self.__dict__.pop('_listID', None)
+        if listID:
+            GL.glDeleteLists(listID, 1)
+
+        self.clearTextures()
 
     def _updateListShaders(self):
         """
