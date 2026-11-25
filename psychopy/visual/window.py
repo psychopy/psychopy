@@ -313,7 +313,8 @@ class Window():
                  depthBits=8,
                  stencilBits=8,
                  backendConf=None,
-                 infoMsg=None):
+                 infoMsg=None,
+                 outOfGamut='noise'):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -357,13 +358,23 @@ class Window():
               overlapping stimuli of color 0.5 on a background of 0.0 yields
               1.0 where they overlap, and negative colors darken whatever they
               are drawn over. This requires ``useFBO=True``, otherwise a
-              warning is logged and 'avg' is used instead. Pixels that end up
-              outside the displayable range are shown as red (too high) or
-              blue (too low) noise rather than being clipped.
+              warning is logged and 'avg' is used instead. How pixels that end
+              up outside the displayable range are shown is set by
+              `outOfGamut`.
 
             Can be changed after the window is created by setting
             :py:attr:`~Window.blendMode`. See :ref:`blendMode` for more
             details.
+        outOfGamut : str
+            How pixels whose color is outside the displayable range are shown
+            when ``useFBO=True``, either 'noise' (default) or 'clip'. With
+            'noise', pixels which are too high are shown as red noise and those
+            too low as blue noise, making it obvious that the stimuli requested
+            cannot be displayed as specified. With 'clip', each channel of the
+            pixel is clipped to the nearest displayable value instead. Has no
+            effect if `useFBO` is `False`, since colors are always clipped in
+            that case. Can be changed after the window is created by setting
+            :py:attr:`~Window.outOfGamut`.
         screen : int
             Specifies the physical screen that stimuli will appear on ('pyglet'
             and 'glfw' `winType` only). Values can be >0 if more than one screen
@@ -420,8 +431,8 @@ class Window():
             not clipped to the displayable range while drawing, intermediate
             results can go out of range and back again, which is required for
             ``blendMode='add'``. When copied to the back buffer, any pixels
-            still out of range are shown as red (too high) or blue (too low)
-            noise. Requires a graphics driver supporting floating point
+            still out of range are shown as noise or clipped, depending on
+            `outOfGamut`. Requires a graphics driver supporting floating point
             framebuffers, otherwise a warning is logged and the window is
             created with `useFBO` set to `False`. Note that `multiSample` has no
             effect when `useFBO` is `True`, and reading the 'back' buffer (e.g.,
@@ -606,6 +617,7 @@ class Window():
         else:
             self.__dict__['blendMode'] = blendMode
             # then set up gl context and then call self.setBlendMode
+        self.outOfGamut = outOfGamut
 
         # Only one kind of `winType` can be used at a time, so new windows must
         # use the same `winType` as those already open. Another `winType` can
@@ -3923,6 +3935,22 @@ class Window():
         """
         setAttribute(self, 'blendMode', blendMode, log)
 
+    @attributeSetter
+    def outOfGamut(self, value):
+        """How pixels outside the displayable range are shown (`str`), either
+        'noise' or 'clip'.
+
+        Only applies when the window was created with ``useFBO=True``. See the
+        `outOfGamut` argument of :class:`~psychopy.visual.Window` for details.
+        Takes effect from the next :py:attr:`~Window.flip()`.
+
+        """
+        if value not in ('noise', 'clip'):
+            raise ValueError(
+                "Window outOfGamut should be set to 'noise' or 'clip' but we "
+                "received the value {}".format(repr(value)))
+        self.__dict__['outOfGamut'] = value
+
     @property
     def colorSpace(self):
         """The name of the color space currently being used
@@ -4822,6 +4850,13 @@ class Window():
 
     def _prepareFBOrender(self):
         gltools.useProgram(self._progFBOtoFrame)
+        # set every flip rather than when `outOfGamut` changes, which can be
+        # before the program exists. Ignored if `_progFBOtoFrame` has been
+        # replaced by a program without the uniform.
+        gltools.setUniformValue(
+            self._progFBOtoFrame, b'uClipOutOfGamut',
+            int(self.outOfGamut == 'clip'), unifType='int',
+            ignoreNotDefined=True)
 
     def _finishFBOrender(self):
         gltools.useProgram(None)
