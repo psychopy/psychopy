@@ -345,6 +345,25 @@ class Window():
             overridden by each stimulus). Values can be *None*, 'height' (of the
             window), 'norm' (normalised), 'deg', 'cm', 'pix'. See :ref:`units`
             for explanation of options.
+        blendMode : str
+            How the colors of stimuli are combined with what has already been
+            drawn to the window. Either 'avg' (default) or 'add':
+
+            * 'avg' - Each stimulus is blended with what is behind it,
+              weighted by the stimulus' opacity (i.e., an opaque stimulus
+              replaces what is behind it).
+            * 'add' - The (signed) color of each stimulus, scaled by its
+              opacity, is added to what is behind it. For example, drawing two
+              overlapping stimuli of color 0.5 on a background of 0.0 yields
+              1.0 where they overlap, and negative colors darken whatever they
+              are drawn over. This requires ``useFBO=True``, otherwise a
+              warning is logged and 'avg' is used instead. Pixels that end up
+              outside the displayable range are shown as red (too high) or
+              blue (too low) noise rather than being clipped.
+
+            Can be changed after the window is created by setting
+            :py:attr:`~Window.blendMode`. See :ref:`blendMode` for more
+            details.
         screen : int
             Specifies the physical screen that stimuli will appear on ('pyglet'
             and 'glfw' `winType` only). Values can be >0 if more than one screen
@@ -3851,7 +3870,15 @@ class Window():
 
     @attributeSetter
     def blendMode(self, blendMode):
-        """Blend mode to use."""
+        """Blend mode to use (`str`), either 'avg' or 'add'.
+
+        With 'avg', stimuli are blended with what is behind them according to
+        their opacity. With 'add', the color of each stimulus is added to what
+        is behind it, which requires the window to have been created with
+        ``useFBO=True``. See the `blendMode` argument of
+        :class:`~psychopy.visual.Window` for details.
+
+        """
         self.__dict__['blendMode'] = blendMode
         if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
