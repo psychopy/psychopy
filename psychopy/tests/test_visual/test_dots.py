@@ -153,3 +153,16 @@ class TestDots:
         assert compound.mean() > screen1.mean() and compound.mean() > screen2.mean(), (
             "Dot stimulus does not appear to have moved across two frames."
         )
+
+    def test_advances_once_per_draw(self):
+        dots = visual.DotStim(
+            self.win, nDots=1, fieldSize=(1, 1), units="height",
+            dotLife=10, noiseDots="direction", dir=0, speed=0.1, coherence=1,
+        )
+        dots._verticesBase[:] = 0
+        dots._dotsLife[:] = 5
+
+        dots.draw()
+
+        np.testing.assert_allclose(dots._verticesBase, [[dots.speed, 0]])
+        np.testing.assert_array_equal(dots._dotsLife, [4])
