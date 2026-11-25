@@ -273,6 +273,9 @@ class Window():
 
     """
     USE_LEGACY_GL = pygletgl.USE_LEGACY_GL
+    # framebuffer the multisampled `frameBuffer` is resolved into, if there is
+    # one, see `_setupFrameBuffer()`
+    _frameBufferResolve = None
 
     @closeOnInitError
     def __init__(self,
@@ -408,7 +411,10 @@ class Window():
             multiple color samples will be taken per-pixel, providing an
             anti-aliased image through spatial filtering. This setting cannot
             be changed after opening a window. Only works with 'pyglet' and
-            'glfw' `winTypes`, and `useFBO` is `False`.
+            'glfw' `winTypes`. With ``useFBO=True``, the FBO is multisampled
+            too, if the graphics driver supports multisampling floating point
+            buffers (otherwise a warning is logged and stimuli drawn to the FBO
+            are not anti-aliased).
         numSamples : int
             A single value specifying the number of samples per pixel if
             multisample is enabled. The higher the number, the better the
@@ -434,10 +440,10 @@ class Window():
             still out of range are shown as noise or clipped, depending on
             `outOfGamut`. Requires a graphics driver supporting floating point
             framebuffers, otherwise a warning is logged and the window is
-            created with `useFBO` set to `False`. Note that `multiSample` has no
-            effect when `useFBO` is `True`, and reading the 'back' buffer (e.g.,
-            with :py:attr:`~Window.getMovieFrame()`) returns the contents of the
-            FBO before it is copied to the back buffer. Default is `False`.
+            created with `useFBO` set to `False`. Note that reading the 'back'
+            buffer (e.g., with :py:attr:`~Window.getMovieFrame()`) returns the
+            contents of the FBO before it is copied to the back buffer. Default
+            is `False`.
         useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
@@ -1628,6 +1634,7 @@ class Window():
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
             self.draw3d = False  # disable 3d drawing
+            self._resolveFrameBuffer()  # into `frameTexture`, if multisampled
             self._prepareFBOrender()
             # need blit the framebuffer object to the actual back buffer
 
@@ -3302,6 +3309,11 @@ class Window():
         try:
             # do the reading of the pixels
             if buffer == 'back' and self.useFBO:
+                # a multisampled framebuffer can't be read from directly
+                if self._frameBufferResolve is not None:
+                    self._resolveFrameBuffer()
+                    GL.glBindFramebuffer(
+                        GL.GL_READ_FRAMEBUFFER, self._frameBufferResolve)
                 GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
             elif buffer == 'back':
                 GL.glReadBuffer(GL.GL_BACK)
@@ -4426,13 +4438,15 @@ class Window():
             If `False`, the framebuffer was not complete. Make sure that your
             driver supports the necessary formats.
 
-        """
-        # Setup framebuffer
-        self.frameBuffer = GL.GLuint()
-        GL.glGenFramebuffers(1, ctypes.byref(self.frameBuffer))
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
+        With `multiSample`, stimuli are drawn into multisampled renderbuffers
+        instead of `frameTexture`, which `_resolveFrameBuffer()` resolves into
+        `frameTexture` before it's used. If the driver can't make multisampled
+        renderbuffers in the formats needed, the framebuffer is made without
+        multisampling.
 
-        # Create texture to render to
+        """
+        # texture which ends up holding the frame, drawn to the back buffer by
+        # `flip()`
         self.frameTexture = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self.frameTexture))
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
@@ -4448,42 +4462,36 @@ class Window():
             GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F,
             int(self.size[0]), int(self.size[1]), 0,
             GL.GL_RGBA, GL.GL_FLOAT, None)
-        # attach texture to the frame buffer
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D, 
-            self.frameTexture, 0)
 
-        # add a stencil buffer
-        self._stencilTexture = GL.GLuint()
-        GL.glGenRenderbuffers(1, ctypes.byref(
-            self._stencilTexture))  # like glGenTextures
-        GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, self._stencilTexture)
-        GL.glRenderbufferStorage(
-            GL.GL_RENDERBUFFER,
-            GL.GL_DEPTH24_STENCIL8,
-            int(self.size[0]), int(self.size[1]))
-        GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_DEPTH_ATTACHMENT,
-            GL.GL_RENDERBUFFER,
-            self._stencilTexture)
-        GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_STENCIL_ATTACHMENT,
-            GL.GL_RENDERBUFFER,
-            self._stencilTexture)
+        self.frameBuffer = None
+        self._frameBufferResolve = None
+        if self.multiSample and self.numSamples > 1:
+            maxSamples = GL.GLint()
+            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, ctypes.byref(maxSamples))
+            samples = min(int(self.numSamples), maxSamples.value)
+            drawn = resolved = None
+            if samples > 1:
+                drawn = self._createFrameBuffer(samples)
+            if drawn is not None:
+                resolved = self._createFrameBuffer(0, depthStencil=False)
+            if resolved is not None:
+                self.frameBuffer, self._stencilTexture = drawn[:2]
+                self._frameBufferResolve = resolved[0]
+            else:
+                if drawn is not None:
+                    self._deleteFrameBuffer(*drawn)
+                logging.warning(
+                    "Multisampling is not supported with `useFBO=True` on "
+                    "this graphics card, stimuli will not be anti-aliased")
 
-        # check the framebuffer status
-        status = GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER)
-        if status != GL.GL_FRAMEBUFFER_COMPLETE:
-            logging.error("Error in framebuffer activation")
-            # UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        if self.frameBuffer is None:
+            created = self._createFrameBuffer(0)
+            if created is None:
+                logging.error("Error in framebuffer activation")
+                return False
+            self.frameBuffer, self._stencilTexture = created[:2]
 
-            return False
-        
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
         GL.glDisable(GL.GL_TEXTURE_2D)
 
         # clear the buffers (otherwise the texture memory can contain
@@ -4493,6 +4501,115 @@ class Window():
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
         return True
+
+    def _createFrameBuffer(self, samples, depthStencil=True):
+        """Create a framebuffer object the size of the window.
+
+        Parameters
+        ----------
+        samples : int
+            Samples per pixel. If 0, `frameTexture` is the color attachment,
+            otherwise a multisampled floating point renderbuffer is made for
+            it.
+        depthStencil : bool
+            Give the framebuffer a depth and stencil renderbuffer, with the
+            same number of samples.
+
+        Returns
+        -------
+        tuple or None
+            Handles of the framebuffer, its depth and stencil renderbuffer and
+            its color renderbuffer (`None` for any not made), or `None` if the
+            framebuffer is not complete, in which case nothing is left created.
+
+        """
+        w, h = int(self.size[0]), int(self.size[1])
+
+        def makeRenderbuffer(internalFormat):
+            renderbuffer = GL.GLuint()
+            GL.glGenRenderbuffers(1, ctypes.byref(renderbuffer))
+            GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, renderbuffer)
+            if samples:
+                GL.glRenderbufferStorageMultisample(
+                    GL.GL_RENDERBUFFER, samples, internalFormat, w, h)
+            else:
+                GL.glRenderbufferStorage(
+                    GL.GL_RENDERBUFFER, internalFormat, w, h)
+            GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
+            return renderbuffer
+
+        frameBuffer = GL.GLuint()
+        GL.glGenFramebuffers(1, ctypes.byref(frameBuffer))
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, frameBuffer)
+
+        colorBuffer = None
+        if samples:
+            colorBuffer = makeRenderbuffer(GL.GL_RGBA32F)
+            GL.glFramebufferRenderbuffer(
+                GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0,
+                GL.GL_RENDERBUFFER, colorBuffer)
+        else:
+            GL.glFramebufferTexture2D(
+                GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0,
+                GL.GL_TEXTURE_2D, self.frameTexture, 0)
+
+        depthStencilBuffer = None
+        if depthStencil:
+            depthStencilBuffer = makeRenderbuffer(GL.GL_DEPTH24_STENCIL8)
+            for attachment in (GL.GL_DEPTH_ATTACHMENT,
+                               GL.GL_STENCIL_ATTACHMENT):
+                GL.glFramebufferRenderbuffer(
+                    GL.GL_FRAMEBUFFER, attachment,
+                    GL.GL_RENDERBUFFER, depthStencilBuffer)
+
+        status = GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER)
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        if status != GL.GL_FRAMEBUFFER_COMPLETE:
+            self._deleteFrameBuffer(
+                frameBuffer, depthStencilBuffer, colorBuffer)
+            return None
+
+        return frameBuffer, depthStencilBuffer, colorBuffer
+
+    @staticmethod
+    def _deleteFrameBuffer(frameBuffer, *renderbuffers):
+        """Delete a framebuffer object and renderbuffers made for it.
+
+        Parameters
+        ----------
+        frameBuffer : GLuint
+            Framebuffer to delete.
+        *renderbuffers : GLuint or None
+            Renderbuffers to delete, `None` is skipped.
+
+        """
+        GL.glDeleteFramebuffers(1, ctypes.byref(frameBuffer))
+        for renderbuffer in renderbuffers:
+            if renderbuffer is not None:
+                GL.glDeleteRenderbuffers(1, ctypes.byref(renderbuffer))
+
+    def _resolveFrameBuffer(self):
+        """Resolve the multisampled framebuffer into `frameTexture`.
+
+        Does nothing unless the window has a multisampled framebuffer (made
+        with ``useFBO=True`` and `multiSample`), in which case it must be called
+        before `frameTexture` is read. Leaves `frameBuffer` bound.
+
+        """
+        if self._frameBufferResolve is None:
+            return
+
+        w, h = int(self.size[0]), int(self.size[1])
+        # the scissor rectangle would limit what is copied
+        scissorOn = GL.glIsEnabled(GL.GL_SCISSOR_TEST)
+        GL.glDisable(GL.GL_SCISSOR_TEST)
+        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, self.frameBuffer)
+        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, self._frameBufferResolve)
+        GL.glBlitFramebuffer(
+            0, 0, w, h, 0, 0, w, h, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST)
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
+        if scissorOn:
+            GL.glEnable(GL.GL_SCISSOR_TEST)
 
     @property
     def mouseVisible(self):
