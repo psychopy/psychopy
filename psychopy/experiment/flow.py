@@ -73,18 +73,9 @@ class Flow(list):
         return element
 
     def getUniqueEntries(self):
-        """
-        Get all entries on the flow, without duplicate entries.
-        """
-        # array to store entries in
-        entries = []
-        # iterate through all entries
-        for entry in self:
-            # append if not present
-            if entry not in entries:
-                entries.append(entry)
-
-        return entries
+        """Keep the first occurrence of each flow entry by identity."""
+        entries = {id(entry): entry for entry in self}
+        return list(entries.values())
 
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
@@ -208,7 +199,7 @@ class Flow(list):
         """
         script.writeIndentedLines("\n# Start Code - component code to be "
                                   "run before the window creation\n")
-        for entry in self:
+        for entry in self.getUniqueEntries():
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             # very few components need writeStartCode:
@@ -220,7 +211,7 @@ class Flow(list):
         """
         script.writeIndentedLines("\n# Start Code - component code to be "
                                   "run after the window creation\n")
-        for entry in self:
+        for entry in self.getUniqueEntries():
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             # very few components need writeStartCode:
@@ -312,8 +303,8 @@ class Flow(list):
 
         # writes any components with a writeStartCode()
         self.writeStartCode(script)
-        # writeStartCode and writeInitCode:
-        for entry in self:
+        # Initialize each routine once, even when it appears in multiple loops.
+        for entry in self.getUniqueEntries():
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             if hasattr(entry, 'writeRunOnceInitCode'):
@@ -359,7 +350,7 @@ class Flow(list):
             if hasattr(entry, "writeRoutineEndCode"):
                 entry.writeRoutineEndCode(script)
         # tear-down code (very few components need this)
-        for entry in self:
+        for entry in self.getUniqueEntries():
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
 
