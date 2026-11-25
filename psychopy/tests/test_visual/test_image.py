@@ -185,6 +185,36 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
             # rows are flipped since row 0 is the bottom in OpenGL
             assert (maskData == gradient[::-1]).all(), mode
 
+    def test_gl_objects_freed(self):
+        """
+        Check that the display list and textures of an image are deleted along
+        with it, rather than leaked in the driver when images are made and
+        dropped repeatedly (psychopy/psychopy#7459)
+        """
+        import gc
+        import psychopy.tools.pygletgl as GL
+
+        img = visual.ImageStim(
+            self.win, str(Path(utils.TESTS_DATA_PATH) / 'testimage.jpg'))
+        img.draw()
+        self.win.flip()
+        texIDs = [img._texID.value, img._maskID.value]
+        listID = img._listID if self.win.USE_LEGACY_GL else None
+
+        # make sure they exist to begin with, so the checks below mean something
+        assert all(GL.glIsTexture(texID) for texID in texIDs)
+        if listID is not None:
+            assert GL.glIsList(listID)
+
+        # drop the image, collecting it in case it's in a reference cycle
+        del img
+        gc.collect()
+        self.win.flip()  # run any cleanup deferred to the GL thread
+
+        assert not any(GL.glIsTexture(texID) for texID in texIDs)
+        if listID is not None:
+            assert not GL.glIsList(listID), "display list leaked"
+
     def test_aspect_ratio(self):
         """
         Test that images set with one or both dimensions as None maintain their aspect ratio
