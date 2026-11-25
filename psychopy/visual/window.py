@@ -412,6 +412,21 @@ class Window():
         title : str
             Name of the Window according to your Operating System. This is
             the text which appears on the title sash.
+        useFBO : bool
+            If `True`, stimuli are drawn to an off-screen framebuffer object
+            (FBO) with floating point color precision instead of directly to
+            the back buffer. The FBO is then copied to the back buffer when
+            :py:attr:`~Window.flip()` is called. Since colors in the FBO are
+            not clipped to the displayable range while drawing, intermediate
+            results can go out of range and back again, which is required for
+            ``blendMode='add'``. When copied to the back buffer, any pixels
+            still out of range are shown as red (too high) or blue (too low)
+            noise. Requires a graphics driver supporting floating point
+            framebuffers, otherwise a warning is logged and the window is
+            created with `useFBO` set to `False`. Note that `multiSample` has no
+            effect when `useFBO` is `True`, and reading the 'back' buffer (e.g.,
+            with :py:attr:`~Window.getMovieFrame()`) returns the contents of the
+            FBO before it is copied to the back buffer. Default is `False`.
         useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
