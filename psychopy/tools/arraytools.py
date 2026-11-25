@@ -333,6 +333,9 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
         Passing valid values to this parameter do nothing yet.
     maskParams : dict or None
         Additional parameters to control how the texture's mask is applied.
+        For a 'gauss' mask, ``sd`` gives the number of Gaussian standard
+        deviations in one mask radius. The standard deviation in normalized
+        mask coordinates is ``1 / sd``.
 
     Returns
     -------
@@ -342,11 +345,11 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
 
     Examples
     --------
-    Create a gaussian bump luminance map with resolution 1024x1024 and standard
-    deviation of 0.5::
+    Create a 1024x1024 Gaussian luminance map with a standard deviation of
+    0.5 in normalized mask coordinates::
 
         res = 1024
-        maskParams = {'sd': 0.5}
+        maskParams = {'sd': 2}
         intensity = createLumPattern('gauss', res, None, maskParams)
 
     """
