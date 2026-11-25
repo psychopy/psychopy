@@ -372,6 +372,15 @@ class SoundComponent(BaseDeviceComponent):
                 "%(name)s.pause()  # ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
+        if self.params['saveStartStop']:
+            # store when the sound actually started, according to the audio
+            # driver, which can be later than it was scheduled to
+            code = (
+                "thisExp.addData(\n"
+                "    '%(name)s.startedActual', getattr(%(name)s, 'tStartActual', None)\n"
+                ")\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)  # noinspection
 
@@ -400,6 +409,7 @@ class SpeakerDeviceBackend(DeviceBackend):
         self.order += [
             "latencyClass",
             "resample",
+            "latencyBias",
         ]
         self.params['latencyClass'] = Param(
             1, valType="code", inputType="choice",
@@ -425,7 +435,16 @@ class SpeakerDeviceBackend(DeviceBackend):
                 "we resample it to match?"
             )
         )
-    
+        self.params['latencyBias'] = Param(
+            0, valType="code", inputType="single",
+            label=_translate("Latency bias (s)"),
+            hint=_translate(
+                "Output latency of the speaker in seconds, on top of what its driver reports, as "
+                "measured e.g. with a sound sensor. Sounds are started this much earlier to reach "
+                "the speaker on time."
+            )
+        )
+
     def writeDeviceCode(self, buff):
         """
         Code to setup a device with this backend.
@@ -444,8 +463,11 @@ class SpeakerDeviceBackend(DeviceBackend):
         code = (
             "    resample=%(resample)s,\n"
             "    latencyClass=%(latencyClass)s,\n"
-            ")\n"
         )
+        # only given if set, as speakers of plugin backends may not take it
+        if str(self.params['latencyBias'].val).strip() not in ("", "0", "0.0", "None"):
+            code += "    latencyBias=%(latencyBias)s,\n"
+        code += ")\n"
         buff.writeIndentedLines(code % self.params)
 
 

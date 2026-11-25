@@ -276,7 +276,7 @@ class ButtonComponent(BaseVisualComponent):
         indented = self.writeStartTestCode(buff)
         if indented:
             code = (
-                "win.callOnFlip(%(name)s.buttonClock.reset)\n"
+                "win.resetClockOnFlip(%(name)s.buttonClock)\n"
                 "%(name)s.setAutoDraw(True)\n"
             )
             buff.writeIndentedLines(code % self.params)
