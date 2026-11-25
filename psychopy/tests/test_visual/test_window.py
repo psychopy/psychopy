@@ -766,3 +766,89 @@ class TestOutOfGamut:
         with pytest.raises(ValueError):
             visual.Window(
                 size=self.WIN_SIZE, autoLog=False, outOfGamut='wrap')
+
+
+class TestMultisampleFBO:
+    """Anti-aliasing with `multiSample` when drawing to an FBO.
+
+    Edges of a shape are anti-aliased if pixels along them come out part way
+    between the colors of the shape and the background. `ShapeStim` turns
+    multisampling on or off with `interpolate`, so drawing it without should
+    give only the two colors.
+
+    """
+    WIN_SIZE = (64, 64)
+
+    @pytest.fixture(scope='class')
+    @classmethod
+    def msaaWin(cls):
+        win = visual.Window(
+            size=cls.WIN_SIZE, allowGUI=False, autoLog=False, color='black',
+            useFBO=True, multiSample=True, numSamples=4, allowStencil=True)
+        if not (win.useFBO and win._frameBufferResolve is not None):
+            win.close()
+            pytest.skip("multisampled framebuffer objects are not supported")
+        yield win
+        win.close()
+
+    @staticmethod
+    def _countEdgePixels(win, interpolate):
+        """Draw a white triangle and count the pixels in the back buffer that
+        are neither black nor white."""
+        triangle = visual.Polygon(
+            win, edges=3, radius=0.7, fillColor='white', lineWidth=0,
+            interpolate=interpolate, autoLog=False)
+        triangle.draw()
+        pixels = win._getPixels(buffer='back', includeAlpha=False)
+        win.flip()
+        return int(((pixels > 0) & (pixels < 255)).any(axis=-1).sum())
+
+    def test_antialiased(self, msaaWin):
+        assert self._countEdgePixels(msaaWin, interpolate=True) > 0, (
+            "edges were not anti-aliased")
+
+    def test_notAntialiasedWithoutInterpolate(self, msaaWin):
+        assert self._countEdgePixels(msaaWin, interpolate=False) == 0
+
+    def test_withoutMultiSample(self):
+        """Without `multiSample` the FBO is made as before."""
+        win = visual.Window(
+            size=self.WIN_SIZE, allowGUI=False, autoLog=False, color='black',
+            useFBO=True)
+        try:
+            if not win.useFBO:
+                pytest.skip("framebuffer objects are not supported here")
+            assert win._frameBufferResolve is None
+            assert self._countEdgePixels(win, interpolate=True) == 0
+        finally:
+            win.close()
+
+    def test_flipWithoutGLErrors(self, msaaWin):
+        """Resolving and copying the frame to the back buffer works."""
+        import psychopy.tools.pygletgl as GL
+
+        while GL.glGetError() != GL.GL_NO_ERROR:  # left by anything earlier
+            pass
+        triangle = visual.Polygon(
+            msaaWin, edges=3, radius=0.7, fillColor='white', autoLog=False)
+        triangle.draw()
+        msaaWin.getMovieFrame(buffer='back')
+        msaaWin.movieFrames = []
+        msaaWin.flip()
+        assert GL.glGetError() == GL.GL_NO_ERROR
+
+    def test_stencil(self, msaaWin):
+        """The multisampled FBO has a stencil buffer, which apertures use."""
+        aperture = visual.Aperture(msaaWin, size=0.5, units='norm')
+        aperture.enabled = True
+        try:
+            visual.Rect(
+                msaaWin, size=(2, 2), units='norm', fillColor='white',
+                lineWidth=0, autoLog=False).draw()
+            pixels = msaaWin._getPixels(buffer='back', includeAlpha=False)
+        finally:
+            aperture.enabled = False
+            msaaWin.flip()
+        h, w = pixels.shape[:2]
+        assert (pixels[h // 2, w // 2] == 255).all(), "center not drawn"
+        assert (pixels[1, 1] == 0).all(), "aperture did not mask the corner"
