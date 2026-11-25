@@ -813,7 +813,19 @@ class TestMultisampleFBO:
             "edges were not anti-aliased")
 
     def test_notAntialiasedWithoutInterpolate(self, msaaWin):
-        assert self._countEdgePixels(msaaWin, interpolate=False) == 0
+        from psychopy.tools.pygletgl import gl_info
+
+        # Software renderers (e.g. on CI machines without a GPU) don't follow
+        # the OpenGL spec when multisampling is turned off while drawing to a
+        # multisampled framebuffer. Apple's still anti-aliases the shape, and
+        # Mesa's llvmpipe writes depth and stencil to only one sample.
+        renderer = gl_info.get_renderer()
+        if any(name in renderer.lower() for name in ('software', 'llvmpipe')):
+            pytest.skip(
+                "renderer {!r} ignores GL_MULTISAMPLE being disabled".format(
+                    renderer))
+        assert self._countEdgePixels(msaaWin, interpolate=False) == 0, (
+            "edges were anti-aliased with renderer {!r}".format(renderer))
 
     def test_backBufferNotMultisampled(self, msaaWin):
         """The FBO is multisampled rather than the back buffer it's copied to,
