@@ -494,8 +494,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def _drawLegacyGL(self, win):
         """Legacy draw method for DotStim.
         """
-        self._update_dotsXY()
-
         GL.glPushMatrix()  # push before drawing, pop after
 
         # draw the dots
