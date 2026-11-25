@@ -1,4 +1,6 @@
 from psychopy import experiment
+from psychopy.experiment._experiment import RequiredImport
+from psychopy.experiment.exports import IndentingBuffer
 from psychopy.tests.utils import TESTS_DATA_PATH
 from pathlib import Path
 import esprima
@@ -195,5 +197,187 @@ class TestExperiment:
             assert len(actualSet) == len(actualSet.intersection(expectedSet))
 
 
+class TestNamespace:
+    def test_exists(self):
+        namespace = experiment.Experiment().namespace
+        assert namespace.exists('psychopy') == "Psychopy module"
+
+        namespace.add('foo')
+        assert namespace.exists('foo') == "one of your Components, Routines, or condition parameters"
+        namespace.add('foo')
+        assert namespace.getCollisions() == ['foo']
+
+    def test_isValid(self):
+        """
+        Case structure
+        ==============
+        value : str
+            Name to check
+        expected : bool
+            Whether the name should be valid
+        """
+        namespace = experiment.Experiment().namespace
+
+        cases = [
+            {'value': "123", 'expected': False},
+            {'value': "a1 23", 'expected': False},
+            {'value': "a123$", 'expected': False},
+        ]
+
+        for case in cases:
+            result = namespace.isValid(case['value'])
+            assert result == case['expected'], (
+                f"namespace.isValid({case['value']!r}) returned {result!r}, "
+                f"expected {case['expected']!r}"
+            )
+
+    def test_makeValid(self):
+        """
+        Case structure
+        ==============
+        value : str
+            Name to make valid
+        prefix : str
+            Prefix to pass to makeValid (optional)
+        expected : str
+            Expected valid name
+        """
+        namespace = experiment.Experiment().namespace
+        # add a name so makeValid has a collision to avoid
+        namespace.add('b')
+
+        cases = [
+            {'value': "123", 'expected': "var_123"},
+            {'value': "123", 'prefix': "wookie", 'expected': "wookie_123"},
+            {'value': "a a a", 'expected': "a_a_a"},
+            {'value': "b", 'expected': "b_2"},
+            {'value': "a123$", 'expected': "a123_"},
+        ]
+
+        for case in cases:
+            kwargs = {'prefix': case['prefix']} if 'prefix' in case else {}
+            result = namespace.makeValid(case['value'], **kwargs)
+            assert result == case['expected'], (
+                f"namespace.makeValid({case['value']!r}, **{kwargs}) returned {result!r}, "
+                f"expected {case['expected']!r}"
+            )
+
+    def test_makeLoopIndex(self):
+        """
+        Case structure
+        ==============
+        value : str
+            Loop name
+        expected : str
+            Expected loop index name
+        """
+        namespace = experiment.Experiment().namespace
+
+        cases = [
+            {'value': "trials", 'expected': "thisTrial"},
+            {'value': "trials_2", 'expected': "thisTrial_2"},
+            {'value': "stimuli", 'expected': "thisStimulus"},
+        ]
+
+        for case in cases:
+            result = namespace.makeLoopIndex(case['value'])
+            assert result == case['expected'], (
+                f"namespace.makeLoopIndex({case['value']!r}) returned {result!r}, "
+                f"expected {case['expected']!r}"
+            )
 
 
+class TestExpImports:
+    def test_required_imports(self):
+        """
+        Case structure
+        ==============
+        libs : list[str]
+            Names to pass to `Experiment.requirePsychopyLibs` (optional)
+        imports : list[dict]
+            Keyword arguments for each call to `Experiment.requireImport` (optional)
+        seek : list[str]
+            Lines expected in the written script
+        """
+        cases = [
+            {'imports': [{'importName': "foo"}],
+             'seek': ["import foo\n"]},
+            {'imports': [{'importName': "foo", 'importFrom': "bar"}],
+             'seek': ["from bar import foo\n"]},
+            {'imports': [{'importName': "foo", 'importAs': "baz"}],
+             'seek': ["import foo as baz\n"]},
+            {'imports': [{'importName': "foo", 'importFrom': "bar", 'importAs': "baz"}],
+             'seek': ["from bar import foo as baz\n"]},
+            {'libs': ["foo"],
+             'seek': ["from psychopy import foo\n"]},
+            {'libs': ["foo", "bar"],
+             'seek': ["from psychopy import foo, bar\n"]},
+            {'libs': ["foo"], 'imports': [{'importName': "bar"}],
+             'seek': ["from psychopy import foo\n", "import bar\n"]},
+        ]
+
+        for case in cases:
+            exp = experiment.Experiment()
+            exp.requiredImports = []
+            # build the imports we expect to be required
+            expected = []
+            if case.get('libs'):
+                exp.requirePsychopyLibs(case['libs'])
+                for lib in case['libs']:
+                    expected.append(
+                        RequiredImport(importName=lib, importFrom="psychopy", importAs="")
+                    )
+            for kwargs in case.get('imports', []):
+                exp.requireImport(**kwargs)
+                expected.append(RequiredImport(
+                    importName=kwargs['importName'],
+                    importFrom=kwargs.get('importFrom', ""),
+                    importAs=kwargs.get('importAs', ""),
+                ))
+            # check they're required
+            for import_ in expected:
+                assert import_ in exp.requiredImports
+            # check they're written
+            script = exp.writeScript()
+            for line in case['seek']:
+                assert line in script, f"Could not find {line!r} in script for case {case}"
+
+
+class TestRunOnce:
+    def test_write_once(self):
+        """
+        Case structure
+        ==============
+        code : list[str]
+            Code snippets to write via `writeOnceIndentedLines`, in order
+        seek : str
+            Text expected in the buffer's output
+        count : dict[str, int]
+            Expected number of occurrences of each snippet in the output (optional)
+        """
+        cases = [
+            # single line
+            {'code': ["foo bar baz"],
+             'seek': "foo bar baz\n"},
+            # multi-line
+            {'code': ["foo bar baz\nbla bla bla"],
+             'seek': "foo bar baz\nbla bla bla\n"},
+            # multiple statements
+            {'code': ["foo bar code0", "bla bla code1"],
+             'seek': "foo bar code0\nbla bla code1\n"},
+            # repeated insert only appears once
+            {'code': ["uniqueBlah", "uniqueBlah"],
+             'seek': "uniqueBlah\n",
+             'count': {"uniqueBlah": 1}},
+        ]
+
+        for case in cases:
+            buff = IndentingBuffer()
+            for code in case['code']:
+                buff.writeOnceIndentedLines(code)
+            for code in case['code']:
+                assert code in buff._writtenOnce
+            script = buff.getvalue()
+            assert case['seek'] in script
+            for code, n in case.get('count', {}).items():
+                assert script.count(code) == n

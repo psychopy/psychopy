@@ -12,7 +12,7 @@ class SoundSensorComponent(BaseDeviceComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'soundsensor.png'
     iconSVG = Path(__file__).parent / 'SoundSensorComponent.svg'
-    tooltip = _translate('Voice Key: Get input from a microphone as simple true/false values')
+    tooltip = _translate("Collect audio responses as simple on/off values")
     beta = True
     legacyParams = [
         # old device setup params, no longer needed as this is handled by DeviceManager

@@ -17,8 +17,7 @@ class PanoramaComponent(BaseVisualComponent):
     version = "2023.1.0"
     iconFile = Path(__file__).parent / 'panorama.png'
     iconSVG = Path(__file__).parent / 'PanoramaComponent.svg'
-    tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
-                         'screen.')
+    tooltip = _translate("Show a panoramic image with tools for moving around it")
     beta = True
 
     def __init__(self, exp, parentName, name='pan',

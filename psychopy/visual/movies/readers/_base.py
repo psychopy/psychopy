@@ -12,6 +12,8 @@ __all__ = [
     'MovieFileReader',
     'PREFERRED_VIDEO_LIB',
     'SUPPORTED_VIDEO_LIBS',
+    'supportsHardwareDecoding',
+    'hardwareDecodingBackends',
 ]
 
 import os.path
@@ -63,6 +65,56 @@ _openMovieReaders = set()
 # Reader class for each of `SUPPORTED_VIDEO_LIBS`, by name, filled in as each
 # is defined, see `MovieFileReader.__init_subclass__`
 _MOVIE_READER_CLASSES = {}
+
+
+def hardwareDecodingBackends():
+    """Movie backends which can decode with a hardware decoder (see
+    `MovieStim`'s `hardwareDecoding`), whether or not the library installed
+    can (see `supportsHardwareDecoding`).
+
+    Returns
+    -------
+    list of str
+        Names of the backends, as `movieLib` takes them.
+
+    """
+    return [lib for lib in SUPPORTED_VIDEO_LIBS
+            if lib in _MOVIE_READER_CLASSES and
+            _MOVIE_READER_CLASSES[lib].supportsHardwareDecoding]
+
+
+def _hardwareDecodingProblem(decoderLib=None):
+    """Why a movie backend can't decode with hardware here, or `None` if it
+    can (`str` or `None`), see `supportsHardwareDecoding`."""
+    if decoderLib is None:
+        decoderLib = PREFERRED_VIDEO_LIB
+    readerClass = _MOVIE_READER_CLASSES.get(decoderLib)
+    if readerClass is None:
+        return "'{}' isn't a movie backend".format(decoderLib)
+
+    return readerClass._hardwareDecodingProblem()
+
+
+def supportsHardwareDecoding(decoderLib=None):
+    """Whether a movie backend can decode movies with a hardware decoder here
+    (see `MovieStim`'s `hardwareDecoding`).
+
+    That's whether the backend does (as only `pyav` does), with the version of
+    its library installed. Whether there is a hardware decoder for a movie
+    depends on the computer and the movie, and is only known once it's opened
+    (see `MovieStim.hardwareDecoder`).
+
+    Parameters
+    ----------
+    decoderLib : str or None
+        The backend, as `movieLib` names it, or `None` for the preferred one.
+
+    Returns
+    -------
+    bool
+
+    """
+    return _hardwareDecodingProblem(decoderLib) is None
 
 
 class MovieFileReader:
@@ -127,10 +179,28 @@ class MovieFileReader:
     # `SUPPORTED_VIDEO_LIBS`
     _decoderLib = None
 
+    #: Whether the backend can decode movies with a hardware decoder (see
+    #: `MovieStim`'s `hardwareDecoding`). Whether the library installed can
+    #: is up to `_hardwareDecodingProblem`, see `supportsHardwareDecoding`.
+    supportsHardwareDecoding = False
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if cls._decoderLib is not None:
             _MOVIE_READER_CLASSES[cls._decoderLib] = cls
+
+    @classmethod
+    def _hardwareDecodingProblem(cls):
+        """Why movies can't be decoded with hardware by this backend, or
+        `None` if they can be (`str` or `None`). Backends which can override
+        this to check the library installed can too."""
+        if cls.supportsHardwareDecoding:
+            return None
+
+        return "the '{}' movie backend doesn't decode with hardware ({} " \
+            "does)".format(
+                cls._decoderLib, ', '.join(
+                    "'{}'".format(lib) for lib in hardwareDecodingBackends()))
 
     def __new__(cls, filename, decoderLib=None, decoderOpts=None):
         # `MovieFileReader` itself stands for the reader of whichever backend
@@ -314,9 +384,10 @@ class MovieFileReader:
     def setOutputPixelFormat(self, pixelFormat):
         """Set the pixel format frames are given in.
 
-        With `'yuv'`, frames decoded as planar YUV (as most are) are kept as
-        such, as `_YUVFrameAdapter`, for the caller to convert to RGB itself
-        (`MovieStim` does so in a shader as it uploads them). That saves
+        With `'yuv'`, frames decoded as 8-bit planar YUV (as most are), or as
+        the semi-planar YUV hardware decoders give (`nv12`, `p010le`), are
+        kept as such, as `_YUVFrameAdapter`, for the caller to convert to RGB
+        itself (`MovieStim` does so in a shader as it uploads them). That saves
         converting them as they're decoded, and leaves less than half as much
         to copy to the GPU. Frames in any other format are given as RGBA
         regardless, as they are with `'rgba'` (the default). Frames already
@@ -336,6 +407,14 @@ class MovieFileReader:
 
         size, interpolation, _ = self._outputFrameFormat
         self._outputFrameFormat = (size, interpolation, pixelFormat == 'yuv')
+
+    @property
+    def hardwareDecoder(self):
+        """FFmpeg device type of the hardware decoder the movie is decoded
+        with, or `None` if it's decoded in software (`str` or `None`). Only
+        backends which `supportsHardwareDecoding` decode with hardware, see
+        `MovieStim`'s `hardwareDecoding`."""
+        return None
 
     @property
     def frameInterval(self):

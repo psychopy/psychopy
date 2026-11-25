@@ -20,7 +20,7 @@ class JoyButtonsComponent(BaseDeviceComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joyButtons.png'
     iconSVG = Path(__file__).parent / 'JoyButtonsComponent.svg'
-    tooltip = _translate('JoyButtons: check and record joystick/gamepad button presses')
+    tooltip = _translate("Collect button presses from a game controller")
     deviceClasses = ['psychopy.hardware.joystick.JoystickDevice']
 
     def __init__(self, exp, parentName, name='button_resp',

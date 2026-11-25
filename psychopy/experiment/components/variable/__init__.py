@@ -19,7 +19,7 @@ class VariableComponent(BaseComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'variable.png'
     iconSVG = Path(__file__).parent / 'VariableComponent.svg'
-    tooltip = _translate('Variable: create a new variable')
+    tooltip = _translate("Store a value in a variable (for coding)")
 
     def __init__(self, exp, parentName,
                  name='var1', startExpValue = '',

@@ -39,7 +39,7 @@ class SliderComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'slider.png'
     iconSVG = Path(__file__).parent / 'SliderComponent.svg'
-    tooltip = _translate('Slider: A simple, flexible object for getting ratings')
+    tooltip = _translate("Collect responses from an onscreen scale")
 
     def __init__(self, exp, parentName,
                  name='slider',

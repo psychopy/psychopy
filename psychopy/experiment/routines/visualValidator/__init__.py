@@ -21,9 +21,7 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'visual_validator.png'
     iconSVG = Path(__file__).parent / 'VisualValidatorRoutine.svg'
-    tooltip = _translate(
-        "Use a light sensor to confirm that visual stimuli are presented when they should be."
-    )
+    tooltip = _translate("Use a light sensor to confirm that visual stimuli are presented when they should be")
     deviceClasses = []
     version = "2025.1.0"
     legacyParams = [

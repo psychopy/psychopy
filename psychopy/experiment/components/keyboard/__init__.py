@@ -19,7 +19,7 @@ class KeyboardComponent(BaseComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'keyboard.png'
     iconSVG = Path(__file__).parent / 'KeyboardComponent.svg'
-    tooltip = _translate('Keyboard: check and record keypresses')
+    tooltip = _translate("Collect key presses from the keyboard")
     legacyParams = [
         # as there's only ever 1 keyboard, it shouldn't interact with device manager
         "deviceLabel"

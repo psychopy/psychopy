@@ -15,7 +15,7 @@ class EyetrackerMarkerComponent(BaseComponent):
     version = "2026.2.0"
     iconFile = Path(__file__).parent / 'EyetrackerMarkerComponent.png'
     iconSVG = Path(__file__).parent / 'EyetrackerMarkerComponent.svg'
-    tooltip = _translate('Add a text marker in the hdf5 file')
+    tooltip = _translate("Add a text marker in an eyetracker's hdf5 output file")
     beta = True
 
     def __init__(
