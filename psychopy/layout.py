@@ -88,7 +88,7 @@ class Vector:
     arrays of boolean values.
 
     """
-    def __init__(self, value, units, win):
+    def __init__(self, value, units, win=None):
         # Create a dict to cache values on access
         self._cache = {}
         # Assume invalid until validation happens
@@ -200,7 +200,7 @@ class Vector:
             return (f"<psychopy.layout.{self.__class__.__name__}: "
                     f"{np.round(self.pix, 3)}px>")
         else:
-            return "<psychopy.layout.{self.__class__.__name__}: Invalid>"
+            return f"<psychopy.layout.{self.__class__.__name__}: Invalid>"
 
     # --------------------------------------------------------------------------
     # Rich comparisons
@@ -335,7 +335,9 @@ class Vector:
         """Magnitude of vector (i.e. length of the line from vector to (0, 0)
         in pixels).
         """
-        return np.hypot3d(*self.pix)
+        if self.pix.ndim == 1:
+            return float(np.linalg.norm(self.pix))
+        return np.linalg.norm(self.pix, axis=-1)
 
     @property
     def direction(self):
@@ -365,8 +367,8 @@ class Vector:
 
         if self.dimensions == 3:
             # Angle from z-axis (z is opp, hyp(x,y) is adj)
-            if np.hypot3d(*self.pix[:2]) != 0.0:
-                u = np.hypot3d(*self.pix[:2])
+            u = float(np.hypot(self.pix[0], self.pix[1]))
+            if u != 0.0:
                 z = np.degrees(np.arctan(self.pix[2] / u))
             else:
                 z = 90.0
@@ -661,14 +663,16 @@ class Vertices:
     def __repr__(self):
         """If vertices object is printed, it will display its class and value.
         """
-        if self:
-            return (
-                f"<psychopy.layout.{self.__class__.__name__}: "
-                f"{np.round(self.base, 3)} * "
-                f"{np.round(self.obj._size.pix, 3)} + "
-                f"{np.round(self.obj._pos.pix, 3)}>")
-        else:
-            return "<psychopy.layout.{self.__class__.__name__}: Invalid>"
+        if getattr(self, "valid", True) and hasattr(self, "base"):
+            try:
+                return (
+                    f"<psychopy.layout.{self.__class__.__name__}: "
+                    f"{np.round(self.base, 3)} * "
+                    f"{np.round(self.size.pix, 3)} + "
+                    f"{np.round(self.pos.pix, 3)}>")
+            except (AttributeError, AssertionError):
+                pass
+        return f"<psychopy.layout.{self.__class__.__name__}: Invalid>"
 
     @property
     def obj(self):

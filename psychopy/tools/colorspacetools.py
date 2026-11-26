@@ -741,19 +741,13 @@ def rgb2dklCart(picture, conversionMatrix=None):
     else:
         conversionMatrix = numpy.linalg.inv(conversionMatrix)
 
-    # Reshape the picture so that it can multiplied by the conversion matrix
-    red = picture[:, :, 0]
-    green = picture[:, :, 1]
-    blue = picture[:, :, 2]
-
-    dkl = numpy.asarray([red.reshape([-1]),
-                         green.reshape([-1]),
-                         blue.reshape([-1])])
+    # Reshape so 1D (3,), 2D (N, 3), and 3D (H, W, 3) inputs all work
+    flat = numpy.reshape(picture, (-1, 3))
 
     # Multiply the picture by the conversion matrix
-    dkl = numpy.dot(conversionMatrix, dkl)
+    dkl = numpy.dot(conversionMatrix, numpy.transpose(flat))
 
-    # Reshape the picture so that it's back to it's original shape
+    # Reshape the picture so that it's back to its original shape
     dklPicture = numpy.reshape(numpy.transpose(dkl), origShape)
 
     return dklPicture
