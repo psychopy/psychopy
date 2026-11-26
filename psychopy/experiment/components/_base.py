@@ -634,7 +634,7 @@ class BaseComponent:
         # If start time is blank ad stop is a duration, raise alert
         if params['stopType'] in ('duration (s)', 'duration (frames)'):
             if ('startVal' not in params) or (params['startVal'] in ("", "None", None)):
-                alerttools.alert(4120, strFields={'component': params['name']})
+                alerttools.alert(4120, obj=self, strFields={'component': params['name']})
 
         if params['stopType'].val == 'time (s)':
             code = (

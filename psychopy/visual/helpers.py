@@ -244,9 +244,9 @@ def setColor(obj, color, colorSpace=None, operation='',
     """
 
     if colorSpaceAttrib is not None:
-        alert(8105, strFields={'colorSpaceAttrib': colorSpaceAttrib})
+        alert(8105, obj=obj, strFields={'colorSpaceAttrib': colorSpaceAttrib})
     if rgbAttrib is not None:
-        alert(8110, strFields={'rgbAttrib': rgbAttrib})
+        alert(8110, obj=obj, strFields={'rgbAttrib': rgbAttrib})
 
     # Make a Color object using supplied values
     raw = color

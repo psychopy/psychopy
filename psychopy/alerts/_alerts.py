@@ -89,6 +89,8 @@ class AlertEntry:
         Name of component being tested
     msg: str
         The alert message
+    file: str or None
+        The file related to the alert
     trace: sys.exec_info() traceback object
             The traceback
 
@@ -100,10 +102,13 @@ class AlertEntry:
         The object related to the alert e.g., TextComponent object.
     strFields: dict
             Dict containing relevant values for formatting messages
+    file: str or Path
+        The file related to the alert, if not given then will use the
+        filename of the experiment obj belongs to (if any).
     trace: sys.exec_info() traceback object
             The traceback
     """
-    def __init__(self, code, obj, strFields=None, trace=None):
+    def __init__(self, code, obj, strFields=None, file=None, trace=None):
         self.label = catalog.alert[code]['label']
         self.code = catalog.alert[code]['code']
         self.cat = catalog.alert[code]['cat']
@@ -115,10 +120,17 @@ class AlertEntry:
         else:
             self.type = None
 
-        if hasattr(obj, "params"):
+        if hasattr(obj, "params") and "name" in obj.params:
             self.name = obj.params['name'].val
+        elif type(obj).__name__ == "SettingsComponent":
+            self.name = "Experiment"
         else:
             self.name = None
+
+        if file is None and hasattr(obj, "exp") and hasattr(obj.exp, "filename"):
+            file = obj.exp.filename
+        # store as str so it's JSON serializable (filename may be a Path)
+        self.file = str(file) if file else None
 
         # _translate(catalog.alert[code]['msg']) works, but string literals
         # in _translate() (i.e., 'msg' in this case) cause false detection 
@@ -150,6 +162,7 @@ class AlertEntry:
     
     def getJSON(self):
         return {
+            'file': self.file,
             'type': self.type,
             'name': self.name,
             'code': self.code,
@@ -159,7 +172,7 @@ class AlertEntry:
         }
 
 
-def alert(code=None, obj=object, strFields=None, trace=None):
+def alert(code=None, obj=object, strFields=None, trace=None, file=None):
     """The alert function is used for writing alerts to the standard error stream.
     Only the ErrorHandler class can receive alerts via the "receiveAlert" method.
 
@@ -173,9 +186,12 @@ def alert(code=None, obj=object, strFields=None, trace=None):
         Dict containing relevant values for formatting messages
     trace: sys.exec_info() traceback object
             The traceback
+    file: str or Path
+        The file related to the alert, if not given then will use the
+        filename of the experiment obj belongs to (if any).
     """
 
-    msg = AlertEntry(code, obj, strFields, trace)
+    msg = AlertEntry(code, obj, strFields=strFields, file=file, trace=trace)
 
     if len(_activeAlertHandlers):
         # if we have any active handlers, send to them

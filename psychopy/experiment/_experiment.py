@@ -358,7 +358,7 @@ class Experiment:
                         if target not in routine.targets:
                             # If this routine isn't implemented in target library, print alert and mute it
                             alertCode = 4335 if target == "PsychoPy" else 4340
-                            alert(alertCode, strFields={'comp': type(routine).__name__})
+                            alert(alertCode, strFields={'comp': type(routine).__name__}, obj=routine)
             # Remove disabled / unimplemented components within routine
             if isinstance(routine, Routine):
                 for component in [comp for comp in routine]:
@@ -367,7 +367,7 @@ class Experiment:
                         if component.targets and target not in component.targets:
                             # If this component isn't implemented in target library, print alert and mute it
                             alertCode = 4335 if target == "PsychoPy" else 4340
-                            alert(alertCode, strFields={'comp': type(component).__name__})
+                            alert(alertCode, strFields={'comp': type(component).__name__}, obj=component)
 
         if target == "PsychoPy":
             # Imports
@@ -1001,10 +1001,19 @@ class Experiment:
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
-        from psychopy.data import importConditions
-
+        # load file
         self._doc.parse(filename)
-        root = self._doc.getroot()
+        # apply
+        self.applyXML(self._doc, filename=filename)
+
+    def applyXML(self, data, filename="untitled.psyexp"):
+        # parse to an ElementTree, if given a string
+        if not isinstance(data, xml.ElementTree):
+            data = xml.ElementTree(
+                xml.fromstring(data)
+            )
+        # get root element
+        root = data.getroot()
 
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
@@ -1020,10 +1029,10 @@ class Experiment:
         self.psychopyVersion = root.get('version')
         # If running an experiment from a future version, send alert to change "Use Version"
         if Version(__version__) < Version(self.psychopyVersion):
-            alert(code=4051, strFields={'version': self.psychopyVersion})
+            alert(code=4051, strFields={'version': self.psychopyVersion}, file=filename)
         # If versions are either side of 2021, send alert
         if Version(__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
-            alert(code=4052, strFields={'version': self.psychopyVersion})
+            alert(code=4052, strFields={'version': self.psychopyVersion}, file=filename)
 
         # Parse document nodes
         # first make sure we're empty
@@ -1079,7 +1088,7 @@ class Experiment:
                         component = UnknownPluginComponent(
                             name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
-                        alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
+                        alert(7105, obj=component, strFields={'name': componentNode.get('name'), 'plugin': plugin}, file=filename)
                     else:
                         from psychopy.experiment.components.unknown import UnknownComponent
                         # create UnknownComponent instead
@@ -1222,6 +1231,7 @@ class Experiment:
                     conditionsFile = None
                 if conditionsFile:
                     try:
+                        from psychopy.data import importConditions
                         trialList, fieldNames = importConditions(
                             conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:

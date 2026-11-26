@@ -339,7 +339,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         inits = getInitVals(self.params)
         # Alert user if non-default value is selected for device
         if inits['deviceLabel'].val not in (None, "", 'None'):
-            alert(5055, strFields={'name': inits['name'].val})
+            alert(5055, obj=self, strFields={'name': inits['name'].val})
         # Write code
         code = (
             "%(name)s = new sound.Microphone({\n"
@@ -436,7 +436,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         if inits['transcribe'].val:
             if  self.params['transcribeBackend'].val not in self.localTranscribers.values():
                 default = list(self.localTranscribers.values())[0]
-                alert(4610, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
+                alert(4610, obj=self, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
@@ -507,7 +507,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         # Warn user if their transcriber won't work online
         if inits['transcribe'].val and inits['transcribeBackend'].val not in self.onlineTranscribers.values():
             default = list(self.onlineTranscribers.values())[0]
-            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
+            alert(4605, obj=self, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
 
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
