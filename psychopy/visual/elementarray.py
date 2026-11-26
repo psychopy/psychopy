@@ -661,10 +661,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         # so we can do matrix rotation of coords we need shape=[n*4,3]
         # but we'll convert to [n,4,3] after matrix math
         verts = numpy.zeros([self.nElements * 4, 3], 'd')
-        wx = -self.sizes[:, 0] * numpy.cos(self.oris[:] * radians) / 2
-        wy = self.sizes[:, 0] * numpy.sin(self.oris[:] * radians) / 2
-        hx = self.sizes[:, 1] * numpy.sin(self.oris[:] * radians) / 2
-        hy = self.sizes[:, 1] * numpy.cos(self.oris[:] * radians) / 2
+        rad = self.oris[:] * radians
+        cosOris = numpy.cos(rad)
+        sinOris = numpy.sin(rad)
+        wx = -self.sizes[:, 0] * cosOris / 2
+        wy = self.sizes[:, 0] * sinOris / 2
+        hx = self.sizes[:, 1] * sinOris / 2
+        hy = self.sizes[:, 1] * cosOris / 2
 
         # X vals of each vertex relative to the element's centroid
         verts[0::4, 0] = -wx - hx
@@ -706,8 +709,8 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         each vertex of each element.
         """
         N = self.nElements
-        _RGBAs = numpy.zeros([len(self.verticesPix), 4], 'd')
-        _RGBAs[:,:] = self._colors.render('rgba1')
+        _RGBAs = numpy.empty([len(self.verticesPix), 4], 'd')
+        _RGBAs[:, :] = self._colors.render('rgba1')
         _RGBAs[:, -1] = self.opacities.reshape([N, ])
         self._RGBAs = _RGBAs.reshape([len(self.verticesPix), 1, 4]).repeat(4, 1)
         self._needColorUpdate = False
@@ -717,9 +720,10 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         """
 
         N = self.nElements
-        self._maskCoords = numpy.array([[1, 0], [0, 0], [0, 1], [1, 1]],
-                                       'd').reshape([1, 4, 2])
-        self._maskCoords = self._maskCoords.repeat(N, 0)
+        if getattr(self, '_maskCoords', None) is None or self._maskCoords.shape[0] != N:
+            self._maskCoords = numpy.array(
+                [[1, 0], [0, 0], [0, 1], [1, 1]], 'd'
+            ).reshape([1, 4, 2]).repeat(N, 0)
 
         # for the main texture
         # sf is dependent on size (openGL default)
@@ -739,11 +743,16 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
             B = (-self.sfs[:, 1] * self.sizes[:, 1] / 2
                  - self.phases[:, 1] + 0.5)
 
-        # self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],
-        #           'd').reshape([1,4,2])
-        self._texCoords = (numpy.concatenate([[R, B], [L, B], [L, T], [R, T]])
-            .transpose().reshape([N, 4, 2]).astype('d'))
-        self._texCoords = numpy.ascontiguousarray(self._texCoords)
+        texCoords = numpy.empty((N, 4, 2), dtype='d')
+        texCoords[:, 0, 0] = R
+        texCoords[:, 0, 1] = B
+        texCoords[:, 1, 0] = L
+        texCoords[:, 1, 1] = B
+        texCoords[:, 2, 0] = L
+        texCoords[:, 2, 1] = T
+        texCoords[:, 3, 0] = R
+        texCoords[:, 3, 1] = T
+        self._texCoords = texCoords
         self._needTexCoordUpdate = False
 
     @attributeSetter

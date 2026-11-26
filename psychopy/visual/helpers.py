@@ -65,10 +65,12 @@ def callOnGLThread(win, func, *args, **kwargs):
     elif threading.current_thread() is threading.main_thread():
         func(*args, **kwargs)
 
+_haveMplPath = False
 try:
     import matplotlib
     if Version(matplotlib.__version__) > Version('1.2'):
         from matplotlib.path import Path as mplPath
+        _haveMplPath = True
     else:
         from matplotlib import nxutils
     haveMatplotlib = True
@@ -97,7 +99,7 @@ def pointInPolygon(x, y, poly):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if Version(matplotlib.__version__) > Version('1.2'):
+        if _haveMplPath:
             return mplPath(poly).contains_point([x, y])
         else:
             try:
@@ -169,7 +171,7 @@ def polygonsOverlap(poly1, poly2):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if Version(matplotlib.__version__) > Version('1.2'):
+        if _haveMplPath:
             if any(mplPath(poly1_vert_pix).contains_points(poly2_vert_pix)):
                 return True
             return any(mplPath(poly2_vert_pix).contains_points(poly1_vert_pix))
