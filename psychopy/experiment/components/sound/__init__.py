@@ -437,7 +437,7 @@ class SpeakerDeviceBackend(DeviceBackend):
         """
         # alert user to inefficient configuration
         if self.params['resample'] and self.params['latencyClass'] == 2:
-            alert(3210, strFields={'deviceName': self.params['deviceLabel']})
+            alert(3210, obj=self, strFields={'deviceName': self.params['deviceLabel']})
         # write basic code
         self.writeBaseDeviceCode(buff, close=False)
         # add exclusive param and close

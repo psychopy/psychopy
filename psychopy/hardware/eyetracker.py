@@ -106,12 +106,12 @@ class EyetrackerCalibration:
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
             if self.movementAnimation:
                 # Alert user that their animation params aren't used
-                alert(code=4520, strFields={"brand": "EyeLink"})
+                alert(code=4520, obj=self, strFields={"brand": "EyeLink"})
 
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
             if not self.progressMode == "time":
                 # As GazePoint doesn't use auto-pace, alert user
-                alert(4530, strFields={"brand": "GazePoint"})
+                alert(4530, obj=self, strFields={"brand": "GazePoint"})
 
         # Minimise PsychoPy window
         if self.win._isFullScr and sys.platform == 'win32':

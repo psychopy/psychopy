@@ -138,7 +138,7 @@ class EyetrackerRecordComponent(BaseComponent):
         """
         # Alert user if eyetracking isn't setup
         if self.exp.eyetracking == "None":
-            alert(code=4505)
+            alert(code=4505, obj=self)
 
         buff.writeIndented("\n")
         buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])

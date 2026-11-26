@@ -265,7 +265,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     def writeMainCode(self, buff):
         # Alert user if eyetracking isn't setup
         if self.exp.eyetracking == "None":
-            alert(code=4505)
+            alert(code=4505, obj=self)
         # Get inits
         inits = self.params
         # Code-ify 'from exp settings'

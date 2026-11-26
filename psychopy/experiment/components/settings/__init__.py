@@ -1349,7 +1349,7 @@ class SettingsComponent:
         if self.params['eyetracker'] != "None":
             # alert user if there's no monitor config
             if self.params['Monitor'].val in ["", None, "None"]:
-                alert(code=4545)
+                alert(code=4545, obj=self)
             # write opening comment
             code = (
                 "# setup eyetracking\n"
@@ -1361,12 +1361,12 @@ class SettingsComponent:
                 backend = knownEyetrackerBackends[self.params['eyetracker'].val]
                 # alert user if they need fullscreen and don't have it
                 if backend.needsFullscreen and not self.params['Full-screen window'].val:
-                    alert(code=4540)
+                    alert(code=4540, obj=self)
                 # alert user if they need calibration and don't have it
                 if backend.needsCalibration and not any(
                     isinstance(rt, EyetrackerCalibrationRoutine) for rt in self.exp.flow
                 ):
-                    alert(code=4510, strFields={'eyetracker': self.params['eyetracker'].val})
+                    alert(code=4510, obj=self, strFields={'eyetracker': self.params['eyetracker'].val})
                 # write code
                 backend.writeDeviceCode(inits, buff)
             # otherwise, do it the old fashioned way
@@ -1574,7 +1574,7 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
         
         if self.needIoHub and self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == 'PsychToolbox':
-            alert(code=4550)
+            alert(code=4550, obj=self)
 
         # Add keyboard and experiment handler filename to ioConfig
         if self.needIoHub:
@@ -1675,7 +1675,7 @@ class SettingsComponent:
                 pass
             else:
                 # alert if not
-                alert(4810, strFields={'deviceName': deviceName})
+                alert(4810, obj=self, strFields={'deviceName': deviceName})
 
         code = (
             "# return True if completed successfully\n"

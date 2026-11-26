@@ -167,7 +167,7 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
         # if stimulus ends with the Routine, raise an alert
         if stim.endsWithRoutine():
-            alert(4160, strFields={'name': stim.name})
+            alert(4160, obj=stim, strFields={'name': stim.name})
         # validate stop time
         code = (
             "# validate {name} stop time\n"

@@ -278,7 +278,7 @@ def testDollarSyntax(component):
     valid = {}
     for (key, param) in component.params.items():
         if not param.dollarSyntax()[0]:
-            alert(4315, strFields={'component': component, 'param': param})
+            alert(4315, obj=component, strFields={'component': component, 'param': param})
     return valid
 
 def checkPythonSyntax(component, tab):

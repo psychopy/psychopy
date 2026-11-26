@@ -321,7 +321,7 @@ class TextboxComponent(BaseVisualComponent):
             routine = self.exp.routines[self.parentName]
             for sibling in routine:
                 if isinstance(sibling, KeyboardComponent):
-                    alert(4405, strFields={'textbox': self.params['name'], 'keyboard': sibling.params['name']})
+                    alert(4405, obj=self, strFields={'textbox': self.params['name'], 'keyboard': sibling.params['name']})
 
         code = (
             "%(name)s.reset()"
