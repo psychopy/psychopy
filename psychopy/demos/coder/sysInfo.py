@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from psychopy.tools.pygletgl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
+from psychopy.tools.opengl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 from psychopy import visual, preferences
 import sys, platform
 

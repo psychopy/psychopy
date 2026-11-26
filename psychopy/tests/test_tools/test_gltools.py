@@ -6,7 +6,7 @@ import pytest
 
 from psychopy import visual
 import psychopy.tools.gltools as gt
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 
 @pytest.fixture(scope='module')

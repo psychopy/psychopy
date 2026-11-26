@@ -29,7 +29,7 @@ import os
 import platform
 import io
 
-from psychopy.tools.pygletgl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
+from psychopy.tools.opengl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 import numpy
 import scipy
 import matplotlib

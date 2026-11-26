@@ -13,14 +13,8 @@ from statistics import mean
 from psychopy.colors import Color, colorSpaces
 from psychopy.layout import Vector, Position, Size, Vertices, unitTypes
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
-import pyglet
-pyglet.options['debug_gl'] = False
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 try:
     from PIL import Image
@@ -1060,9 +1054,9 @@ def _prepareImageArray(im, tex, pixFormat, dataType, forcePOW2):
         The loaded image, already flipped to OpenGL's bottom-up row order.
     tex : Any
         What the caller passed as the texture, used only in log messages.
-    pixFormat : :class:`~pyglet.gl.GLenum` or int
+    pixFormat : :class:`~psychopy.tools.opengl.GLenum` or int
         Pixel format being targeted, `GL_ALPHA` or `GL_RGB`.
-    dataType : :class:`~pyglet.gl.GLenum` or int
+    dataType : :class:`~psychopy.tools.opengl.GLenum` or int
         Data type requested. A luminance image overrides this with `GL_FLOAT`,
         hence it being returned as well.
     forcePOW2 : bool
@@ -1141,9 +1135,9 @@ class TextureMixin:
         ----------
         tex : Any
             Texture data. Value can be anything that resembles image data.
-        id : int or :class:`~pyglet.gl.GLint`
+        id : int or :class:`~psychopy.tools.opengl.GLint`
             Texture ID.
-        pixFormat : :class:`~pyglet.gl.GLenum` or int
+        pixFormat : :class:`~psychopy.tools.opengl.GLenum` or int
             Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
         stim : Any
             Stimulus object using the texture.
@@ -1156,7 +1150,7 @@ class TextureMixin:
             stimuli (anything that needs multiple cycles) `forcePOW2` should be
             set to be `True`. Otherwise the wrapping of the texture will not
             work.
-        dataType : class:`~pyglet.gl.GLenum`, int or None
+        dataType : class:`~psychopy.tools.opengl.GLenum`, int or None
             None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
             (numpy arrays will be float).
         wrapping : bool

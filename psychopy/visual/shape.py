@@ -9,11 +9,6 @@
 
 import numpy
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -31,8 +26,7 @@ from psychopy.colors import Color
 # from psychopy.visual.helpers import setColor
 import psychopy.visual
 
-pyglet.options['debug_gl'] = False
-import psychopy.tools.pygletgl as GL
+import psychopy.tools.opengl as GL
 
 USE_LEGACY_GL = GL.USE_LEGACY_GL
 
@@ -535,7 +529,7 @@ class ShapeStim(BaseShapeStim):
         transparent color is used which makes the fill or outline invisible.
     vertices : array_like
         Nx2 array of points (eg., `[[-0.5, 0], [0, 0.5], [0.5, 0]`).
-    windingRule : :class:`~pyglet.gl.GLenum` or None
+    windingRule : :class:`~psychopy.tools.opengl.GLenum` or None
         Winding rule to use for tesselation, default is
         `GLU_TESS_WINDING_ODD` if `None` is specified.
     closeShape : bool

@@ -45,7 +45,7 @@ from ctypes import CFUNCTYPE, POINTER, byref, cast
 
 import sys
 
-from psychopy.tools.pygletgl import (
+from psychopy.tools.opengl import (
     GLdouble, GLenum, GLfloat, GLvoid,
     GL_TRIANGLES, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
     gluErrorString, gluNewTess, gluTessBeginContour, gluTessBeginPolygon,
