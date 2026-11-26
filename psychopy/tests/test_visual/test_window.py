@@ -670,3 +670,216 @@ class TestWindowMovieFrames:
         finally:
             playbackWin.close()
 
+
+
+class TestOutOfGamut:
+    """How `outOfGamut` shows pixels outside the displayable range.
+
+    Additive blending into a window with an FBO lets colours go out of range;
+    the left half of the window is driven too high and the right half too low.
+    The FBO is only copied to the back buffer (through the shader which clips
+    or adds noise) by `flip()`, and reading the front buffer afterwards is
+    unreliable (it reads as black on virtual machines), so the copy is done
+    here as `flip()` does it, minus the swap, and the back buffer read.
+
+    """
+    WIN_SIZE = (64, 64)
+
+    @pytest.fixture(scope='class')
+    @classmethod
+    def fboWin(cls):
+        win = visual.Window(
+            size=cls.WIN_SIZE, allowGUI=False, autoLog=False,
+            color=(0, 0, 0), useFBO=True, blendMode='add')
+        if not win.useFBO:
+            win.close()
+            pytest.skip("framebuffer objects are not supported here")
+        yield win
+        win.close()
+
+    @staticmethod
+    def _renderOutOfGamut(win):
+        """Draw out of range colours, copy the FBO to the back buffer and read
+        it back as an array of RGB pixels, rows from the bottom up."""
+        import ctypes
+        import psychopy.tools.pygletgl as GL
+
+        # each adds 0.5 to the 0.5 the background is stored as in the FBO, so
+        # the left half reaches 1.5 and the right half -0.5
+        for color in ((1, 1, 1), (-1, -1, -1)):
+            x = -0.5 if color[0] > 0 else 0.5
+            rect = visual.Rect(
+                win, pos=(x, 0), size=(1, 2), units='norm', lineWidth=0,
+                fillColor=color, colorSpace='rgb', autoLog=False)
+            rect.draw()
+            rect.draw()
+
+        w, h = (int(dim) for dim in win.frameBufferSize)
+        pixels = np.empty((h, w, 4), dtype=np.uint8)
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        GL.glDisable(GL.GL_BLEND)
+        try:
+            win._prepareFBOrender()
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            if win.USE_LEGACY_GL:
+                GL.glEnable(GL.GL_TEXTURE_2D)
+                GL.glColor3f(1.0, 1.0, 1.0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, win.frameTexture)
+            win._renderFBO()
+            win._finishFBOrender()
+
+            GL.glReadBuffer(GL.GL_BACK)
+            GL.glReadPixels(
+                0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
+                pixels.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
+        finally:
+            GL.glEnable(GL.GL_BLEND)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, win.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+        # away from the edges of the rects
+        quarter = w // 4
+        tooHigh = pixels[4:-4, 4:quarter * 2 - 4, :3]
+        tooLow = pixels[4:-4, quarter * 2 + 4:-4, :3]
+        return tooHigh, tooLow
+
+    def test_clip(self, fboWin):
+        fboWin.outOfGamut = 'clip'
+        tooHigh, tooLow = self._renderOutOfGamut(fboWin)
+        assert (tooHigh == 255).all(), "colors above range were not clipped"
+        assert (tooLow == 0).all(), "colors below range were not clipped"
+
+    def test_noise(self, fboWin):
+        fboWin.outOfGamut = 'noise'
+        tooHigh, tooLow = self._renderOutOfGamut(fboWin)
+        # red noise for too high, blue noise for too low
+        assert (tooHigh[..., 1:] == 0).all()
+        assert tooHigh[..., 0].std() > 0
+        assert (tooLow[..., :2] == 0).all()
+        assert tooLow[..., 2].std() > 0
+
+    def test_invalidValue(self, fboWin):
+        with pytest.raises(ValueError):
+            fboWin.outOfGamut = 'wrap'
+        with pytest.raises(ValueError):
+            visual.Window(
+                size=self.WIN_SIZE, autoLog=False, outOfGamut='wrap')
+
+
+class TestMultisampleFBO:
+    """Anti-aliasing with `multiSample` when drawing to an FBO.
+
+    Edges of a shape are anti-aliased if pixels along them come out part way
+    between the colors of the shape and the background. `ShapeStim` turns
+    multisampling on or off with `interpolate`, so drawing it without should
+    give only the two colors.
+
+    """
+    WIN_SIZE = (64, 64)
+
+    @pytest.fixture(scope='class')
+    @classmethod
+    def msaaWin(cls):
+        try:
+            win = visual.Window(
+                size=cls.WIN_SIZE, allowGUI=False, autoLog=False,
+                color='black', useFBO=True, multiSample=True, numSamples=4,
+                allowStencil=True)
+        except RuntimeError as err:
+            # the display can't make a window in the configuration needed
+            pytest.skip("could not open a window: {}".format(err))
+        if not (win.useFBO and win._frameBufferResolve is not None):
+            win.close()
+            pytest.skip("multisampled framebuffer objects are not supported")
+        yield win
+        win.close()
+
+    @staticmethod
+    def _countEdgePixels(win, interpolate):
+        """Draw a white triangle and count the pixels in the back buffer that
+        are neither black nor white."""
+        triangle = visual.Polygon(
+            win, edges=3, radius=0.7, fillColor='white', lineWidth=0,
+            interpolate=interpolate, autoLog=False)
+        triangle.draw()
+        pixels = win._getPixels(buffer='back', includeAlpha=False)
+        win.flip()
+        return int(((pixels > 0) & (pixels < 255)).any(axis=-1).sum())
+
+    def test_antialiased(self, msaaWin):
+        assert self._countEdgePixels(msaaWin, interpolate=True) > 0, (
+            "edges were not anti-aliased")
+
+    def test_notAntialiasedWithoutInterpolate(self, msaaWin):
+        from psychopy.tools.pygletgl import gl_info
+
+        # Software renderers (e.g. on CI machines without a GPU) don't follow
+        # the OpenGL spec when multisampling is turned off while drawing to a
+        # multisampled framebuffer. Apple's still anti-aliases the shape, and
+        # Mesa's llvmpipe writes depth and stencil to only one sample.
+        renderer = gl_info.get_renderer()
+        if any(name in renderer.lower() for name in ('software', 'llvmpipe')):
+            pytest.skip(
+                "renderer {!r} ignores GL_MULTISAMPLE being disabled".format(
+                    renderer))
+        assert self._countEdgePixels(msaaWin, interpolate=False) == 0, (
+            "edges were anti-aliased with renderer {!r}".format(renderer))
+
+    def test_backBufferNotMultisampled(self, msaaWin):
+        """The FBO is multisampled rather than the back buffer it's copied to,
+        so that displays without multisampled back buffers can be used."""
+        import ctypes
+        import psychopy.tools.pygletgl as GL
+
+        samples = GL.GLint()
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        try:
+            GL.glGetIntegerv(GL.GL_SAMPLE_BUFFERS, ctypes.byref(samples))
+        finally:
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, msaaWin.frameBuffer)
+        assert samples.value == 0
+
+    def test_withoutMultiSample(self):
+        """Without `multiSample` the FBO is made as before."""
+        win = visual.Window(
+            size=self.WIN_SIZE, allowGUI=False, autoLog=False, color='black',
+            useFBO=True)
+        try:
+            if not win.useFBO:
+                pytest.skip("framebuffer objects are not supported here")
+            assert win._frameBufferResolve is None
+            assert self._countEdgePixels(win, interpolate=True) == 0
+        finally:
+            win.close()
+
+    def test_flipWithoutGLErrors(self, msaaWin):
+        """Resolving and copying the frame to the back buffer works."""
+        import psychopy.tools.pygletgl as GL
+
+        while GL.glGetError() != GL.GL_NO_ERROR:  # left by anything earlier
+            pass
+        triangle = visual.Polygon(
+            msaaWin, edges=3, radius=0.7, fillColor='white', autoLog=False)
+        triangle.draw()
+        msaaWin.getMovieFrame(buffer='back')
+        msaaWin.movieFrames = []
+        msaaWin.flip()
+        assert GL.glGetError() == GL.GL_NO_ERROR
+
+    def test_stencil(self, msaaWin):
+        """The multisampled FBO has a stencil buffer, which apertures use."""
+        aperture = visual.Aperture(msaaWin, size=0.5, units='norm')
+        aperture.enabled = True
+        try:
+            visual.Rect(
+                msaaWin, size=(2, 2), units='norm', fillColor='white',
+                lineWidth=0, autoLog=False).draw()
+            pixels = msaaWin._getPixels(buffer='back', includeAlpha=False)
+        finally:
+            aperture.enabled = False
+            msaaWin.flip()
+        h, w = pixels.shape[:2]
+        assert (pixels[h // 2, w // 2] == 255).all(), "center not drawn"
+        assert (pixels[1, 1] == 0).all(), "aperture did not mask the corner"

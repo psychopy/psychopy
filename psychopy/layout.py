@@ -15,6 +15,8 @@ __all__ = [
     "Vertices"
 ]
 
+import weakref
+
 import numpy as np
 from .tools import monitorunittools as tools
 
@@ -594,6 +596,12 @@ class Size(Vector):
         Vector.__init__(self, value, units, win)
 
 
+def _noObj():
+    """Stands in for the reference to the object `Vertices` belong to, when
+    they don't belong to one."""
+    return None
+
+
 class Vertices:
     """Class representing an array of vertices.
 
@@ -602,6 +610,10 @@ class Vertices:
     verts : ArrayLike
         Array of coordinates specifying the locations of vertices.
     obj : object or None
+        Object the vertices belong to (e.g. a stimulus), which `pos`, `size`,
+        `units` and `anchor` are taken from when not given. Only a weak
+        reference to it is kept where possible, so it must be kept alive
+        elsewhere.
     size : ArrayLike or None
         Scaling factors for vertices along each dimension.
     pos : ArrayLike or None
@@ -657,6 +669,29 @@ class Vertices:
                 f"{np.round(self.obj._pos.pix, 3)}>")
         else:
             return "<psychopy.layout.{self.__class__.__name__}: Invalid>"
+
+    @property
+    def obj(self):
+        """Object the vertices belong to, or `None` if there isn't one or it
+        has since been deleted.
+
+        Objects usually hold their own vertices, so a strong reference back to
+        them would form a reference cycle, keeping deleted stimuli (and their
+        textures etc.) alive until the cyclic garbage collector happens to run,
+        see https://github.com/psychopy/psychopy/issues/7459. Objects which
+        can't be weakly referenced are held strongly instead.
+        """
+        return self._objRef()
+
+    @obj.setter
+    def obj(self, value):
+        if value is None:
+            self._objRef = _noObj
+            return
+        try:
+            self._objRef = weakref.ref(value)
+        except TypeError:  # not weakly referenceable
+            self._objRef = lambda: value
 
     @property
     def pos(self):

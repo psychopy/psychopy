@@ -23,6 +23,7 @@ from arabic_reshaper import ArabicReshaper
 import psychopy.tools.opengl as gl
 from bidi import algorithm as bidi
 import re
+import weakref
 
 from ..aperture import Aperture
 from ..basevisual import (
@@ -1775,6 +1776,23 @@ class Caret(ColorMixin):
         self.units = textbox.units
         self.colorSpace = colorSpace
         self.color = color
+
+    @property
+    def textbox(self):
+        """Textbox which caret corresponds to, or `None` if it has since been
+        deleted.
+
+        Only a weak reference to it is kept, as the textbox holds its caret and
+        a strong reference back would form a reference cycle, keeping deleted
+        textboxes (and their textures etc.) alive until the cyclic garbage
+        collector happens to run, see
+        https://github.com/psychopy/psychopy/issues/7459.
+        """
+        return self._textboxRef()
+
+    @textbox.setter
+    def textbox(self, value):
+        self._textboxRef = weakref.ref(value)
 
     def _drawLegacyGL(self):
         """Legacy drawing code for older GL versions.

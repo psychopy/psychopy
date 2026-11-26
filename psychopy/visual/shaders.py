@@ -228,8 +228,11 @@ some shaders differ for FBO use if they're performing any signed math.
 """
 
 if USE_LEGACY_GL:
+    # copies the FBO to the back buffer, out of gamut pixels are either clipped
+    # or shown as noise depending on `uClipOutOfGamut`
     fragFBOtoFrame = """
         uniform sampler2D texture;
+        uniform bool uClipOutOfGamut;
 
         float rand(vec2 seed){
             return fract(sin(dot(seed.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -238,8 +241,11 @@ if USE_LEGACY_GL:
         void main() {
             vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
             gl_FragColor.rgb = textureFrag.rgb;
+            if (uClipOutOfGamut) {
+                gl_FragColor.rgb = clamp(gl_FragColor.rgb, 0.0, 1.0);
+            }
             //! if too high then show red/black noise
-            if ( gl_FragColor.r>1.0 || gl_FragColor.g>1.0 || gl_FragColor.b>1.0) {
+            else if ( gl_FragColor.r>1.0 || gl_FragColor.g>1.0 || gl_FragColor.b>1.0) {
                 gl_FragColor.rgb = vec3 (rand(gl_TexCoord[0].st), 0, 0);
             }
             //! if too low then show red/black noise
@@ -724,9 +730,11 @@ else:
             fragColor.rgb = (textureFrag.rgb * 2.0 - 1.0) * (uColor.rgb * 2.0 - 1.0) / 2.0;
         }
         """
-    # copies the FBO to the back buffer
+    # copies the FBO to the back buffer, out of gamut pixels are either clipped
+    # or shown as noise depending on `uClipOutOfGamut`
     fragFBOtoFrame = """
         uniform sampler2D uTexture;
+        uniform bool uClipOutOfGamut;
         VARYING vec4 vTexCoord0;
 
         float rand(vec2 seed){
@@ -736,8 +744,11 @@ else:
         void main() {
             vec4 textureFrag = texture2D(uTexture, vTexCoord0.st);
             fragColor.rgb = textureFrag.rgb;
+            if (uClipOutOfGamut) {
+                fragColor.rgb = clamp(fragColor.rgb, 0.0, 1.0);
+            }
             //! if too high then show red/black noise
-            if ( fragColor.r>1.0 || fragColor.g>1.0 || fragColor.b>1.0) {
+            else if ( fragColor.r>1.0 || fragColor.g>1.0 || fragColor.b>1.0) {
                 fragColor.rgb = vec3 (rand(vTexCoord0.st), 0, 0);
             }
             //! if too low then show red/black noise

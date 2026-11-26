@@ -258,6 +258,12 @@ class PygletBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
+        # with an FBO, stimuli are drawn to a multisampled FBO instead (see
+        # `Window._setupFrameBuffer()`), so the back buffer it's copied to
+        # doesn't need to be, and not every display offers one which is
+        if win.useFBO:
+            sample_buffers = aa_samples = 0
+
         skip_screen_warn = False
         if platform.system() == 'Linux':
             NoSuchDisplayException = pyglet_display.xlib.NoSuchDisplayException

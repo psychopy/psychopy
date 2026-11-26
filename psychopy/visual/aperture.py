@@ -97,9 +97,16 @@ class Aperture(MinimalStim, ContainerMixin):
                 win=self.win, image=self.__dict__['filename'],
                 pos=pos, size=size, autoLog=False, units=self.units)
         else:
+            # With a multisampled FBO, the mask is drawn multisampled so that
+            # every sample of the stencil buffer gets its own value. Drawn
+            # without, the OpenGL spec says each covered pixel should have all
+            # of its samples written, but some drivers (e.g. Mesa's llvmpipe)
+            # write only one, so stimuli inside the aperture come out dimmed.
+            # This also anti-aliases the edges of the aperture.
+            msaaFBO = getattr(self.win, '_frameBufferResolve', None) is not None
             self._shape = ShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
-                interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
+                interpolate=msaaFBO, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
