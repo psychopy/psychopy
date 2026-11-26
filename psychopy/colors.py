@@ -228,11 +228,10 @@ for key, val in colorSpaces.items():
         # Add any spaces which are str to a list
         strSpaces.append(key)
     elif isinstance(val, (list, tuple)):
-        # Add any spaces which are integer-only to a list
-        for cell in val:
-            if isinstance(cell, infrange):
-                if cell.step == 1 and key not in integerSpaces:
-                    integerSpaces.append(key)
+        # Add any spaces where all color channels are integer-only to a list
+        rgbCells = [cell for cell in val[:3] if isinstance(cell, infrange)]
+        if rgbCells and all(cell.step == 1 for cell in rgbCells) and key not in integerSpaces:
+            integerSpaces.append(key)
 
 alphaSpaces = [
     'rgba', 'rgba1', 'rgba255', 'hsva', 'srgba', 'lmsa', 'dkla', 'dklaCart']
@@ -292,23 +291,25 @@ class Color:
         # Handle everything as an array
         if not isinstance(color, np.ndarray):
             color = np.array(color)
+        was1d = color.ndim == 1
         if color.ndim <= 1:
             color = np.reshape(color, (1, -1))
         # If data type is string, check against named and hex as these override other spaces
         if color.dtype.char == 'U':
+            hexRe = colorSpaces['hex']
+            if was1d and color.shape[1] > 1:
+                cleaned1d = [str(c).replace("\"", "").replace("'", "") for c in color[0]]
+                if all(c.lower() in colorNames for c in cleaned1d) or all(bool(hexRe.fullmatch(c)) for c in cleaned1d):
+                    color = np.array(cleaned1d).reshape((-1, 1))
             # Remove superfluous quotes
-            for i in range((len(color[:, 0]))):
+            for i in range(len(color[:, 0])):
                 color[i, 0] = color[i, 0].replace("\"", "").replace("'", "")
+            col0 = [str(c) for c in color[:, 0]]
             # If colors are all named, override color space
-            namedMatch = np.vectorize(
-                lambda col: bool(colorSpaces['named'].fullmatch(
-                    str(col).lower())))  # match regex against named
-            if all(namedMatch(color[:, 0])):
+            if all(c.lower() in colorNames for c in col0):
                 space = 'named'
             # If colors are all hex, override color space
-            hexMatch = np.vectorize(
-                lambda col: bool(colorSpaces['hex'].fullmatch(str(col))))  # match regex against hex
-            if all(hexMatch(color[:, 0])):
+            if all(bool(hexRe.fullmatch(c)) for c in col0):
                 space = 'hex'
             # If color is a string but does not match any string space, it's invalid
             if space not in strSpaces:
@@ -330,8 +331,8 @@ class Color:
         if space in strSpaces and ncols > 1:
             # If color should only be one value, extract second row
             self.alpha = color[:, 1]
-            color = color[:, 0]
-            ncols -= 1
+            color = color[:, :1]
+            ncols = 1
         elif space not in strSpaces and ncols > 3:
             # If color should be triplet, extract fourth row
             self.alpha = color[:, 3]
@@ -340,7 +341,7 @@ class Color:
         elif space not in strSpaces and ncols == 2:
             # If color should be triplet but is single value, extract second row
             self.alpha = color[:, 1]
-            color = color[:, 1]
+            color = color[:, :1]
             ncols -= 1
         # If single value given in place of triplet, duplicate it
         if space not in strSpaces and ncols == 1:
@@ -348,7 +349,7 @@ class Color:
             # ncols = 3  # unused?
         # If values should be integers, round them
         if space in integerSpaces:
-            color.round()
+            color = color.round()
         # Finally, if array is only 1 long, remove extraneous dimension
         if color.shape[0] == 1:
             color = color[0]
@@ -558,7 +559,9 @@ class Color:
         elif isinstance(value, np.ndarray):
             # treat 1x1 arrays as a float
             if value.size == 1:
-                value = float(value[0])
+                value = float(value.flat[0])
+            else:
+                value = value.astype(float)
         else:
             try:
                 value = float(value)  # If coercible to float, do so
@@ -728,30 +731,15 @@ class Color:
         if not self.valid:
             return
         if 'hex' not in self._cache:
-            # Map rgb255 values to corresponding letters in hex
-            hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
             # Handle arrays
             if self.rgb255.ndim > 1:
-                rgb255 = self.rgb255
-                # Iterate through rows of rgb255
-                self._cache['hex'] = np.array([])
-                for row in rgb255:
-                    rowHex = '#'
-                    # Convert each value to hex and append
-                    for val in row:
-                        dig = hex(int(val)).strip('0x')
-                        rowHex += dig if len(dig) == 2 else '0' + dig
-                    # Append full hex value to new array
-                    self._cache['hex'] = np.append(
-                        self._cache['hex'], [rowHex], 0)
+                self._cache['hex'] = np.array([
+                    f"#{int(row[0]):02x}{int(row[1]):02x}{int(row[2]):02x}"
+                    for row in self.rgb255
+                ])
             else:
-                rowHex = '#'
-                # Convert each value to hex and append
-                for val in self.rgb255:
-                    dig = hex(int(val))[2:]
-                    rowHex += dig if len(dig) == 2 else '0' + dig
-                # Append full hex value to new array
-                self._cache['hex'] = rowHex
+                r, g, b = (int(val) for val in self.rgb255)
+                self._cache['hex'] = f"#{r:02x}{g:02x}{b:02x}"
         return self._cache['hex']
 
     @hex.setter
@@ -763,29 +751,15 @@ class Color:
             return
         if len(color) > 1:
             # Handle arrays
-            rgb255 = np.array([""])
+            rows = []
             for row in color:
-                if isinstance(row, np.ndarray):
-                    row = row[0]
-                row = row.strip('#')
-                # Convert string to list of strings
-                hexList = [row[:2], row[2:4], row[4:6]]
-                # Convert strings to int
-                hexInt = [int(val, 16) for val in hexList]
-                # Convert to array and append
-                rgb255 = np.append(rgb255, np.array(hexInt), 0)
+                s = str(np.reshape(row, ())).lstrip('#')
+                rows.append([int(s[:2], 16), int(s[2:4], 16), int(s[4:6], 16)])
+            rgb255 = np.array(rows)
         else:
             # Handle single values
-            if isinstance(color, np.ndarray):
-                # Strip away any extraneous numpy layers
-                color = color[(0,)*color.ndim]
-            color = color.strip('#')
-            # Convert string to list of strings
-            hexList = [color[:2], color[2:4], color[4:6]]
-            # Convert strings to int
-            hexInt = [int(val, 16) for val in hexList]
-            # Convert to array
-            rgb255 = np.array(hexInt)
+            s = str(np.reshape(color, ())).lstrip('#')
+            rgb255 = np.array([int(s[:2], 16), int(s[2:4], 16), int(s[4:6], 16)])
         # Set rgb255 accordingly
         self.rgb255 = rgb255
         # Clear outdated values from cache
@@ -838,17 +812,27 @@ class Color:
         # Retrieve named colour
         if len(color) > 1:
             # Handle arrays
+            rgbs = []
+            transparentMask = []
             for row in color:
-                row = str(np.reshape(row, ())) # Enforce str
-                if str(row).lower() in colorNames:
-                    self.rgb = colorNames[str(row).lower()]
-                if row.lower() == 'none':
-                    self.alpha = 0
+                name = str(np.reshape(row, ())).lower()
+                val = colorNames[name]
+                rgbs.append(val[:3])
+                transparentMask.append(name in ('none', 'transparent'))
+            self.rgb = np.array(rgbs, dtype=float)
+            if any(transparentMask):
+                baseAlpha = self.alpha
+                if isinstance(baseAlpha, np.ndarray) and baseAlpha.size == len(color):
+                    alphas = baseAlpha.astype(float).copy()
+                else:
+                    alphas = np.full(len(color), float(baseAlpha))
+                alphas[np.array(transparentMask)] = 0.0
+                self.alpha = alphas
         else:
             color = str(np.reshape(color, ())) # Enforce str
             if color.lower() in colorNames:
                 self.rgb = colorNames[str(color).lower()]
-            if color.lower() == 'none':
+            if color.lower() in ('none', 'transparent'):
                 self.alpha = 0
         # Clear outdated values from cache
         self._cache = {'named': color}
@@ -868,7 +852,7 @@ class Color:
     def hsv(self):
         """Color value expressed as an HSV triplet.
         """
-        if 'hsva' not in self._cache:
+        if 'hsv' not in self._cache:
             self._cache['hsv'] = ct.rgb2hsv(self.rgb)
         return self._cache['hsv']
 
@@ -953,7 +937,7 @@ class Color:
         """Color value expressed as a cartesian DKL triplet, with alpha value
         (0 to 1).
         """
-        return self.dklCart
+        return self._appendAlpha('dklCart')
 
     @dklaCart.setter
     def dklaCart(self, color):
@@ -971,11 +955,15 @@ class Color:
     def dklCart(self, color):
         # Validate
         color, space = self.validate(color=color, space='dklCart')
-        if space != 'dkl':
+        if space != 'dklCart':
             setattr(self, space, color)
             return
-        # Apply via rgba255
-        self.rgb = ct.dklCart2rgb(color, self.conematrix)
+        # Apply via dklCart2rgb
+        if color.ndim == 1:
+            lum, lm, s = np.asarray(color[0]), np.asarray(color[1]), np.asarray(color[2])
+        else:
+            lum, lm, s = color[..., 0], color[..., 1], color[..., 2]
+        self.rgb = ct.dklCart2rgb(lum, lm, s, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'dklCart': color}
         self._renderCache = {}
