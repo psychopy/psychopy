@@ -1005,7 +1005,7 @@ class Experiment:
 
         self._doc.parse(filename)
 
-        self.applyXML(self._doc)
+        self.applyXML(self._doc, filename=filename)
 
     def applyXML(self, data, filename="untitled.psyexp"):
         # parse to an ElementTree, if given a string
