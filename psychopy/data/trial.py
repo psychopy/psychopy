@@ -1463,7 +1463,7 @@ class TrialHandler2(_BaseTrialHandler, FileSaveMixin):
         if n > 0:
             n = n * -1
         # return None if requesting before first trial
-        if self.upcomingTrials is None or abs(n) > len(self.upcomingTrials):
+        if not self.elapsedTrials or abs(n) > len(self.elapsedTrials):
             return None
         # return the corresponding trial from elapsed trials array
         return self.elapsedTrials[n]

@@ -251,7 +251,8 @@ class TestTrialHandler2:
         assert t == t_loaded
 
     def test_json_dump_to_file(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.temp_dir, suffix='.json')
+        os.close(fd)
         t = data.TrialHandler2(self.conditions, nReps=5)
         t.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
@@ -260,7 +261,8 @@ class TestTrialHandler2:
         t.addData('foo', 'bar')
         t.__next__()
 
-        _, path = mkstemp(dir=self.temp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.temp_dir, suffix='.json')
+        os.close(fd)
         t.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
         t.origin = ''
 

@@ -10,19 +10,28 @@ from psychopy.tools.fileerrortools import handleFileCollision
 
 
 def test_handleFileCollision_overwrite():
-    _, path = mkstemp()
-    handled_path = handleFileCollision(fileName=path,
-                                       fileCollisionMethod='overwrite')
+    fd, path = mkstemp()
+    os.close(fd)
+    try:
+        handled_path = handleFileCollision(fileName=path,
+                                           fileCollisionMethod='overwrite')
 
-    assert path == handled_path
+        assert path == handled_path
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def test_handleFileCollision_fail():
-    _, path = mkstemp()
-
-    with pytest.raises(IOError):
-        handleFileCollision(fileName=path,
-                            fileCollisionMethod='fail')
+    fd, path = mkstemp()
+    os.close(fd)
+    try:
+        with pytest.raises(IOError):
+            handleFileCollision(fileName=path,
+                                fileCollisionMethod='fail')
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def test_handleFileCollision_rename_file_does_not_exist():
@@ -81,11 +90,15 @@ def test_handleFileCollision_rename_multiple_files_exists():
 
 
 def test_handleFileCollision_invalid_method():
-    _, path = mkstemp()
-
-    with pytest.raises(ValueError):
-        handleFileCollision(fileName=path,
-                            fileCollisionMethod='invalid_value')
+    fd, path = mkstemp()
+    os.close(fd)
+    try:
+        with pytest.raises(ValueError):
+            handleFileCollision(fileName=path,
+                                fileCollisionMethod='invalid_value')
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
 
 
 if __name__ == '__main__':

@@ -205,7 +205,8 @@ class TestTrialHandlerOutput():
             self.trials.addData('rand', randResp)
 
     def test_output_no_filename_no_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
+        fd, path = mkstemp(dir=self.temp_dir)
+        os.close(fd)
         delim = None
         self.trials.saveAsWideText(path, delim=delim)
 
@@ -224,7 +225,8 @@ class TestTrialHandlerOutput():
         assert header == expected_header
 
     def test_output_no_filename_comma_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
+        fd, path = mkstemp(dir=self.temp_dir)
+        os.close(fd)
         delim = ','
         self.trials.saveAsWideText(path, delim=delim)
 
@@ -242,7 +244,8 @@ class TestTrialHandlerOutput():
         assert header == expected_header
 
     def test_output_no_filename_tab_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
+        fd, path = mkstemp(dir=self.temp_dir)
+        os.close(fd)
         delim = '\t'
         self.trials.saveAsWideText(path, delim=delim)
 
@@ -260,7 +263,8 @@ class TestTrialHandlerOutput():
         assert header == expected_header
 
     def test_output_no_filename_semicolon_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
+        fd, path = mkstemp(dir=self.temp_dir)
+        os.close(fd)
         delim = ';'
         self.trials.saveAsWideText(path, delim=delim)
 
@@ -278,7 +282,8 @@ class TestTrialHandlerOutput():
         assert header == expected_header
 
     def test_output_csv_suffix_no_delim(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.csv')
+        fd, path = mkstemp(dir=self.temp_dir, suffix='.csv')
+        os.close(fd)
         delim = None
         self.trials.saveAsWideText(path, delim=delim)
 
@@ -294,7 +299,8 @@ class TestTrialHandlerOutput():
         assert header == expected_header
 
     def test_output_arbitrary_suffix_no_delim(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.xyz')
+        fd, path = mkstemp(dir=self.temp_dir, suffix='.xyz')
+        os.close(fd)
         delim = None
         self.trials.saveAsWideText(path, delim=delim)
 
@@ -313,7 +319,8 @@ class TestTrialHandlerOutput():
         assert header == expected_header
 
     def test_output_csv_and_semicolon(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.csv')
+        fd, path = mkstemp(dir=self.temp_dir, suffix='.csv')
+        os.close(fd)
         delim = ';'
         self.trials.saveAsWideText(path, delim=delim)
 

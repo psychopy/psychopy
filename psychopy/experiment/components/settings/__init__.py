@@ -1583,7 +1583,7 @@ class SettingsComponent:
                 "# Setup iohub keyboard\n"
                 "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
                 "# Setup iohub experiment\n"
-                "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName)\n"
+                "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName if thisExp is not None else '')\n"
             )
             buff.writeIndentedLines(code % inits)
 
@@ -1608,7 +1608,7 @@ class SettingsComponent:
             code = (
                 f"'experiment_code': %(expName)s,\n"  # noqa: F541
                 "'session_code': ioSession,\n"
-                "'datastore_name': thisExp.dataFileName,\n"
+                "'datastore_name': thisExp.dataFileName if thisExp is not None else '',\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)

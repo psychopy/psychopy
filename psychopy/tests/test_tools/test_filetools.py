@@ -75,8 +75,10 @@ class TestFromFile():
         shutil.rmtree(self.tmp_dir)
 
     def test_json_with_encoding(self):
-        _, path_0 = mkstemp(dir=self.tmp_dir, suffix='.json')
-        _, path_1 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd_0, path_0 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd_0)
+        fd_1, path_1 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd_1)
         encoding_0 = 'utf-8'
         encoding_1 = 'utf-8-sig'
 
@@ -91,7 +93,8 @@ class TestFromFile():
         assert test_data == fromFile(path_1, encoding=encoding_1)
 
     def test_pickle(self):
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
+        os.close(fd)
 
         test_data = 'Test'
         with open(path, 'wb') as f:

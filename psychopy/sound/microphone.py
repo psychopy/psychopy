@@ -139,7 +139,7 @@ class Microphone:
         logAttrib(
             obj=self, log=True, attrib="maxRecordingSize", value=value
         )
-    setMaxRecordingSize.__doc__ == maxRecordingSize.__doc__
+    setMaxRecordingSize.__doc__ = maxRecordingSize.__doc__
 
     # the Builder param has a different name
     setMaxSize = setMaxRecordingSize
@@ -185,14 +185,6 @@ class Microphone:
     @property
     def recBufferSecs(self):
         return self.device.recBufferSecs
-
-    @property
-    def maxRecordingSize(self):
-        return self.device.maxRecordingSize
-
-    @maxRecordingSize.setter
-    def maxRecordingSize(self, value):
-        self.device.maxRecordingSize = value
 
     @property
     def latencyBias(self):
