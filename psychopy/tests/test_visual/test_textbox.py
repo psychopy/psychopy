@@ -520,6 +520,36 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
         # Cleanup
         del textbox2
 
+    def test_not_kept_alive(self):
+        """
+        Check that textboxes aren't kept alive by their own caret, which would
+        leave them (and their textures etc.) waiting for the cyclic garbage
+        collector rather than freed as soon as they're dropped
+        (psychopy/psychopy#7459)
+        """
+        import gc
+        import weakref
+
+        gc.collect()
+        gc.disable()  # so only reference counting can free them
+        try:
+            for editable in (False, True):
+                textbox = TextBox2(self.win, "Hello", "Noto Sans",
+                                   size=(0.5, 0.5), units='height',
+                                   letterHeight=0.1, editable=editable)
+                if editable:
+                    # the caret is drawn only for the current editable
+                    self.win.currentEditable = textbox
+                textbox.draw()
+                assert textbox.caret.textbox is textbox
+                ref = weakref.ref(textbox)
+                del textbox
+                assert ref() is None, (
+                    f"TextBox2 (editable={editable}) wasn't freed when dropped")
+        finally:
+            gc.enable()
+        self.win.flip()
+
     def test_alignment(self):
         # Define classic use cases
         exemplars = [
