@@ -1004,7 +1004,17 @@ class Experiment:
         from psychopy.data import importConditions
 
         self._doc.parse(filename)
-        root = self._doc.getroot()
+
+        self.applyXML(self._doc)
+
+    def applyXML(self, data, filename="untitled.psyexp"):
+        # parse to an ElementTree, if given a string
+        if not isinstance(data, xml.ElementTree):
+            data = xml.ElementTree(
+                xml.fromstring(data)
+            )
+        # get root element
+        root = data.getroot()
 
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
