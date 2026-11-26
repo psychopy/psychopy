@@ -1001,10 +1001,9 @@ class Experiment:
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
-        from psychopy.data import importConditions
-
+        # load file
         self._doc.parse(filename)
-
+        # apply
         self.applyXML(self._doc, filename=filename)
 
     def applyXML(self, data, filename="untitled.psyexp"):
@@ -1232,6 +1231,7 @@ class Experiment:
                     conditionsFile = None
                 if conditionsFile:
                     try:
+                        from psychopy.data import importConditions
                         trialList, fieldNames = importConditions(
                             conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
