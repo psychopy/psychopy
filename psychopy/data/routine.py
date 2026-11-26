@@ -35,11 +35,11 @@ class Routine:
     def __init__(
         self,
         name,
-        components=[],
+        components=None,
         maxDuration=None,
     ):
         self.name = name
-        self.components = components
+        self.components = list(components) if components is not None else []
         self.maxDuration = maxDuration
         # start all times as None
         self.tStart = None

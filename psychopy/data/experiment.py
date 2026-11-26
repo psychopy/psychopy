@@ -303,10 +303,11 @@ class ExperimentHandler(_ComparisonMixin, FileSaveMixin):
         entry = self.thisEntry
         if row is not None:
             # if row exceeds size of entries, warn and abort
-            if row > len(self.entries):
+            if row >= len(self.entries) or row < -len(self.entries):
                 logging.error(_translate(
                     "Cannot add data to row {} as there are only {} entries"
                 ).format(row, len(self.entries)))
+                return
             # get entry from row
             entry = self.entries[row]
         entry[name] = value

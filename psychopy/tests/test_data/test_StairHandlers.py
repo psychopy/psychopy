@@ -1,5 +1,6 @@
 """Test StairHandler"""
 
+import os
 import numpy as np
 import shutil
 import json_tricks
@@ -436,7 +437,8 @@ class TestStairHandler(_BaseTestStairHandler):
 
     def test_json_dump_to_file(self):
         s = data.StairHandler(5)
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd)
         s.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
@@ -445,7 +447,8 @@ class TestStairHandler(_BaseTestStairHandler):
         s.addOtherData('foo', 'bar')
         s.__next__()
 
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd)
         s.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
         s.origin = ''
 
@@ -620,7 +623,8 @@ class TestQuestHandler(_BaseTestStairHandler):
         assert q == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd)
         q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
                               nTrials=20, minVal=0, maxVal=1)
         q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
@@ -632,7 +636,8 @@ class TestQuestHandler(_BaseTestStairHandler):
         q.addOtherData('foo', 'bar')
         q.__next__()
 
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd)
         q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
         q.origin = ''
 
@@ -771,7 +776,8 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd)
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -787,7 +793,8 @@ class TestPsiHandler(_BaseTestStairHandler):
         p.addOtherData('foo', 'bar')
         p.__next__()
 
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        fd, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        os.close(fd)
         p.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
         p.origin = ''
 
@@ -1036,7 +1043,8 @@ def test_QuestPlusHandler_saveAsJson():
 
     # Test dump to file.
     temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
-    _, path = mkstemp(dir=temp_dir, suffix='.json')
+    fd, path = mkstemp(dir=temp_dir, suffix='.json')
+    os.close(fd)
     q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     # Test loading from file.

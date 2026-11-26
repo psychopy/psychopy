@@ -35,7 +35,7 @@ def Try(t, x):
             ename = h.name
         ename = ename or 'e'
         if t.has_child(x.handlers, ast.Raise) and t.has_child(x.finalbody, ast.Return):
-            t.warn(x, node, "The re-raise in 'except' body may be masked by the "
+            t.warn(x, "The re-raise in 'except' body may be masked by the "
                    "return in 'final' body.")
             # see
             # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling#The_finally_block
