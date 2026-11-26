@@ -97,6 +97,7 @@ class SettingsComponent:
             ),
             backgroundImg="", backgroundFit="none",
             blendMode='avg',
+            outOfGamut='noise',
             sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
             saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
             saveWideCSVFile=True, savePsydatFile=True,
@@ -245,6 +246,7 @@ class SettingsComponent:
             "Units",
             "color",
             "blendMode",
+            "outOfGamut",
             "colorSpace",
             "backgroundImg",
             "backgroundFit",
@@ -333,6 +335,25 @@ class SettingsComponent:
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_translate("Blend mode"), categ='Screen')
+        self.params['outOfGamut'] = Param(
+            outOfGamut, valType='str', inputType="choice",
+            allowedVals=['noise', 'clip'],
+            allowedLabels=[_translate("noise"), _translate("clip")],
+            hint=_translate(
+                "How should pixels whose color is outside the range the screen "
+                "can display be shown? 'noise' shows them as red (too high) or "
+                "blue (too low) noise, so that it's obvious when stimuli can't "
+                "be displayed as specified, 'clip' shows them as the nearest "
+                "color which can be displayed. Not used online."
+            ),
+            label=_translate("Out of gamut colors"), categ='Screen')
+        self.depends.append({
+            'dependsOn': "blendMode",  # if...
+            'condition': "=='nofbo'",  # matches...
+            'param': "outOfGamut",  # then...
+            'true': "hide",  # should...
+            'false': "show",  # otherwise...
+        })
         self.params['measureFrameRate'] = Param(
             measureFrameRate, valType="bool", inputType="bool", categ="Screen",
             label=_translate("Measure frame rate?"),
@@ -1756,6 +1777,7 @@ class SettingsComponent:
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
             "        blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
+            "        outOfGamut=%(outOfGamut)s,\n"
             "        units=%(Units)s,\n"
             "        checkTiming=False  # we're going to do this ourselves in a moment\n"
             "    )\n"
@@ -1765,6 +1787,7 @@ class SettingsComponent:
             "    win.colorSpace = %(colorSpace)s\n"
             "    win.backgroundImage = %(backgroundImg)s\n"
             "    win.backgroundFit = %(backgroundFit)s\n"
+            "    win.outOfGamut = %(outOfGamut)s\n"
             "    win.units = %(Units)s\n"
         )
         buff.writeIndentedLines(code % params)
