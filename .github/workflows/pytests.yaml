@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-15-intel, ubuntu-24.04]
-        python-version: ['3.11', '3.12', '3.14']
+        python-version: ['3.11', '3.12', '3.14', '3.15']
 
     steps:
     - uses: actions/checkout@v7
@@ -65,7 +65,7 @@ jobs:
 
     - name: Pre-Install
       run: |
-        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj
+        uv pip install wheel six attrdict3
         if [ "${{ runner.os }}" == "macOS" ]
         then
           # for pocketsphinx we need this adapted package:

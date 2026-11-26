@@ -17,7 +17,6 @@ import psychopy  # for currently loaded version
 from psychopy import prefs
 # the following will all have been imported so import here and reload later
 from psychopy import logging, tools, web, constants, preferences, __version__
-from packaging.version import Version
 from importlib import reload
 from packaging.version import Version, InvalidVersion, VERSION_PATTERN
 
@@ -39,12 +38,13 @@ versionMap = OrderedDict({
     Version('3.14'): (Version("2027.1.0"), None)
 })
 # fill out intermediate versions
-for n in range(13):
+for n in range(16):
     v = Version(f"3.{n}")
     av = max([key for key in versionMap if key <= v])
     versionMap[v] = versionMap[av]
 # parse current psychopy version
 psychopyVersion = Version(__version__)
+_versionPatternRe = re.compile(r"^\s*" + VERSION_PATTERN + r"\s*$", re.VERBOSE | re.IGNORECASE)
 
 
 def parseVersionSafely(version, fallback=Version("0")):
@@ -72,30 +72,31 @@ def parseVersionSafely(version, fallback=Version("0")):
     """
     # if version is already parsed, return unchanged
     if isinstance(version, Version):
-        return Version
+        return version
     # if not a string, make into a string
     if not isinstance(version, str):
         version = str(version)
     # if version is already valid, do normal parsing
-    if re.fullmatch(version, VERSION_PATTERN):
+    if _versionPatternRe.fullmatch(version):
         return Version(version)
     # if dev number, use value up to it
-    version = version[:version.find("dev")]
+    if "dev" in version:
+        version = version[:version.find("dev")]
     # try stripping all but numbers, dots and keywords
-    version = "".join(
+    cleaned = "".join(
         re.findall(r"\d|\.|a|b|c|rc|alpha|beta|pre|preview|post|rev|r|dev", version)
     )
-    if re.fullmatch(version, VERSION_PATTERN):
-        return Version(version)
+    if _versionPatternRe.fullmatch(cleaned):
+        return Version(cleaned)
     # try stripping all but numbers and dots
-    version = "".join(
+    cleaned = "".join(
         re.findall(r"\d|\.", version)
     )
-    if re.fullmatch(version, VERSION_PATTERN):
-        return Version(version)
+    if _versionPatternRe.fullmatch(cleaned):
+        return Version(cleaned)
     # finally, try just in case and return fallback on fail
     try:
-        return Version(version)
+        return Version(cleaned)
     except InvalidVersion:
         return fallback
 
@@ -306,7 +307,14 @@ def ensurePythonCompatibility(requestedVersion):
         [str(sys.version_info.major), str(sys.version_info.minor)]
     ))
     # get first and last PsychoPy version to support it
-    firstVersion, lastVersion = versionMap.get(pyVersion, (None, None))
+    if pyVersion in versionMap:
+        firstVersion, lastVersion = versionMap[pyVersion]
+    else:
+        lowerKeys = [key for key in versionMap if key <= pyVersion]
+        if lowerKeys:
+            firstVersion, lastVersion = versionMap[max(lowerKeys)]
+        else:
+            firstVersion, lastVersion = (None, None)
     # check supported
     _msg = _translate(
         "Requested PsychoPy version {requested} does not support installed Python version {py}. The {mode} version "
