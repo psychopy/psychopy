@@ -55,17 +55,52 @@ EXTENSIONS = [
     'GL_NV_mesh_shader',
 ]
 
-# OpenGL names used as attributes of a module (e.g. `GL.glClear`)
-_ATTRIBUTE_NAME = re.compile(r'\b(?:GL|gl|pygletgl)\.(gl[A-Z]\w*|GL_\w+)\b')
+# PsychoPy's OpenGL modules, as dotted names
+_MODULE = r'psychopy\.tools\.(?:pygletgl|opengl)'
+# names a module bound with `import psychopy.tools.opengl as GL`
+_IMPORT_AS = re.compile(r'\bimport\s+(' + _MODULE + r')(?:\s+as\s+(\w+))?')
+# names bound with `from psychopy.tools import opengl as GL`
+_IMPORT_MODULE_FROM = re.compile(
+    r'from\s+psychopy\.tools\s+import\s+(\([^)]*\)|[^\n]*)')
+_MODULE_ALIAS = re.compile(r'\b(pygletgl|opengl)\b(?:\s+as\s+(\w+))?')
 # OpenGL names imported from PsychoPy's OpenGL modules
 _IMPORT_FROM = re.compile(
-    r'from\s+psychopy\.tools\.(?:pygletgl|opengl)\s+import\s+'
-    r'(\([^)]*\)|[^\n]*)')
+    r'from\s+' + _MODULE + r'\s+import\s+(\([^)]*\)|[^\n]*)')
 _NAME = re.compile(r'\b(gl[A-Z]\w*|GL_\w+)\b')
+
+
+def _moduleAliases(text):
+    """Names PsychoPy's OpenGL modules are bound to in the source `text` (e.g.
+    `{'GL'}` for `import psychopy.tools.opengl as GL`)."""
+    aliases = set()
+    for module, alias in _IMPORT_AS.findall(text):
+        aliases.add(alias or module)
+    for imported in _IMPORT_MODULE_FROM.findall(text):
+        for module, alias in _MODULE_ALIAS.findall(imported):
+            aliases.add(alias or module)
+
+    return aliases
+
+
+def _attributeNames(text, aliases):
+    """OpenGL names used in `text` as attributes of the modules bound to
+    `aliases` (e.g. `GL.glClear`). Attributes of other objects with the same
+    names (e.g. `self.gl.glClear`) aren't included."""
+    if not aliases:
+        return set()
+    pattern = (r'(?<![\w.])(?:' + '|'.join(
+        re.escape(alias) for alias in sorted(aliases)) +
+        r')\.(gl[A-Z]\w*|GL_\w+)\b')
+
+    return set(re.findall(pattern, text))
 
 
 def findUsedNames(root):
     """Find the OpenGL function and constant names PsychoPy uses.
+
+    Only names used from PsychoPy's OpenGL modules are found, so modules with
+    their own OpenGL loader (e.g. `psychopy.visual.web._glext`, which runs
+    without PsychoPy) don't need theirs bound.
 
     Parameters
     ----------
@@ -87,7 +122,7 @@ def findUsedNames(root):
         text = '\n'.join(
             line for line in text.splitlines()
             if not line.lstrip().startswith('#'))
-        names.update(_ATTRIBUTE_NAME.findall(text))
+        names.update(_attributeNames(text, _moduleAliases(text)))
         for imported in _IMPORT_FROM.findall(text):
             names.update(_NAME.findall(imported))
 
@@ -216,6 +251,17 @@ def generate(registry, commit):
         for name in commands + enums:
             required.setdefault(name, extName)
 
+    # other extensions with each function, which the loader also accepts as
+    # support for it (e.g. `GL_ARB_framebuffer_object` for
+    # `glGenFramebuffers()`, which OpenGL 2.1 contexts can have)
+    providers = {}
+    for ext in extensions.values():
+        if not {'gl', 'glcore'} & set(ext.get('supported').split('|')):
+            continue
+        for name in _requirements(ext)[0]:
+            if name in required:
+                providers.setdefault(name, set()).add(ext.get('name'))
+
     typeNames = set(runpy.run_path(str(PACKAGE / '_types.py'))['__all__'])
 
     lines = _header('OpenGL functions and constants.', commit) + [
@@ -251,9 +297,14 @@ def generate(registry, commit):
             groups[i] for i, (ptype, _) in enumerate(types[1:])
             if i in groups and ptype == 'GLbitfield')
         groupsArg = f', {groups!r}' if groups else ''
+        # the first feature or extension with the function, then the others
+        requires = [required[name]] + sorted(
+            providers.get(name, set()) - {required[name]})
+        requiresArg = (
+            repr(requires[0]) if len(requires) == 1 else repr(tuple(requires)))
         lines.append(
             f"{name} = _link('{name}', {restype}, [{argtypes}], "
-            f"'{required[name]}'{groupsArg})")
+            f"{requiresArg}{groupsArg})")
         names.add(name)
 
     lines += [

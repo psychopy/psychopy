@@ -13,18 +13,27 @@ pyglet, GLFW or SDL):
 * macOS : All functions are exported by `OpenGL.framework`.
 * Windows : `opengl32.dll` exports OpenGL 1.1, anything newer is found with
   `wglGetProcAddress()`, which needs a current context.
-* Linux : `libOpenGL` (or `libGL`) exports some functions, the rest are found
+* Linux (and other Unix systems) : `libOpenGL` (or `libGL`) exports some
+  functions, the rest are found
   with `glXGetProcAddressARB()`, or `eglGetProcAddress()` if an EGL context is
-  current (e.g. GLFW windows under Wayland).
+  current (e.g. GLFW windows under Wayland). These are dispatch stubs, which
+  exist whether or not the driver has the function (libglvnd creates one for
+  any name), so `CHECK_SUPPORT` is set.
 
 """
 
-__all__ = ['getProcAddress', 'getCurrentContext', 'loadLibrary']
+__all__ = [
+    'CHECK_SUPPORT', 'getProcAddress', 'getCurrentContext', 'loadLibrary']
 
 import ctypes
 import ctypes.util
 import os
 import sys
+
+#: Whether `getProcAddress()` can find functions the current context doesn't
+#: support (calling which does nothing), so support has to be checked from the
+#: context's version and extensions.
+CHECK_SUPPORT = sys.platform not in ('darwin', 'win32')
 
 
 def loadLibrary(*names, loader=ctypes.CDLL):

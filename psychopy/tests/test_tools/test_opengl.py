@@ -11,7 +11,7 @@ import pytest
 import psychopy
 import psychopy.tools.opengl as GL
 from psychopy.tests import skip_under_vm
-from psychopy.tools.opengl import _lib
+from psychopy.tools.opengl import _lib, _platform
 
 # the generator is only in the repository, not installed packages
 _GENERATOR = Path(psychopy.__file__).parents[1] / 'building' / \
@@ -92,13 +92,23 @@ def test_pygletParity():
 
 
 def test_noContext():
-    """Without a context, `gl_info` reports nothing (in a new process, since
-    other tests leave pyglet's shadow window current)."""
+    """Without a context, `gl_info` reports nothing, and functions newer than
+    OpenGL 1.1 can't be linked, except on macOS where they're all exported (in
+    a new process, since other tests leave pyglet's shadow window current)."""
     script = (
+        "import sys\n"
         "import psychopy.tools.opengl as GL\n"
         "assert not GL.gl_info.have_context()\n"
         "assert GL.gl_info.get_version() == (0, 0)\n"
-        "assert GL.gl_info.get_extensions() == set()\n")
+        "assert GL.gl_info.get_extensions() == set()\n"
+        "assert not GL._lib.supports(('OpenGL 3.0',))\n"
+        "if sys.platform != 'darwin':\n"
+        "    try:\n"
+        "        GL.glGenFramebuffers.link()\n"
+        "    except GL.GLException as error:\n"
+        "        assert 'no current OpenGL context' in str(error), error\n"
+        "    else:\n"
+        "        raise AssertionError('linked without a context')\n")
     subprocess.run([sys.executable, '-c', script], check=True)
 
 
@@ -282,10 +292,35 @@ def test_errorMessageMultiple():
     assert 'GL_OUT_OF_MEMORY (0x0505)' in message
 
 
-def test_missingFunction():
-    """Calling a function the driver doesn't have raises `GLException`."""
-    # not starting with 'gl', since on Linux `glXGetProcAddressARB()` returns
-    # a dispatch stub for any name that does
-    func = _lib.link('psychopyNotAFunction', None, [], 'OpenGL 9.9')
-    with pytest.raises(GL.GLException, match='psychopyNotAFunction'):
+def test_missingFunction(win):
+    """Calling a function the driver doesn't have raises `GLException`, even
+    on Linux where `glXGetProcAddressARB()` returns a dispatch stub for it."""
+    func = _lib.link('glPsychopyNotAFunction', None, [], 'OpenGL 9.9')
+    with pytest.raises(
+            GL.GLException,
+            match='glPsychopyNotAFunction.*OpenGL 9.9 is not supported'):
         func()
+
+
+@pytest.mark.skipif(
+    not _platform.CHECK_SUPPORT,
+    reason="only where functions are found whether or not they're supported")
+def test_unsupportedFunction(win):
+    """A function the driver exports isn't linked if the context doesn't
+    support it, since it's a stub doing nothing."""
+    func = _lib.link('glClear', None, [GL.GLbitfield], 'OpenGL 9.9')
+    with pytest.raises(GL.GLException, match='OpenGL 9.9 is not supported'):
+        func(GL.GL_COLOR_BUFFER_BIT)
+
+
+def test_supports(win):
+    """Support for a function's version or extensions is from the current
+    context's."""
+    major, minor = GL.gl_info.get_version()
+    extension = sorted(GL.gl_info.get_extensions())[0]
+    assert _lib.supports(('OpenGL 1.0',))
+    assert _lib.supports((f'OpenGL {major}.{minor}',))
+    assert not _lib.supports((f'OpenGL {major + 1}.0',))
+    assert _lib.supports(('OpenGL 9.9', extension))
+    assert not _lib.supports(('OpenGL 9.9', 'GL_PSYCHOPY_not_an_extension'))
+    assert not _lib.supports(('GL_PSYCHOPY_not_an_extension',))

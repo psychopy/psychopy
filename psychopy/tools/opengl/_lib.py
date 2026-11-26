@@ -20,7 +20,8 @@ the `PSYCHOPY_DEBUG_GL` (or `PYGLET_DEBUG_GL`) environment variable.
 
 __all__ = [
     'GLException', 'GLError', 'GLFunction', 'link', 'publish', 'DEBUG_GL',
-    'setErrorChecking', 'getErrorChecking', 'getErrors', 'checkErrors']
+    'setErrorChecking', 'getErrorChecking', 'getErrors', 'checkErrors',
+    'supports']
 
 import os
 
@@ -70,8 +71,10 @@ class GLFunction:
         `ctypes` return type.
     argtypes : list
         `ctypes` argument types.
-    requires : str
-        OpenGL version or extension the function is part of, for errors.
+    requires : str or tuple of str
+        OpenGL version (e.g. `'OpenGL 3.0'`) or extensions (e.g.
+        `'GL_ARB_framebuffer_object'`) the function is part of, any of which
+        the context must support. Stored as a tuple.
     enumGroups : dict or None
         Groups of constants (e.g. `'EnableCap'`) of the arguments that are
         enumerants or bit flags, by index, to name their values in errors.
@@ -84,7 +87,8 @@ class GLFunction:
         self.__name__ = name
         self.restype = restype
         self.argtypes = argtypes
-        self.requires = requires
+        self.requires = (
+            (requires,) if isinstance(requires, str) else tuple(requires))
         self.enumGroups = enumGroups
         self._func = None
 
@@ -104,21 +108,23 @@ class GLFunction:
         Raises
         ------
         GLException
-            The driver doesn't have the function, or (on Windows) no context
-            is current.
+            The driver doesn't have the function, or (on Windows, or Linux for
+            functions newer than OpenGL 1.1) no context is current.
 
         """
         if self._func is not None:
             return self._func
 
         address = _platform.getProcAddress(self.__name__)
+        if address and _platform.CHECK_SUPPORT and not supports(self.requires):
+            address = None  # a dispatch stub, which would do nothing
         if not address:
-            # not cached, since (on Windows) it may be found once a context
+            # not cached, since it may be found once a context (supporting it)
             # is current
             if _platform.getCurrentContext() is None:
                 reason = 'there is no current OpenGL context'
             else:
-                reason = f'{self.requires} is not supported'
+                reason = f"{' or '.join(self.requires)} is not supported"
             raise GLException(
                 f'`{self.__name__}` is unavailable, since {reason}.')
 
@@ -148,6 +154,55 @@ class GLFunction:
             self._func.errcheck = _makeErrcheck(self)
         else:
             del self._func.errcheck
+
+
+# versions every context has, so functions in them are supported without asking
+# the context (which calls functions in them)
+_BASE_VERSION = (1, 1)
+
+
+def _parseVersion(requirement):
+    """`(major, minor)` of an `'OpenGL major.minor'` requirement, or `None` if
+    it's an extension."""
+    if not requirement.startswith('OpenGL '):
+        return None
+    major, minor = requirement[len('OpenGL '):].split('.')
+
+    return int(major), int(minor)
+
+
+def supports(requires):
+    """Whether the current context supports any of an OpenGL version and
+    extensions.
+
+    Parameters
+    ----------
+    requires : tuple of str
+        OpenGL versions (e.g. `'OpenGL 3.0'`) and extensions (e.g.
+        `'GL_ARB_framebuffer_object'`).
+
+    Returns
+    -------
+    bool
+        `True` if the context's version is at least one of the versions, or it
+        has one of the extensions. Always `True` for OpenGL 1.0 and 1.1, and
+        otherwise `False` if no context is current.
+
+    """
+    versions = [_parseVersion(r) for r in requires]
+    if any(v is not None and v <= _BASE_VERSION for v in versions):
+        return True
+
+    info = _namespace['gl_info']
+    if not info.have_context():
+        return False
+    contextVersion = info.get_version()
+    if any(v is not None and contextVersion >= v for v in versions):
+        return True
+    extensions = {r for r, v in zip(requires, versions) if v is None}
+
+    return bool(extensions) and not extensions.isdisjoint(
+        info.get_extensions())
 
 
 def link(name, restype, argtypes, requires, enumGroups=None):
