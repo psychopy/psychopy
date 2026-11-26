@@ -363,7 +363,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             # the garbage collector may be running on any thread, so these
             # are freed on the one with the window's OpenGL context
             callOnGLThread(self.__dict__.get('win'), self._freeGLObjects)
-        except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
+        except (ImportError, ModuleNotFoundError, TypeError, GL.GLException):
             pass  # has probably been garbage-collected already
 
     def _freeGLObjects(self):

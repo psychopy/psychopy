@@ -271,7 +271,7 @@ class Window():
     project (we won't be fixing pygame-specific bugs).
 
     """
-    USE_LEGACY_GL = pygletgl.USE_LEGACY_GL
+    USE_LEGACY_GL = GL.USE_LEGACY_GL
     # framebuffer the multisampled `frameBuffer` is resolved into, if there is
     # one, see `_setupFrameBuffer()`
     _frameBufferResolve = None
