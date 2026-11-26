@@ -123,7 +123,7 @@ class AlertEntry:
         if hasattr(obj, "params") and "name" in obj.params:
             self.name = obj.params['name'].val
         elif type(obj).__name__ == "SettingsComponent":
-            self.name = "Settings"
+            self.name = "Experiment"
         else:
             self.name = None
 
