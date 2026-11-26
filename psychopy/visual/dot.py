@@ -701,18 +701,19 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._verticesBase[sd, 0] += self.speed * cosDots
             self._verticesBase[sd, 1] += self.speed * sinDots
             # update noise dots
-            self._deadDots[:] = self._deadDots + (~self._signalDots)
+            self._deadDots |= ~self._signalDots
 
+        fieldSize = self.fieldSize
         # handle boundaries of the field
         if self.fieldShape in (None, 'square', 'sqr'):
-            out0 = (np.abs(self._verticesBase[:, 0]) > .5 * self.fieldSize[0])
-            out1 = (np.abs(self._verticesBase[:, 1]) > .5 * self.fieldSize[1])
-            outofbounds = out0 + out1
+            out0 = (np.abs(self._verticesBase[:, 0]) > .5 * fieldSize[0])
+            out1 = (np.abs(self._verticesBase[:, 1]) > .5 * fieldSize[1])
+            outofbounds = out0 | out1
         else:
             # transform to a normalised circle (radius = 1 all around)
             # then to polar coords to check
             # the normalised XY position (where radius should be < 1)
-            normXY = self._verticesBase / .5 / self.fieldSize
+            normXY = self._verticesBase / (.5 * fieldSize)
             # add out-of-bounds to those that need replacing
             outofbounds = np.hypot(normXY[:, 0], normXY[:, 1]) > 1.
 
@@ -728,7 +729,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if nOutOfBounds:
             self._verticesBase[outofbounds, :] = self._newDotsXY(nOutOfBounds)
 
-        self.vertices = self._verticesBase / self.fieldSize
+        scaledVerts = self._verticesBase / fieldSize
+        if hasattr(self, "_vertices"):
+            self._vertices.base = scaledVerts
+            self._needVertexUpdate = True
+        else:
+            self.vertices = scaledVerts
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()

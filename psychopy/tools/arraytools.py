@@ -109,20 +109,11 @@ def extendArr(inArray, newSize):
     array([1, 2, 3, 0, 0])
 
     """
-    if type(inArray) in [tuple, list]:
+    if type(inArray) in (tuple, list):
         inArray = numpy.asarray(inArray)
 
     newArr = numpy.zeros(newSize, inArray.dtype)
-    # create a string to eval (see comment below)
-    indString = ''
-    for thisDim in inArray.shape:
-        indString += '0:' + str(thisDim) + ','
-    indString = indString[0:-1]  # remove the final comma
-
-    # e.g.
-    # newArr[0:4, 0:3] = inArray
-
-    exec("newArr[" + indString + "] = inArray")
+    newArr[tuple(slice(0, thisDim) for thisDim in inArray.shape)] = inArray
     return newArr
 
 
@@ -222,7 +213,7 @@ def val2array(value, withNone=True, withScalar=True, length=2):
             raise ValueError('Invalid parameter. None is not accepted as '
                              'value.')
     value = numpy.array(value, float)
-    if numpy.prod(value.shape) == 1:
+    if value.size == 1:
         if withScalar:
             # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
             return numpy.repeat(value, length)
@@ -231,7 +222,7 @@ def val2array(value, withNone=True, withScalar=True, length=2):
                    'Should be tuple/list/array of length %s')
             raise ValueError(msg % str(length))
     elif value.shape[-1] == length:
-        return numpy.array(value, float)
+        return value
     else:
         msg = 'Invalid parameter. Should be length %s but got length %s.'
         raise ValueError(msg % (str(length), str(len(value))))

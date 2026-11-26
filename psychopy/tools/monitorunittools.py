@@ -12,7 +12,7 @@ from psychopy import monitors
 from psychopy import logging
 import numpy as np
 import re
-from numpy import array, tan, pi, radians, hypot, degrees, arctan
+from numpy import tan, radians, hypot
 from math import hypot as hypot3d
 
 # Maps supported coordinate unit type names to the function that converts
@@ -47,14 +47,14 @@ _unit2PixMappings['degFlatPos'] = _degFlatPos2pix
 
 
 def _degFlat2pix(vertices, pos, win):
-    return deg2pix(array(pos) + array(vertices), win.monitor,
+    return deg2pix(np.asarray(pos) + np.asarray(vertices), win.monitor,
                    correctFlat=True)
 _unit2PixMappings['degFlat'] = _degFlat2pix
 
 
 def _norm2pix(vertices, pos, win):
-    pos = array(pos)
-    vertices = array(vertices)
+    pos = np.asarray(pos)
+    vertices = np.asarray(vertices)
     return (pos + vertices) * win.size / (2.0 * win.pixScaleFactor)
 
 _unit2PixMappings['norm'] = _norm2pix
@@ -193,7 +193,7 @@ def deg2cm(degrees, monitor, correctFlat=False):
         return cmXY
     else:
         # the size of 1 deg at screen centre
-        return np.array(degrees) * dist * 0.017455
+        return np.asarray(degrees) * (dist * 0.017455)
 
 
 def cm2pix(cm, monitor):
