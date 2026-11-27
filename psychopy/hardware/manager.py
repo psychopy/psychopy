@@ -358,8 +358,8 @@ class DeviceManager:
 
         Parameters
         ----------
-        deviceName : str
-            Key by which the device to alias is currently stored.
+        alias : str
+            Alias to remove.
 
         Returns
         -------
