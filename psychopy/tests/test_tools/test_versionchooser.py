@@ -214,7 +214,10 @@ class TestGitClone(unittest.TestCase):
                 func(path)
 
             if os.path.exists(target_dir):
-                shutil.rmtree(target_dir, onexc=_remove_readonly)
+                if sys.version_info >= (3, 12):
+                    shutil.rmtree(target_dir, onexc=_remove_readonly)
+                else:
+                    shutil.rmtree(target_dir, onerror=_remove_readonly)
 
 
 def test_versionMap_covers_supported_pythons():
