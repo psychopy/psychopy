@@ -183,7 +183,7 @@ class MouseComponent(BaseComponent):
         # Write force end code
         if self.params['forceEndRoutineOnPress'] == 'correct click':
             code += (
-            "    if corr:\n"
+            "    if _corr:\n"
             "        continueRoutine = False  # end routine on correct answer\n"
             )
         buff.writeIndentedLines(code % self.params)
