@@ -273,3 +273,22 @@ class TestLiaison:
         result = self.protocol.messages[-1]
         assert result['type'] == "hardware_error"
         assert "psychopy.hardware.exceptions.ManagedDeviceError" in result['msg']
+
+
+def test_broadcastSync_without_started_loop():
+    server = liaison.WebSocketServer()
+    protocol = TestingProtocol()
+    protocol.clear()
+    server._connections = [protocol]
+
+    # Outside any running asyncio loop (server.loop is None)
+    server.broadcastSync({"type": "ping", "val": 1})
+    assert protocol.messages[-1] == {"type": "ping", "val": 1}
+
+    # Inside a running asyncio loop (server.loop is still None)
+    async def _inside_loop():
+        server.broadcastSync({"type": "pong", "val": 2})
+        await asyncio.sleep(0)
+
+    asyncio.run(_inside_loop())
+    assert protocol.messages[-1] == {"type": "pong", "val": 2}

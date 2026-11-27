@@ -6,7 +6,10 @@
 try:
     import pyHook
 except ImportError:
-    import pyWinhook as pyHook
+    try:
+        import pyWinhook as pyHook
+    except ImportError:
+        from .. import _win32hook as pyHook
 import win32api
 import ctypes
 from unicodedata import category as ucategory

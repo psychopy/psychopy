@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.tools.versionchooser"""
 import os
+import stat
 import sys
 import unittest
 import subprocess
@@ -8,7 +9,10 @@ import shutil
 from pathlib import Path
 
 import psychopy
-from psychopy.tools.versionchooser import Version, VersionRange, useVersion, versionMap
+from psychopy.tools.versionchooser import (
+    Version, VersionRange, useVersion, versionMap,
+    parseVersionSafely, ensurePythonCompatibility,
+)
 from psychopy import prefs, experiment
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.experiment.components import polygon
@@ -205,5 +209,33 @@ class TestGitClone(unittest.TestCase):
             self.fail("Git is not installed on this system.")
         finally:
             # Clean up by removing the cloned directory if it exists
+            def _remove_readonly(func, path, _excinfo):
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+
             if os.path.exists(target_dir):
-                shutil.rmtree(target_dir)
+                if sys.version_info >= (3, 12):
+                    shutil.rmtree(target_dir, onexc=_remove_readonly)
+                else:
+                    shutil.rmtree(target_dir, onerror=_remove_readonly)
+
+
+def test_versionMap_covers_supported_pythons():
+    for minor in (11, 12, 13, 14, 15):
+        v = Version(f"3.{minor}")
+        assert v in versionMap
+        first_ver, _ = versionMap[v]
+        assert first_ver is not None
+
+
+def test_parseVersionSafely():
+    v = Version("2026.2.1")
+    assert parseVersionSafely(v) == v
+    assert parseVersionSafely("2026.2.1") == Version("2026.2.1")
+    assert parseVersionSafely("2027.1.0dev3") == Version("2027.1.0.dev3")
+    assert parseVersionSafely("2027.1.0dev3_custom") == Version("2027.1.0")
+    assert parseVersionSafely("not-a-version", fallback=Version("1.0")) == Version("1.0")
+
+
+def test_ensurePythonCompatibility_current_version():
+    ensurePythonCompatibility(psychopy.__version__)

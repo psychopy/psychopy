@@ -278,6 +278,8 @@ class WebSocketServer:
 			The port number, e.g. 8001
 		"""
 		# create future for the current loop
+		if self.loop is None:
+			self.loop = asyncio.get_running_loop()
 		loopFuture = self.loop.create_future()
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
 		if sys.platform in ("linux", "linux2"):
@@ -318,11 +320,27 @@ class WebSocketServer:
 		message : string
 			the message to be sent to all clients
 		"""
-		# run task
-		asyncio.run_coroutine_threadsafe(
-			self.broadcast(message),
-			loop=self.loop
-		)
+		loop = self.loop
+		if loop is None:
+			try:
+				loop = asyncio.get_running_loop()
+			except RuntimeError:
+				asyncio.run(self.broadcast(message))
+				return
+		if loop.is_running():
+			try:
+				running = asyncio.get_running_loop()
+			except RuntimeError:
+				running = None
+			if running is loop:
+				loop.create_task(self.broadcast(message))
+			else:
+				asyncio.run_coroutine_threadsafe(
+					self.broadcast(message),
+					loop=loop
+				)
+		else:
+			loop.run_until_complete(self.broadcast(message))
 
 	async def _connectionHandler(self, websocket):
 		"""

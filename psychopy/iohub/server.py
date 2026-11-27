@@ -782,7 +782,10 @@ class ioServer():
                 try:
                     import pyHook
                 except ImportError:
-                    import pyWinhook as pyHook
+                    try:
+                        import pyWinhook as pyHook
+                    except ImportError:
+                        from .devices import _win32hook as pyHook
                 if hookManager is None:
                     iohub.log('Creating pyHook HookManager....')
                     hookManager = self._hookManager = pyHook.HookManager()

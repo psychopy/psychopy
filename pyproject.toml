@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.11, <3.15"
+requires-python = ">=3.11, <3.16"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ]
@@ -46,11 +47,13 @@ dependencies = [
     "imageio",
     "imageio-ffmpeg",
     # for iohub
-    "pywinhook; platform_system == \"Windows\"",
-    "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
-    "zope.interface==7.2",  # needed for gevent on macos
-    "gevent",
-    "gevent==25.5.1; platform_system==\"Darwin\"",
+    "pywinhook; platform_system == \"Windows\" and python_version < \"3.12\"",
+    "zope.event==5.0; python_version < \"3.12\"",  # py2app+gevent complains about zope.event 5.1
+    "zope.event; python_version >= \"3.12\"",
+    "zope.interface==7.2; python_version < \"3.12\"",  # needed for gevent on macos
+    "zope.interface; python_version >= \"3.12\"",
+    "gevent; platform_system != \"Darwin\" or python_version >= \"3.12\"",
+    "gevent==25.5.1; platform_system == \"Darwin\" and python_version < \"3.12\"",
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
