@@ -215,13 +215,15 @@ class User(dict):
             # if self.info doesn't have the necessary keys, try to recreate it with the information 
             # from GitLab
             if 'gitlabId' not in self.info:
-                for user in self.session.gitlab.users.list(search=id):
-                    if user.username == id or user.id == id:
-                        self.info = {
-                            'gitlabId': user.id,
-                            'email': user.emails[0],
-                            'username': user.username
-                        }
+                user = self.session.gitlab.user
+                if user.username == str(id) or str(user.id) == str(id):
+                    self.info = {
+                        'gitlabId': user.id,
+                        'email': (
+                            getattr(user, 'email', None) or getattr(user, 'public_email', '')
+                        ),
+                        'username': user.username,
+                    }
             # if we *still* don't have a GitLab ID, raise an error
             assert 'gitlabId' in self.info, _translate(
                 "Could not retrieve user info for user {}, server returned:\n"
