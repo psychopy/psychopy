@@ -12,7 +12,8 @@ import ctypes
 from ctypes import wintypes
 
 LRESULT = ctypes.c_ssize_t
-HOOKPROC = ctypes.WINFUNCTYPE(LRESULT, ctypes.c_int, wintypes.WPARAM, wintypes.LPARAM)
+_FUNCTYPE = getattr(ctypes, "WINFUNCTYPE", ctypes.CFUNCTYPE)
+HOOKPROC = _FUNCTYPE(LRESULT, ctypes.c_int, wintypes.WPARAM, wintypes.LPARAM)
 
 
 class _KBDLLHOOKSTRUCT(ctypes.Structure):
