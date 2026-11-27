@@ -85,6 +85,8 @@ class _baseFunctionFit():
         if params is None:
             # so the user can set params for this particular inv
             params = self.params
+        global _chance
+        _chance = self.expectedMin
         xx = self._inverse(yy, *params)
         return xx
 
