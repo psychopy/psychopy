@@ -88,6 +88,18 @@ def test_logistic():
     if PLOTTING:
         plotFit(modResps, thresh, 'Logistic (thresh=%.2f, params=%s)' %(fit.inverse(0.75), fit.params))
 
+
+def test_inverse_uses_own_expectedMin():
+    resp_2afc = cumNorm(contrasts, sd=sd, thresh=thresh, chance=0.5)
+    resp_4afc = cumNorm(contrasts, sd=sd, thresh=thresh, chance=0.25)
+    for fitCls in (data.FitWeibull, data.FitLogistic, data.FitCumNormal):
+        fit_2afc = fitCls(contrasts, resp_2afc, display=0, expectedMin=0.5)
+        inv_before = fit_2afc.inverse(0.75)
+        fit_4afc = fitCls(contrasts, resp_4afc, display=0, expectedMin=0.25)
+        assert numpy.isclose(fit_2afc.inverse(0.75), inv_before)
+        assert numpy.isclose(fit_2afc.eval(fit_2afc.inverse(0.75)), 0.75)
+        assert numpy.isclose(fit_4afc.eval(fit_4afc.inverse(0.625)), 0.625)
+
 def teardown_method():
     if PLOTTING:
         pylab.show()
